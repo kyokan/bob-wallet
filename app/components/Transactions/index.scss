@@ -1,0 +1,110 @@
+@import "../../variables.scss";
+
+.transaction {
+  display: grid;
+  grid-template-columns: 1.5rem 4rem auto auto;
+  grid-column-gap: 1.25rem;
+
+  &--pending {
+    opacity: 0.5;
+  }
+
+  &__container {
+    background-color: rgba($black, 0.03);
+    padding: 1.125rem 1.5rem;
+    border-radius: 0.5rem;
+  }
+
+  &__container + &__container {
+    margin-top: 0.625rem; // 10px
+  }
+
+  &__tx-icon {
+    @extend %col-nowrap;
+
+    justify-self: center;
+    align-self: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+
+    &--pending {
+      background-image: url("/img/pending-black.svg");
+      height: 1.5rem;
+      width: 1.3rem;
+      opacity: 0.3;
+    }
+
+    &--received {
+      background-image: url("/img/arrow-down-circle-green.svg");
+      height: 1.5rem;
+      width: 1.5rem;
+    }
+
+    &--sent {
+      background-image: url("/img/arrow-up-circle-red.svg");
+      height: 1.5rem;
+      width: 1.5rem;
+    }
+  }
+
+  &__tx-timestamp {
+    @extend %col-nowrap;
+  }
+
+  &__tx-description {
+    @extend %col-nowrap;
+
+    flex: 1 1 auto;
+    text-overflow: ellipsis;
+    white-space: no-wrap;
+    overflow: hidden;
+  }
+
+  &__tx-value {
+    @extend %col-nowrap;
+
+    flex: 0 0 auto;
+    text-overflow: ellipsis;
+    white-space: no-wrap;
+    overflow: hidden;
+    text-align: end;
+  }
+
+  &__title {
+    @extend %h3;
+
+    color: $black;
+    font-weight: 500;
+    margin-bottom: 0.1rem;
+
+    &--pending {
+      color: rgba($black, 0.3);
+    }
+  }
+
+  &__subtitle {
+    @extend %h5;
+
+    color: rgba($black, 0.3);
+  }
+
+  &__number {
+    @extend %h3;
+
+    color: $black;
+    font-weight: 500;
+    margin-bottom: 0.1rem;
+
+    &--positive {
+      color: #0bca6b;
+    }
+
+    &--negative {
+      color: #f53923;
+    }
+
+    &--pending {
+      color: rgba($black, 0.3);
+    }
+  }
+}

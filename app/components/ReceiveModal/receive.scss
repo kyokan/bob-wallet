@@ -1,0 +1,145 @@
+@import "../../variables";
+
+.receive {
+  max-width:22rem;
+  position: relative;
+  padding: 1.25rem 2rem;
+
+  &__container {
+    @extend %col-nowrap;
+  }
+
+  &__close-btn {
+    position: absolute;
+    top: 1.25rem;
+    right: 2rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 1.2rem;
+  }
+
+  &__header {
+    @extend %col-nowrap;
+
+    margin-bottom: 1rem;
+  }
+
+  &__title {
+    text-align: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: .75rem;
+    letter-spacing: -1px;
+  }
+
+  &__warning-title {
+    text-align: center;
+    font-weight: 500;
+    font-size: 1rem;
+  }
+
+  &__warning-subtitle {
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 500;
+    color: rgba($black, .4);
+    padding: 1rem 2rem 2rem;
+  }
+
+  &__show-address-btn {
+    @extend %btn-primary;
+
+    width: 100%;
+  }
+
+  &__content {
+    @extend %col-nowrap;
+
+    align-items: center;
+  }
+
+  &__qr-code {
+    @extend %col-nowrap;
+
+    width: 9.5rem;
+    height: 9.5rem;
+    box-sizing: border-box;
+    margin-bottom: 2rem;
+    border-radius: .25rem;
+    padding: .75rem;
+    box-shadow: 0 2px 4px 2px rgba($black, 0.2);
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__address-display {
+    @extend %row-nowrap;
+
+    box-shadow: 0 0 0 1.25px rgba($black, .1);
+    width: 100%;
+    align-items: center;
+    padding: .5rem .5rem .5rem 1rem;
+  }
+
+  &__address {
+    flex: 1 0 auto;
+    font-size: .7rem;
+    font-family: "Roboto Mono", monospace;
+    font-weight: 500;
+  }
+
+  &__copy-btn {
+    @extend %row-nowrap;
+
+    position: relative;
+    align-items: center;
+    border: none;
+    outline: none;
+    font-size: .7rem;
+    padding: .25rem .75rem;
+    background-color: rgba($azure-blue, .15);
+    color: $azure-blue;
+    font-weight: 700;
+    border-radius: .5rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 200ms ease-in-out;
+
+    &:hover {
+      background-color: rgba($azure-blue, .13);
+
+      &::after {
+        content: 'Copy to Clipboard';
+        position: absolute;
+        top: -1.8rem;
+        left: -2rem;
+        width: 7rem;
+        background-color: rgba($black, 0.8);
+        color: $white;
+        padding: .3rem .4rem;
+        border-radius: .25rem;
+      }
+
+      &::before {
+        content: ' ';
+        top: -.375rem;
+        left: 1.45rem;
+        position: absolute;
+        border: .25rem solid transparent;
+        border-top-color: rgba($black, .8);
+      }
+    }
+
+    &:active {
+      background-color: rgba($azure-blue, .17);
+    }
+
+    &--copied {
+      &:hover {
+        &::after {
+          content: 'Copied!';
+        }
+      }
+    }
+  }
+}
