@@ -1,4 +1,4 @@
-@import '../../variables';
+@import '../../variables.scss';
 
 .funding-options {
   @extend %col-nowrap;
@@ -37,14 +37,14 @@
     @extend %col-nowrap;
     align-items: center;
     flex: 1 1 auto;
-    margin-top: .75rem;
+    margin-top: 0.75rem;
 
     &__title {
       @extend %h1;
       text-align: center;
       font-weight: 800;
       font-style: italic;
-      padding: 0 3.5rem .5rem;
+      padding: 0 3.5rem 0.5rem;
       line-height: 1.5rem;
     }
 
@@ -60,7 +60,7 @@
 
     &__primary-btn,
     &__secondary-btn {
-      margin-bottom: .5rem;
+      margin-bottom: 0.5rem;
     }
 
     &__primary-btn {
@@ -72,4 +72,3 @@
     }
   }
 }
-

@@ -1,14 +1,14 @@
-@import "../../variables";
+@import '../../variables';
 
 .checkbox {
   position: relative;
   height: 1.75rem;
   width: 1.75rem;
-  border-radius: .1875rem;
+  border-radius: 0.1875rem;
   cursor: pointer;
   background-repeat: no-repeat;
   background-size: cover;
-  background-image: url('/img/unchecked-square-gray.svg');
+  background-image: url('../../assets/images/unchecked-square-gray.svg');
   transition: opacity 400ms ease-in-out;
   opacity: 1;
 
@@ -25,6 +25,6 @@
   }
 
   &--checked {
-    background-image: url('/img/check-square-blue.svg');
+    background-image: url('../../assets/images/check-square-blue.svg');
   }
 }

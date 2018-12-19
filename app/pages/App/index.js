@@ -3,16 +3,17 @@ import { Redirect, Route, Switch } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import SubHeader from '../../components/SubHeader';
 import FundAccessOptions from '../FundAccessOptions';
+import CreateNewAccount from '../CreateNewAccount';
 import './app.scss';
 
 export default class Home extends Component {
-  static propTypes = {
-    isLocked: PropTypes.bool.isRequired,
-    initialized: PropTypes.bool.isRequired,
-  };
+  // static propTypes = {
+  //   isLocked: PropTypes.bool.isRequired,
+  //   initialized: PropTypes.bool.isRequired
+  // };
 
   state = {
-    isLoading: false,
+    isLoading: false
   };
 
   render() {
@@ -20,9 +21,7 @@ export default class Home extends Component {
       <div className="app">
         <SubHeader />
         <div className="app__content">{this.renderRoutes()}</div>
-        <div className="app__footer">
-          {/*<Footer />*/}
-        </div>
+        <div className="app__footer">{/*<Footer />*/}</div>
       </div>
     );
   }
@@ -47,10 +46,10 @@ export default class Home extends Component {
           {/*path="/existing-options"*/}
           {/*render={this.renderWrapper(ExistingAccountOptions)}*/}
           {/*/>*/}
-          {/*<Route*/}
-          {/*path="/new-wallet"*/}
-          {/*render={this.renderWrapper(CreateNewAccount)}*/}
-          {/*/>*/}
+          <Route
+            path="/new-wallet"
+            render={this.renderWrapper(CreateNewAccount)}
+          />
           {/*<Route*/}
           {/*path="/import-seed"*/}
           {/*render={this.renderWrapper(ImportSeedFlow)}*/}
