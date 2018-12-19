@@ -1,0 +1,41 @@
+@import '../../variables.scss';
+
+.status {
+  &__step-number {
+    flex: 0 0 auto;
+    width: 1.2rem;
+    text-align: right;
+    margin-left: 1rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: $manatee-gray;
+  }
+}
+
+.status_bar_container {
+  width: 100%;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status_bar {
+  display: flex;
+  flex-flow: row nowrap;
+  height: 0.1875rem;
+  flex: 1 0 auto;
+}
+
+.status_bar_element {
+  background-color: #e2e2e2;
+  flex: 1 0 auto;
+
+  &__active {
+    background-color: $azure-blue;
+  }
+}
+
+.status_bar_text {
+  color: #9e9ea2;
+}

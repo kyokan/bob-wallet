@@ -1,0 +1,72 @@
+@import '../../variables';
+
+.header {
+  background-color: $azure-blue;
+  color: $white;
+  padding: .5rem 1rem;
+  font-size: .9rem;
+
+  &__content {
+    @extend %row-nowrap;
+
+    flex: 1 0 auto;
+    align-items: center;
+    max-width: 42.5rem;
+    margin: 0 auto;
+  }
+
+  &__title {
+    flex: 1 0 auto;
+    font-weight: 600;
+  }
+
+  &__block-height {
+    @extend %row-nowrap;
+
+    flex: 0 0 auto;
+  }
+
+  &__block-height-label {
+    color: rgba($white, .5);
+    font-weight: 600;
+    font-size: .8rem;
+  }
+
+  &__block-height-text {
+    font-weight: 600;
+    margin-left: .5rem;
+  }
+
+  &__status {
+    flex: 0 0 auto;
+    @extend %row-nowrap;
+
+    position: relative;
+    font-size: .75rem;
+    padding: .6rem 1rem;
+    border-radius: 2rem;
+    background-color: rgba($white, .15);
+    margin-left: 1rem;
+    font-weight: 600;
+    align-items: center;
+
+    &::before {
+      @extend %col-nowrap;
+
+      flex: 0 0 auto;
+      align-items: center;
+      justify-content: center;
+      content: '\2713';
+      width: .8rem;
+      height: .8rem;
+      line-height: .75rem;
+      font-size: .75rem;
+      background-color: $white;
+      border-radius: 1rem;
+      color: mix($white, $azure-blue, 25);
+      margin-right: .5rem;
+    }
+
+  }
+}
+
