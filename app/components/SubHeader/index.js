@@ -87,8 +87,7 @@ class SubHeader extends Component {
 
   render() {
     const name = c('subheader', {
-      // temp hack until redux state is set up
-      // 'subheader--empty': !this.props.initialized || this.props.isLocked
+      'subheader--empty': !this.props.initialized || this.props.isLocked
     });
 
     return (
@@ -103,10 +102,9 @@ class SubHeader extends Component {
   }
 
   renderNav() {
-    // temp hack until redux state is set up
-    // if (!this.props.initialized || this.props.isLocked) {
-    //   return null;
-    // }
+    if (!this.props.initialized || this.props.isLocked) {
+      return null;
+    }
 
     const {
       history: { push },
