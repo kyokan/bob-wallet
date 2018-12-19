@@ -2,36 +2,37 @@ import React, { Component } from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import classNames from 'classnames';
-import actions from '../../../ducks/extension';
-import './importwarning.scss';
 import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import Checkbox from '../../../components/Checkbox';
-import WizardHeader from '../../../components/WizardHeader';
+// import actions from '../../../ducks/extension';
+import Checkbox from '../../components/Checkbox';
+import WizardHeader from '../../components/WizardHeader';
+import './importwarning.scss';
 
-@connect(
-  state => ({}),
-  dispatch => ({
-    actions: bindActionCreators(
-      {
-        setView: actions.setView,
-      },
-      dispatch,
-    ),
-  }),
-)
+// @connect(
+//   state => ({})
+//   dispatch => ({
+//     actions: bindActionCreators(
+//       {
+//         setView: actions.setView
+//       },
+//       dispatch
+//     )
+//   })
+// )
+
 @withRouter
-export default class ImportSeedWarning extends Component {
+class ImportSeedWarning extends Component {
   static propTypes = {
     currentStep: PropTypes.number.isRequired,
     totalSteps: PropTypes.number.isRequired,
     onNext: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,
-    onBack: PropTypes.func.isRequired,
+    onBack: PropTypes.func.isRequired
   };
 
   state = {
-    agreementConfirmed: false,
+    agreementConfirmed: false
   };
 
   handleAgreementClick = () => {
@@ -87,3 +88,5 @@ export default class ImportSeedWarning extends Component {
     );
   }
 }
+
+export default ImportSeedWarning;

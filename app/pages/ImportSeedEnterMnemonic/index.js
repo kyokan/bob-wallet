@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import WizardHeader from '../../../components/WizardHeader';
+import WizardHeader from '../../components/WizardHeader';
 import './importenter.scss';
 
 export default class ImportSeedEnterMnemonic extends Component {
@@ -9,7 +9,7 @@ export default class ImportSeedEnterMnemonic extends Component {
     super(props);
 
     this.state = {
-      mnemonic: '',
+      mnemonic: ''
     };
   }
 
@@ -18,12 +18,12 @@ export default class ImportSeedEnterMnemonic extends Component {
     totalSteps: PropTypes.number.isRequired,
     onBack: PropTypes.func.isRequired,
     onNext: PropTypes.func.isRequired,
-    onCancel: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired
   };
 
   onChangeMnemonic = e => {
     this.setState({
-      mnemonic: e.target.value,
+      mnemonic: e.target.value
     });
   };
 
@@ -60,7 +60,7 @@ export default class ImportSeedEnterMnemonic extends Component {
         <div
           className={classNames([
             'create-password__footer',
-            'create-password__footer__removed-padding-top',
+            'create-password__footer__removed-padding-top'
           ])}
         >
           <button

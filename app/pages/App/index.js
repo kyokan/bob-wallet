@@ -4,6 +4,9 @@ import PropTypes from 'prop-types';
 import SubHeader from '../../components/SubHeader';
 import FundAccessOptions from '../FundAccessOptions';
 import CreateNewAccount from '../CreateNewAccount';
+import ExistingAccountOptions from '../ExistingAccountOptions';
+import ImportSeedFlow from '../ImportSeedFlow';
+import ConnectLedgerFlow from '../ConnectLedgerFlow';
 import './app.scss';
 
 export default class Home extends Component {
@@ -42,22 +45,22 @@ export default class Home extends Component {
             path="/funding-options"
             render={this.renderWrapper(FundAccessOptions)}
           />
-          {/*<Route*/}
-          {/*path="/existing-options"*/}
-          {/*render={this.renderWrapper(ExistingAccountOptions)}*/}
-          {/*/>*/}
+          <Route
+            path="/existing-options"
+            render={this.renderWrapper(ExistingAccountOptions)}
+          />
           <Route
             path="/new-wallet"
             render={this.renderWrapper(CreateNewAccount)}
           />
-          {/*<Route*/}
-          {/*path="/import-seed"*/}
-          {/*render={this.renderWrapper(ImportSeedFlow)}*/}
-          {/*/>*/}
-          {/*<Route*/}
-          {/*path="/connect-ledger"*/}
-          {/*render={this.renderWrapper(ConnectLedgerFlow)}*/}
-          {/*/>*/}
+          <Route
+            path="/import-seed"
+            render={this.renderWrapper(ImportSeedFlow)}
+          />
+          <Route
+            path="/connect-ledger"
+            render={this.renderWrapper(ConnectLedgerFlow)}
+          />
           {this.renderDefault()}
         </Switch>
       );
