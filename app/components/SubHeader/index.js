@@ -6,26 +6,25 @@ import { connect } from 'react-redux';
 import SendModal from '../SendModal';
 import ReceiveModal from '../ReceiveModal';
 import './subheader.scss';
-import * as domainActions from '../../ducks/domains';
 
 @withRouter
 @connect(
   state => ({
-    initialized: state.wallet.initialized,
-    isLocked: state.wallet.isLocked,
+    // initialized: state.wallet.initialized,
+    // isLocked: state.wallet.isLocked,
   }),
   dispatch => ({
-    getNameInfo: tld => dispatch(domainActions.getNameInfo(tld)),
+    // getNameInfo: tld => dispatch(domainActions.getNameInfo(tld)),
   })
 )
-export default class SubHeader extends Component {
+class SubHeader extends Component {
   static propTypes = {
     history: PropTypes.shape({
       push: PropTypes.func.isRequired,
-    }),
+    }).isRequired,
     location: PropTypes.shape({
       pathname: PropTypes.string.isRequired,
-    }),
+    }).isRequired,
     getNameInfo: PropTypes.func.isRequired,
     isLocked: PropTypes.bool.isRequired,
     initialized: PropTypes.bool.isRequired,
@@ -42,7 +41,7 @@ export default class SubHeader extends Component {
 
 
   handleInputValueChange = (e) => {
-    const value = e.target.value;
+    const { value } = e.target;
     this.setState(() => ({
       inputValue: value
     }));
@@ -168,4 +167,6 @@ export default class SubHeader extends Component {
       </React.Fragment>
     );
   }
-};
+}
+
+export default SubHeader;

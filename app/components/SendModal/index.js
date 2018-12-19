@@ -4,7 +4,7 @@ import { BigNumber as bn } from 'bignumber.js';
 import { connect } from 'react-redux';
 import Modal from '../Modal';
 import './send.scss';
-import * as walletActions from '../../ducks/wallet';
+// import * as walletActions from '../../ducks/wallet';
 
 const SLOW = 'Slow';
 const STANDARD = 'Standard';
@@ -18,13 +18,13 @@ const GAS_TO_ESTIMATES = {
 
 @connect(
   state => ({
-    address: state.wallet.address,
+    // address: state.wallet.address,
   }),
   dispatch => ({
-    send: ({ address, value }) => dispatch(walletActions.send({ address, value })),
+    // send: ({ address, value }) => dispatch(walletActions.send({ address, value })),
   }),
 )
-export default class SendModal extends Component {
+class SendModal extends Component {
   static propTypes = {
     onClose: PropTypes.func.isRequired,
     send: PropTypes.func.isRequired,
@@ -239,3 +239,5 @@ export default class SendModal extends Component {
     );
   }
 }
+
+export default SendModal;

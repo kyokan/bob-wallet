@@ -113,7 +113,6 @@
     "boilerplate",
     "react",
     "redux",
-    "flow",
     "sass",
     "webpack",
     "hot",
