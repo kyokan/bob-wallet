@@ -8,15 +8,15 @@ import ReceiveModal from '../ReceiveModal';
 import './subheader.scss';
 
 @withRouter
-@connect(
-  state => ({
-    // initialized: state.wallet.initialized,
-    // isLocked: state.wallet.isLocked,
-  }),
-  dispatch => ({
-    // getNameInfo: tld => dispatch(domainActions.getNameInfo(tld)),
-  })
-)
+// @connect(
+//   state => ({
+//     initialized: state.wallet.initialized,
+//     isLocked: state.wallet.isLocked,
+//   }),
+//   dispatch => ({
+//     getNameInfo: tld => dispatch(domainActions.getNameInfo(tld)),
+//   })
+// )
 class SubHeader extends Component {
   // static propTypes = {
   //   history: PropTypes.shape({
@@ -87,7 +87,8 @@ class SubHeader extends Component {
 
   render() {
     const name = c('subheader', {
-      'subheader--empty': !this.props.initialized || this.props.isLocked
+      // temp hack until redux state is set up
+      // 'subheader--empty': !this.props.initialized || this.props.isLocked
     });
 
     return (
@@ -102,9 +103,10 @@ class SubHeader extends Component {
   }
 
   renderNav() {
-    if (!this.props.initialized || this.props.isLocked) {
-      return null;
-    }
+    // temp hack until redux state is set up
+    // if (!this.props.initialized || this.props.isLocked) {
+    //   return null;
+    // }
 
     const {
       history: { push },
