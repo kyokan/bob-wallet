@@ -146,7 +146,7 @@ If you want to import global css libraries (like `bootstrap`), you can just writ
 If you want to use Sass in your app, you only need to import `.sass` files instead of `.css` once:
 
 ```js
-import './app.global.scss';
+import app.scss;
 ```
 
 ## Static Type Checking

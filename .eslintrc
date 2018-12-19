@@ -32,8 +32,7 @@
           "type-annotations",
           "static-methods",
           "lifecycle",
-          "everything-else",
-          "render"
+          "everything-else"
         ]
       }
     ],
@@ -42,7 +41,9 @@
       "error",
       { "extensions": [".js", ".jsx"] }
     ],
-    "react/prefer-stateless-function": "off"
+    "react/prefer-stateless-function": "off",
+    "react/destructuring-assignment": "off",
+    "spaced-comment": "off"
   },
   "plugins": ["import", "promise", "compat", "react"],
   "settings": {
