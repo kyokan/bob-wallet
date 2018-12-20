@@ -5,8 +5,8 @@ import classNames from 'classnames';
 import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 // import actions from '../../../ducks/extension';
-import Checkbox from '../../components/Checkbox';
-import WizardHeader from '../../components/WizardHeader';
+import Checkbox from '../../../components/Checkbox/index';
+import WizardHeader from '../../../components/WizardHeader/index';
 import './importwarning.scss';
 
 // @connect(

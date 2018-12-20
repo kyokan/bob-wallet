@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
-import ConnectLedgerStep from './ConnectLedgerStep';
+import ConnectLedgerStep from './ConnectLedgerStep/index';
 import './connect.scss';
 
 // wizard header

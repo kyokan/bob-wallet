@@ -2,8 +2,8 @@ import React from 'react';
 import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
-import Terms from '../Terms';
-import ConnectLedger from '../ConnectLedger';
+import Terms from '../Terms/index';
+import ConnectLedger from '../ConnectLedger/index';
 
 // wizard header
 const TERM_OF_USE = 'TERM_OF_USE';

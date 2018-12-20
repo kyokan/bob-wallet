@@ -3,10 +3,10 @@ import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 
-import ImportSeedWarning from '../ImportSeedWarning';
-import CreatePassword from '../CreatePassword';
-import ImportSeedEnterMnemonic from '../ImportSeedEnterMnemonic';
-import Terms from '../Terms';
+import ImportSeedWarning from '../ImportSeedWarning/index';
+import CreatePassword from '../CreatePassword/index';
+import ImportSeedEnterMnemonic from '../ImportSeedEnterMnemonic/index';
+import Terms from '../Terms/index';
 // import * as walletActions from '../../../ducks/wallet';
 // import client from '../../../utils/client';
 

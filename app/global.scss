@@ -35,3 +35,21 @@ input[type='number']::-webkit-outer-spin-button {
   z-index: 100;
   -webkit-tap-highlight-color:  rgba(255, 255, 255, 0);
 }
+
+// Extends
+i.arrow {
+  background-repeat: no-repeat;
+  background-size: cover;
+  height: 1.25rem;
+  width: 1.25rem;
+  display: inline-block;
+
+  &.right {
+    transform: rotate(-45deg);
+  }
+
+  &.left {
+    background-image: url('./assets/images/arrow-back-blue.svg');
+  }
+}
+

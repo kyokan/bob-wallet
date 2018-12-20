@@ -1,4 +1,4 @@
-@import '../../variables.scss';
+@import '../../../variables';
 
 .connect {
   &__support-cta {
@@ -54,7 +54,7 @@
   background-color: #e2e2e2;
   &__active {
     background-color: $success-green;
-    background-image: url(../../assets/images/check-icon-white.svg);
+    background-image: url(../../../assets/images/check-icon-white.svg);
     background-size: cover;
     background-position: center;
   }

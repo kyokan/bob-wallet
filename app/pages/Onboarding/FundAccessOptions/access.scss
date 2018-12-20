@@ -1,4 +1,4 @@
-@import '../../variables.scss';
+@import '../../../variables';
 
 .funding-options {
   @extend %col-nowrap;
@@ -21,13 +21,13 @@
     }
 
     &__alice {
-      background-image: url(../../assets/images/alice.png);
+      background-image: url(../../../assets/images/alice.png);
       height: 153px;
       width: 91px;
     }
 
     &__the-cat {
-      background-image: url(../../assets/images/the-cat.png);
+      background-image: url(../../../assets/images/the-cat.png);
       height: 85px;
       width: 58px;
     }
