@@ -24,42 +24,43 @@
     @extend %h1;
     font-weight: 600;
     font-size: 1rem;
+    padding-top: 1rem;
   }
 
   &__warning-icon {
     background-image: url('../../assets/images/alert-triangle.svg');
     background-size: cover;
     background-position: center;
-    height: 3rem;
-    width: 3rem;
+    height: 4rem;
+    width: 4rem;
     margin-bottom: 2rem;
+    opacity: 0.9;
   }
 
   &__warning-subtitle {
     @extend %h4;
     font-weight: 400;
     color: rgba($black, 0.8);
-    padding: 1rem 2rem 2rem;
+    padding: 1rem 0;
   }
 
   &__show-address-btn {
     @extend %btn-primary;
+    margin: 3rem 0;
     width: 300px;
   }
 
   &__content {
     @extend %col-nowrap;
-
     align-items: center;
   }
 
   &__qr-code {
     @extend %col-nowrap;
-
     width: 9.5rem;
     height: 9.5rem;
     box-sizing: border-box;
-    margin-bottom: 2rem;
+    margin-bottom: 4rem;
     border-radius: 0.25rem;
     padding: 0.75rem;
     box-shadow: 0 2px 4px 2px rgba($black, 0.2);
@@ -69,9 +70,9 @@
 
   &__address-display {
     @extend %row-nowrap;
-
     box-shadow: 0 0 0 1.25px rgba($black, 0.1);
-    width: 100%;
+    border-radius: 8px;
+    width: 350px;
     align-items: center;
     padding: 0.5rem 0.5rem 0.5rem 1rem;
   }
