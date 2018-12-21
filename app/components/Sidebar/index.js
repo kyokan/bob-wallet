@@ -71,7 +71,7 @@ class Sidebar extends Component {
             })}
             onClick={() => push('/account')}
           >
-            Home
+            Portfolio
           </a>
           <a
             className={c('sidebar__action', {
@@ -95,7 +95,7 @@ class Sidebar extends Component {
             })}
             onClick={() => push('/get_coins')}
           >
-            Get Coins
+            Name Manager
           </a>
           <a
             className={c('sidebar__action', {
@@ -103,7 +103,7 @@ class Sidebar extends Component {
             })}
             onClick={() => push('/settings')}
           >
-            Settings
+            GooSig Airdrop
           </a>
         </div>
         <div className="sidebar__section">Top-Level Domains</div>

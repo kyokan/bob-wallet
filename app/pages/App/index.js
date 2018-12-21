@@ -3,6 +3,7 @@ import { Redirect, Route, Switch } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import SubHeader from '../../components/SubHeader';
 import Sidebar from '../../components/Sidebar';
+import Topbar from '../../components/Topbar';
 import FundAccessOptions from '../Onboarding/FundAccessOptions';
 import CreateNewAccount from '../Onboarding/CreateNewAccount';
 import ExistingAccountOptions from '../Onboarding/ExistingAccountOptions';
@@ -29,8 +30,13 @@ export default class Home extends Component {
     return (
       <div className="app">
         {/* <SubHeader /> */}
-        <Sidebar />
-        <div className="app__content">{this.renderRoutes()}</div>
+        <div className="app__sidebar-wrapper">
+          <Sidebar />
+        </div>
+        <div className="app__main-wrapper">
+          <Topbar title="Portfolio" />
+          <div className="app__content">{this.renderRoutes()}</div>
+        </div>
         {/* <div className="app__footer">
           <Footer />
         </div> */}
