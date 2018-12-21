@@ -47,7 +47,9 @@ class Account extends Component {
     const { domains } = this.props;
 
     return !domains.length
-      ? this.renderEmpty('You have no domains.js')
+      ? this.renderEmpty(
+          'No domains yet. Get your first domain here. (add CTA button)'
+        )
       : domains.map(() => <div>I am a domain</div>);
   }
 
@@ -99,26 +101,38 @@ class Account extends Component {
 
     return (
       <div className="account">
-        <div className="account__address">
-          <div>Default Account</div>
-          <div className="account__info-icon" />
-        </div>
         <div className="account__header">
-          <div className="account__balance-wrapper">
-            <div className="account__balance-wrapper__amount">{`HNS ${+balance.toFixed(
-              5
-            )}`}</div>
+          <div className="account__header-section">
+            <div className="account__address">
+              <div>Total Balance</div>
+            </div>
+            <div className="account__balance-wrapper">
+              <div className="account__balance-wrapper__amount">{`HNS ${balance.toFixed(
+                5
+              )}`}</div>
+            </div>
+          </div>
+          <div className="account__header-section">
+            <div className="account__address">
+              <div>Unlocked Balance</div>
+              <div className="account__info-icon" />
+            </div>
+            <div className="account__balance-wrapper">
+              <div className="account__balance-wrapper__amount">{`HNS ${balance.toFixed(
+                5
+              )}`}</div>
+            </div>
           </div>
         </div>
         <div className="account__content">
-          <div className="account__transactions">
-            <div className="account__panel-title">Your Recent Transactions</div>
-            {this.renderTransactions()}
-          </div>
           <div className="account__domains">
             <div className="account__panel-title">Your Domains</div>
             {this.renderDomains()}
           </div>
+        </div>
+        <div className="account__transactions">
+          <div className="account__panel-title">Transaction History</div>
+          {this.renderTransactions()}
         </div>
         {this.renderAccountModal()}
       </div>

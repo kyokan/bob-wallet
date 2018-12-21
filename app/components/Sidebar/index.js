@@ -77,7 +77,7 @@ class Sidebar extends Component {
             className={c('sidebar__action', {
               'sidebar__action--selected': /send/.test(pathname)
             })}
-            onClick={() => console.log('push("/send")')}
+            onClick={() => push('/send')}
           >
             Send
           </a>
@@ -85,7 +85,7 @@ class Sidebar extends Component {
             className={c('sidebar__action', {
               'sidebar__action--selected': /receive/.test(pathname)
             })}
-            onClick={() => console.log('push("/receive")')}
+            onClick={() => push('/receive')}
           >
             Receive
           </a>

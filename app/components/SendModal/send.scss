@@ -1,12 +1,13 @@
-@import "../../variables";
+@import '../../variables';
 
 .send {
-  max-width:22rem;
+  max-width: 22rem;
   position: relative;
   padding: 1.25rem 2rem;
 
   &__container {
     @extend %col-nowrap;
+    margin-top: 3rem;
   }
 
   &__close-btn {
@@ -28,7 +29,7 @@
     text-align: center;
     font-weight: 600;
     font-size: 1.1rem;
-    margin-bottom: .75rem;
+    margin-bottom: 0.75rem;
     letter-spacing: -1px;
   }
 
@@ -42,10 +43,10 @@
   }
 
   &__label {
-    color: rgba($black, .4);
+    color: rgba($black, 0.4);
     font-weight: 700;
-    font-size: .8rem;
-    margin-bottom: .75rem;
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
   }
 
   &__input {
@@ -54,13 +55,13 @@
 
     width: 100%;
     box-sizing: border-box;
-    padding: .5rem .75rem;
+    padding: 0.5rem 0.75rem;
 
     input {
       outline: none;
       flex: 1 1 auto;
       width: 0;
-      font-size: .85rem;
+      font-size: 0.85rem;
       border: none;
     }
   }
@@ -72,37 +73,37 @@
     align-items: center;
     width: 100%;
     box-sizing: border-box;
-    padding: 0 .75rem;
+    padding: 0 0.75rem;
     height: 2.125rem;
 
     input {
-      font-size: .85rem;
+      font-size: 0.85rem;
     }
 
     &__max-btn {
-      font-size: .7rem;
-      padding: .25rem .75rem;
-      background-color: rgba($azure-blue, .15);
+      font-size: 0.7rem;
+      padding: 0.25rem 0.75rem;
+      background-color: rgba($azure-blue, 0.15);
       color: $azure-blue;
       font-weight: 700;
-      border-radius: .5rem;
+      border-radius: 0.5rem;
       cursor: pointer;
       user-select: none;
       transition: background-color 200ms ease-in-out;
-      margin-right: .5rem;
+      margin-right: 0.5rem;
 
       &:focus,
       &:hover {
-        background-color: rgba($azure-blue, .13);
+        background-color: rgba($azure-blue, 0.13);
       }
 
       &:active {
-        background-color: rgba($azure-blue, .17);
+        background-color: rgba($azure-blue, 0.17);
       }
     }
 
     &__unit {
-      font-size: .9rem;
+      font-size: 0.9rem;
       font-weight: 500;
     }
   }
@@ -110,14 +111,14 @@
   &__info-icon {
     display: inline-block;
     flex: 0 0 auto;
-    margin-left: .5rem;
+    margin-left: 0.5rem;
     color: $white;
-    background-color: rgba($black, .2);
+    background-color: rgba($black, 0.2);
     border-radius: 50%;
-    font-size: .85rem;
-    line-height: .8rem;
-    width: .8rem;
-    height: .75rem;
+    font-size: 0.85rem;
+    line-height: 0.8rem;
+    width: 0.8rem;
+    height: 0.75rem;
     cursor: pointer;
   }
 
@@ -134,11 +135,11 @@
 
       position: relative;
       flex: 1 0 auto;
-      padding: 0 .75rem;
+      padding: 0 0.75rem;
       height: 2.125rem;
       justify-content: center;
-      font-size: .85rem;
-      margin-right: .75rem;
+      font-size: 0.85rem;
+      margin-right: 0.75rem;
 
       select {
         position: absolute;
@@ -153,18 +154,18 @@
       }
 
       &:focus-within {
-        box-shadow: 0 0 0 1.25px rgba($black, .1);
+        box-shadow: 0 0 0 1.25px rgba($black, 0.1);
       }
 
       &::after {
         content: ' ';
         position: absolute;
-        top: .5rem;
-        right: .75rem;
-        height: .6rem;
-        width: .6rem;
-        border-top: 1px solid rgba($black, .4);
-        border-right: 1px solid rgba($black, .4);
+        top: 0.5rem;
+        right: 0.75rem;
+        height: 0.6rem;
+        width: 0.6rem;
+        border-top: 1px solid rgba($black, 0.4);
+        border-right: 1px solid rgba($black, 0.4);
         transform: rotate(135deg);
         z-index: 100;
       }
@@ -175,19 +176,19 @@
       @extend %box-input;
 
       flex: 1 0 auto;
-      padding: 0 .75rem;
+      padding: 0 0.75rem;
       height: 2.125rem;
       align-items: center;
-      font-size: .85rem;
-      color: rgba($black, .35);
+      font-size: 0.85rem;
+      color: rgba($black, 0.35);
       user-select: none;
-      margin-left: .75rem;
+      margin-left: 0.75rem;
     }
   }
 
   &__estimated-time {
-    color: rgba($black, .4);
-    font-size: .8rem;
+    color: rgba($black, 0.4);
+    font-size: 0.8rem;
     padding: 1rem 0;
     font-style: italic;
   }
@@ -205,19 +206,19 @@
     position: absolute;
     top: 1.5rem;
     left: 2rem;
-    font-size: .9rem;
+    font-size: 0.9rem;
     font-weight: 500;
     cursor: pointer;
 
     &::before {
       display: inline-block;
       content: ' ';
-      height: .5rem;
-      width: .5rem;
+      height: 0.5rem;
+      width: 0.5rem;
       border: solid $black;
       border-width: 2px 2px 0 0;
       transform: rotate(-135deg);
-      margin-right: .25rem;
+      margin-right: 0.25rem;
     }
 
     &::after {
@@ -230,32 +231,32 @@
     &__to,
     &__time {
       padding: 1rem 0;
-      border-bottom: 1px solid rgba($black, .05);
+      border-bottom: 1px solid rgba($black, 0.05);
     }
 
     &__label {
-      color: rgba($black, .4);
-      font-size: .8rem;
+      color: rgba($black, 0.4);
+      font-size: 0.8rem;
       font-weight: 500;
     }
 
     &__address {
-      font-family: "Roboto Mono", monospace;
-      margin-top: .5rem;
-      font-size: .8rem;
+      font-family: 'Roboto Mono', monospace;
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
     }
 
     &__time-text {
-      margin-top: .5rem;
-      font-size: .85rem;
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
     }
 
     &__error-message {
       color: $orange-red;
-      font-size: .75rem;
+      font-size: 0.75rem;
       text-align: center;
       margin-bottom: 1rem;
-      line-height: .75rem;
+      line-height: 0.75rem;
 
       &:empty {
         display: none;
@@ -265,8 +266,8 @@
     &__summary {
       @extend %col-nowrap;
 
-      background-color: rgba($azure-blue, .1);
-      border-radius: .25rem;
+      background-color: rgba($azure-blue, 0.1);
+      border-radius: 0.25rem;
       padding: 1rem;
       margin: 1rem 0;
     }
@@ -276,8 +277,8 @@
     &__summary-total {
       @extend %row-nowrap;
 
-      padding: .25rem 0;
-      font-size: .85rem;
+      padding: 0.25rem 0;
+      font-size: 0.85rem;
     }
 
     &__summary-label {
@@ -299,14 +300,14 @@
       @extend %btn-secondary;
 
       flex: 1 0 auto;
-      margin-right: .5rem;
+      margin-right: 0.5rem;
     }
 
     &__cta-btn {
       @extend %btn-primary;
 
       flex: 1 0 auto;
-      margin-left: .5rem;
+      margin-left: 0.5rem;
     }
 
     &__spinner {
@@ -322,6 +323,10 @@
 }
 
 @keyframes spin {
-  from {transform:rotate(0deg);}
-  to {transform:rotate(360deg);}
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

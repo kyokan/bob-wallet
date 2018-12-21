@@ -13,8 +13,8 @@ const FAST = 'Fast';
 const GAS_TO_ESTIMATES = {
   [SLOW]: '20-30 mins',
   [STANDARD]: '10-15 mins',
-  [FAST]: 'less than 5 mins',
-}
+  [FAST]: 'less than 5 mins'
+};
 
 @connect(
   state => ({
@@ -22,13 +22,13 @@ const GAS_TO_ESTIMATES = {
   }),
   dispatch => ({
     // send: ({ address, value }) => dispatch(walletActions.send({ address, value })),
-  }),
+  })
 )
 class SendModal extends Component {
   static propTypes = {
     onClose: PropTypes.func.isRequired,
     send: PropTypes.func.isRequired,
-    address: PropTypes.string.isRequired,
+    address: PropTypes.string.isRequired
   };
 
   state = {
@@ -37,7 +37,7 @@ class SendModal extends Component {
     isConfirming: false,
     isSending: false,
     toAddress: '',
-    amount: '',
+    amount: ''
   };
 
   updateToAddress = e => this.setState({ toAddress: e.target.value });
@@ -79,10 +79,6 @@ class SendModal extends Component {
 
     return (
       <div className="send__container">
-        <div className="send__header">
-          <div className="send__title">Send funds</div>
-          <div className="send__close-btn" onClick={onClose}>✕</div>
-        </div>
         <div className="send__content">
           <div className="send__to">
             <div className="send__label">Sending to</div>
@@ -118,7 +114,9 @@ class SendModal extends Component {
               <div className="send__network-fee__select">
                 <div>{selectedGasOption}</div>
                 <select
-                  onChange={e => this.setState({ selectedGasOption: e.target.value })}
+                  onChange={e =>
+                    this.setState({ selectedGasOption: e.target.value })
+                  }
                   value={selectedGasOption}
                 >
                   <option value={SLOW}>Slow</option>
@@ -156,7 +154,7 @@ class SendModal extends Component {
       amount,
       toAddress,
       errorMessage,
-      isSending,
+      isSending
     } = this.state;
     const { address, onClose } = this.props;
 
@@ -164,7 +162,9 @@ class SendModal extends Component {
       <div className="send__container">
         <div className="send__header">
           <div className="send__title">Confirm Send</div>
-          <div className="send__close-btn" onClick={onClose}>✕</div>
+          <div className="send__close-btn" onClick={onClose}>
+            ✕
+          </div>
           <div
             className="send__back-btn"
             onClick={() => this.setState({ isConfirming: false })}
@@ -187,7 +187,9 @@ class SendModal extends Component {
           </div>
           <div className="send__confirm__summary">
             <div className="send__confirm__summary-amount">
-              <div className="send__confirm__summary-label">Amount to send:</div>
+              <div className="send__confirm__summary-label">
+                Amount to send:
+              </div>
               <div className="send__confirm__summary-value">{`${amount} HNS`}</div>
             </div>
             <div className="send__confirm__summary-fee">
@@ -196,13 +198,13 @@ class SendModal extends Component {
             </div>
             <div className="send__confirm__summary-total">
               <div className="send__confirm__summary-label">Total:</div>
-              <div className="send__confirm__summary-value">{`${bn(amount).plus(0.00005).toString()} HNS`}</div>
+              <div className="send__confirm__summary-value">{`${bn(amount)
+                .plus(0.00005)
+                .toString()} HNS`}</div>
             </div>
           </div>
         </div>
-        <div className="send__confirm__error-message">
-          {errorMessage}
-        </div>
+        <div className="send__confirm__error-message">{errorMessage}</div>
         <div className="send__confirm__actions">
           <button
             className="send__confirm__cancel-btn"
@@ -216,9 +218,8 @@ class SendModal extends Component {
             className="send__confirm__cta-btn"
             onClick={this.send}
             disabled={isSending}
-
           >
-            { isSending ? <div className="send__confirm__spinner" /> : 'Confirm' }
+            {isSending ? <div className="send__confirm__spinner" /> : 'Confirm'}
           </button>
         </div>
       </div>
@@ -226,16 +227,14 @@ class SendModal extends Component {
   }
 
   renderContent() {
-    return this.state.isConfirming
-      ? this.renderConfirm()
-      : this.renderSend();
+    return this.state.isConfirming ? this.renderConfirm() : this.renderSend();
   }
 
   render() {
     return (
-      <Modal className="send" onClose={this.props.onClose}>
-        { this.renderContent() }
-      </Modal>
+      // <Modal className="send" onClose={this.props.onClose}>
+      this.renderContent()
+      // </Modal>
     );
   }
 }

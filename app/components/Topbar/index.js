@@ -83,7 +83,7 @@ class Topbar extends Component {
             value={this.state.inputValue}
             onChange={this.handleInputValueChange}
             onKeyDown={e => e.key === 'Enter' && this.handleSearchClick()}
-            placeholder="Lookup top-level domain"
+            placeholder="Search top-level domain"
           />
           <div
             className="topbar__search__icon"
