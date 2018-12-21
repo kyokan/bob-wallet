@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import SubHeader from '../../components/SubHeader';
+import Sidebar from '../../components/Sidebar';
 import FundAccessOptions from '../Onboarding/FundAccessOptions';
 import CreateNewAccount from '../Onboarding/CreateNewAccount';
 import ExistingAccountOptions from '../Onboarding/ExistingAccountOptions';
@@ -27,7 +28,8 @@ export default class Home extends Component {
   render() {
     return (
       <div className="app">
-        <SubHeader />
+        {/* <SubHeader /> */}
+        <Sidebar />
         <div className="app__content">{this.renderRoutes()}</div>
         {/* <div className="app__footer">
           <Footer />
@@ -81,19 +83,16 @@ export default class Home extends Component {
     }
 
     return (
-      <div>
-        Sup World
-        <Switch>
-          <Route path="/account" component={Account} />
-          <Route path="/send" component={Account} />
-          <Route path="/receive" component={Account} />
-          <Route path="/get_coins" component={GetCoins} />
-          <Route path="/settings" component={Settings} />
-          {/* Let's implement Auction once ducks are set up and we're connected to the blockchain  */}
-          {/* <Route path="/domain/:name?" component={Auction} /> */}
-          {this.renderDefault()}
-        </Switch>
-      </div>
+      <Switch>
+        <Route path="/account" component={Account} />
+        <Route path="/send" component={Account} />
+        <Route path="/receive" component={Account} />
+        <Route path="/get_coins" component={GetCoins} />
+        <Route path="/settings" component={Settings} />
+        {/* Let's implement Auction once ducks are set up and we're connected to the blockchain  */}
+        {/* <Route path="/domain/:name?" component={Auction} /> */}
+        {this.renderDefault()}
+      </Switch>
     );
   }
 
