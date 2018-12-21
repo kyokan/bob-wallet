@@ -5,7 +5,7 @@
   background-color: $athens-gray;
   padding: 0 2rem 0 1rem;
   font-size: 0.9rem;
-  box-shadow: 0 1px 0 0 rgba($black, 0.1);
+  box-shadow: 1px 0 0 0 rgba($black, 0.1);
   flex: 0 0 auto;
   width: 180px;
   height: 100%;
@@ -77,10 +77,10 @@
     }
 
     &--selected {
-      background-color: rgba($azure-blue, 0.1);
+      background-color: rgba($azure-blue, 0.15);
 
       &:hover {
-        background-color: rgba($azure-blue, 0.1);
+        background-color: rgba($azure-blue, 0.15);
       }
     }
   }
