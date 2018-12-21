@@ -8,39 +8,40 @@ import ReceiveModal from '../ReceiveModal';
 import './subheader.scss';
 
 @withRouter
-@connect(
-  state => ({
-    // initialized: state.wallet.initialized,
-    // isLocked: state.wallet.isLocked,
-  }),
-  dispatch => ({
-    // getNameInfo: tld => dispatch(domainActions.getNameInfo(tld)),
-  })
-)
+// @connect(
+//   state => ({
+//     initialized: state.wallet.initialized,
+//     isLocked: state.wallet.isLocked,
+//   }),
+//   dispatch => ({
+//     getNameInfo: tld => dispatch(domainActions.getNameInfo(tld)),
+//   })
+// )
 class SubHeader extends Component {
-  static propTypes = {
-    history: PropTypes.shape({
-      push: PropTypes.func.isRequired,
-    }).isRequired,
-    location: PropTypes.shape({
-      pathname: PropTypes.string.isRequired,
-    }).isRequired,
-    getNameInfo: PropTypes.func.isRequired,
-    isLocked: PropTypes.bool.isRequired,
-    initialized: PropTypes.bool.isRequired,
-  };
+  // static propTypes = {
+  //   history: PropTypes.shape({
+  //     push: PropTypes.func.isRequired,
+  //   }).isRequired,
+  //   location: PropTypes.shape({
+  //     pathname: PropTypes.string.isRequired,
+  //   }).isRequired,
+  //   getNameInfo: PropTypes.func.isRequired,
+  //   isLocked: PropTypes.bool.isRequired,
+  //   initialized: PropTypes.bool.isRequired,
+  // };
 
   constructor(props) {
     super(props);
-    const { location: { pathname } } = props;
+    const {
+      location: { pathname }
+    } = props;
     this.state = {
       isShowingSendModal: /send/.test(pathname),
-      isShowingReceiveModal: /receive/.test(pathname),
+      isShowingReceiveModal: /receive/.test(pathname)
     };
   }
 
-
-  handleInputValueChange = (e) => {
+  handleInputValueChange = e => {
     const { value } = e.target;
     this.setState(() => ({
       inputValue: value
@@ -58,14 +59,17 @@ class SubHeader extends Component {
     this.props.history.push(`/domain/${name}`);
   };
 
-  openSendModal = () => this.setState({ isShowingSendModal: true, isShowingReceiveModal: false });
+  openSendModal = () =>
+    this.setState({ isShowingSendModal: true, isShowingReceiveModal: false });
 
-  openReceiveModal = () => this.setState({
-    isShowingSendModal: false,
-    isShowingReceiveModal: true,
-  });
+  openReceiveModal = () =>
+    this.setState({
+      isShowingSendModal: false,
+      isShowingReceiveModal: true
+    });
 
-  closeModal = () => this.setState({ isShowingSendModal: false, isShowingReceiveModal: false });
+  closeModal = () =>
+    this.setState({ isShowingSendModal: false, isShowingReceiveModal: false });
 
   renderModal = () => {
     const { isShowingReceiveModal, isShowingSendModal } = this.state;
@@ -92,9 +96,9 @@ class SubHeader extends Component {
           <div className="subheader__logo" />
           {this.renderNav()}
         </div>
-        { this.renderModal() }
+        {this.renderModal()}
       </div>
-    )
+    );
   }
 
   renderNav() {
@@ -102,7 +106,10 @@ class SubHeader extends Component {
       return null;
     }
 
-    const { history: { push }, location: { pathname } } = this.props;
+    const {
+      history: { push },
+      location: { pathname }
+    } = this.props;
     const { isShowingSendModal, isShowingReceiveModal } = this.state;
     const isShowingModal = isShowingSendModal || isShowingReceiveModal;
 
@@ -125,7 +132,8 @@ class SubHeader extends Component {
         <div className="subheader__actions">
           <a
             className={c('subheader__action', {
-              'subheader__action--selected': !isShowingModal && /account|send|receive/.test(pathname),
+              'subheader__action--selected':
+                !isShowingModal && /account|send|receive/.test(pathname)
             })}
             onClick={() => push('/account')}
           >
@@ -133,7 +141,7 @@ class SubHeader extends Component {
           </a>
           <a
             className={c('subheader__action', {
-              'subheader__action--selected': isShowingSendModal,
+              'subheader__action--selected': isShowingSendModal
             })}
             onClick={this.openSendModal}
           >
@@ -141,7 +149,7 @@ class SubHeader extends Component {
           </a>
           <a
             className={c('subheader__action', {
-              'subheader__action--selected': isShowingReceiveModal,
+              'subheader__action--selected': isShowingReceiveModal
             })}
             onClick={this.openReceiveModal}
           >
@@ -149,7 +157,8 @@ class SubHeader extends Component {
           </a>
           <a
             className={c('subheader__action', {
-              'subheader__action--selected': !isShowingModal && /get_coins/.test(pathname),
+              'subheader__action--selected':
+                !isShowingModal && /get_coins/.test(pathname)
             })}
             onClick={() => push('/get_coins')}
           >
@@ -157,7 +166,8 @@ class SubHeader extends Component {
           </a>
           <a
             className={c('subheader__action', {
-              'subheader__action--selected': !isShowingModal && /settings/.test(pathname),
+              'subheader__action--selected':
+                !isShowingModal && /settings/.test(pathname)
             })}
             onClick={() => push('/settings')}
           >

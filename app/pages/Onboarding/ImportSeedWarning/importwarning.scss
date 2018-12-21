@@ -1,0 +1,93 @@
+@import '../../../variables';
+
+.import_back_button {
+  margin-bottom: 15px;
+}
+
+.import_back {
+  margin-right: 7px;
+  position: relative;
+  bottom: 1px;
+}
+
+.import_status_bar {
+  margin-bottom: 20px;
+}
+
+.subheader_text {
+  font-weight: 500;
+  &__accent {
+    color: #f45e4f;
+    font-weight: 600;
+  }
+}
+
+.import_checkbox_container {
+  padding-top: 0.05rem;
+}
+
+.import_checkbox_text,
+.import_warning_text {
+  @extend %h4;
+  margin: 0.2rem 0;
+  color: $manatee-gray;
+}
+
+.import-learn-more-text {
+  @extend %h4;
+  @extend %link;
+  margin-top: 0.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.import-header-text {
+  @extend %h2;
+  font-weight: 600;
+  letter-spacing: -0.75px;
+}
+
+.import_password_input {
+  @extend %box-input;
+  width: 90%;
+  margin: 10px 0rem;
+  border: 1px solid #e2e2e2;
+  border-radius: 8px;
+}
+
+.import_user_input {
+  @extend %row-nowrap;
+  margin-top: 1rem;
+
+  .checkbox {
+    flex: 0 0 auto;
+    margin-right: 0.5rem;
+  }
+
+  .import_checkbox_text {
+    flex: 1 1 auto;
+    width: 0;
+    margin: 0;
+  }
+}
+
+.import_cta_button {
+  width: 100%;
+  @extend %btn-primary;
+}
+
+.import_text_description {
+  margin-top: 12px;
+  text-align: center;
+}
+
+.import_text_purchase_description {
+  color: $azure-blue;
+  margin-top: 2.5px;
+  font-weight: 400;
+  text-align: center;
+  cursor: pointer;
+}

@@ -1,0 +1,61 @@
+@import '../../variables';
+
+.interstitial-warning-modal__instructions {
+  color: #111;
+  font-size: 14px;
+  line-height: 16px;
+  margin-bottom: 23px;
+}
+
+.interstitial-warning-modal__checkbox {
+  overflow: auto;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.interstitial-warning-modal__checkbox-label {
+  margin-left: 12px;
+  font-size: 14px;
+  color: #909095;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.interstitial-warning-modal__buttons {
+  display: flex;
+  margin-top: 18px;
+
+  button {
+    width: 50%;
+  }
+}
+
+.interstitial-warning-modal__cancel-button {
+  @extend %btn-secondary;
+  margin-right: 6px;
+  border-color: $grey;
+  color: $manatee-gray;
+}
+
+.interstitial-warning-modal__submit-button {
+  @extend %btn-primary;
+  background: $orange-red;
+  border-color: $orange-red;
+  width: 100%;
+  margin-left: 6px;
+
+  &:disabled {
+    background-color: $orange-red;
+    opacity: 0.3;
+    color: white;
+  }
+
+  &:hover,
+  &:active,
+  &:focus {
+    $hover-color: lighten($orange-red, 10%);
+    background-color: $hover-color;
+    border-color: lighten($orange-red, 10%);
+  }
+}

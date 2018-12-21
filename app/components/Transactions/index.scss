@@ -1,4 +1,4 @@
-@import "../../variables.scss";
+@import '../../variables.scss';
 
 .transaction {
   display: grid;
@@ -28,20 +28,20 @@
     background-repeat: no-repeat;
 
     &--pending {
-      background-image: url("/img/pending-black.svg");
+      background-image: url(../../assets/images/pending-black.svg);
       height: 1.5rem;
       width: 1.3rem;
       opacity: 0.3;
     }
 
     &--received {
-      background-image: url("/img/arrow-down-circle-green.svg");
+      background-image: url(../../assets/images/arrow-down-circle-green.svg);
       height: 1.5rem;
       width: 1.5rem;
     }
 
     &--sent {
-      background-image: url("/img/arrow-up-circle-red.svg");
+      background-image: url(../../assets/images/arrow-up-circle-red.svg);
       height: 1.5rem;
       width: 1.5rem;
     }
