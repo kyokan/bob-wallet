@@ -15,8 +15,8 @@
     margin: 5rem auto;
     font-size: 16px;
     background-color: white;
-    box-shadow: 0 2px 6px 0 rgba($black, .2);
-    border-radius: .2rem;
+    box-shadow: 0 2px 6px 0 rgba($black, 0.2);
+    border-radius: 0.2rem;
     width: 320px !important;
     height: 430px !important;
 
@@ -30,15 +30,15 @@
   }
 
   &__component-wrapper {
-      padding: 1.2rem 1.4rem;
-      height: 100%;
-      box-sizing: border-box;
-      margin: 0 auto;
-      width: 340px;
-      height: 430px;
-      background-color: $white;
-      border-radius: 0.2rem;
-      box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.2);
-      padding: 0 !important;
+    padding: 1.2rem 1.4rem;
+    height: 100%;
+    box-sizing: border-box;
+    margin: 0 auto;
+    width: 340px;
+    height: 430px;
+    background-color: $white;
+    border-radius: 0.2rem;
+    box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.2);
+    padding: 0 !important;
   }
 }

@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import c from 'classnames';
 import './create.scss';
-import Submittable from '../../components/Submittable';
-import WizardHeader from '../../components/WizardHeader';
+import Submittable from '../../../components/Submittable';
+import WizardHeader from '../../../components/WizardHeader';
 
 const HIGHLIGHT_ONLY = '$$HIGHLIGHT_ONLY$$';
 

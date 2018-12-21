@@ -10,15 +10,15 @@ const TERM_OF_USE = 'TERM_OF_USE';
 const CONNECT_LEDGER = 'CONNECT_LEDGER';
 
 @withRouter
-export default class ConnectLedgerFlow extends React.Component {
+class ConnectLedgerFlow extends React.Component {
   static propTypes = {
     history: PropTypes.shape({
-      push: PropTypes.func,
-    }).isRequired,
+      push: PropTypes.func
+    }).isRequired
   };
 
   state = {
-    currentStep: TERM_OF_USE,
+    currentStep: TERM_OF_USE
   };
 
   render() {
@@ -35,3 +35,5 @@ export default class ConnectLedgerFlow extends React.Component {
     );
   }
 }
+
+export default ConnectLedgerFlow;

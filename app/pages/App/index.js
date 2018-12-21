@@ -29,9 +29,9 @@ export default class Home extends Component {
       <div className="app">
         <SubHeader />
         <div className="app__content">{this.renderRoutes()}</div>
-        <div className="app__footer">
+        {/* <div className="app__footer">
           <Footer />
-        </div>
+        </div> */}
       </div>
     );
   }
@@ -40,8 +40,8 @@ export default class Home extends Component {
     let { isLocked, initialized } = this.props;
 
     // temp fix to show authenticated views until ducks are set up
-    // isLocked = false;
-    // initialized = true;
+    isLocked = false;
+    initialized = true;
 
     if (this.state.isLoading) {
       return null;
@@ -81,16 +81,19 @@ export default class Home extends Component {
     }
 
     return (
-      <Switch>
-        <Route path="/account" component={Account} />
-        <Route path="/send" component={Account} />
-        <Route path="/receive" component={Account} />
-        <Route path="/get_coins" component={GetCoins} />
-        <Route path="/settings" component={Settings} />
-        {/* Let's implement Auction once ducks are set up and we're connected to the blockchain */}
-        {/* <Route path="/domain/:name?" component={Auction} /> */}
-        {this.renderDefault()}
-      </Switch>
+      <div>
+        Sup World
+        <Switch>
+          <Route path="/account" component={Account} />
+          <Route path="/send" component={Account} />
+          <Route path="/receive" component={Account} />
+          <Route path="/get_coins" component={GetCoins} />
+          <Route path="/settings" component={Settings} />
+          {/* Let's implement Auction once ducks are set up and we're connected to the blockchain  */}
+          {/* <Route path="/domain/:name?" component={Auction} /> */}
+          {this.renderDefault()}
+        </Switch>
+      </div>
     );
   }
 
@@ -98,8 +101,8 @@ export default class Home extends Component {
     let { isLocked, initialized } = this.props;
 
     // temp fix to show authenticated views until ducks are set up
-    // isLocked = false;
-    // initialized = true;
+    isLocked = false;
+    initialized = true;
 
     if (!initialized) {
       return <Redirect to="/funding-options" />;

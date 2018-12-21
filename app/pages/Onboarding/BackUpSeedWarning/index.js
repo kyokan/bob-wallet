@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Checkbox from '../../../components/Checkbox/index';
 import './index.scss';
-import WizardHeader from '../../components/WizardHeader';
+import WizardHeader from '../../../components/WizardHeader';
 
 @connect()
 export default class BackUpSeedWarning extends Component {

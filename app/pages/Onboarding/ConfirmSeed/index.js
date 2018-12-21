@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import c from 'classnames';
 import './confirm-seed.scss';
-import WizardHeader from '../../components/WizardHeader';
+import WizardHeader from '../../../components/WizardHeader';
 
 export default class ConfirmSeed extends Component {
   static propTypes = {

@@ -9,16 +9,16 @@ import './connect.scss';
 // wizard header
 
 @withRouter
-export default class ConnectLedger extends React.Component {
+class ConnectLedger extends React.Component {
   static propTypes = {
     onBack: PropTypes.func.isRequired,
-    onCancel: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired
   };
 
   state = {
     isLedgerConnected: true,
     secretEntered: true,
-    handshakeSelected: true,
+    handshakeSelected: true
   };
 
   allStepsComplete() {
@@ -52,30 +52,31 @@ export default class ConnectLedger extends React.Component {
           <div className="header_text">Connect your Ledger</div>
           <ConnectLedgerStep
             stepNumber={1}
-            stepDescription={'Connect your Ledger directly to your computer'}
+            stepDescription="Connect your Ledger directly to your computer"
             stepCompleted={isLedgerConnected}
           />
           <ConnectLedgerStep
             stepNumber={2}
-            stepDescription={'Enter your secret pin on your Ledger device'}
+            stepDescription="Enter your secret pin on your Ledger device"
             stepCompleted={secretEntered}
           />
           <ConnectLedgerStep
             stepNumber={3}
-            stepDescription={'Select the Handshake app on your Ledger'}
+            stepDescription="Select the Handshake app on your Ledger"
             stepCompleted={handshakeSelected}
           />
         </div>
         <div
           className={classNames([
             'create-password__footer',
-            'create-password__footer__removed-padding-top',
+            'create-password__footer__removed-padding-top'
           ])}
         >
           <div className="connect__support-cta">
             Need help? Visit support page
           </div>
           <button
+            type="button"
             className="extension_cta_button terms_cta"
             onClick={this.finishFlow()}
             disabled={!this.allStepsComplete()}
@@ -87,3 +88,5 @@ export default class ConnectLedger extends React.Component {
     );
   }
 }
+
+export default ConnectLedger;
