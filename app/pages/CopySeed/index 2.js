@@ -41,7 +41,9 @@ export default class CopySeed extends Component {
           onCancel={onCancel}
         />
         <div className="create-password__content">
-          <div className="header_text">Your Recovery Seed Phrase</div>
+          <div className="copy-seed__header_text">
+            Your Recovery Seed Phrase
+          </div>
           <div className="import_warning_text">
             Write down these 24 words on paper and keep it safe and secure. Do
             not email or screenshot your seed.
