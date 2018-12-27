@@ -8,11 +8,11 @@
  * When running `yarn build` or `yarn build-main`, this file is compiled to
  * `./app/main.prod.js` using webpack. This gives us some performance wins.
  *
- * @flow
  */
 import { app, BrowserWindow } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
+import { spawn } from 'child_process';
 import MenuBuilder from './menu';
 
 export default class AppUpdater {
@@ -24,6 +24,7 @@ export default class AppUpdater {
 }
 
 let mainWindow = null;
+let hsd = null;
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -57,6 +58,10 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
+
+  if (hsd) {
+    hsd.kill();
+  }
 });
 
 app.on('ready', async () => {
@@ -66,6 +71,8 @@ app.on('ready', async () => {
   ) {
     await installExtensions();
   }
+
+  startHsd();
 
   mainWindow = new BrowserWindow({
     show: false,
@@ -100,3 +107,16 @@ app.on('ready', async () => {
   // eslint-disable-next-line
   new AppUpdater();
 });
+
+function startHsd() {
+  hsd = spawn('./node_modules/hsd/bin/hsd', [
+    '--seeds=aorsxa4ylaacshipyjkfbvzfkh3jhh4yowtoqdt64nzemqtiw2whk@18.217.172.158',
+    '--network=simnet',
+    '--listen',
+    '--bip37',
+  ]);
+  hsd.stdout.on('data', d => console.log(`stdout: ${d.toString()}`));
+  hsd.stderr.on('data', d => console.log(`stderr: ${d.toString()}`));
+  hsd.on('exit', () => console.log('hsd exited'));
+  return hsd;
+}
