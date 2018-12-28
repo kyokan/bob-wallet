@@ -1,4 +1,4 @@
-class API {
+class WalletClient {
   constructor() {
     this.url = 'http://127.0.0.1';
     this.walletPort = '15039';
@@ -66,4 +66,4 @@ class API {
   }
 }
 
-export default new API();
+export default new WalletClient();
