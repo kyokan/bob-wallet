@@ -24,7 +24,7 @@ class Client {
   dispatch(action) {
     const data = {
       ...action,
-      id: this.id,
+      id: this.id
     };
 
     const promise = new Promise((resolve, reject) => {

@@ -196,6 +196,7 @@
     "file-loader": "^2.0.0",
     "husky": "^1.1.4",
     "hsd": "git://github.com/handshake-org/hsd.git#master",
+    "hs-client": "git://github.com/handshake-org/hs-client#master",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^23.6.0",
     "mini-css-extract-plugin": "^0.4.4",
