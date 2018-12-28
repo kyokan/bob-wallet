@@ -15,11 +15,6 @@ export default class ConfirmSeed extends Component {
     onCancel: PropTypes.func.isRequired
   };
 
-  static defaultProps = {
-    seedphrase:
-      'witch collapse practice feed shame open despair creek road again ice least'
-  };
-
   state = {
     words: '',
     pasteAttempted: false
@@ -32,7 +27,14 @@ export default class ConfirmSeed extends Component {
   };
 
   render() {
-    const { currentStep, totalSteps, onBack, onNext, onCancel } = this.props;
+    const {
+      currentStep,
+      totalSteps,
+      onBack,
+      onNext,
+      onCancel,
+      seedphrase
+    } = this.props;
 
     return (
       <div className="create-password">
@@ -78,7 +80,7 @@ export default class ConfirmSeed extends Component {
           <button
             className="extension_cta_button create_cta"
             onClick={() => {
-              if (this.state.words === this.props.seedphrase) {
+              if (this.state.words === seedphrase) {
                 onNext();
               } else {
                 this.setState({ pasteAttempted: true });

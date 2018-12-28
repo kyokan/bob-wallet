@@ -50,8 +50,8 @@ export default class Home extends Component {
     let { isLocked, initialized } = this.props;
 
     // temp fix to show authenticated views until ducks are set up
-    isLocked = false;
-    initialized = true;
+    // isLocked = false;
+    // initialized = true;
 
     if (this.state.isLoading) {
       return null;
@@ -65,26 +65,11 @@ export default class Home extends Component {
             path="/login"
             render={() => <AccountLogin className="app__login" />}
           /> */}
-          <Route
-            path="/funding-options"
-            render={this.renderWrapper(FundAccessOptions)}
-          />
-          <Route
-            path="/existing-options"
-            render={this.renderWrapper(ExistingAccountOptions)}
-          />
-          <Route
-            path="/new-wallet"
-            render={this.renderWrapper(CreateNewAccount)}
-          />
-          <Route
-            path="/import-seed"
-            render={this.renderWrapper(ImportSeedFlow)}
-          />
-          <Route
-            path="/connect-ledger"
-            render={this.renderWrapper(ConnectLedgerFlow)}
-          />
+          <Route path="/funding-options" render={FundAccessOptions} />
+          <Route path="/existing-options" render={ExistingAccountOptions} />
+          <Route path="/new-wallet" render={CreateNewAccount} />
+          <Route path="/import-seed" render={ImportSeedFlow} />
+          <Route path="/connect-ledger" render={ConnectLedgerFlow} />
           {this.renderDefault()}
         </Switch>
       );
@@ -108,8 +93,8 @@ export default class Home extends Component {
     let { isLocked, initialized } = this.props;
 
     // temp fix to show authenticated views until ducks are set up
-    isLocked = false;
-    initialized = true;
+    // isLocked = false;
+    // initialized = true;
 
     if (!initialized) {
       return <Redirect to="/funding-options" />;

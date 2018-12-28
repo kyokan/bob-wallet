@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
+import WalletClient from '../../../utils/walletClient';
 import Terms from '../Terms/index';
 import CreatePassword from '../CreatePassword/index';
 import BackUpSeedWarning from '../BackUpSeedWarning/index';
@@ -37,31 +38,78 @@ class CreateNewAccount extends Component {
   state = {
     currentStep: TERMS_OF_USE,
     seedphrase: '',
-    address: ''
+    address: '',
+    id: '143'
   };
 
   render() {
+    const { id } = this.state;
     switch (this.state.currentStep) {
       case TERMS_OF_USE:
         return (
           <Terms
-            onAccept={() => this.setState({ currentStep: CREATE_PASSWORD })}
+            onAccept={async () => {
+              const newWallet = await WalletClient.createNewWallet(id);
+              const masterHDKey = await WalletClient.getMasterHDKey(id);
+              this.setState({
+                currentStep: BACK_UP_SEED_WARNING,
+                seedphrase: masterHDKey.mnemonic.phrase
+              });
+            }}
             onBack={() => this.props.history.push('/funding-options')}
+          />
+        );
+      case BACK_UP_SEED_WARNING:
+        return (
+          <BackUpSeedWarning
+            currentStep={1}
+            totalSteps={4}
+            onBack={() => this.setState({ currentStep: TERMS_OF_USE })}
+            onNext={() => this.setState({ currentStep: COPY_SEEDPHRASE })}
+            onCancel={() => this.props.history.push('/funding-options')}
+          />
+        );
+      case COPY_SEEDPHRASE:
+        return (
+          <CopySeed
+            currentStep={2}
+            totalSteps={4}
+            seedphrase={this.state.seedphrase}
+            onBack={() => this.setState({ currentStep: BACK_UP_SEED_WARNING })}
+            onNext={() => this.setState({ currentStep: CONFIRM_SEEDPHRASE })}
+            onCancel={() => this.props.history.push('/funding-options')}
+          />
+        );
+      case CONFIRM_SEEDPHRASE:
+        return (
+          <ConfirmSeed
+            currentStep={3}
+            totalSteps={4}
+            seedphrase={this.state.seedphrase}
+            onBack={() => this.setState({ currentStep: COPY_SEEDPHRASE })}
+            onNext={() => this.setState({ currentStep: CREATE_PASSWORD })}
+            // await this.props.completeInitialization();
+            onCancel={() => this.props.history.push('/funding-options')}
           />
         );
       case CREATE_PASSWORD:
         return (
           <CreatePassword
-            currentStep={1}
-            totalSteps={3}
+            currentStep={3}
+            totalSteps={4}
             onBack={() => this.setState({ currentStep: TERMS_OF_USE })}
             onNext={
+              async password => {
+                const newWallet = await WalletClient.changePassphrase(
+                  this.state.id,
+                  password
+                );
+                const masterHDKey = await WalletClient.getMasterHDKey(id);
+                console.log(masterHDKey);
+                this.props.history.push('/');
+              }
+
               // WHEN REDUX IS SET UP:
-              // delete the lines the upcoming lines and uncomment the part below
-              () =>
-                this.setState({
-                  currentStep: BACK_UP_SEED_WARNING
-                })
               // password => {
               // client
               //   .dispatch({ type: CREATE_WALLET, payload: password })
@@ -73,42 +121,8 @@ class CreateNewAccount extends Component {
               //     });
               //   })
               //   .catch(console.error.bind(console));
+              // }
             }
-            onCancel={() => this.props.history.push('/funding-options')}
-          />
-        );
-      case BACK_UP_SEED_WARNING:
-        return (
-          <BackUpSeedWarning
-            currentStep={2}
-            totalSteps={3}
-            onBack={() => this.setState({ currentStep: CREATE_PASSWORD })}
-            onNext={() => this.setState({ currentStep: COPY_SEEDPHRASE })}
-            onCancel={() => this.props.history.push('/funding-options')}
-          />
-        );
-      case COPY_SEEDPHRASE:
-        return (
-          <CopySeed
-            currentStep={3}
-            totalSteps={4}
-            seedphrase={this.state.seedphrase}
-            onBack={() => this.setState({ currentStep: BACK_UP_SEED_WARNING })}
-            onNext={() => this.setState({ currentStep: CONFIRM_SEEDPHRASE })}
-            onCancel={() => this.props.history.push('/funding-options')}
-          />
-        );
-      case CONFIRM_SEEDPHRASE:
-        return (
-          <ConfirmSeed
-            currentStep={4}
-            totalSteps={4}
-            seedphrase={this.state.seedphrase}
-            onBack={() => this.setState({ currentStep: COPY_SEEDPHRASE })}
-            onNext={async () => {
-              // await this.props.completeInitialization();
-              this.props.history.push('/');
-            }}
             onCancel={() => this.props.history.push('/funding-options')}
           />
         );
