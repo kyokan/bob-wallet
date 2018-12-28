@@ -58,6 +58,7 @@ export default class ReceiveModal extends Component {
       </div>
     ) : (
       <div className="receive__content">
+        <div className="receive__warning-icon" />
         <div className="receive__warning-title">
           Only receive HNS from this address
         </div>
@@ -65,6 +66,12 @@ export default class ReceiveModal extends Component {
           Sending coins other than HNS will result in permanent loss. There is
           no way to recover those funds.
         </div>
+        <button
+          className="receive__show-address-btn"
+          onClick={() => this.setState({ isShowingAddress: true })}
+        >
+          Show address
+        </button>
       </div>
     );
   }
@@ -72,28 +79,6 @@ export default class ReceiveModal extends Component {
   render() {
     const { onClose } = this.props;
 
-    return (
-      <Modal className="receive" onClose={onClose}>
-        <div className="receive__container">
-          <div className="receive__header">
-            <div className="receive__title">Receive funds</div>
-            <div className="receive__close-btn" onClick={onClose}>
-              ✕
-            </div>
-          </div>
-          {this.renderContent()}
-          {!this.state.isShowingAddress ? (
-            <div>
-              <button
-                className="receive__show-address-btn"
-                onClick={() => this.setState({ isShowingAddress: true })}
-              >
-                Show address
-              </button>
-            </div>
-          ) : null}
-        </div>
-      </Modal>
-    );
+    return <div className="receive__container">{this.renderContent()}</div>;
   }
 }
