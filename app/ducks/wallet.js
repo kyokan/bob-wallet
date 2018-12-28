@@ -1,4 +1,4 @@
-import hnsApi from '../utils/hnsApi';
+import WalletClient from '../utils/walletClient';
 
 const SET_WALLET = 'app/wallet/setWallet';
 const UNLOCK_WALLET = 'app/wallet/unlockWallet';
@@ -75,7 +75,7 @@ export const setWallet = ({
 
 // WIP
 export const createWallet = async () => {
-  const res = await hnsApi.getPrivateKeyByAddress(
+  const res = await WalletClient.getPrivateKeyByAddress(
     'two',
     'ss1q0svwnsu7yxsgtyj5nsrkv880ca5ylf80gq7le7',
     'michael'
