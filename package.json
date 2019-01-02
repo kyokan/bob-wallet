@@ -194,9 +194,9 @@
     "eslint-plugin-testcafe": "^0.2.1",
     "fbjs-scripts": "^1.0.1",
     "file-loader": "^2.0.0",
-    "husky": "^1.1.4",
-    "hsd": "git://github.com/handshake-org/hsd.git#master",
     "hs-client": "git://github.com/handshake-org/hs-client#master",
+    "hsd": "git://github.com/handshake-org/hsd.git#master",
+    "husky": "^1.1.4",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^23.6.0",
     "mini-css-extract-plugin": "^0.4.4",
@@ -258,5 +258,8 @@
   "collective": {
     "url": "https://opencollective.com/electron-react-boilerplate-594"
   },
-  "browserslist": "electron 1.6"
+  "browserslist": "electron 1.6",
+  "resolutions": {
+    "brq": "https://github.com/kyokan/brq.git"
+  }
 }

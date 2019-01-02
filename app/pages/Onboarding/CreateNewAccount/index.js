@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import WalletClient from '../../../utils/walletClient';
+import { getNetwork, createWallet } from '../../../utils/walletClient';
 import Terms from '../Terms/index';
 import CreatePassword from '../CreatePassword/index';
 import BackUpSeedWarning from '../BackUpSeedWarning/index';
@@ -49,8 +49,9 @@ class CreateNewAccount extends Component {
         return (
           <Terms
             onAccept={async () => {
-              const newWallet = await WalletClient.createNewWallet(id);
-              const masterHDKey = await WalletClient.getMasterHDKey(id);
+              createWallet();
+              // const newWallet = await WalletClient.createNewWallet(id);
+              // const masterHDKey = await WalletClient.getMasterHDKey(id);
               this.setState({
                 currentStep: BACK_UP_SEED_WARNING,
                 seedphrase: masterHDKey.mnemonic.phrase
@@ -100,12 +101,12 @@ class CreateNewAccount extends Component {
             onBack={() => this.setState({ currentStep: TERMS_OF_USE })}
             onNext={
               async password => {
-                const newWallet = await WalletClient.changePassphrase(
-                  this.state.id,
-                  password
-                );
-                const masterHDKey = await WalletClient.getMasterHDKey(id);
-                console.log(masterHDKey);
+                // const newWallet = await WalletClient.changePassphrase(
+                //   this.state.id,
+                //   password
+                // );
+                // const masterHDKey = await WalletClient.getMasterHDKey(id);
+                // console.log(masterHDKey);
                 this.props.history.push('/');
               }
 
