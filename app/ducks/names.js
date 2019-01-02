@@ -4,7 +4,7 @@ const SET_NAME = 'app/names/setName';
 
 // Other Constants
 const API = 'http://127.0.0.1:15037';
-const LAUNCH_DATE = new Date('October 1, 2018');
+const LAUNCH_DATE = new Date('April 1, 2018');
 export const NAME_STATES = {
   BIDDING: 'BIDDING',
   REVEAL: 'REVEAL',

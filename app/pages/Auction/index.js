@@ -4,42 +4,12 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import cn from 'classnames';
 import * as names from '../../ducks/names';
+import * as auctions from '../../ducks/auctions';
 import { CloseInfo, OpenInfo, SoldInfo, ReserveInfo } from './info';
+import BidNow from './BidNow';
 import Collapsible from '../../components/Collapsible';
 import './auction.scss';
 import './domains.scss';
-
-const AVAILABLE = 0;
-const SOLD = 1;
-const RESERVE = 2;
-
-const LAUNCH_DATE = new Date('October 1, 2018');
-
-function addDays(start = new Date(), days = 0) {
-  return new Date(start.getTime() + days * 24 * 60 * 60 * 1000);
-}
-
-function isEarlierThan(startDate, endDate) {
-  return (
-    startDate.toISOString().split('T')[0] < endDate.toISOString().split('T')[0]
-  );
-}
-
-function toDate(d) {
-  const YYYY = d.getYear() + 1900;
-  const M = d.getMonth() + 1;
-  const D = d.getDate();
-
-  return `${M}/${D}/${YYYY}`;
-}
-
-const isLimitedTimeRemaining = biddingCloseDate => {
-  if (!biddingCloseDate) {
-    return false;
-  }
-
-  return isEarlierThan(biddingCloseDate, addDays(new Date(), 7));
-};
 
 @withRouter
 @connect(
@@ -65,7 +35,8 @@ const isLimitedTimeRemaining = biddingCloseDate => {
     };
   },
   dispatch => ({
-    getNameInfo: tld => dispatch(names.getNameInfo(tld))
+    getNameInfo: tld => dispatch(names.getNameInfo(tld)),
+    getAuctionInfo: tld => dispatch(auctions.getAuctionInfo(tld)),
   }),
 )
 export default class Auction extends Component {
@@ -82,7 +53,7 @@ export default class Auction extends Component {
       })
     }),
     getNameInfo: PropTypes.func.isRequired,
-    // New
+    getAuctionInfo: PropTypes.func.isRequired,
     start: PropTypes.shape({
       reserved: PropTypes.bool,
       week: PropTypes.number,
@@ -93,27 +64,17 @@ export default class Auction extends Component {
     }),
     isAvailable: PropTypes.bool.isRequired,
     isReserved: PropTypes.bool.isRequired,
-
-    // /New
-    bids: PropTypes.arrayOf(
-      PropTypes.shape({
-        timePlaced: PropTypes.instanceOf(Date),
-        bidder: PropTypes.string,
-        bidAmount: PropTypes.string
-      })
-    ).isRequired,
-    status: PropTypes.oneOf([AVAILABLE, SOLD, RESERVE]),
     biddingCloseBlock: PropTypes.number,
     biddingOpenBlock: PropTypes.number,
-    paidValue: PropTypes.number,
-    owner: PropTypes.string,
     biddingCloseDate: PropTypes.instanceOf(Date),
     biddingOpenDate: PropTypes.instanceOf(Date),
-    biddingOpenWeek: PropTypes.number
   };
 
   componentWillMount() {
     this.props.getNameInfo(this.getDomain())
+      .catch(e => console.error(e.message));
+
+    this.props.getAuctionInfo(this.getDomain())
       .catch(e => console.error(e.message));
   }
 
@@ -121,31 +82,40 @@ export default class Auction extends Component {
 
   renderAuctionRight = () => {
     const {
+      isReserved,
+      isAvailable,
       biddingOpenDate,
       biddingCloseDate,
-      status,
       bids,
       paidValue,
-      owner
+      owner,
     } = this.props;
 
-    if (status === RESERVE) {
+    if (isReserved) {
       return <ReserveInfo />;
     }
 
-    if (status === SOLD) {
+    if (owner && owner.hash) {
       return <SoldInfo owner={owner && owner.hash} paidValue={paidValue} />;
     }
 
-    const isBiddingOpen =
-      biddingOpenDate && biddingOpenDate.getTime() > new Date().getTime();
-
-    if (isBiddingOpen) {
-      return <OpenInfo biddingOpenDate={biddingOpenDate} />;
+    if (isAvailable) {
+      return <BidNow name={this.getDomain()} />;
     }
 
     return <CloseInfo biddingCloseDate={biddingCloseDate} bids={bids} />;
   };
+
+  render() {
+    return (
+      <div className="domains">
+        { this.renderContent() }
+        <div className="domains__action">
+          {this.renderAuctionRight()}
+        </div>
+      </div>
+    );
+  }
 
   renderContent() {
     const domain = this.getDomain();
@@ -171,17 +141,6 @@ export default class Auction extends Component {
           </Collapsible>
         </div>
       </React.Fragment>
-    );
-  }
-
-  render() {
-    return (
-      <div className="domains">
-        { this.renderContent() }
-        <div className="domains__action">
-          {this.renderAuctionRight()}
-        </div>
-      </div>
     );
   }
 
@@ -259,4 +218,11 @@ export default class Auction extends Component {
       </div>
     );
   }
+}
+
+function toDate(d) {
+  const YYYY = d.getYear() + 1900;
+  const M = d.getMonth() + 1;
+  const D = d.getDate();
+  return `${M}/${D}/${YYYY}`;
 }

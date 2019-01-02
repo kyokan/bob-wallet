@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-// import actions from '../../../actions/extension.js';
+// import auctions.js from '../../../auctions.js/extension.js';
 import './status.scss';
 
 export default class ConnectLedger extends Component {
