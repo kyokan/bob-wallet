@@ -1,13 +1,13 @@
 @import '../../variables';
 
 .send {
-  max-width: 22rem;
   position: relative;
   padding: 1.25rem 2rem;
 
   &__container {
     @extend %col-nowrap;
     margin-top: 3rem;
+    max-width: 22rem;
   }
 
   &__close-btn {
