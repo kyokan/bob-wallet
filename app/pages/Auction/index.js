@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import * as domainActions from '../../ducks/names';
 import { BiddingOpen, BiddingClose } from './Bidding';
 import { CloseInfo, OpenInfo, SoldInfo, ReserveInfo } from './info';
+import Collapsible from '../../components/Collapsible';
 import './auction.scss';
 import './domains.scss';
 
@@ -220,11 +221,38 @@ export default class Auction extends Component {
     );
   };
 
+  renderContent() {
+    const domain = this.getDomain();
+
+    return (
+      <React.Fragment>
+        <div className="domains__content">
+          <div className="domains__content__title">{`${domain}/`}</div>
+          <div className="domains__content__info-panel">
+            <div className="domains__content__info-panel__title">Auction Details</div>
+            <div className="domains__content__info-panel__content">
+              hi
+            </div>
+          </div>
+          <Collapsible  className="domains__content__info-panel" title="Bid History" defaultCollapsed>
+            hi
+          </Collapsible>
+          <Collapsible  className="domains__content__info-panel" title="Vickrey Auction Process" defaultCollapsed>
+            hi
+          </Collapsible>
+        </div>
+      </React.Fragment>
+    );
+  }
+
   render() {
     return (
       <div className="domains">
-        {this.renderAuctionLeft()}
-        {this.renderAuctionRight()}
+        { this.renderContent() }
+        <div className="domains__action">
+          {this.renderAuctionRight()}
+        </div>
+        {/*{this.renderAuctionLeft()}*/}
       </div>
     );
   }
