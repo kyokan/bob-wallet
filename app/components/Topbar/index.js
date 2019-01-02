@@ -99,7 +99,7 @@ class Topbar extends Component {
         >
           Synchronized
         </div>
-        <div className="topbar__icon topbar__icon--notifications" />
+        {/* <div className="topbar__icon topbar__icon--notifications" /> */}
         <div className="topbar__icon topbar__icon--settings" />
       </React.Fragment>
     );
