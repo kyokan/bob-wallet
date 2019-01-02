@@ -5,6 +5,7 @@ import cn from 'classnames';
 import { connect } from 'react-redux';
 import './domains.scss';
 import * as names from '../../ducks/names';
+import Checkbox from '../../components/Checkbox';
 
 class BidNow extends Component {
   static propTypes = {
@@ -24,6 +25,10 @@ class BidNow extends Component {
 
   render() {
     const { timeRemaining, totalBids, highestMask } = this.props;
+
+    if (this.state.isReviewing) {
+      return this.renderReviewBid();
+    }
 
     return (
       <div className="domains__bid-now">
@@ -55,6 +60,44 @@ class BidNow extends Component {
           </div>
         </div>
         { this.renderAction() }
+      </div>
+    );
+  }
+
+  renderReviewBid() {
+    const { bidAmount, maskAmount } = this.state;
+    return (
+      <div className="domains__bid-now">
+        <div className="domains__bid-now__title">Review Bid</div>
+        <div className="domains__bid-now__content">
+          <div className="domains__bid-now__info">
+            <div className="domains__bid-now__info__label">
+              Bid Amount:
+            </div>
+            <div className="domains__bid-now__info__value">
+              {bidAmount}
+            </div>
+          </div>
+          <div className="domains__bid-now__info">
+            <div className="domains__bid-now__info__label">
+              Mask Amount:
+            </div>
+            <div className="domains__bid-now__info__value">
+              {maskAmount || '-'}
+            </div>
+          </div>
+        </div>
+        <div className="domains__bid-now__action">
+          <div>
+            <Checkbox />
+            <div>I unnderstand my bid cannot be changed after I submit it.</div>
+          </div>
+          <button
+            className="domains__bid-now__action__cta"
+          >
+            Submit Bid
+          </button>
+        </div>
       </div>
     );
   }
