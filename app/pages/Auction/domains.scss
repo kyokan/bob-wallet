@@ -50,7 +50,6 @@
       flex: 1 0 auto;
       margin: 1rem;
       align-items: flex-start;
-      width: 6rem;
 
       &__label {
         font-size: .65rem;
@@ -74,6 +73,7 @@
     box-shadow: 0 0 8px 2px rgba($black, 0.1);
     border-radius: 1rem;
     padding: 1.25rem 0;
+    width: 18rem;
 
     &__title {
       font-size: 1rem;
@@ -96,7 +96,6 @@
       &__label {
         flex: 0 0 auto;
         font-weight: 600;
-        width: 10rem;
       }
 
       &__time-remaining,
@@ -137,10 +136,9 @@
         margin-bottom: 1rem;
 
         &__label {
-          flex: 0 0 auto;
+          flex: 1 0 auto;
           font-size: .7rem;
           font-weight: 600;
-          width: 10rem;
         }
 
         &__input {
@@ -151,6 +149,7 @@
           input {
             width: 100%;
             font-size: .7rem;
+            text-align: right;
           }
         }
       }
