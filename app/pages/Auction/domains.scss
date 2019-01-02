@@ -134,6 +134,7 @@
         @extend %row-nowrap;
 
         align-items: center;
+        margin-bottom: 1rem;
 
         &__label {
           flex: 0 0 auto;
@@ -159,7 +160,6 @@
 
         font-size: .7rem;
         text-align: right;
-        margin: .75rem 0 1.25rem;
       }
     }
   }
