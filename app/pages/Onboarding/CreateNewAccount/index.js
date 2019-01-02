@@ -2,7 +2,11 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { getNetwork, createWallet } from '../../../utils/walletClient';
+import {
+  createNewWallet,
+  generateReceivingAddress,
+  getPublicKeyByAddress
+} from '../../../utils/walletClient';
 import Terms from '../Terms/index';
 import CreatePassword from '../CreatePassword/index';
 import BackUpSeedWarning from '../BackUpSeedWarning/index';
@@ -49,7 +53,11 @@ class CreateNewAccount extends Component {
         return (
           <Terms
             onAccept={async () => {
-              createWallet();
+              const address = await getPublicKeyByAddress(
+                'Michael1',
+                'ss1qkla4rx7jpdw09vnnlmtuzwamrg97uvfgt32c4x'
+              );
+              console.log(address);
               // const newWallet = await WalletClient.createNewWallet(id);
               // const masterHDKey = await WalletClient.getMasterHDKey(id);
               this.setState({
