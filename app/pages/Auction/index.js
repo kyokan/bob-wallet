@@ -6,7 +6,7 @@ import * as domainActions from '../../ducks/names';
 import { BiddingOpen, BiddingClose } from './Bidding';
 import { CloseInfo, OpenInfo, SoldInfo, ReserveInfo } from './info';
 import './auction.scss';
-// import { AUCTION_STATE } from '../../../ducks/domains';
+import './domains.scss';
 
 const AVAILABLE = 0;
 const SOLD = 1;
@@ -23,50 +23,6 @@ function isEarlierThan(startDate, endDate) {
     startDate.toISOString().split('T')[0] < endDate.toISOString().split('T')[0]
   );
 }
-
-export const ACTION_PROCESS = {
-  title: 'The Auction Process',
-  0: `
-    To prevent price sniping, Handshake uses a blind second-price auction called a Vickrey Auction. Users can buy and register top-level domains (TOLDs) with Handshake coins (HNS).
-  `,
-  1: `
-    In a Vickrey Auction, a participant is only aware of their own bid. The bids are revealed at the end of the auction when a winner is chosen. The winner pays the second highest bid instead of his or her own.
-  `,
-  2: `
-    Names are released weekly during a pre-determined 52 week schedule
-  `,
-  3: `
-    Blind bids can be placed any time after a name is released
-  `,
-  4: `
-    Bidding is open to everyone for 5 days after the reveal period
-  `,
-  5: `
-    Bidders have 10 days to reveal their bid price
-  `,
-  6: `
-    A winner is assigned the name and pays the second highest bid at the end of the reveal period
-  `,
-  7: `
-    Bidders have 10 days to reveal their bid price
-  `,
-  8: `
-    A winner is assigned the name and payes the second highest bid at the end of the reveal period
-  `,
-  9: `
-    The winning bid is burned and permanently removed from circulation
-  `,
-  10: `
-    Losing bids are returned
-  `,
-  11: `
-    Names are renewed annually by paying standard network fee
-  `,
-  // link here
-  12: `
-    Read the Handshake paper for more details.
-  `
-};
 
 const isLimitedTimeRemaining = biddingCloseDate => {
   if (!biddingCloseDate) {
@@ -133,13 +89,7 @@ function getCloseDate(domain = {}, bids = []) {
 @connect(
   (state, ownProps) => {
     const domain = state.names[ownProps.match.params.name] || {};
-    const bids = [
-      // {
-      //   timePlaced: new Date('October 6, 2018'), // Date,
-      //   bidder: 'you', // you or hexString,
-      //   bidAmount: 2500.5 // number HNS
-      // },
-    ];
+    const bids = [];
 
     return {
       status: getStatus(domain),
@@ -212,7 +162,7 @@ export default class Auction extends Component {
     }
 
     if (status === SOLD) {
-      return <SoldInfo owner={owner} paidValue={paidValue} />;
+      return <SoldInfo owner={owner && owner.hash} paidValue={paidValue} />;
     }
 
     const isBiddingOpen =
@@ -272,11 +222,9 @@ export default class Auction extends Component {
 
   render() {
     return (
-      <div className="auction">
-        <div className="auction__top">
-          {this.renderAuctionLeft()}
-          {this.renderAuctionRight()}
-        </div>
+      <div className="domains">
+        {this.renderAuctionLeft()}
+        {this.renderAuctionRight()}
       </div>
     );
   }
