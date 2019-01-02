@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import c from 'classnames';
 import { connect } from 'react-redux';
-// import * as actions from '../../../ducks/extension';
+// import * as auctions.js from '../../../ducks/extension';
 import './terms.scss';
 
 export default class Terms extends Component {
