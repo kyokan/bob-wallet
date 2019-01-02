@@ -60,6 +60,27 @@ class BidNow extends Component {
   renderAction() {
     const { isPlacingBid, isReviewing, shouldAddMask } = this.state;
 
+    if (isPlacingBid) {
+      return (
+        <div className="domains__bid-now__action domains__bid-now__action--placing-bid">
+          <div className="domains__bid-now__form">
+            <div className="domains__bid-now__form__row">
+              <div className="domains__bid-now__form__row__label">Bid Amount:</div>
+              <div className="domains__bid-now__form__row__input">
+                <input type="number" placeholder="0.00" />
+              </div>
+            </div>
+            <div className="domains__bid-now__form__link">Add Mask</div>
+          </div>
+          <button
+            className="domains__bid-now__action__cta"
+            onClick={() => this.setState({ isReviewing: true })}
+          >
+            Review Bid
+          </button>
+        </div>
+      )
+    }
 
     return (
       <div className="domains__bid-now__action">
@@ -70,7 +91,7 @@ class BidNow extends Component {
           Place Bid
         </button>
       </div>
-    )
+    );
   }
 }
 
