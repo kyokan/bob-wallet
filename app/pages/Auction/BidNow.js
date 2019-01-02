@@ -18,6 +18,8 @@ class BidNow extends Component {
     isPlacingBid: false,
     shouldAddMask: false,
     isReviewing: false,
+    bidAmount: '',
+    maskAmount: '',
   };
 
   render() {
@@ -57,8 +59,37 @@ class BidNow extends Component {
     );
   }
 
+  renderMask() {
+    const { shouldAddMask, maskAmount } = this.state;
+
+    if (shouldAddMask) {
+      return (
+        <div className="domains__bid-now__form__row">
+          <div className="domains__bid-now__form__row__label">Mask Amount:</div>
+          <div className="domains__bid-now__form__row__input">
+            <input
+              type="number"
+              placeholder="Optional"
+              onChange={e => this.setState({ maskAmount: e.target.value })}
+              value={maskAmount}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        className="domains__bid-now__form__link"
+        onClick={() => this.setState({ shouldAddMask: true })}
+      >
+        Add Mask
+      </div>
+    )
+  }
+
   renderAction() {
-    const { isPlacingBid, isReviewing, shouldAddMask } = this.state;
+    const { isPlacingBid, bidAmount } = this.state;
 
     if (isPlacingBid) {
       return (
@@ -67,14 +98,20 @@ class BidNow extends Component {
             <div className="domains__bid-now__form__row">
               <div className="domains__bid-now__form__row__label">Bid Amount:</div>
               <div className="domains__bid-now__form__row__input">
-                <input type="number" placeholder="0.00" />
+                <input
+                  type="number"
+                  placeholder="0.00"
+                  onChange={e => this.setState({ bidAmount: e.target.value })}
+                  value={bidAmount}
+                />
               </div>
             </div>
-            <div className="domains__bid-now__form__link">Add Mask</div>
+            { this.renderMask() }
           </div>
           <button
             className="domains__bid-now__action__cta"
             onClick={() => this.setState({ isReviewing: true })}
+            disabled={!bidAmount}
           >
             Review Bid
           </button>
