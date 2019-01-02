@@ -17,6 +17,7 @@
   &__content {
     flex: 1 1 auto;
     width: 0;
+    margin-right: 2rem;
 
     &__title {
       font-weight: 500;
@@ -37,6 +38,33 @@
             @extend %info-title;
           }
         }
+      }
+
+      &__content {
+        display: flex;
+        flex-flow: row wrap;
+      }
+    }
+
+    &__auction-detail {
+      flex: 1 0 auto;
+      margin: 1rem;
+      align-items: flex-start;
+      width: 6rem;
+
+      &__label {
+        font-size: .65rem;
+        font-weight: 600;
+      }
+
+      &__status {
+        font-size: 1.25rem;
+        font-weight: 600;
+        padding: .4rem 0 .2rem;
+      }
+
+      &__description {
+        font-size: .65rem;
       }
     }
   }

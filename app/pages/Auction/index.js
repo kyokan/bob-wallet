@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import * as domainActions from '../../ducks/names';
-import { BiddingOpen, BiddingClose } from './Bidding';
+import cn from 'classnames';
+import * as names from '../../ducks/names';
 import { CloseInfo, OpenInfo, SoldInfo, ReserveInfo } from './info';
 import Collapsible from '../../components/Collapsible';
 import './auction.scss';
@@ -25,6 +25,14 @@ function isEarlierThan(startDate, endDate) {
   );
 }
 
+function toDate(d) {
+  const YYYY = d.getYear() + 1900;
+  const M = d.getMonth() + 1;
+  const D = d.getDate();
+
+  return `${M}/${D}/${YYYY}`;
+}
+
 const isLimitedTimeRemaining = biddingCloseDate => {
   if (!biddingCloseDate) {
     return false;
@@ -33,81 +41,31 @@ const isLimitedTimeRemaining = biddingCloseDate => {
   return isEarlierThan(biddingCloseDate, addDays(new Date(), 7));
 };
 
-const defaultBiddingClose = (
-  <div className="auction__group">
-    <div className="auction__title">Bidding close</div>
-    <div className="auction__large">5 days after the 1st bid</div>
-    <div className="auction__block" />
-    <div className="auction__small-text auction__limited-time auction__open-bid-description">
-      If no bids are placed 7 days after auction opens, this TLD will be
-      randomly assigned a new auction open date to prevent squatting.
-    </div>
-  </div>
-);
-
-const statusToMessage = status =>
-  ({
-    [AVAILABLE]: <div className="auction__green">Available</div>,
-    [SOLD]: <div className="auction__red">Sold</div>,
-    [RESERVE]: <div className="auction__black">Reserved</div>
-  }[status]);
-
-function getStatus(domain = {}, bids = []) {
-  const closeDate = getCloseDate(domain, bids);
-
-  if (domain.start && domain.start.reserved) {
-    return RESERVE;
-  }
-
-  if (domain.info && domain.info.owner) {
-    return SOLD;
-  }
-
-  if (closeDate && isEarlierThan(closeDate, new Date())) {
-    // TODO: Is there a state for when a TLD has past 7 days without bids?
-  }
-
-  return AVAILABLE;
-}
-
-function getCloseDate(domain = {}, bids = []) {
-  if (!domain.start) {
-    return null;
-  }
-
-  if (domain.info && domain.info.owner) {
-    return bids[0] && bids[0].timePlaced;
-  }
-
-  if (bids.length === 0) {
-    return addDays(LAUNCH_DATE, domain.start.week * 7 + 7);
-  } else {
-    return addDays(bids[0].timePlaced, 5);
-  }
-}
-
 @withRouter
 @connect(
   (state, ownProps) => {
-    const domain = state.names[ownProps.match.params.name] || {};
+    const { name } = ownProps.match.params;
+    const domain = names.getDomain(state, name);
     const bids = [];
 
     return {
-      status: getStatus(domain),
-      bids,
-      biddingOpenDate: domain.start
-        ? addDays(LAUNCH_DATE, domain.start.week * 7)
-        : null,
-      biddingOpenWeek: domain.start ? domain.start.week : null,
+      // New
+      domain,
+      isAvailable: names.getIsAvailable(state, name),
+      isReserved: names.getIsReserved(state, name),
+      biddingOpenDate: names.getBiddingOpenDate(state, name),
       biddingOpenBlock: domain.start && domain.start.start,
-      biddingCloseDate: getCloseDate(domain, bids),
+      biddingCloseDate: names.getBiddingCloseDate(state, name),
       biddingCloseBlock: null,
+      // /New
+      bids,
+      biddingOpenWeek: domain.start && domain.start.week,
       paidValue: domain.info && domain.info.value,
-      owner: domain.info && domain.info.owner
+      owner: domain.info && domain.info.owner,
     };
   },
   dispatch => ({
-    getNameInfo: tld => dispatch(domainActions.getNameInfo(tld))
+    getNameInfo: tld => dispatch(names.getNameInfo(tld))
   }),
 )
 export default class Auction extends Component {
@@ -124,6 +82,19 @@ export default class Auction extends Component {
       })
     }),
     getNameInfo: PropTypes.func.isRequired,
+    // New
+    start: PropTypes.shape({
+      reserved: PropTypes.bool,
+      week: PropTypes.number,
+      start: PropTypes.number,
+    }),
+    info: PropTypes.shape({
+      state: PropTypes.oneOf(['BIDDING', 'REVEAL', 'CLOSED', 'REVOKED', 'TRANSFER']),
+    }),
+    isAvailable: PropTypes.bool.isRequired,
+    isReserved: PropTypes.bool.isRequired,
+
+    // /New
     bids: PropTypes.arrayOf(
       PropTypes.shape({
         timePlaced: PropTypes.instanceOf(Date),
@@ -176,51 +147,6 @@ export default class Auction extends Component {
     return <CloseInfo biddingCloseDate={biddingCloseDate} bids={bids} />;
   };
 
-  renderAuctionLeft = () => {
-    const { status, biddingCloseDate } = this.props;
-
-    const isSold = status === SOLD;
-    const domain = this.getDomain();
-    const statusMessage = statusToMessage(status);
-
-    return (
-      <React.Fragment>
-        <div className="auction__domain">{`${domain}/`}</div>
-        {isSold && (
-          <div
-            className="auction__visit"
-            onClick={() => window.open(`http://.${domain}`, '_blank')}
-          >
-            <span>Visit</span>
-            <span className="auction__visit-icon" />
-          </div>
-        )}
-        <div className="auction__underline" />
-        <div className="auction__left">
-          <div className="auction__group">
-            <div className="auction__title">Status</div>
-            <div className="auction__status">
-              <div className="auction__status-message">{statusMessage}</div>
-              {// TODO this function confusingly is also true if already sold
-              isLimitedTimeRemaining(biddingCloseDate) && !isSold ? (
-                // TODO refactor these css names that got confusing and wierd through iteration
-                <div className="auction__limited-time__clock auction__limited auction__limited-time--small">
-                  <div className="auction__clock-svg" />
-                  <div className="auction__limited-time__text">
-                    limited time remaining!
-                  </div>
-                </div>
-              ) : null}
-            </div>
-            {this.renderStatusMessage()}
-          </div>
-          {this.renderBiddingOpen()}
-          {this.renderBiddingClose()}
-        </div>
-      </React.Fragment>
-    );
-  };
-
   renderContent() {
     const domain = this.getDomain();
 
@@ -231,7 +157,10 @@ export default class Auction extends Component {
           <div className="domains__content__info-panel">
             <div className="domains__content__info-panel__title">Auction Details</div>
             <div className="domains__content__info-panel__content">
-              hi
+              {this.renderStatusMessage()}
+              {this.renderBiddingOpen()}
+              {this.renderBiddingClose()}
+              {this.renderReveal()}
             </div>
           </div>
           <Collapsible  className="domains__content__info-panel" title="Bid History" defaultCollapsed>
@@ -252,60 +181,82 @@ export default class Auction extends Component {
         <div className="domains__action">
           {this.renderAuctionRight()}
         </div>
-        {/*{this.renderAuctionLeft()}*/}
       </div>
     );
   }
 
   renderStatusMessage() {
-    const { status, biddingOpenWeek, paidValue } = this.props;
+    const { domain, isAvailable, isReserved } = this.props;
+    const { state } = domain.info || {};
+    const className = 'domains__content__auction-detail';
+    let status = 'Unavailable';
 
-    if (paidValue && status === SOLD) {
-      return <div className="auction__paid-bid">{`${paidValue} HNS`}</div>;
+    if (isReserved) {
+      status = 'Reserved';
+    } else if (isAvailable) {
+      status = 'Available';
+    } else if (state === names.NAME_STATES.CLOSED) {
+      status = 'Closed';
     }
 
-    if (status === RESERVE) {
-      return (
-        <div className="auction__reserve-status-message">
-          <span className="auction__reserve-status-message__text">
-            for the trademark name holder.
-          </span>
-          <span className="auction__reserve-status-message__link">
-            Submit proof
-          </span>
-        </div>
-      );
-    }
-
-    if (status === AVAILABLE) {
-      return (
-        <a className="auction__bid-open-week">{`Week ${biddingOpenWeek}`}</a>
-      );
-    }
+    return (
+      <div
+        className={cn(className, {
+          [className + '--available']: isAvailable,
+          [className + '--reserved']: isReserved,
+          [className + '--closed']: state === names.NAME_STATES.CLOSED,
+        })}
+      >
+        <div className={`${className}__label`}>Status:</div>
+        <div className={`${className}__status`}>{status}</div>
+      </div>
+    );
   }
 
   renderBiddingOpen() {
-    const { status, biddingOpenDate, biddingOpenBlock } = this.props;
+    const { isAvailable, biddingOpenDate, biddingOpenBlock } = this.props;
+    const className = 'domains__content__auction-detail';
+    let status = 'N/A';
+    let desc = '';
+
+    if (isAvailable) {
+      status = toDate(biddingOpenDate);
+      desc = `Block # ${biddingOpenBlock}`;
+    }
 
     return (
-      <BiddingOpen
-        date={status === RESERVE ? 'N/A' : biddingOpenDate}
-        block={status === RESERVE ? 'N/A' : biddingOpenBlock}
-      />
+      <div className={className}>
+        <div className={`${className}__label`}>Bidding Open:</div>
+        <div className={`${className}__status`}>{status}</div>
+        <div className={`${className}__description`}>{desc}</div>
+      </div>
     );
   }
 
   renderBiddingClose = () => {
-    const { status, bids, biddingCloseDate, biddingCloseBlock } = this.props;
+    const { isAvailable, biddingCloseDate } = this.props;
+    const className = 'domains__content__auction-detail';
+    let status = 'N/A';
 
-    if (status === RESERVE) {
-      return <BiddingClose date={'N/A'} block={'N/A'} />;
+    if (isAvailable) {
+      status = toDate(biddingCloseDate);
     }
 
-    return !bids.length ? (
-      defaultBiddingClose
-    ) : (
-      <BiddingClose date={biddingCloseDate} block={biddingCloseBlock} />
+    return (
+      <div className={className}>
+        <div className={`${className}__label`}>Bidding Close:</div>
+        <div className={`${className}__status`}>{status}</div>
+      </div>
     );
-  };
+  }
+
+  renderReveal = () => {
+    const className = 'domains__content__auction-detail';
+    return (
+      <div className={className}>
+        <div className={`${className}__label`}>Reveal:</div>
+        <div className={`${className}__status`}>N/A</div>
+      </div>
+    );
+  }
 }
