@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import * as domainActions from '../../../ducks/domains';
+import * as domainActions from '../../ducks/names';
 import { BiddingOpen, BiddingClose } from './Bidding';
 import { CloseInfo, OpenInfo, SoldInfo, ReserveInfo } from './info';
 import './auction.scss';
@@ -132,7 +132,7 @@ function getCloseDate(domain = {}, bids = []) {
 @withRouter
 @connect(
   (state, ownProps) => {
-    const domain = state.domains[ownProps.match.params.name] || {};
+    const domain = state.names[ownProps.match.params.name] || {};
     const bids = [
       // {
       //   timePlaced: new Date('October 6, 2018'), // Date,
@@ -157,7 +157,7 @@ function getCloseDate(domain = {}, bids = []) {
   },
   dispatch => ({
     getNameInfo: tld => dispatch(domainActions.getNameInfo(tld))
-  })
+  }),
 )
 export default class Auction extends Component {
   static propTypes = {
@@ -191,7 +191,8 @@ export default class Auction extends Component {
   };
 
   componentWillMount() {
-    this.props.getNameInfo(this.getDomain());
+    this.props.getNameInfo(this.getDomain())
+      .catch(e => console.error(e.message));
   }
 
   getDomain = () => this.props.match.params.name;

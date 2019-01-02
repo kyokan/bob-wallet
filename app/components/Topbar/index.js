@@ -3,42 +3,35 @@ import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import c from 'classnames';
 import { connect } from 'react-redux';
+import * as nameActions from '../../ducks/names';
 import './topbar.scss';
 
 @withRouter
-// @connect(
-//   state => ({
-//     initialized: state.wallet.initialized,
-//     isLocked: state.wallet.isLocked,
-//   }),
-//   dispatch => ({
-//     getNameInfo: tld => dispatch(domainActions.getNameInfo(tld)),
-//   })
-// )
+@connect(
+  null,
+  dispatch => ({
+    getNameInfo: tld => dispatch(nameActions.getNameInfo(tld)),
+  })
+)
 class Topbar extends Component {
-  // static propTypes = {
-  //   history: PropTypes.shape({
-  //     push: PropTypes.func.isRequired,
-  //   }).isRequired,
-  //   location: PropTypes.shape({
-  //     pathname: PropTypes.string.isRequired,
-  //   }).isRequired,
-  //   getNameInfo: PropTypes.func.isRequired,
-  //   isLocked: PropTypes.bool.isRequired,
-  //   initialized: PropTypes.bool.isRequired,
-  // };
+  static propTypes = {
+    title: PropTypes.string.isRequired,
+    history: PropTypes.shape({
+      push: PropTypes.func.isRequired,
+    }).isRequired,
+    location: PropTypes.shape({
+      pathname: PropTypes.string.isRequired,
+    }).isRequired,
+    getNameInfo: PropTypes.func.isRequired,
+  };
 
   state = {
-    inputValue: ''
+    inputValue: '',
   };
 
   render() {
-    const name = c('topbar', {
-      // 'subheader--empty': !this.props.initialized || this.props.isLocked
-    });
-
     return (
-      <div className={name}>
+      <div className='topbar'>
         <div className="topbar__content">{this.renderNav()}</div>
       </div>
     );
@@ -63,15 +56,7 @@ class Topbar extends Component {
   };
 
   renderNav() {
-    // if (!this.props.initialized || this.props.isLocked) {
-    //   return null;
-    // }
-
-    const {
-      history: { push },
-      location: { pathname },
-      title: title
-    } = this.props;
+    const { title } = this.props;
 
     return (
       <React.Fragment>
@@ -90,7 +75,6 @@ class Topbar extends Component {
             onClick={this.handleSearchClick}
           />
         </div>
-
         <div
           className={c('topbar__synced', {
             'topbar__synced--success': true,

@@ -1,5 +1,6 @@
 import { combineReducers } from 'redux';
 import { connectRouter } from 'connected-react-router';
+import names from './names';
 
 
 // (async () => {
@@ -10,6 +11,7 @@ import { connectRouter } from 'connected-react-router';
 
 export default function createRootReducer(history) {
   return combineReducers({
-    router: connectRouter(history)
+    router: connectRouter(history),
+    names,
   });
 }
