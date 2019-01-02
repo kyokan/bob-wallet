@@ -45,11 +45,11 @@ export default class Home extends Component {
   }
 
   renderRoutes() {
-    let { isLocked, initialized } = this.props;
+    let { isLocked, initialized } = {};
 
     // temp fix to show authenticated views until ducks are set up
-    // isLocked = false;
-    // initialized = true;
+    isLocked = false;
+    initialized = true;
 
     if (this.state.isLoading) {
       return null;
