@@ -1,0 +1,150 @@
+export const SIGIL = '@@RPC@@';
+
+let lastId = 0;
+
+export const nullServer = {
+  withMethod() {},
+  withService() {},
+  start() {},
+  stop() {}
+};
+
+function log() {
+  if (process.env.NODE_ENV === 'production') {
+    return;
+  }
+
+  console.log(...arguments);
+}
+
+export function makeServer(ipcMain) {
+  const methods = {};
+
+  const handler = (event, data) => {
+    log('Received IPC method call.', data);
+    const method = methods[data.method];
+
+    if (!data.id) {
+      log('IPC method call has no ID, aborting.', data);
+      return event.sender.send(SIGIL, makeError(-32600, 'id not provided', null));
+    }
+
+    if (!method) {
+      log('IPC method does not exist, aborting.', data);
+      return event.sender.send(SIGIL, makeError(-32601, 'method not found', data.id));
+    }
+
+    let params;
+    if (!Array.isArray(data.params)) {
+      params = [data.params];
+    } else {
+      params = data.params;
+    }
+
+    const cb = (err, res) => {
+      if (err) {
+        log('Sending IPC method error.', data, err);
+        return event.sender.send(SIGIL, makeError(err.code || -1, err.message, data.id));
+      }
+
+      log('Sending IPC method response.', data, res);
+      return event.sender.send(SIGIL, makeResponse(res, data.id));
+    };
+
+    log('Executing IPC method.', data);
+    const maybePromise = method.apply(null, [...params, cb]);
+    if (maybePromise.then) {
+      log('IPC method returns a promise, executing.', data.method);
+      maybePromise.then((res) => cb(null, res))
+        .catch((err) => cb(err));
+    }
+  };
+
+  const server = {
+    withMethod(service, name, method) {
+      methods[`${service}.${name}`] = method
+    },
+    withService(sName, methods) {
+      Object.keys(methods).forEach((mName) => {
+        server.withMethod(sName, mName, methods[mName]);
+      });
+    },
+    start() {
+      ipcMain.on(SIGIL, handler);
+    },
+    stop() {
+      ipcMain.removeListener(SIGIL, handler);
+    }
+  };
+  return server;
+}
+
+export function makeClient(ipcRendererInjector, sName, methods) {
+  const mkSend = mName => (...params) => {
+    const ipcRenderer = ipcRendererInjector();
+    const id = ++lastId;
+
+    log('Dispatching IPC method call.', id, mName, params);
+
+    return new Promise((resolve, reject) => {
+      const handler = (event, data) => {
+        const jsonData = JSON.parse(data);
+        if (jsonData.id !== id) {
+          return;
+        }
+
+        ipcRenderer.off(SIGIL, handler);
+
+        if (jsonData.error) {
+          log('Received IPC error.', id, mName, params, jsonData.result);
+          return reject(jsonData.error);
+        }
+
+        log('Received IPC response.', id, mName, params, jsonData.result);
+        return resolve(jsonData.result);
+      };
+
+      ipcRenderer.send(SIGIL, {
+        jsonrpc: '2.0',
+        method: `${sName}.${mName}`,
+        params,
+        id
+      });
+      ipcRenderer.on(SIGIL, handler);
+    });
+  };
+
+  return methods.reduce((acc, curr) => {
+    acc[curr] = mkSend(curr);
+    return acc;
+  }, {});
+}
+
+function makeResponse(result, id) {
+  return JSON.stringify({
+    jsonrpc: '2.0',
+    result,
+    id
+  });
+}
+
+function makeError(code, message, id) {
+  return JSON.stringify({
+    jsonrpc: '2.0',
+    error: {
+      code,
+      message
+    },
+    id
+  });
+}
+
+export let defaultServer;
+if (!require('electron').ipcMain) {
+  defaultServer = nullServer
+} else {
+  defaultServer = makeServer(require('electron').ipcMain);
+}
+
+defaultServer.start();
+

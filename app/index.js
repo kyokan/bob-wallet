@@ -2,10 +2,12 @@ import React from 'react';
 import { render } from 'react-dom';
 import { AppContainer } from 'react-hot-loader';
 import Root from './pages/Root';
-import { configureStore, history } from './store/configureStore';
+import { history, store } from './store/configureStore';
 import './global.scss';
+import * as node from './ducks/node';
+import { NETWORKS } from './background/node';
 
-const store = configureStore();
+store.dispatch(node.start(NETWORKS.SIMNET));
 
 render(
   <AppContainer>

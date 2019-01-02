@@ -12,7 +12,6 @@
 import { app, BrowserWindow } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
-import { spawn } from 'child_process';
 import MenuBuilder from './menu';
 
 export default class AppUpdater {
@@ -72,8 +71,6 @@ app.on('ready', async () => {
     await installExtensions();
   }
 
-  startHsd();
-
   mainWindow = new BrowserWindow({
     show: false,
     width: 1024,
@@ -106,17 +103,8 @@ app.on('ready', async () => {
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
   new AppUpdater();
-});
 
-function startHsd() {
-  hsd = spawn('./node_modules/hsd/bin/hsd', [
-    '--seeds=aorsxa4ylaacshipyjkfbvzfkh3jhh4yowtoqdt64nzemqtiw2whk@18.217.172.158',
-    '--network=simnet',
-    '--listen',
-    '--bip37',
-  ]);
-  hsd.stdout.on('data', d => console.log(`stdout: ${d.toString()}`));
-  hsd.stderr.on('data', d => console.log(`stderr: ${d.toString()}`));
-  hsd.on('exit', () => console.log('hsd exited'));
-  return hsd;
-}
+  // start the IPC server
+  require('./background/ipc');
+  require('./background/node');
+});
