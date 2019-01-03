@@ -2,17 +2,13 @@ import { combineReducers } from 'redux';
 import { connectRouter } from 'connected-react-router';
 import names from './names';
 import auctions from './auctions';
-
-// (async () => {
-//   const resp = await fetch('http://127.0.0.1:15037');
-//   const json = await resp.json();
-//   console.log(json);
-// })();
+import wallet from './wallet';
 
 export default function createRootReducer(history) {
   return combineReducers({
     router: connectRouter(history),
     names,
-    auctions
+    auctions,
+    wallet
   });
 }

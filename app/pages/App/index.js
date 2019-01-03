@@ -15,9 +15,10 @@ import Account from '../Account';
 import GetCoins from '../GetCoins';
 import Settings from '../Settings';
 import Auction from '../Auction';
+import * as walletActions from '../../ducks/wallet';
 import './app.scss';
 
-export default class Home extends Component {
+class App extends Component {
   static propTypes = {
     isLocked: PropTypes.bool.isRequired,
     initialized: PropTypes.bool.isRequired
@@ -78,7 +79,7 @@ export default class Home extends Component {
         <Route path="/get_coins" component={GetCoins} />
         <Route path="/settings" component={Settings} />
         {/* Let's implement Auction once ducks are set up and we're connected to the blockchain  */}
-         <Route path="/domain/:name?" component={Auction} />
+        <Route path="/domain/:name?" component={Auction} />
         {this.renderDefault()}
       </Switch>
     );
