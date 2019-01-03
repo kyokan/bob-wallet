@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { Redirect, Route, Switch } from 'react-router-dom';
+import { Redirect, Route, Switch, withRouter } from 'react-router-dom';
+import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import SubHeader from '../../components/SubHeader';
 import Sidebar from '../../components/Sidebar';
@@ -18,11 +19,11 @@ import Settings from '../Settings';
 import Footer from '../Footer';
 import './app.scss';
 
-export default class Home extends Component {
-  // static propTypes = {
-  //   isLocked: PropTypes.bool.isRequired,
-  //   initialized: PropTypes.bool.isRequired
-  // };
+class App extends Component {
+  static propTypes = {
+    isLocked: PropTypes.bool.isRequired,
+    initialized: PropTypes.bool.isRequired
+  };
 
   state = {
     isLoading: false
@@ -31,7 +32,6 @@ export default class Home extends Component {
   render() {
     return (
       <div className="app">
-        {/* <SubHeader /> */}
         <div className="app__sidebar-wrapper">
           <Sidebar />
         </div>
@@ -48,15 +48,9 @@ export default class Home extends Component {
 
   renderRoutes() {
     let { isLocked, initialized } = this.props;
-
-    // temp fix to show authenticated views until ducks are set up
-    // isLocked = false;
-    // initialized = true;
-
     if (this.state.isLoading) {
       return null;
     }
-
     if (isLocked || !initialized) {
       return (
         <Switch>
@@ -74,7 +68,6 @@ export default class Home extends Component {
         </Switch>
       );
     }
-
     return (
       <Switch>
         <Route path="/account" component={Account} />
@@ -91,11 +84,6 @@ export default class Home extends Component {
 
   renderDefault = () => {
     let { isLocked, initialized } = this.props;
-
-    // temp fix to show authenticated views until ducks are set up
-    // isLocked = false;
-    // initialized = true;
-
     if (!initialized) {
       return <Redirect to="/funding-options" />;
     }
@@ -106,13 +94,11 @@ export default class Home extends Component {
 
     return <Redirect to="/account" />;
   };
-
-  renderWrapper = c => {
-    const Comp = c;
-    return () => (
-      <div className="app__component-wrapper">
-        <Comp />
-      </div>
-    );
-  };
 }
+
+export default withRouter(
+  connect(state => ({
+    isLocked: state.wallet.isLocked,
+    initialized: state.wallet.initialized
+  }))(App)
+);

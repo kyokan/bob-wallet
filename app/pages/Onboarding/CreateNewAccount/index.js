@@ -4,17 +4,17 @@ import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import {
   createNewWallet,
-  generateReceivingAddress,
-  getPublicKeyByAddress
+  getPublicKeyByAddress,
+  getMasterHDKey,
+  createPassphrase,
+  deleteWallet
 } from '../../../utils/walletClient';
 import Terms from '../Terms/index';
 import CreatePassword from '../CreatePassword/index';
 import BackUpSeedWarning from '../BackUpSeedWarning/index';
 import CopySeed from '../../CopySeed/index';
 import ConfirmSeed from '../ConfirmSeed/index';
-// import client from '../../utils/client';
-// import { CREATE_WALLET } from '../../../../chrome/extension/background/actionTypes';
-// import * as walletActions from '../../../ducks/wallet';
+import * as walletActions from '../../../ducks/wallet';
 
 //TEMP SOLUTION UNTIL IMPORT WARNING IS IMPLEMENTED
 import '../ImportSeedEnterMnemonic/importenter.scss';
@@ -26,52 +26,50 @@ const BACK_UP_SEED_WARNING = 2;
 const COPY_SEEDPHRASE = 3;
 const CONFIRM_SEEDPHRASE = 4;
 
-// @connect(
-//   null,
-//   dispatch => ({
-//     completeInitialization: () =>
-//       dispatch(walletActions.completeInitialization())
-//   })
-// )
-@withRouter
 class CreateNewAccount extends Component {
-  // static propTypes = {
-  //   completeInitialization: PropTypes.func.isRequired
-  // };
+  static propTypes = {
+    completeInitialization: PropTypes.func.isRequired
+  };
 
   state = {
     currentStep: TERMS_OF_USE,
-    seedphrase: '',
-    address: '',
-    id: '143'
+    seedphrase: ''
   };
 
   render() {
-    const { id } = this.state;
     switch (this.state.currentStep) {
       case TERMS_OF_USE:
         return (
           <Terms
             onAccept={async () => {
-              const address = await getPublicKeyByAddress(
-                'Michael1',
-                'ss1qkla4rx7jpdw09vnnlmtuzwamrg97uvfgt32c4x'
-              );
-              console.log(address);
-              // const newWallet = await WalletClient.createNewWallet(id);
-              // const masterHDKey = await WalletClient.getMasterHDKey(id);
+              const unencryptedWallet = await createNewWallet();
+              const masterHDKey = await getMasterHDKey();
               this.setState({
-                currentStep: BACK_UP_SEED_WARNING,
+                currentStep: CREATE_PASSWORD,
                 seedphrase: masterHDKey.mnemonic.phrase
               });
             }}
             onBack={() => this.props.history.push('/funding-options')}
           />
         );
+      case CREATE_PASSWORD:
+        return (
+          <CreatePassword
+            currentStep={1}
+            totalSteps={4}
+            onBack={() => this.setState({ currentStep: TERMS_OF_USE })}
+            onNext={async password => {
+              const newWallet = await createPassphrase(password);
+              this.setState({ currentStep: BACK_UP_SEED_WARNING });
+              console.log(this.state);
+            }}
+            onCancel={() => this.props.history.push('/funding-options')}
+          />
+        );
       case BACK_UP_SEED_WARNING:
         return (
           <BackUpSeedWarning
-            currentStep={1}
+            currentStep={2}
             totalSteps={4}
             onBack={() => this.setState({ currentStep: TERMS_OF_USE })}
             onNext={() => this.setState({ currentStep: COPY_SEEDPHRASE })}
@@ -81,7 +79,7 @@ class CreateNewAccount extends Component {
       case COPY_SEEDPHRASE:
         return (
           <CopySeed
-            currentStep={2}
+            currentStep={3}
             totalSteps={4}
             seedphrase={this.state.seedphrase}
             onBack={() => this.setState({ currentStep: BACK_UP_SEED_WARNING })}
@@ -92,46 +90,14 @@ class CreateNewAccount extends Component {
       case CONFIRM_SEEDPHRASE:
         return (
           <ConfirmSeed
-            currentStep={3}
+            currentStep={4}
             totalSteps={4}
             seedphrase={this.state.seedphrase}
             onBack={() => this.setState({ currentStep: COPY_SEEDPHRASE })}
-            onNext={() => this.setState({ currentStep: CREATE_PASSWORD })}
-            // await this.props.completeInitialization();
-            onCancel={() => this.props.history.push('/funding-options')}
-          />
-        );
-      case CREATE_PASSWORD:
-        return (
-          <CreatePassword
-            currentStep={3}
-            totalSteps={4}
-            onBack={() => this.setState({ currentStep: TERMS_OF_USE })}
-            onNext={
-              async password => {
-                // const newWallet = await WalletClient.changePassphrase(
-                //   this.state.id,
-                //   password
-                // );
-                // const masterHDKey = await WalletClient.getMasterHDKey(id);
-                // console.log(masterHDKey);
-                this.props.history.push('/');
-              }
-
-              // WHEN REDUX IS SET UP:
-              // password => {
-              // client
-              //   .dispatch({ type: CREATE_WALLET, payload: password })
-              //   .then(({ address, seed }) => {
-              //     this.setState({
-              //       address: address,
-              //       seedphrase: seed,
-              //       currentStep: BACK_UP_SEED_WARNING
-              //     });
-              //   })
-              //   .catch(console.error.bind(console));
-              // }
-            }
+            onNext={async () => {
+              await this.props.completeInitialization(this.state.address);
+              this.props.history.push('/');
+            }}
             onCancel={() => this.props.history.push('/funding-options')}
           />
         );
@@ -141,4 +107,12 @@ class CreateNewAccount extends Component {
   }
 }
 
-export default CreateNewAccount;
+export default withRouter(
+  connect(
+    null,
+    dispatch => ({
+      completeInitialization: () =>
+        dispatch(walletActions.completeInitialization())
+    })
+  )(CreateNewAccount)
+);

@@ -44,6 +44,7 @@ class Account extends Component {
   }
 
   renderDomains() {
+    console.log(this.props);
     const { domains } = this.props;
 
     return !domains.length

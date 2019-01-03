@@ -1,20 +1,21 @@
-import WalletClient from '../utils/walletClient';
+import { getWalletInfo, generateReceivingAddress } from '../utils/walletClient';
 
 const SET_WALLET = 'app/wallet/setWallet';
 const UNLOCK_WALLET = 'app/wallet/unlockWallet';
 const LOCK_WALLET = 'app/wallet/lockWallet';
 const REMOVE_WALLET = 'app/wallet/removeWallet';
+const COMPLETE_INITIALIZATION = 'app/wallet/completeInitialization';
 
 export const NONE = 'NONE';
 export const LEDGER = 'LEDGER';
 export const IMPORTED = 'IMPORTED';
-export const EXTENSION = 'EXTENSION';
+export const ELECTRON = 'ELECTRON';
 
 // Intial State
 const initialState = {
   address: '',
   type: NONE,
-  isLocket: true,
+  isLocked: true,
   initialized: false,
   balance: {
     confirmed: '0',
@@ -39,6 +40,11 @@ export default function walletReducer(state = initialState, { type, payload }) {
         },
         initialized: payload.initialized
       };
+    case COMPLETE_INITIALIZATION:
+      return {
+        ...state,
+        initialized: true
+      };
     default:
       return state;
   }
@@ -52,6 +58,7 @@ export const setWallet = ({
   isLocked = false,
   balance = {}
 }) => {
+  console.log('setWalletgetsCalled');
   return {
     type: SET_WALLET,
     payload: {
@@ -67,21 +74,25 @@ export const setWallet = ({
 // side effects, only as applicable
 // e.g. thunks, epics, etc
 
-// (async () => {
-//   const resp = await fetch('http://127.0.0.1:15037');
-//   const json = await resp.json();
-//   console.log(json);
-// })();
-
 // WIP
-export const createWallet = async () => {
-  const res = await WalletClient.getPrivateKeyByAddress(
-    'two',
-    'ss1q0svwnsu7yxsgtyj5nsrkv880ca5ylf80gq7le7',
-    'michael'
+export const completeInitialization = () => dispatch => {
+  dispatch({ type: COMPLETE_INITIALIZATION });
+  dispatch(fetchWallet());
+};
+
+export const fetchWallet = () => async dispatch => {
+  const walletInfo = await getWalletInfo();
+  const generatedReceivingAddress = await generateReceivingAddress();
+  console.log(walletInfo);
+  dispatch(
+    setWallet({
+      initialized: true,
+      address: generatedReceivingAddress.address,
+      type: NONE,
+      isLocked: false,
+      balance: walletInfo.balance
+    })
   );
-  console.log(res);
-  // get('/widget').then(widget => dispatch(updateWidget(widget)));
 };
 
 // export const generateWallet = () => {

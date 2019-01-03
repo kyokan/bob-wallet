@@ -61,6 +61,7 @@ class Sidebar extends Component {
       location: { pathname }
     } = this.props;
 
+    //use NavLink component check out docs
     return (
       <React.Fragment>
         <div className="sidebar__section">Wallet</div>

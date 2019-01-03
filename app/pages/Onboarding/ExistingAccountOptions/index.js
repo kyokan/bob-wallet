@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 // import classNames from 'classnames';
-import { createWallet } from '../../../ducks/wallet';
 import './existing.scss';
 
 const NONE = 0;
@@ -34,7 +33,6 @@ class ExistingAccountOptions extends Component {
   }
 
   render() {
-    createWallet();
     return (
       <div className="existing-options">
         <div className="existing-options__header">
