@@ -107,4 +107,5 @@ app.on('ready', async () => {
   // start the IPC server
   require('./background/ipc');
   require('./background/node');
+  require('./background/airdrop');
 });

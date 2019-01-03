@@ -17,20 +17,36 @@ function log() {
   console.log(...arguments);
 }
 
+// used to scrub sensitive info from RPC calls
+function sanitizeData(data, method) {
+  if (method.sanitizedArgs) {
+    const copy = JSON.parse(JSON.stringify(data));
+    for (let i = 0; i < method.sanitizedArgs.length; i++) {
+      const pIdx = method.sanitizedArgs[i];
+      if (copy.params[pIdx]) {
+        copy.params[pIdx] = '<SANITIZED>';
+      }
+    }
+
+    return copy;
+  }
+
+  return data;
+}
+
 export function makeServer(ipcMain) {
   const methods = {};
 
   const handler = (event, data) => {
-    log('Received IPC method call.', data);
     const method = methods[data.method];
 
     if (!data.id) {
-      log('IPC method call has no ID, aborting.', data);
+      log('IPC method call has no ID, aborting.');
       return event.sender.send(SIGIL, makeError(-32600, 'id not provided', null));
     }
 
     if (!method) {
-      log('IPC method does not exist, aborting.', data);
+      log('IPC method does not exist, aborting.');
       return event.sender.send(SIGIL, makeError(-32601, 'method not found', data.id));
     }
 
@@ -43,18 +59,17 @@ export function makeServer(ipcMain) {
 
     const cb = (err, res) => {
       if (err) {
-        log('Sending IPC method error.', data, err);
+        log('Sending IPC method error.', sanitizeData(data, method), err);
         return event.sender.send(SIGIL, makeError(err.code || -1, err.message, data.id));
       }
 
-      log('Sending IPC method response.', data, res);
+      log('Sending IPC method response.', sanitizeData(data, method), res);
       return event.sender.send(SIGIL, makeResponse(res, data.id));
     };
 
-    log('Executing IPC method.', data);
+    log('Executing IPC method.', sanitizeData(data, method));
     const maybePromise = method.apply(null, [...params, cb]);
     if (maybePromise.then) {
-      log('IPC method returns a promise, executing.', data.method);
       maybePromise.then((res) => cb(null, res))
         .catch((err) => cb(err));
     }
@@ -84,7 +99,7 @@ export function makeClient(ipcRendererInjector, sName, methods) {
     const ipcRenderer = ipcRendererInjector();
     const id = ++lastId;
 
-    log('Dispatching IPC method call.', id, mName, params);
+    log('Dispatching IPC method call.', id, mName);
 
     return new Promise((resolve, reject) => {
       const handler = (event, data) => {
@@ -96,11 +111,11 @@ export function makeClient(ipcRendererInjector, sName, methods) {
         ipcRenderer.off(SIGIL, handler);
 
         if (jsonData.error) {
-          log('Received IPC error.', id, mName, params, jsonData.result);
+          log('Received IPC error.', id, mName, jsonData.result);
           return reject(jsonData.error);
         }
 
-        log('Received IPC response.', id, mName, params, jsonData.result);
+        log('Received IPC response.', id, mName, jsonData.result);
         return resolve(jsonData.result);
       };
 
