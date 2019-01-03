@@ -17,6 +17,7 @@ import GetCoins from '../GetCoins';
 import Settings from '../Settings';
 // import Auction from '../Auction';
 import Footer from '../Footer';
+import * as walletActions from '../../ducks/wallet';
 import './app.scss';
 
 class App extends Component {
@@ -28,6 +29,10 @@ class App extends Component {
   state = {
     isLoading: false
   };
+
+  componentDidMount() {
+    this.props.isInitialized();
+  }
 
   render() {
     return (
@@ -97,8 +102,13 @@ class App extends Component {
 }
 
 export default withRouter(
-  connect(state => ({
-    isLocked: state.wallet.isLocked,
-    initialized: state.wallet.initialized
-  }))(App)
+  connect(
+    state => ({
+      isLocked: state.wallet.isLocked,
+      initialized: state.wallet.initialized
+    }),
+    dispatch => ({
+      isInitialized: () => dispatch(walletActions.isInitialized())
+    })
+  )(App)
 );

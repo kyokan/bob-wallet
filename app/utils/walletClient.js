@@ -3,7 +3,7 @@ const Network = require('hsd/lib/protocol/network');
 
 const network = Network.get('simnet');
 
-const DEFAULT_ID = 'default';
+const DEFAULT_ID = 'defaaaaaault11';
 
 const walletOptions = {
   network: network.type,
@@ -72,6 +72,5 @@ export const deleteWallet = async () => {
   await walletClient.close();
   // await walletClient.destroy();
   // await walletClient.open();
-
   return 'done';
 };

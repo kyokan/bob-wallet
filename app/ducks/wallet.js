@@ -4,7 +4,7 @@ const SET_WALLET = 'app/wallet/setWallet';
 const UNLOCK_WALLET = 'app/wallet/unlockWallet';
 const LOCK_WALLET = 'app/wallet/lockWallet';
 const REMOVE_WALLET = 'app/wallet/removeWallet';
-const COMPLETE_INITIALIZATION = 'app/wallet/completeInitialization';
+const IS_INITIALIZED = 'app/wallet/isInitialized';
 
 export const NONE = 'NONE';
 export const LEDGER = 'LEDGER';
@@ -15,7 +15,8 @@ export const ELECTRON = 'ELECTRON';
 const initialState = {
   address: '',
   type: NONE,
-  isLocked: true,
+  // note: Reimplement once we lock wallet on shut down
+  // isLocked: true,
   initialized: false,
   balance: {
     confirmed: '0',
@@ -40,10 +41,10 @@ export default function walletReducer(state = initialState, { type, payload }) {
         },
         initialized: payload.initialized
       };
-    case COMPLETE_INITIALIZATION:
+    case IS_INITIALIZED:
       return {
         ...state,
-        initialized: true
+        initialized: !!localStorage.getItem('initialized')
       };
     default:
       return state;
@@ -58,7 +59,6 @@ export const setWallet = ({
   isLocked = false,
   balance = {}
 }) => {
-  console.log('setWalletgetsCalled');
   return {
     type: SET_WALLET,
     payload: {
@@ -71,31 +71,33 @@ export const setWallet = ({
   };
 };
 
-// side effects, only as applicable
-// e.g. thunks, epics, etc
+export const isInitialized = () => {
+  return {
+    type: IS_INITIALIZED,
+    payload: {
+      initialized: !!localStorage.getItem('initialized')
+    }
+  };
+};
 
-// WIP
+// side effects, e.g. thunks
+
 export const completeInitialization = () => dispatch => {
-  dispatch({ type: COMPLETE_INITIALIZATION });
+  localStorage.setItem('initialized', '1');
+  dispatch(isInitialized());
   dispatch(fetchWallet());
 };
 
 export const fetchWallet = () => async dispatch => {
   const walletInfo = await getWalletInfo();
   const generatedReceivingAddress = await generateReceivingAddress();
-  console.log(walletInfo);
   dispatch(
     setWallet({
-      initialized: true,
-      address: generatedReceivingAddress.address,
+      initialized: !!localStorage.getItem('initialized'),
+      address: generatedReceivingAddress && generatedReceivingAddress.address,
       type: NONE,
-      isLocked: false,
-      balance: walletInfo.balance
+      // isLocked: false,
+      balance: walletInfo && walletInfo.balance
     })
   );
 };
-
-// export const generateWallet = () => {
-//   return dispatch =>
-
-// }
