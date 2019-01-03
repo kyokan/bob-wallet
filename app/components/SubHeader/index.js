@@ -3,8 +3,6 @@ import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import c from 'classnames';
 import { connect } from 'react-redux';
-import SendModal from '../SendModal';
-import ReceiveModal from '../ReceiveModal';
 import './subheader.scss';
 
 @withRouter
@@ -18,17 +16,15 @@ import './subheader.scss';
 //   })
 // )
 class SubHeader extends Component {
-  // static propTypes = {
-  //   history: PropTypes.shape({
-  //     push: PropTypes.func.isRequired,
-  //   }).isRequired,
-  //   location: PropTypes.shape({
-  //     pathname: PropTypes.string.isRequired,
-  //   }).isRequired,
-  //   getNameInfo: PropTypes.func.isRequired,
-  //   isLocked: PropTypes.bool.isRequired,
-  //   initialized: PropTypes.bool.isRequired,
-  // };
+  static propTypes = {
+    history: PropTypes.shape({
+      push: PropTypes.func.isRequired,
+    }).isRequired,
+    location: PropTypes.shape({
+      pathname: PropTypes.string.isRequired,
+    }).isRequired,
+    getNameInfo: PropTypes.func.isRequired,
+  };
 
   constructor(props) {
     super(props);
@@ -59,53 +55,18 @@ class SubHeader extends Component {
     this.props.history.push(`/domain/${name}`);
   };
 
-  openSendModal = () =>
-    this.setState({ isShowingSendModal: true, isShowingReceiveModal: false });
-
-  openReceiveModal = () =>
-    this.setState({
-      isShowingSendModal: false,
-      isShowingReceiveModal: true
-    });
-
-  closeModal = () =>
-    this.setState({ isShowingSendModal: false, isShowingReceiveModal: false });
-
-  renderModal = () => {
-    const { isShowingReceiveModal, isShowingSendModal } = this.state;
-
-    if (isShowingReceiveModal) {
-      return <ReceiveModal onClose={this.closeModal} />;
-    }
-
-    if (isShowingSendModal) {
-      return <SendModal onClose={this.closeModal} />;
-    }
-
-    return null;
-  };
-
   render() {
-    const name = c('subheader', {
-      // 'subheader--empty': !this.props.initialized || this.props.isLocked
-    });
-
     return (
-      <div className={name}>
+      <div className='subheader'>
         <div className="subheader__content">
           <div className="subheader__logo" />
           {this.renderNav()}
         </div>
-        {this.renderModal()}
       </div>
     );
   }
 
   renderNav() {
-    // if (!this.props.initialized || this.props.isLocked) {
-    //   return null;
-    // }
-
     const {
       history: { push },
       location: { pathname }

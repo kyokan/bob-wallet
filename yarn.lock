@@ -5632,7 +5632,23 @@ hpack.js@^2.1.6:
     readable-stream "^2.0.1"
     wbuf "^1.1.0"
 
+<<<<<<< HEAD
 "hs-client@git://github.com/handshake-org/hs-client#master", hs-client@~0.0.4:
+=======
+"hs-airdrop@git://github.com/kyokan/hs-airdrop#master":
+  version "0.0.1"
+  resolved "git://github.com/kyokan/hs-airdrop#8cbada351e7c65d30cf3ba0a13485ef917fab949"
+  dependencies:
+    bcrypto "~3.0.1"
+    bfile "~0.1.3"
+    brq "~0.1.4"
+    bsert "~0.0.7"
+    bstring "~0.3.4"
+    bufio "~1.0.3"
+    goosig "~0.0.2"
+
+hs-client@~0.0.4:
+>>>>>>> origin/master
   version "0.0.4"
   resolved "git://github.com/handshake-org/hs-client#534231e3483e175e59ab97cfa176652f180da8f9"
   dependencies:

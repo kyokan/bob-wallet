@@ -9,3 +9,5 @@ const selectedConfigureStore =
 export const { configureStore } = selectedConfigureStore;
 
 export const { history } = selectedConfigureStore;
+
+export const store = configureStore();

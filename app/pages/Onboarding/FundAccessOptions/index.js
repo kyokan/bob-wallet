@@ -3,7 +3,7 @@ import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 // import classNames from 'classnames';
-// import * as actions from '../../../ducks/extension';
+// import * as auctions.js from '../../../ducks/extension';
 import './access.scss';
 
 class FundAccessOptions extends Component {

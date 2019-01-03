@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { Redirect, Route, Switch, withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import SubHeader from '../../components/SubHeader';
 import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
 import SendModal from '../../components/SendModal';
@@ -15,12 +14,10 @@ import ConnectLedgerFlow from '../Onboarding/ConnectLedgerFlow';
 import Account from '../Account';
 import GetCoins from '../GetCoins';
 import Settings from '../Settings';
-// import Auction from '../Auction';
-import Footer from '../Footer';
-import * as walletActions from '../../ducks/wallet';
+import Auction from '../Auction';
 import './app.scss';
 
-class App extends Component {
+export default class Home extends Component {
   static propTypes = {
     isLocked: PropTypes.bool.isRequired,
     initialized: PropTypes.bool.isRequired
@@ -81,7 +78,7 @@ class App extends Component {
         <Route path="/get_coins" component={GetCoins} />
         <Route path="/settings" component={Settings} />
         {/* Let's implement Auction once ducks are set up and we're connected to the blockchain  */}
-        {/* <Route path="/domain/:name?" component={Auction} /> */}
+         <Route path="/domain/:name?" component={Auction} />
         {this.renderDefault()}
       </Switch>
     );

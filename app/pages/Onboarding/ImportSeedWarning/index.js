@@ -4,17 +4,17 @@ import { connect } from 'react-redux';
 import classNames from 'classnames';
 import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
-// import actions from '../../../ducks/extension';
-import Checkbox from '../../../components/Checkbox';
+// import auctions.js from '../../../ducks/extension';
+import Checkbox from '../../../components/Checkbox/index';
 import WizardHeader from '../../../components/WizardHeader/index';
 import './importwarning.scss';
 
 // @connect(
 //   state => ({})
 //   dispatch => ({
-//     actions: bindActionCreators(
+//     auctions.js: bindActionCreators(
 //       {
-//         setView: actions.setView
+//         setView: auctions.js.setView
 //       },
 //       dispatch
 //     )
