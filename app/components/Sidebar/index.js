@@ -101,7 +101,7 @@ class Sidebar extends Component {
             className={c('sidebar__action', {
               'sidebar__action--selected': /settings/.test(pathname)
             })}
-            onClick={() => console.push('push("/airdrop")')}
+            onClick={() => console.log('push("/airdrop")')}
           >
             GooSig Airdrop
           </a>
