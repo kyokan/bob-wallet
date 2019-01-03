@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { withRouter } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import c from 'classnames';
 import { connect } from 'react-redux';
@@ -84,7 +84,7 @@ class Topbar extends Component {
           Synchronized
         </div>
         <div className="topbar__icon topbar__icon--notifications" />
-        <div className="topbar__icon topbar__icon--settings" />
+        <Link to="/settings" className="topbar__icon topbar__icon--settings" />
       </React.Fragment>
     );
   }
