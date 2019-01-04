@@ -6,9 +6,8 @@ export const START = 'node/START';
 export const STOP = 'node/STOP';
 
 export function start(network) {
-  return async (dispatch) => {
+  return async dispatch => {
     await client.start(network);
-
     dispatch({
       type: START,
       payload: {
@@ -22,7 +21,7 @@ export function getInitialState() {
   return {
     isRunning: false,
     network: null
-  }
+  };
 }
 
 export function nodeReducer(state = getInitialState(), action = {}) {
