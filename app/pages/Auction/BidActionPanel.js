@@ -56,6 +56,17 @@ class BidActionPanel extends Component {
         <div className="domains__bid-now__action">
           <button
             className="domains__bid-now__action__cta"
+            onClick={async () => {
+              const resp = await fetch('http://127.0.0.1:15039', {
+                method: 'POST',
+                body: JSON.stringify({
+                  method: 'sendopen',
+                  params: [ this.props.domain.name ],
+                }),
+              });
+
+              console.log(resp);
+            }}
           >
             Open Bid
           </button>

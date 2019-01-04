@@ -83,7 +83,9 @@
     }
 
     &__reminder-title,
-    &__reminder-link {
+    &__reminder-link,
+    &__reserved-text,
+    &__reserved-timestamp {
       text-align: center;
       padding: 0 1.5rem;
     }
@@ -98,6 +100,16 @@
       font-size: 1.25rem;
       font-weight: 500;
       padding: .5rem;
+    }
+
+    &__reserved-text {
+      line-height: 1.25rem;
+      font-weight: 600;
+    }
+
+    &__reserved-timestamp {
+      font-size: .75rem;
+      margin-top: 1rem;
     }
 
     &__reminder-link {
