@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
-import cn from 'classnames';
 import { connect } from 'react-redux';
 import './domains.scss';
 import {
@@ -10,8 +9,6 @@ import {
   isBidding,
 } from '../../utils/name-helpers';
 import Checkbox from '../../components/Checkbox';
-import Blocktime from '../../components/Blocktime';
-import moment from 'moment';
 
 class BidActionPanel extends Component {
   static propTypes = {
@@ -38,7 +35,7 @@ class BidActionPanel extends Component {
       return this.renderOpeningBid();
     }
 
-    if (true || isBidding(domain)) {
+    if (isBidding(domain)) {
       return this.renderBidNow();
     }
 
@@ -78,8 +75,16 @@ class BidActionPanel extends Component {
     );
   }
 
+  // TODO: render placed bid
   renderPlacedBid() {
-
+    return (
+      <div className="domains__bid-now">
+        <div className="domains__bid-now__title">Bid Placed!</div>
+        <div className="domains__bid-now__content">
+          To be updated
+        </div>
+      </div>
+    );
   }
 
   getTimeRemaining(hoursUntilReveal) {
