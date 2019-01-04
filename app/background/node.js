@@ -1,6 +1,6 @@
 import pify from '../utils/pify';
 import { app } from 'electron';
-import { spawn, fork } from 'child_process';
+import { spawn } from 'child_process';
 import rimraf from 'rimraf';
 import { defaultServer, makeClient } from './ipc';
 
@@ -43,20 +43,12 @@ export async function reset() {
   await start();
 }
 
-let locked = false;
-
 export async function start(net) {
-  if (locked) {
-    return;
-  }
-  locked = true;
   if (hsd && network === net) {
-    locked = false;
     return;
   }
   const newNetwork = VALID_NETWORKS[net];
   if (!newNetwork) {
-    locked = false;
     throw new Error('invalid network');
   }
   if (hsd) {
@@ -93,7 +85,7 @@ export async function start(net) {
   }
 
   const startTime = Date.now();
-  hsd = spawn('./node_modules/hsd/bin/node', args);
+  hsd = spawn('./node_modules/hsd/bin/hsd', args);
   hsd.stdout.on('data', data => stdout.write(data));
   hsd.stderr.on('data', data => stderr.write(data));
 
@@ -106,11 +98,7 @@ export async function start(net) {
         reject(new Error('hsd crashed, check the logs'));
       }
     });
-
-    setTimeout(() => {
-      locked = false;
-      resolve();
-    }, 3000);
+    setTimeout(resolve, 3000);
   });
 }
 

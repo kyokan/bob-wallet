@@ -6,7 +6,7 @@ const Network = require('hsd/lib/protocol/network');
 
 const network = Network.get('simnet');
 
-const DEFAULT_ID = 'default';
+const DEFAULT_ID = 'default1';
 
 const walletOptions = {
   network: network.type,
@@ -23,24 +23,25 @@ export const getWalletInfo = async () => {
 
 export const createNewWallet = async passphrase => {
   const options = {
-    passphrase: passphrase,
+    passphrase,
     witness: false,
     watchOnly: false
     // accountKey: 'spubKBAoFrCN1HzSEDye7jcQaycA8L7MjFGmJD1uuvUZ21d9srAmAxmB7o1tCZRyXmTRuy5ZDQDV6uxtcxfHAadNFtdK7J6RV9QTcHTCEoY5FtQD'
   };
-  await deleteWallet();
+  // await deleteWallet();
   const result = await walletClient.createWallet(DEFAULT_ID, options);
   return result;
 };
 
 export const importSeed = async (passphrase, mnemonic) => {
   const options = {
-    passphrase: passphrase,
+    passphrase,
     witness: false,
     watchOnly: false,
     mnemonic
     // accountKey: 'spubKBAoFrCN1HzSEDye7jcQaycA8L7MjFGmJD1uuvUZ21d9srAmAxmB7o1tCZRyXmTRuy5ZDQDV6uxtcxfHAadNFtdK7J6RV9QTcHTCEoY5FtQD'
   };
+  // await deleteWallet();
   const result = await walletClient.createWallet(DEFAULT_ID, options);
   return result;
 };
@@ -85,6 +86,6 @@ export const getPrivateKeyByAddress = async (address, passphrase) => {
 
 // todo: delete wallet
 export const deleteWallet = async () => {
+  // WIP: Not working yet
   await client.reset();
-  return;
 };
