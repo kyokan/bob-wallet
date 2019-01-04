@@ -6,7 +6,7 @@ const Network = require('hsd/lib/protocol/network');
 
 const network = Network.get('simnet');
 
-const DEFAULT_ID = 'default1';
+const DEFAULT_ID = 'default';
 
 const walletOptions = {
   network: network.type,
