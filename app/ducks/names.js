@@ -3,9 +3,11 @@ const SET_NAME = 'app/names/setName';
 
 
 // Other Constants
-const API = 'http://127.0.0.1:15037';
+const NODE_API = 'http://127.0.0.1:15037';
+const WALLET_API = 'http://127.0.0.1:15039';
 const LAUNCH_DATE = new Date('April 1, 2018');
 export const NAME_STATES = {
+  OPENNING: 'OPENING',
   BIDDING: 'BIDDING',
   REVEAL: 'REVEAL',
   CLOSED: 'CLOSED',
@@ -16,7 +18,7 @@ export const NAME_STATES = {
 const initialState = {};
 
 export const getNameInfo = name => async dispatch => {
-  const resp = await fetch(API, {
+  const resp = await fetch(NODE_API, {
     method: 'POST',
     body: JSON.stringify({
       method: 'getnameinfo',
@@ -25,30 +27,50 @@ export const getNameInfo = name => async dispatch => {
   });
   const { result, error } = await resp.json();
 
-  if (error) {
+  if (error || !result) {
     const err = new Error(error.message);
     dispatch({
       type: SET_NAME,
-      error: err,
-      payload: {
-        name,
-        result: null,
-      }
+      error: true,
+      payload: err,
     });
     throw err;
   }
 
+  const start = result.start;
+  let info = result.info;
+
+  const auctionInfo = await fetchAuctionInfo(name);
+
+  if (!auctionInfo.error) {
+    info = auctionInfo.result;
+  }
+
   dispatch({
     type: SET_NAME,
-    payload: { name, result },
+    payload: { name, start, info },
   });
 };
 
+const fetchAuctionInfo = async name => {
+  const resp = await fetch(WALLET_API, {
+    method: 'POST',
+    body: JSON.stringify({
+      method: 'getauctioninfo',
+      params: [ name ],
+    }),
+  });
+  const { result, error } = await resp.json();
+  return {result, error};
+};
+
 export default function namesReducer(state = initialState, action) {
-  const { type, payload } = action;
+  const { type, payload, error } = action;
   switch (type) {
     case SET_NAME:
-      return { ...state, [payload.name]: payload.result };
+      return error
+        ? state
+        : { ...state, [payload.name]: payload };
     default:
       return state;
   }
@@ -59,36 +81,6 @@ export function getDomain(state, name) {
   assert(state, 'state is undefined');
   assert(typeof name === 'string', 'name must be string');
   return state.names[name] || {};
-}
-
-export function getIsAvailable(state, name) {
-  const domain = getDomain(state, name);
-  const { info, start } = domain;
-
-  if (!start && !info) {
-    return false;
-  }
-
-  if (start.reserved) {
-    return false;
-  }
-
-  if (!info || info === NAME_STATES.BIDDING) {
-    return true;
-  }
-
-  return false;
-}
-
-export function getIsReserved(state, name) {
-  const domain = getDomain(state, name);
-  const { start } = domain;
-
-  if (start && start.reserved) {
-    return true;
-  }
-
-  return false;
 }
 
 export function getBiddingOpenDate(state, name) {
