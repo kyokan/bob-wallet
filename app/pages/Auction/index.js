@@ -14,7 +14,7 @@ import {
   isOpening,
   isReveal,
 } from '../../utils/name-helpers';
-import { CloseInfo, OpenInfo, SoldInfo, ReserveInfo } from './info';
+import { CloseInfo, SoldInfo, ReserveInfo } from './info';
 import BidActionPanel from './BidActionPanel';
 import BidReminder from './BidReminder';
 import Collapsible from '../../components/Collapsible';
@@ -78,7 +78,12 @@ export default class Auction extends Component {
     }
 
     if (isClosed(domain)) {
-      return <SoldInfo owner={domain.info.owner.hash} paidValue={domain.info.value} />;
+      return (
+        <SoldInfo
+          owner={domain.info.owner.hash}
+          paidValue={domain.info.value}
+        />
+      );
     }
 
     if (isOpening(domain) || isBidding(domain)) {

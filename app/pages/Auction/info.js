@@ -1,37 +1,27 @@
 /* eslint-disable react/prop-types,no-use-before-define */
 import React from 'react';
+import Hash from '../../components/Hash';
+
 
 export const SoldInfo = ({ owner, paidValue }) => (
-  <div className="auction__right">
-    <div className="auction__bid-box--sold">
-      <div className="auction__bid-box--sold__title">
-        Domain sold
+  <div className="domains__action-panel">
+    <div className="domains__bid-now__title">Domain sold</div>
+    <div className="domains__bid-now__content">
+      <div className="domains__bid-now__info">
+        <div className="domains__bid-now__info__label">
+          Owner:
+        </div>
+        <div className="domains__bid-now__info__value">
+          <Hash value={owner} />
+        </div>
       </div>
-      <div className="auction__bid-box--sold__label auction__col-1-to-3">Sold to</div>
-      { /* TODO handle for only 1 bid*/}
-      <div className="auction__bid-box--sold__owner auction__col-1-to-3">
-        { owner }
-      </div>
-      <div className="auction__bid-box--sold__label auction__col-1-to-3">Sold for</div>
-      <div className="auction__large auction__col-1-to-3">
-        {`${paidValue} HNS`}
-      </div>
-      {/*TODO this needs to be a different message if there is only one bid.  Also learn more needs to open a modal that doesn't currently exist.*/}
-      <div className="auction__bid-box--sold__description auction__small-text">
-        Winner pays the 2nd highest bid price.  Handshake uses the Vickrey Auction. Learn more
-      </div>
-    </div>
-  </div>
-);
-
-export const OpenInfo = ({ biddingOpenDate }) => (
-  <div className="auction__right">
-    <div className="auction__bid-box-gray">
-      <div className="auction__bidding-not-open">
-        {`Bidding for this domain name opens on ${biddingOpenDate.toDateString()}`}
-      </div>
-      <div className="auction__set-reminder">
-        Set reminder
+      <div className="domains__bid-now__info">
+        <div className="domains__bid-now__info__label">
+          Sold for:
+        </div>
+        <div className="domains__bid-now__info__value">
+          {`${paidValue} HNS`}
+        </div>
       </div>
     </div>
   </div>
@@ -74,14 +64,12 @@ export const CloseInfo = ({ biddingCloseDate, bids }) => (
 );
 
 export const ReserveInfo = () => (
-  <div className="auction__right">
-    <div className="auction__bid-box-gray">
-      <div className="auction__bidding-not-open">
-        Reserved for the top 100,000 Alexa websites
-      </div>
-      <div className="auction__alexa-timestamp">
-        Alex websites as of 6/1/18
-      </div>
+  <div className="domains__action-panel domains__action-panel--gray">
+    <div className="domains__action-panel__reserved-text">
+      Reserved for the top 100,000 Alexa websites
+    </div>
+    <div className="domains__action-panel__reserved-timestamp">
+      Alex websites as of 6/1/18
     </div>
   </div>
 );
