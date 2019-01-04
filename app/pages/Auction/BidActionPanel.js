@@ -2,13 +2,14 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
-import './domains.scss';
 import {
   isAvailable,
   isOpening,
   isBidding,
 } from '../../utils/name-helpers';
 import Checkbox from '../../components/Checkbox';
+import * as nameActions from '../../ducks/names';
+import './domains.scss';
 
 class BidActionPanel extends Component {
   static propTypes = {
@@ -47,6 +48,7 @@ class BidActionPanel extends Component {
   }
 
   renderOpenBid() {
+    const { domain, sendOpen } = this.props;
     return (
       <div className="domains__bid-now">
         <div className="domains__bid-now__title">Open Bid</div>
@@ -56,17 +58,7 @@ class BidActionPanel extends Component {
         <div className="domains__bid-now__action">
           <button
             className="domains__bid-now__action__cta"
-            onClick={async () => {
-              const resp = await fetch('http://127.0.0.1:15039', {
-                method: 'POST',
-                body: JSON.stringify({
-                  method: 'sendopen',
-                  params: [ this.props.domain.name ],
-                }),
-              });
-
-              console.log(resp);
-            }}
+            onClick={() => sendOpen(domain.name)}
           >
             Open Bid
           </button>
@@ -191,6 +183,10 @@ class BidActionPanel extends Component {
           </div>
           <button
             className="domains__bid-now__action__cta"
+            onClick={() => {
+              const { sendBid, domain } = this.props;
+              sendBid(domain.name, bidAmount, maskAmount);
+            }}
           >
             Submit Bid
           </button>
@@ -274,6 +270,10 @@ class BidActionPanel extends Component {
 
 export default withRouter(
   connect(
-
+    null,
+    dispatch => ({
+      sendOpen: name => dispatch(nameActions.sendOpen(name)),
+      sendBid: (name, amount, lockup) => dispatch(nameActions.sendBid(name, amount, lockup)),
+    }),
   )(BidActionPanel)
 );
