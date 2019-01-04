@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import c from 'classnames';
 import { connect } from 'react-redux';
 import * as nameActions from '../../ducks/names';
+import TLDInput from '../TLDInput';
 import './topbar.scss';
 
 @withRouter
@@ -40,7 +41,7 @@ class Topbar extends Component {
   handleInputValueChange = e => {
     const { value } = e.target;
     this.setState(() => ({
-      inputValue: value
+      inputValue: value.toLowerCase()
     }));
   };
 
@@ -61,20 +62,7 @@ class Topbar extends Component {
     return (
       <React.Fragment>
         <div className="topbar__title">{title}</div>
-        <div className="topbar__search">
-          <input
-            className="topbar__search__input"
-            type="text"
-            value={this.state.inputValue}
-            onChange={this.handleInputValueChange}
-            onKeyDown={e => e.key === 'Enter' && this.handleSearchClick()}
-            placeholder="Search top-level domain"
-          />
-          <div
-            className="topbar__search__icon"
-            onClick={this.handleSearchClick}
-          />
-        </div>
+        <TLDInput minimalErrorDisplay />
         <div
           className={c('topbar__synced', {
             'topbar__synced--success': true,

@@ -15,6 +15,7 @@ import Account from '../Account';
 import GetCoins from '../GetCoins';
 import Settings from '../Settings';
 import Auction from '../Auction';
+import SearchTLD from '../SearchTLD';
 import * as walletActions from '../../ducks/wallet';
 import './app.scss';
 
@@ -78,6 +79,7 @@ class App extends Component {
         <Route path="/receive" component={ReceiveModal} />
         <Route path="/get_coins" component={GetCoins} />
         <Route path="/settings" component={Settings} />
+        <Route path="/domains" component={SearchTLD} />
         {/* Let's implement Auction once ducks are set up and we're connected to the blockchain  */}
         <Route path="/domain/:name?" component={Auction} />
         {this.renderDefault()}

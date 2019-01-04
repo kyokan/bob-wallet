@@ -15,7 +15,7 @@ export const ELECTRON = 'ELECTRON';
 const initialState = {
   address: '',
   type: NONE,
-  // note: Reimplement once we lock wallet on shut down
+  // note: Reimplement once we lock wallet
   // isLocked: true,
   initialized: false,
   balance: {

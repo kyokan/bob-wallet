@@ -3,7 +3,7 @@ const Network = require('hsd/lib/protocol/network');
 
 const network = Network.get('simnet');
 
-const DEFAULT_ID = 'default912';
+const DEFAULT_ID = 'michaeldefault';
 
 const walletOptions = {
   network: network.type,
@@ -23,6 +23,18 @@ export const createNewWallet = async passphrase => {
     passphrase: passphrase,
     witness: false,
     watchOnly: false
+    // accountKey: 'spubKBAoFrCN1HzSEDye7jcQaycA8L7MjFGmJD1uuvUZ21d9srAmAxmB7o1tCZRyXmTRuy5ZDQDV6uxtcxfHAadNFtdK7J6RV9QTcHTCEoY5FtQD'
+  };
+  const result = await walletClient.createWallet(DEFAULT_ID, options);
+  return result;
+};
+
+export const importSeed = async (passphrase, mnemonic) => {
+  const options = {
+    passphrase: passphrase,
+    witness: false,
+    watchOnly: false,
+    mnemonic
     // accountKey: 'spubKBAoFrCN1HzSEDye7jcQaycA8L7MjFGmJD1uuvUZ21d9srAmAxmB7o1tCZRyXmTRuy5ZDQDV6uxtcxfHAadNFtdK7J6RV9QTcHTCEoY5FtQD'
   };
   const result = await walletClient.createWallet(DEFAULT_ID, options);
