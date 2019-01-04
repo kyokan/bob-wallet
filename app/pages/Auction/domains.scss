@@ -47,9 +47,9 @@
     }
 
     &__auction-detail {
-      flex: 1 0 auto;
       margin: 1rem;
       align-items: flex-start;
+      min-width: 7rem;
 
       &__label {
         font-size: .65rem;
@@ -68,13 +68,58 @@
     }
   }
 
+  &__action-panel,
   &__bid-now {
     flex: 0 0 auto;
     box-shadow: 0 0 8px 2px rgba($black, 0.1);
     border-radius: 1rem;
     padding: 1.25rem 0;
     width: 18rem;
+  }
 
+  &__action-panel {
+    &--gray {
+      background-color: $athens-gray;
+    }
+
+    &__reminder-title,
+    &__reminder-link,
+    &__reserved-text,
+    &__reserved-timestamp {
+      text-align: center;
+      padding: 0 1.5rem;
+    }
+
+    &__reminder-title {
+      font-size: 1rem;
+      font-weight: 400;
+      line-height: 1.75rem;
+    }
+
+    &__reminder-date {
+      font-size: 1.25rem;
+      font-weight: 500;
+      padding: .5rem;
+    }
+
+    &__reserved-text {
+      line-height: 1.25rem;
+      font-weight: 600;
+    }
+
+    &__reserved-timestamp {
+      font-size: .75rem;
+      margin-top: 1rem;
+    }
+
+    &__reminder-link {
+      @extend %link;
+
+      margin-top: 1rem;
+    }
+  }
+
+  &__bid-now {
     &__title {
       font-size: 1rem;
       font-weight: 600;
@@ -124,6 +169,22 @@
       &__cta {
         @extend %btn-primary;
       }
+
+      &__agreement {
+        @extend %row-nowrap;
+
+        margin-bottom: 1rem;
+
+        .checkbox {
+          flex: 0 0 auto;
+        }
+      }
+
+      &__agreement-text {
+        flex: 0 1 auto;
+        font-size: .75rem;
+        margin-left: 1rem;
+      }
     }
 
     &__form {
@@ -142,13 +203,25 @@
         }
 
         &__input {
-          @extend %box-input;
+          @extend %box-input-secondary;
+          @extend %row-nowrap;
 
-          padding: .25rem .5rem;
+          align-items: center;
+          padding: .35rem .75rem;
+
+          &::before {
+            content: '';
+            display: block;
+            width: 15px;
+            height: 13px;
+            background-image: url('../../assets/images/icon-128.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+          }
 
           input {
             width: 100%;
-            font-size: .7rem;
+            font-size: .8rem;
             text-align: right;
           }
         }
@@ -159,6 +232,7 @@
 
         font-size: .7rem;
         text-align: right;
+        margin-bottom: 1rem;
       }
     }
   }

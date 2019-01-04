@@ -239,6 +239,7 @@
     "hs-airdrop": "git://github.com/kyokan/hs-airdrop#master",
     "hs-client": "git://github.com/handshake-org/hs-client#master",
     "hsd": "git://github.com/handshake-org/hsd.git#master",
+    "moment": "^2.23.0",
     "prop-types": "^15.6.2",
     "qrcode.react": "^0.8.0",
     "react": "^16.6.3",

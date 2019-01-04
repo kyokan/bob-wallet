@@ -1,34 +1,118 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
-import cn from 'classnames';
 import { connect } from 'react-redux';
-import './domains.scss';
-import * as names from '../../ducks/names';
+import {
+  isAvailable,
+  isOpening,
+  isBidding,
+} from '../../utils/name-helpers';
 import Checkbox from '../../components/Checkbox';
+import * as nameActions from '../../ducks/names';
+import './domains.scss';
 
-class BidNow extends Component {
+class BidActionPanel extends Component {
   static propTypes = {
-    // name: PropTypes.string.isRequired,
-    timeRemaining: PropTypes.string.isRequired,
-    highestMask: PropTypes.string.isRequired,
-    totalBids: PropTypes.number.isRequired,
+    domain: PropTypes.object.isRequired,
   };
 
   state = {
     isPlacingBid: false,
     shouldAddMask: false,
     isReviewing: false,
+    hasAccepted: false,
     bidAmount: '',
     maskAmount: '',
   };
 
   render() {
-    const { timeRemaining, totalBids, highestMask } = this.props;
+    const { domain } = this.props;
 
     if (this.state.isReviewing) {
       return this.renderReviewBid();
     }
+
+    if (isOpening(domain)) {
+      return this.renderOpeningBid();
+    }
+
+    if (isBidding(domain)) {
+      return this.renderBidNow();
+    }
+
+    if (isAvailable(domain)) {
+      return this.renderOpenBid();
+    }
+
+    return <noscript />;
+  }
+
+  renderOpenBid() {
+    const { domain, sendOpen } = this.props;
+    return (
+      <div className="domains__bid-now">
+        <div className="domains__bid-now__title">Open Bid</div>
+        <div className="domains__bid-now__content">
+          Start the auction process by making an open bid.
+        </div>
+        <div className="domains__bid-now__action">
+          <button
+            className="domains__bid-now__action__cta"
+            onClick={() => sendOpen(domain.name)}
+          >
+            Open Bid
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  renderOpeningBid() {
+    return (
+      <div className="domains__bid-now">
+        <div className="domains__bid-now__title">Bid is opening!</div>
+        <div className="domains__bid-now__content">
+          The auction will start soon. Please check back shortly to place your bid.
+        </div>
+      </div>
+    );
+  }
+
+  // TODO: render placed bid
+  renderPlacedBid() {
+    return (
+      <div className="domains__bid-now">
+        <div className="domains__bid-now__title">Bid Placed!</div>
+        <div className="domains__bid-now__content">
+          To be updated
+        </div>
+      </div>
+    );
+  }
+
+  getTimeRemaining(hoursUntilReveal) {
+    if (!hoursUntilReveal) {
+      return 'N/A';
+    }
+
+    if (hoursUntilReveal < 24) {
+      const hours = Math.floor(hoursUntilReveal % 24);
+      const mins = Math.floor((hoursUntilReveal % 1) * 60);
+      return `~${hours}h ${mins}m`
+    }
+
+    const days = Math.floor(hoursUntilReveal / 24) ;
+    const hours = Math.floor(hoursUntilReveal % 24);
+    const mins = Math.floor((hoursUntilReveal % 1) * 60);
+    return `~${days}d ${hours}h ${mins}m`
+  }
+
+  renderBidNow() {
+    const { domain } = this.props;
+    const { info } = domain || {};
+    const { stats, bids = [], highest = 0 } = info || {};
+
+    const { hoursUntilReveal } = stats || {};
 
     return (
       <div className="domains__bid-now">
@@ -39,7 +123,7 @@ class BidNow extends Component {
               Time Remaining:
             </div>
             <div className="domains__bid-now__info__time-remaining">
-              {timeRemaining}
+              {this.getTimeRemaining(hoursUntilReveal)}
             </div>
           </div>
           <div className="domains__bid-now__info">
@@ -47,7 +131,7 @@ class BidNow extends Component {
               Total Bids:
             </div>
             <div className="domains__bid-now__info__value">
-              {totalBids}
+              {bids.length}
             </div>
           </div>
           <div className="domains__bid-now__info">
@@ -55,17 +139,17 @@ class BidNow extends Component {
               Highest <span>Mask</span>:
             </div>
             <div className="domains__bid-now__info__value">
-              {highestMask}
+              {highest}
             </div>
           </div>
         </div>
-        { this.renderAction() }
+        { this.renderBidNowAction() }
       </div>
     );
   }
 
   renderReviewBid() {
-    const { bidAmount, maskAmount } = this.state;
+    const { bidAmount, maskAmount, hasAccepted } = this.state;
     return (
       <div className="domains__bid-now">
         <div className="domains__bid-now__title">Review Bid</div>
@@ -75,7 +159,7 @@ class BidNow extends Component {
               Bid Amount:
             </div>
             <div className="domains__bid-now__info__value">
-              {bidAmount}
+              {`${bidAmount} HNS`}
             </div>
           </div>
           <div className="domains__bid-now__info">
@@ -83,17 +167,26 @@ class BidNow extends Component {
               Mask Amount:
             </div>
             <div className="domains__bid-now__info__value">
-              {maskAmount || '-'}
+              {maskAmount ? `${maskAmount} HNS` : ' - '}
             </div>
           </div>
         </div>
         <div className="domains__bid-now__action">
-          <div>
-            <Checkbox />
-            <div>I unnderstand my bid cannot be changed after I submit it.</div>
+          <div className="domains__bid-now__action__agreement">
+            <Checkbox
+              onChange={e => this.setState({ hasAccepted: e.target.checked })}
+              checked={hasAccepted}
+            />
+            <div className="domains__bid-now__action__agreement-text">
+              I understand my bid cannot be changed after I submit it.
+            </div>
           </div>
           <button
             className="domains__bid-now__action__cta"
+            onClick={() => {
+              const { sendBid, domain } = this.props;
+              sendBid(domain.name, bidAmount, maskAmount);
+            }}
           >
             Submit Bid
           </button>
@@ -131,7 +224,7 @@ class BidNow extends Component {
     )
   }
 
-  renderAction() {
+  renderBidNowAction() {
     const { isPlacingBid, bidAmount } = this.state;
 
     if (isPlacingBid) {
@@ -177,17 +270,10 @@ class BidNow extends Component {
 
 export default withRouter(
   connect(
-    (state, ownProps) => {
-      const { name } = ownProps;
-      const auctions = state.auctions[name] || {};
-      // TODO use moment js to calculate time remaining
-      const timeRemaining = '~5d 3h 33m';
-
-      return {
-        timeRemaining,
-        totalBids: auctions.bids && auctions.bids.length,
-        highestMask: `${auctions.highest || 0} HNS`,
-      };
-    },
-  )(BidNow)
+    null,
+    dispatch => ({
+      sendOpen: name => dispatch(nameActions.sendOpen(name)),
+      sendBid: (name, amount, lockup) => dispatch(nameActions.sendBid(name, amount, lockup)),
+    }),
+  )(BidActionPanel)
 );
