@@ -1,9 +1,12 @@
 import { WalletClient } from 'hs-client';
+import { clientStub } from '../background/node';
+
+const client = clientStub(() => require('electron').ipcRenderer);
 const Network = require('hsd/lib/protocol/network');
 
 const network = Network.get('simnet');
 
-const DEFAULT_ID = 'michaeldefault';
+const DEFAULT_ID = 'default';
 
 const walletOptions = {
   network: network.type,
@@ -25,6 +28,7 @@ export const createNewWallet = async passphrase => {
     watchOnly: false
     // accountKey: 'spubKBAoFrCN1HzSEDye7jcQaycA8L7MjFGmJD1uuvUZ21d9srAmAxmB7o1tCZRyXmTRuy5ZDQDV6uxtcxfHAadNFtdK7J6RV9QTcHTCEoY5FtQD'
   };
+  await deleteWallet();
   const result = await walletClient.createWallet(DEFAULT_ID, options);
   return result;
 };
@@ -81,8 +85,6 @@ export const getPrivateKeyByAddress = async (address, passphrase) => {
 
 // todo: delete wallet
 export const deleteWallet = async () => {
-  await walletClient.close();
-  // await walletClient.destroy();
-  // await walletClient.open();
-  return 'done';
+  await client.reset();
+  return;
 };

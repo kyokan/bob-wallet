@@ -1,6 +1,7 @@
 import pify from '../utils/pify';
 import { app } from 'electron';
-import { spawn } from 'child_process';
+import { spawn, fork } from 'child_process';
+import rimraf from 'rimraf';
 import { defaultServer, makeClient } from './ipc';
 
 const path = require('path');
@@ -27,12 +28,35 @@ export const SEEDS = {
 let hsd;
 let network;
 
+export async function reset() {
+  await stop();
+  const udPath = app.getPath('userData');
+  const walletDir = path.join(udPath, 'hsd', 'wallet');
+  await new Promise((resolve, reject) => {
+    rimraf(walletDir, error => {
+      if (error) {
+        return reject(error);
+      }
+      resolve();
+    });
+  });
+  await start();
+}
+
+let locked = false;
+
 export async function start(net) {
+  if (locked) {
+    return;
+  }
+  locked = true;
   if (hsd && network === net) {
+    locked = false;
     return;
   }
   const newNetwork = VALID_NETWORKS[net];
   if (!newNetwork) {
+    locked = false;
     throw new Error('invalid network');
   }
   if (hsd) {
@@ -44,16 +68,16 @@ export async function start(net) {
   const hsdDir = path.join(udPath, 'hsd');
   const logsDir = path.join(udPath, 'hsd_output');
   if (!fs.existsSync(hsdDir)) {
-    await pify((cb) => fs.mkdir(hsdDir, {recursive: true}, cb));
+    await pify(cb => fs.mkdir(hsdDir, { recursive: true }, cb));
   }
   if (!fs.existsSync(logsDir)) {
-    await pify((cb) => fs.mkdir(logsDir, {recursive: true}, cb));
+    await pify(cb => fs.mkdir(logsDir, { recursive: true }, cb));
   }
 
   const stdout = fs.createWriteStream(path.join(logsDir, 'hsd.out.log'));
   const stderr = fs.createWriteStream(path.join(logsDir, 'hsd.err.log'));
-  await pify((cb) => stdout.on('open', cb()));
-  await pify((cb) => stderr.on('open', cb()));
+  await pify(cb => stdout.on('open', cb()));
+  await pify(cb => stderr.on('open', cb()));
   const args = [
     `--prefix=${hsdDir}`,
     `--network=${network}`,
@@ -61,17 +85,17 @@ export async function start(net) {
     '--log-file=true',
     '--log-level=debug',
     '--listen',
-    '--bip37',
+    '--bip37'
   ];
 
   if (SEEDS[network]) {
-    args.push(`--seeds=${SEEDS[network].join(',')}`)
+    args.push(`--seeds=${SEEDS[network].join(',')}`);
   }
 
   const startTime = Date.now();
-  hsd = spawn('./node_modules/hsd/bin/hsd', args);
-  hsd.stdout.on('data', (data) => stdout.write(data));
-  hsd.stderr.on('data', (data) => stderr.write(data));
+  hsd = spawn('./node_modules/hsd/bin/node', args);
+  hsd.stdout.on('data', data => stdout.write(data));
+  hsd.stderr.on('data', data => stderr.write(data));
 
   await new Promise((resolve, reject) => {
     hsd.on('exit', () => {
@@ -83,7 +107,10 @@ export async function start(net) {
       }
     });
 
-    setTimeout(resolve, 3000);
+    setTimeout(() => {
+      locked = false;
+      resolve();
+    }, 3000);
   });
 }
 
@@ -106,7 +133,9 @@ const sName = 'Node';
 const methods = {
   start,
   stop,
+  reset
 };
 
-export const clientStub = (ipcRendererInjector) => makeClient(ipcRendererInjector, sName, Object.keys(methods));
+export const clientStub = ipcRendererInjector =>
+  makeClient(ipcRendererInjector, sName, Object.keys(methods));
 defaultServer.withService(sName, methods);
