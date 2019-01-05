@@ -92,17 +92,17 @@ class Sidebar extends Component {
           </a>
           <a
             className={c('sidebar__action', {
-              'sidebar__action--selected': /get_coins/.test(pathname)
+              'sidebar__action--selected': /domain_manager/.test(pathname)
             })}
-            onClick={() => push('/get_coins')}
+            onClick={() => push('/domain_manager')}
           >
-            Name Manager
+            Domain Manager
           </a>
           <a
             className={c('sidebar__action', {
-              'sidebar__action--selected': /settings/.test(pathname)
+              'sidebar__action--selected': /get_coins/.test(pathname)
             })}
-            onClick={() => console.log('push("/airdrop")')}
+            onClick={() => push('/get_coins')}
           >
             GooSig Airdrop
           </a>

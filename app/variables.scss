@@ -191,6 +191,17 @@ $orange-red: #ff2f1f;
   }
 }
 
+%info-header {
+  box-shadow: 0 1px 0 0 rgba($black, .1);
+  margin-top: 2.5rem;
+}
+
+%info-title {
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 1rem 0;
+}
+
 /*
   Generic UI Elements
  */
