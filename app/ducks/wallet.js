@@ -1,4 +1,4 @@
-import { getWalletInfo, generateReceivingAddress } from '../utils/walletClient';
+import * as walletClient from '../utils/walletClient';
 
 const SET_WALLET = 'app/wallet/setWallet';
 const UNLOCK_WALLET = 'app/wallet/unlockWallet';
@@ -15,9 +15,9 @@ export const ELECTRON = 'ELECTRON';
 const initialState = {
   address: '',
   type: NONE,
-  // note: Reimplement once we lock wallet
-  // isLocked: true,
+  isLocked: true,
   initialized: false,
+  network: 'simnet',
   balance: {
     confirmed: '0',
     unconfirmed: '0'
@@ -25,7 +25,7 @@ const initialState = {
 };
 
 // Reducer
-export default function walletReducer(state = initialState, { type, payload }) {
+export default function walletReducer(state = initialState, {type, payload}) {
   switch (type) {
     // do reducer stuff
     case SET_WALLET:
@@ -46,6 +46,19 @@ export default function walletReducer(state = initialState, { type, payload }) {
         ...state,
         initialized: !!localStorage.getItem('initialized')
       };
+    case LOCK_WALLET:
+      return {
+        ...state,
+        balance: {
+          ...initialState.balance
+        },
+        isLocked: true,
+      };
+    case UNLOCK_WALLET:
+      return {
+        ...state,
+        isLocked: false,
+      };
     default:
       return state;
   }
@@ -56,7 +69,7 @@ export const setWallet = ({
   initialized = false,
   address = '',
   type = NONE,
-  isLocked = false,
+  isLocked = true,
   balance = {}
 }) => {
   return {
@@ -84,20 +97,39 @@ export const isInitialized = () => {
 
 export const completeInitialization = () => dispatch => {
   localStorage.setItem('initialized', '1');
-  dispatch(isInitialized());
   dispatch(fetchWallet());
+  dispatch({
+    type: UNLOCK_WALLET
+  });
 };
 
-export const fetchWallet = () => async dispatch => {
-  const walletInfo = await getWalletInfo();
-  const generatedReceivingAddress = await generateReceivingAddress();
+export const fetchWallet = () => async (dispatch, getState) => {
+  const client = walletClient.forNetwork(getState().wallet.network);
+  const walletInfo = await client.getWalletInfo();
+  const accountInfo = await client.getAccountInfo();
   dispatch(
     setWallet({
-      initialized: !!localStorage.getItem('initialized'),
-      address: generatedReceivingAddress && generatedReceivingAddress.address,
+      initialized: !!walletInfo && !!accountInfo && !!localStorage.getItem('initialized'),
+      address: accountInfo && accountInfo.receiveAddress,
       type: NONE,
       // isLocked: false,
-      balance: walletInfo && walletInfo.balance
+      balance: accountInfo && accountInfo.balance
     })
   );
+};
+
+export const unlockWallet = (passphrase) => async (dispatch, getState) => {
+  const client = walletClient.forNetwork(getState().wallet.network);
+  await client.unlock(passphrase);
+  dispatch({
+    type: UNLOCK_WALLET
+  });
+};
+
+export const lockWallet = () => async (dispatch, getState) => {
+  const client = walletClient.forNetwork(getState().wallet.network);
+  dispatch({
+    type: LOCK_WALLET,
+  });
+  await client.lock();
 };

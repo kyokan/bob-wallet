@@ -8,7 +8,7 @@ import CreatePassword from '../CreatePassword/index';
 import ImportSeedEnterMnemonic from '../ImportSeedEnterMnemonic/index';
 import Terms from '../Terms/index';
 import * as walletActions from '../../../ducks/wallet';
-import { importSeed } from '../../../utils/walletClient';
+import *as walletClient from '../../../utils/walletClient';
 
 const TERM_OF_USE = 'TERM_OF_USE';
 const WARNING_STEP = 'WARNING';
@@ -20,7 +20,8 @@ class ImportSeedFlow extends Component {
     history: PropTypes.shape({
       push: PropTypes.func
     }).isRequired,
-    completeInitialization: PropTypes.func.isRequired
+    completeInitialization: PropTypes.func.isRequired,
+    network: PropTypes.string.isRequired,
   };
 
   state = {
@@ -33,7 +34,7 @@ class ImportSeedFlow extends Component {
       case TERM_OF_USE:
         return (
           <Terms
-            onAccept={() => this.setState({ currentStep: WARNING_STEP })}
+            onAccept={() => this.setState({currentStep: WARNING_STEP})}
             onBack={() => this.props.history.push('/existing-options')}
           />
         );
@@ -52,7 +53,7 @@ class ImportSeedFlow extends Component {
           <CreatePassword
             currentStep={2}
             totalSteps={3}
-            onBack={() => this.setState({ currentStep: WARNING_STEP })}
+            onBack={() => this.setState({currentStep: WARNING_STEP})}
             onNext={passphrase => {
               this.setState({
                 passphrase,
@@ -83,7 +84,7 @@ class ImportSeedFlow extends Component {
 
   finishFlow = async mnemonic => {
     try {
-      await importSeed(this.state.passphrase, mnemonic);
+      await walletClient.forNetwork(this.props.network).importSeed(this.state.passphrase, mnemonic);
       await this.props.completeInitialization();
     } catch (e) {
       console.error(e);
@@ -93,7 +94,9 @@ class ImportSeedFlow extends Component {
 
 export default withRouter(
   connect(
-    null,
+    (state) => ({
+      network: state.wallet.network,
+    }),
     dispatch => ({
       completeInitialization: () =>
         dispatch(walletActions.completeInitialization())

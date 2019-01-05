@@ -7,15 +7,15 @@ import './index.scss';
 import AccountIndexModal from './AccountIndexModal';
 import RevealSeedModal from './RevealSeedModal';
 import InterstitialWarningModal from './InterstitialWarningModal';
-// import * as walletActions from '../../../ducks/wallet';
+import * as walletActions from '../../ducks/wallet';
 
-// @connect(
-//   () => ({}),
-//   dispatch => ({
-//     lockWallet: () => dispatch(walletActions.lockWallet()),
-//     removeWallet: () => dispatch(walletActions.removeWallet())
-//   })
-// )
+@connect(
+  () => ({}),
+  dispatch => ({
+    lockWallet: () => dispatch(walletActions.lockWallet()),
+    // removeWallet: () => dispatch(walletActions.removeWallet())
+  })
+)
 export default class Settings extends Component {
   render() {
     return (
@@ -42,7 +42,7 @@ export default class Settings extends Component {
             <Link to="/settings/account-index">Change account index</Link>
           </li>
           <li>
-            <a href="#" onClick={() => console.log('this.props.lockWallet')}>
+            <a href="#" onClick={this.props.lockWallet}>
               Log out
             </a>
           </li>

@@ -18,24 +18,67 @@ import Auction from '../Auction';
 import SearchTLD from '../SearchTLD';
 import * as walletActions from '../../ducks/wallet';
 import './app.scss';
+import AccountLogin from '../AcountLogin';
 
 class App extends Component {
   static propTypes = {
     isLocked: PropTypes.bool.isRequired,
-    initialized: PropTypes.bool.isRequired
+    initialized: PropTypes.bool.isRequired,
+    fetchWallet: PropTypes.func.isRequired,
   };
 
   state = {
-    isLoading: false
+    isLoading: true
   };
 
-  componentDidMount() {
-    this.props.isInitialized();
+  async componentDidMount() {
+    this.setState({
+      isLoading: true
+    });
+    await this.props.fetchWallet();
+    this.setState({
+      isLoading: false
+    });
   }
 
   render() {
     return (
       <div className="app">
+        {this.renderContent()}
+      </div>
+    );
+  }
+
+  renderContent() {
+    if (this.state.isLoading) {
+      return null;
+    }
+
+    const {isLocked, initialized} = this.props;
+
+    if (isLocked || !initialized) {
+      return (
+        <div className="app__uninitialized-wrapper">
+          <div className="app__uninitialized">
+            <Switch>
+              <Route
+                path="/login"
+                render={() => <AccountLogin className="app__login" />}
+              />
+              <Route path="/funding-options" render={FundAccessOptions} />
+              <Route path="/existing-options" render={ExistingAccountOptions} />
+              <Route path="/new-wallet" render={CreateNewAccount} />
+              <Route path="/import-seed" render={ImportSeedFlow} />
+              <Route path="/connect-ledger" render={ConnectLedgerFlow} />
+              {this.renderDefault()}
+            </Switch>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <React.Fragment>
         <div className="app__sidebar-wrapper">
           <Sidebar />
         </div>
@@ -43,37 +86,11 @@ class App extends Component {
           <Topbar title="Portfolio" />
           <div className="app__content">{this.renderRoutes()}</div>
         </div>
-        {/* <div className="app__footer">
-          <Footer />
-        </div> */}
-      </div>
+      </React.Fragment>
     );
   }
 
   renderRoutes() {
-    // let { isLocked, initialized } = this.props;
-    let isLocked = false;
-    let initialized = true;
-    if (this.state.isLoading) {
-      return null;
-    }
-    if (isLocked || !initialized) {
-      return (
-        <Switch>
-          {/* Do we need this route? */}
-          {/* <Route
-            path="/login"
-            render={() => <AccountLogin className="app__login" />}
-          /> */}
-          <Route path="/funding-options" render={FundAccessOptions} />
-          <Route path="/existing-options" render={ExistingAccountOptions} />
-          <Route path="/new-wallet" render={CreateNewAccount} />
-          <Route path="/import-seed" render={ImportSeedFlow} />
-          <Route path="/connect-ledger" render={ConnectLedgerFlow} />
-          {this.renderDefault()}
-        </Switch>
-      );
-    }
     return (
       <Switch>
         <Route path="/account" component={Account} />
@@ -90,7 +107,7 @@ class App extends Component {
   }
 
   renderDefault = () => {
-    let { isLocked, initialized } = this.props;
+    let {isLocked, initialized} = this.props;
     if (!initialized) {
       return <Redirect to="/funding-options" />;
     }
@@ -110,7 +127,7 @@ export default withRouter(
       initialized: state.wallet.initialized
     }),
     dispatch => ({
-      isInitialized: () => dispatch(walletActions.isInitialized())
+      fetchWallet: () => dispatch(walletActions.fetchWallet())
     })
   )(App)
 );
