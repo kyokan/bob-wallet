@@ -30,13 +30,17 @@ export function start(network) {
 }
 
 const setNodeInfo = () => async dispatch => {
-  const resp = await fetch(NODE_API);
-  const json = await resp.json();
+  try {
+    const resp = await fetch(NODE_API);
+    const json = await resp.json();
 
-  dispatch({
-    type: SET_NODE_INFO,
-    payload: json,
-  });
+    dispatch({
+      type: SET_NODE_INFO,
+      payload: json,
+    });
+  } catch (error) {
+    dispatch({ type: STOP });
+  }
 };
 
 export function getInitialState() {
