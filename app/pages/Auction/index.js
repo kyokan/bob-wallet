@@ -14,7 +14,7 @@ import {
   isOpening,
   isReveal,
 } from '../../utils/name-helpers';
-import { CloseInfo, SoldInfo, ReserveInfo } from './info';
+import { SoldInfo, ReserveInfo } from './info';
 import BidActionPanel from './BidActionPanel';
 import BidReminder from './BidReminder';
 import Collapsible from '../../components/Collapsible';

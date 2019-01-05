@@ -9,7 +9,16 @@ import './topbar.scss';
 
 @withRouter
 @connect(
-  null,
+  state => {
+    const { chain, isRunning } = state.node;
+    const { progress } = chain || {};
+
+    return {
+      isSynchronizing: isRunning && progress < 1,
+      isSynchronized: isRunning && progress === 1,
+      progress,
+    };
+  },
   dispatch => ({
     getNameInfo: tld => dispatch(nameActions.getNameInfo(tld))
   })
@@ -23,7 +32,9 @@ class Topbar extends Component {
     location: PropTypes.shape({
       pathname: PropTypes.string.isRequired
     }).isRequired,
-    getNameInfo: PropTypes.func.isRequired
+    getNameInfo: PropTypes.func.isRequired,
+    isSynchronizing: PropTypes.bool.isRequired,
+    isSynchronized: PropTypes.bool.isRequired,
   };
 
   state = {
@@ -57,7 +68,7 @@ class Topbar extends Component {
   };
 
   renderNav() {
-    const { title } = this.props;
+    const { title, isSynchronized, isSynchronizing } = this.props;
 
     return (
       <React.Fragment>
@@ -65,15 +76,29 @@ class Topbar extends Component {
         <TLDInput minimalErrorDisplay />
         <div
           className={c('topbar__synced', {
-            'topbar__synced--success': true,
-            'topbar__synced--failure': false
+            'topbar__synced--success': isSynchronized,
+            'topbar__synced--failure': !isSynchronized && !isSynchronizing,
           })}
         >
-          Synchronized
+          { this.getSyncText() }
         </div>
         <Link to="/settings" className="topbar__icon topbar__icon--settings" />
       </React.Fragment>
     );
+  }
+
+  getSyncText() {
+    const { isSynchronized, isSynchronizing, progress } = this.props;
+
+    if (isSynchronizing) {
+      return `Synchronizing... ${progress ? '(' + (progress * 100).toFixed(2) + '%)' : ''}`;
+    }
+
+    if (isSynchronized) {
+      return 'Synchronized';
+    }
+
+    return 'Not Synchronized';
   }
 }
 
