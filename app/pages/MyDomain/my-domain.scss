@@ -77,3 +77,52 @@
     flex: 1 1 auto;
   }
 }
+
+.records-table {
+  margin-top: 2rem;
+  .table {
+    &__header {
+      &__item:nth-of-type(1) {
+        flex: 0 0 10%;
+      }
+
+      &__item:nth-of-type(2) {
+        flex: 0 0 10%;
+      }
+
+      &__item:nth-of-type(3) {
+        flex: 1 1 auto;
+      }
+
+      &__item:nth-of-type(4) {
+        flex: 0 0 20%;
+      }
+
+      &__item:nth-of-type(5) {
+        flex: 0 0 5%;
+      }
+    }
+
+    &__row {
+      &__item:nth-of-type(1) {
+        flex: 0 0 10%;
+      }
+
+      &__item:nth-of-type(2) {
+        flex: 0 0 10%;
+      }
+
+      &__item:nth-of-type(3) {
+        flex: 1 1 auto;
+      }
+
+      &__item:nth-of-type(4) {
+        flex: 0 0 20%;
+      }
+
+      &__item:nth-of-type(5) {
+        flex: 0 0 5%;
+      }
+    }
+  }
+}
