@@ -4,10 +4,6 @@ import { AppContainer } from 'react-hot-loader';
 import Root from './pages/Root';
 import { history, store } from './store/configureStore';
 import './global.scss';
-import * as node from './ducks/node';
-import { NETWORKS } from './background/node';
-
-store.dispatch(node.start(NETWORKS.SIMNET));
 
 render(
   <AppContainer>

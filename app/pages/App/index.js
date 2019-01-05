@@ -19,12 +19,15 @@ import SearchTLD from '../SearchTLD';
 import * as walletActions from '../../ducks/wallet';
 import './app.scss';
 import AccountLogin from '../AcountLogin';
+import * as node from '../../ducks/node';
+import { NETWORKS } from '../../background/node';
 
 class App extends Component {
   static propTypes = {
     isLocked: PropTypes.bool.isRequired,
     initialized: PropTypes.bool.isRequired,
     fetchWallet: PropTypes.func.isRequired,
+    startNode: PropTypes.func.isRequired,
   };
 
   state = {
@@ -35,6 +38,7 @@ class App extends Component {
     this.setState({
       isLoading: true
     });
+    await this.props.startNode();
     await this.props.fetchWallet();
     this.setState({
       isLoading: false
@@ -127,7 +131,8 @@ export default withRouter(
       initialized: state.wallet.initialized
     }),
     dispatch => ({
-      fetchWallet: () => dispatch(walletActions.fetchWallet())
+      fetchWallet: () => dispatch(walletActions.fetchWallet()),
+      startNode: () => dispatch(node.start(NETWORKS.SIMNET)),
     })
   )(App)
 );

@@ -113,7 +113,9 @@ export const fetchWallet = () => async (dispatch, getState) => {
       address: accountInfo && accountInfo.receiveAddress,
       type: NONE,
       // isLocked: false,
-      balance: accountInfo && accountInfo.balance
+      balance: (accountInfo && accountInfo.balance) || {
+        ...initialState.balance
+      }
     })
   );
 };

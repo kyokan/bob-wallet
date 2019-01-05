@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import * as walletActions from '../../ducks/wallet';
 import './login.scss';
 import Submittable from '../../components/Submittable';
+import { Link } from 'react-router-dom';
 
 @connect(
   () => ({}),
@@ -52,9 +53,9 @@ export default class AccountLogin extends Component {
           <div className="login_subheader_text">
             Forgot your password?
           </div>
-          <div className="login_subheader_text login_subheader_text__accent">
+          <Link to="/import-seed" className="login_subheader_text login_subheader_text__accent">
             Restore with your seed phrase
-          </div>
+          </Link>
         </div>
       </div>
     );
