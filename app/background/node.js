@@ -4,7 +4,7 @@ import rimraf from 'rimraf';
 import { defaultServer, makeClient } from './ipc';
 import gunzip from 'gunzip-maybe';
 import tar from 'tar-fs';
-import { spawn, execFile } from 'child_process';
+import { execFile } from 'child_process';
 
 const path = require('path');
 const fs = require('fs');
@@ -44,8 +44,7 @@ let network;
 
 export async function reset() {
   await stop();
-  const udPath = app.getPath('userData');
-  const walletDir = path.join(udPath, 'hsd', 'wallet');
+  const walletDir = path.join(hsdPrefixDir, network, 'wallet');
   await new Promise((resolve, reject) => {
     rimraf(walletDir, error => {
       if (error) {
@@ -54,7 +53,7 @@ export async function reset() {
       resolve();
     });
   });
-  await start();
+  await start(network);
 }
 
 export async function start(net) {
@@ -120,13 +119,41 @@ export async function stop() {
     return;
   }
 
-  return new Promise((resolve, reject) => {
-    hsd.on('close', () => {
+  await new Promise((resolve, reject) => {
+    hsd.on('exit', () => {
       hsd = null;
       resolve();
     });
     hsd.on('error', reject);
     hsd.kill('SIGTERM');
+  });
+
+  await awaitFSNotBusy();
+}
+
+async function awaitFSNotBusy(count = 0) {
+  console.log('polling');
+
+  if (count === 3) {
+    throw new Error('timeout exceeded');
+  }
+
+  return new Promise((resolve, reject) => {
+    fs.open(path.join(hsdPrefixDir, network, 'chain', 'LOCK'), 'rw+', (err) => {
+      if (err && err.code === 'ENOENT') {
+        return resolve();
+      }
+
+      if (err && err.code === 'EBUSY') {
+        return setTimeout(() => awaitFSNotBusy(count + 1).then(resolve).catch(reject), 500);
+      }
+
+      if (err) {
+        return reject(err);
+      }
+
+      return resolve();
+    });
   });
 }
 

@@ -42,6 +42,7 @@ export function forNetwork(net) {
     },
 
     importSeed: async (passphrase, mnemonic) => {
+      await ret.reset();
       const options = {
         passphrase,
         witness: false,
@@ -77,6 +78,10 @@ export function forNetwork(net) {
 
     unlock: async (passphrase) => {
       return wallet.unlock(passphrase, 0);
+    },
+
+    reset: async () => {
+      return client.reset();
     }
   };
   clientPool[net] = ret;
