@@ -58,7 +58,7 @@ class MyDomain extends Component {
   renderExpireText() {
     const { domain } = this.props;
 
-    if (!domain) {
+    if (!domain || !domain.info || !domain.info.stats) {
       return;
     }
 

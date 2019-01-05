@@ -13,13 +13,16 @@ class DomainDetails extends Component {
   };
 
   render() {
-    const defaultInfo = {
-      stats: {},
-      bids: [],
-    };
-
     const defaultStart = {};
-    const { info = defaultInfo, start = defaultStart } = this.props.domain || {};
+    const { info, start = defaultStart } = this.props.domain || {};
+
+    if (!info || !start) {
+      return (
+        <div className="domain-details">
+          Loading...
+        </div>
+      )
+    }
 
     const order = [
       ['Status', 'Closed'],
