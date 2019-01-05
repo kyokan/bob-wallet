@@ -103,7 +103,7 @@ export async function start(net) {
   hsd.stderr.on('data', data => stderr.write(data));
 
   const nClient = nodeClient.forNetwork(network);
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 10; i++) {
     try {
       await nClient.getInfo();
       return;

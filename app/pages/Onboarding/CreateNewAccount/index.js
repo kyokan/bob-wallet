@@ -66,9 +66,9 @@ class CreateNewAccount extends Component {
             onBack={() => this.setState({currentStep: TERMS_OF_USE})}
             onNext={async () => {
               await client.createNewWallet();
-              await client.setPassphrase(this.state.passphrase);
               const masterHDKey = await client.getMasterHDKey();
-              this.setState({currentStep: COPY_SEEDPHRASE, seedphrase: masterHDKey})
+              await client.setPassphrase(this.state.passphrase);
+              this.setState({currentStep: COPY_SEEDPHRASE, seedphrase: masterHDKey.mnemonic.phrase})
             }}
             onCancel={() => this.props.history.push('/funding-options')}
           />

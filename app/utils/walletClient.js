@@ -33,6 +33,7 @@ export function forNetwork(net) {
     },
 
     createNewWallet: async (passphrase) => {
+      await ret.reset();
       const options = {
         passphrase,
         witness: false,
