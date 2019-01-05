@@ -7,6 +7,7 @@ import * as names from '../../ducks/names';
 import './my-domain.scss';
 import Collapsible from '../../components/Collapsible';
 import DomainDetails from './DomainDetails';
+import Records from './Records';
 
 class MyDomain extends Component {
   static propTypes = {
@@ -41,11 +42,11 @@ class MyDomain extends Component {
             Send Renewal
           </div>
         </div>
-        <Collapsible  className="my-domain__info-panel" title="Domain Details">
+        <Collapsible  className="my-domain__info-panel" title="Domain Details" defaultCollapsed>
           <DomainDetails name={name} />
         </Collapsible>
-        <Collapsible  className="my-domain__info-panel" title="Records" defaultCollapsed>
-          hi
+        <Collapsible  className="my-domain__info-panel" title="Records">
+          <Records  name={name} />
         </Collapsible>
         <Collapsible  className="my-domain__info-panel" title="Bid History" defaultCollapsed>
           hi
