@@ -1,0 +1,137 @@
+import { NAME_STATES } from './names';
+
+const FETCH_MY_NAMES_START = 'app/myDomains/fetchMyNamesStart';
+const FETCH_MY_NAMES_STOP = 'app/myDomains/fetchMyNamesStop';
+
+const WALLET_API = 'http://127.0.0.1:15039';
+
+const initialState = {
+  names: [],
+  isFetching: false,
+  errorMessage: '',
+};
+
+export const getMyNames = () => async (dispatch, getState) => {
+  const { address } = getState().wallet;
+
+  dispatch({ type: FETCH_MY_NAMES_START });
+
+  const resp = await fetch(WALLET_API, {
+    method: 'POST',
+    body: JSON.stringify({
+      method: 'getnames',
+    }),
+  });
+  let { result, error } = await resp.json();
+
+  if (error) {
+    dispatch({
+      type: FETCH_MY_NAMES_STOP,
+      payload: new Error(error.message),
+      error: true,
+    });
+    return;
+  }
+
+  result = getMockNames(address);
+
+  dispatch({
+    type: FETCH_MY_NAMES_STOP,
+    payload: address
+      ? result.filter(({ state, owner }) => {
+        return state === NAME_STATES.CLOSED && (owner && owner.hash === address);
+      })
+      : [],
+  });
+};
+
+export default function myDomainsReducer(state = initialState, action) {
+  const { type, payload, error } = action;
+  switch (type) {
+    case FETCH_MY_NAMES_START:
+      return { ...state, isFetching: true };
+    case FETCH_MY_NAMES_STOP:
+      return error
+        ? { ...state, isFetching: false, errorMessage: error.message }
+        : { ...state, isFetching: false, names: payload };
+    default:
+      return state;
+  }
+}
+
+function getMockNames(ownAddress) {
+  return [
+    {
+      "name": "megatest",
+      "nameHash": "27b118c11562ebb2b11d94bbc1f23f3d78daea533766d929d39b580a2d37d4a4",
+      "state": "CLOSED",
+      "height": 189,
+      "renewal": 398,
+      "owner": {
+        "hash": ownAddress,
+        "index": 0
+      },
+      "value": 1000000,
+      "highest": 3000000,
+      "data": "00000000",
+      "transfer": 0,
+      "revoked": 0,
+      "claimed": false,
+      "weak": false,
+      "stats": {
+        "renewalPeriodStart": 398,
+        "renewalPeriodEnd": 10398,
+        "blocksUntilExpire": 9917,
+        "daysUntilExpire": 34.43
+      }
+    },
+    {
+      "name": "trees",
+      "nameHash": "92ec68524dbcc44bc3ff4847ed45e3a86789009d862499ce558c793498413cec",
+      "state": "CLOSED",
+      "height": 67,
+      "renewal": 276,
+      "owner": {
+        "hash": ownAddress,
+        "index": 0
+      },
+      "value": 5000000,
+      "highest": 20000000,
+      "data": "000a8c000906036e7331076578616d706c6503636f6d00010203040000000000000000000000000000000000",
+      "transfer": 0,
+      "revoked": 0,
+      "claimed": false,
+      "weak": false,
+      "stats": {
+        "renewalPeriodStart": 276,
+        "renewalPeriodEnd": 10276,
+        "blocksUntilExpire": 9795,
+        "daysUntilExpire": 34.01
+      }
+    },
+    {
+      "name": "tba",
+      "nameHash": "a73f93785b1fc9b1973579cf2b3f1a08a832d462a5e8ad6e5ec75883ccd90f50",
+      "state": "CLOSED",
+      "height": 434,
+      "renewal": 477,
+      "owner": {
+        "hash": "ded558796b20bead377c618c76641de0560dc4323a4b24d4131e7434d3077509",
+        "index": 0
+      },
+      "value": 0,
+      "highest": 1000000,
+      "data": "00000000",
+      "transfer": 0,
+      "revoked": 0,
+      "claimed": false,
+      "weak": false,
+      "stats": {
+        "renewalPeriodStart": 477,
+        "renewalPeriodEnd": 10477,
+        "blocksUntilExpire": 9996,
+        "daysUntilExpire": 34.71
+      }
+    },
+  ];
+}

@@ -1,0 +1,79 @@
+@import '../../variables.scss';
+
+.my-domain {
+  @extend %col-nowrap;
+
+  &__back-arrow {
+    @extend %row-nowrap;
+
+    align-items: center;
+    cursor: pointer;
+
+    &::before {
+      display: inline-block;
+      content: '';
+      width: 1rem;
+      height: 1rem;
+      background-image: url(../../assets/images/arrow-back-blue.svg);
+      background-size: contain;
+      background-repeat: no-repeat;
+      margin-right: .25rem;
+    }
+  }
+
+  &__header {
+    &__title {
+      font-size: 1.75rem;
+      font-weight: 500;
+      padding: 1.5rem 0;
+    }
+
+    &__expires-text {
+      font-size: .8rem;
+      color: $manatee-gray;
+      padding-bottom: .25rem;
+    }
+
+    &__reveal-link {
+      @extend %link;
+
+      font-size: .8rem;
+    }
+  }
+
+  &__info-panel {
+    .collapsible {
+      &__header {
+        @extend %info-header;
+
+        &__title {
+          @extend %info-title;
+        }
+      }
+    }
+  }
+}
+
+.domain-details {
+  @extend %col-nowrap;
+
+  margin-top: 1rem;
+}
+
+.domain-detail {
+  @extend %row-nowrap;
+
+  align-items: center;
+  font-size: .8rem;
+
+  &__label {
+    width: 8rem;
+    flex: 0 0 auto;
+    font-weight: 500;
+    padding: .25rem 0;
+  }
+
+  &__value {
+    flex: 1 1 auto;
+  }
+}

@@ -1,0 +1,39 @@
+@import '../../variables.scss';
+
+.domain-manager {
+  @extend %col-nowrap;
+
+  &__domain {
+    @extend %row-nowrap;
+
+    align-items: center;
+    border-radius: .5rem;
+    padding: 1rem 1.25rem;
+    transition: background-color 250ms ease-in-out;
+    max-width: 25rem;
+    margin-bottom: .25rem;
+
+    &:hover {
+      background-color: $athens-gray;
+      cursor: pointer;
+    }
+
+    &:active {
+      background-color: darken($athens-gray, 2);
+      cursor: pointer;
+    }
+
+    &__icon {
+      width: 1.25rem;
+      height: 1.25rem;
+      border-radius: 50%;
+    }
+
+    &__name {
+      font-size: 1rem;
+      line-height: 1rem;
+      font-weight: 500;
+      margin-left: 1rem;
+    }
+  }
+}

@@ -15,6 +15,8 @@ import Account from '../Account';
 import GetCoins from '../GetCoins';
 import Settings from '../Settings';
 import Auction from '../Auction';
+import DomainManager from '../DomainManager';
+import MyDomain from '../MyDomain';
 import SearchTLD from '../SearchTLD';
 import * as walletActions from '../../ducks/wallet';
 import './app.scss';
@@ -103,6 +105,8 @@ class App extends Component {
         <Route path="/get_coins" component={GetCoins} />
         <Route path="/settings" component={Settings} />
         <Route path="/domains" component={SearchTLD} />
+        <Route path="/domain_manager/:name" component={MyDomain} />
+        <Route path="/domain_manager" component={DomainManager} />
         {/* Let's implement Auction once ducks are set up and we're connected to the blockchain  */}
         <Route path="/domain/:name?" component={Auction} />
         {this.renderDefault()}
