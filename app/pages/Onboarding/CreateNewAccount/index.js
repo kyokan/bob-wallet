@@ -27,7 +27,8 @@ class CreateNewAccount extends Component {
 
   state = {
     currentStep: TERMS_OF_USE,
-    seedphrase: ''
+    seedphrase: '',
+    pasphrase: '',
   };
 
   render() {
@@ -38,11 +39,8 @@ class CreateNewAccount extends Component {
         return (
           <Terms
             onAccept={async () => {
-              await client.createNewWallet();
-              const masterHDKey = await client.getMasterHDKey();
               this.setState({
-                currentStep: CREATE_PASSWORD,
-                seedphrase: masterHDKey.mnemonic.phrase
+                currentStep: CREATE_PASSWORD
               });
             }}
             onBack={() => this.props.history.push('/funding-options')}
@@ -54,9 +52,8 @@ class CreateNewAccount extends Component {
             currentStep={1}
             totalSteps={4}
             onBack={() => this.setState({currentStep: TERMS_OF_USE})}
-            onNext={async password => {
-              await client.setPassphrase(password);
-              this.setState({currentStep: BACK_UP_SEED_WARNING});
+            onNext={async passphrase => {
+              this.setState({currentStep: BACK_UP_SEED_WARNING, passphrase});
             }}
             onCancel={() => this.props.history.push('/funding-options')}
           />
@@ -67,7 +64,12 @@ class CreateNewAccount extends Component {
             currentStep={2}
             totalSteps={4}
             onBack={() => this.setState({currentStep: TERMS_OF_USE})}
-            onNext={() => this.setState({currentStep: COPY_SEEDPHRASE})}
+            onNext={async () => {
+              await client.createNewWallet();
+              await client.setPassphrase(this.state.passphrase);
+              const masterHDKey = await client.getMasterHDKey();
+              this.setState({currentStep: COPY_SEEDPHRASE, seedphrase: masterHDKey})
+            }}
             onCancel={() => this.props.history.push('/funding-options')}
           />
         );

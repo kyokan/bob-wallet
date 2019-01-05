@@ -3,40 +3,35 @@ import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import c from 'classnames';
 import { connect } from 'react-redux';
-import SendModal from '../SendModal';
 import ReceiveModal from '../ReceiveModal';
 import './sidebar.scss';
+import ellipsify from '../../utils/ellipsify';
 
 @withRouter
-// @connect(
-//   state => ({
-//     initialized: state.wallet.initialized,
-//     isLocked: state.wallet.isLocked,
-//   }),
-//   dispatch => ({
-//     getNameInfo: tld => dispatch(domainActions.getNameInfo(tld)),
-//   })
-// )
+@connect(
+  state => ({
+    height: state.node.chain.height,
+    tip: state.node.chain.tip
+  }),
+  dispatch => ({})
+)
 class Sidebar extends Component {
-  // static propTypes = {
-  //   history: PropTypes.shape({
-  //     push: PropTypes.func.isRequired,
-  //   }).isRequired,
-  //   location: PropTypes.shape({
-  //     pathname: PropTypes.string.isRequired,
-  //   }).isRequired,
-  //   getNameInfo: PropTypes.func.isRequired,
-  //   isLocked: PropTypes.bool.isRequired,
-  //   initialized: PropTypes.bool.isRequired,
-  // };
+  static propTypes = {
+    height: PropTypes.number.isRequired,
+    tip: PropTypes.string.isRequired
+  };
+
+  state = {
+    isShowingReceiveModal: false,
+  };
+
+  toggleReceiveModal = (val) => this.setState({
+    isShowingReceiveModal: val
+  });
 
   render() {
-    const name = c('sidebar', {
-      // 'sidebar--empty': !this.props.initialized || this.props.isLocked
-    });
-
     return (
-      <div className={name}>
+      <div className="sidebar">
         <div className="sidebar__content">
           <div>
             <div className="sidebar__logo-wrapper">
@@ -52,10 +47,6 @@ class Sidebar extends Component {
   }
 
   renderNav() {
-    // if (!this.props.initialized || this.props.isLocked) {
-    //   return null;
-    // }
-
     const {
       history: { push },
       location: { pathname }
@@ -86,7 +77,7 @@ class Sidebar extends Component {
             className={c('sidebar__action', {
               'sidebar__action--selected': /receive/.test(pathname)
             })}
-            onClick={() => push('/receive')}
+            onClick={() => this.toggleReceiveModal(true)}
           >
             Receive
           </a>
@@ -134,6 +125,7 @@ class Sidebar extends Component {
             Watching
           </a>
         </div>
+        {this.state.isShowingReceiveModal ? <ReceiveModal onClose={() => this.toggleReceiveModal(false)} /> : null}
       </React.Fragment>
     );
   }
@@ -143,11 +135,11 @@ class Sidebar extends Component {
       <div className="sidebar__footer">
         <div className="sidebar__footer__row">
           <div className="sidebar__footer__title">Current Height</div>
-          <div className="sidebar__footer__text">2490</div>
+          <div className="sidebar__footer__text">{this.props.height || '--'}</div>
         </div>
         <div className="sidebar__footer__row">
           <div className="sidebar__footer__title">Current Hash</div>
-          <div className="sidebar__footer__text">1G8m3HUXrC...5GNn4xqX</div>
+          <div className="sidebar__footer__text">{this.props.tip ? ellipsify(this.props.tip) : '--'}</div>
         </div>
       </div>
     );

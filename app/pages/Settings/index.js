@@ -13,7 +13,7 @@ import * as walletActions from '../../ducks/wallet';
   () => ({}),
   dispatch => ({
     lockWallet: () => dispatch(walletActions.lockWallet()),
-    // removeWallet: () => dispatch(walletActions.removeWallet())
+    removeWallet: () => dispatch(walletActions.removeWallet())
   })
 )
 export default class Settings extends Component {
@@ -80,7 +80,7 @@ export default class Settings extends Component {
             path="/settings/new-wallet"
             render={() => (
               <InterstitialWarningModal
-                nextAction={console.log('this.props.removeWallet')}
+                nextAction={() => this.props.removeWallet()}
                 nextRoute="/"
               />
             )}

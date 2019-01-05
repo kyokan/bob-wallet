@@ -7,19 +7,15 @@ import c from 'classnames';
 import Modal from '../Modal';
 import './receive.scss';
 
-// @connect(
-//   state => ({
-//     address: state.wallet.address,
-//   }),
-// )
+@connect(
+  state => ({
+    address: state.wallet.address,
+  }),
+)
 export default class ReceiveModal extends Component {
   static propTypes = {
     onClose: PropTypes.func.isRequired,
     address: PropTypes.string.isRequired
-  };
-
-  static defaultProps = {
-    address: '3P3QsMVK89JBNqZQv5zMAKG8FK3kJM4rjt'
   };
 
   state = {
@@ -40,11 +36,11 @@ export default class ReceiveModal extends Component {
     return isShowingAddress ? (
       <div className="receive__content">
         <div className="receive__qr-code">
-          <QRCode value={'3P3QsMVK89JBNqZQv5zMAKG8FK3kJM4rjt'} />
+          <QRCode value={address} />
         </div>
         <div className="receive__address-display">
           <div className="receive__address">
-            {'3P3QsMVK89JBNqZQv5zMAKG8FK3kJM4rjt'}
+            {address}
           </div>
           <button
             className={c('receive__copy-btn', {
@@ -79,6 +75,10 @@ export default class ReceiveModal extends Component {
   render() {
     const { onClose } = this.props;
 
-    return <div className="receive__container">{this.renderContent()}</div>;
+    return (
+      <Modal onClose={onClose} className="receive__modal">
+        <div className="receive__container">{this.renderContent()}</div>
+      </Modal>
+    );
   }
 }

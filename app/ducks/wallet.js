@@ -4,7 +4,6 @@ const SET_WALLET = 'app/wallet/setWallet';
 const UNLOCK_WALLET = 'app/wallet/unlockWallet';
 const LOCK_WALLET = 'app/wallet/lockWallet';
 const REMOVE_WALLET = 'app/wallet/removeWallet';
-const IS_INITIALIZED = 'app/wallet/isInitialized';
 
 export const NONE = 'NONE';
 export const LEDGER = 'LEDGER';
@@ -40,11 +39,6 @@ export default function walletReducer(state = initialState, {type, payload}) {
           unconfirmed: payload.balance.unconfirmed || ''
         },
         initialized: payload.initialized
-      };
-    case IS_INITIALIZED:
-      return {
-        ...state,
-        initialized: !!localStorage.getItem('initialized')
       };
     case LOCK_WALLET:
       return {
@@ -84,20 +78,11 @@ export const setWallet = ({
   };
 };
 
-export const isInitialized = () => {
-  return {
-    type: IS_INITIALIZED,
-    payload: {
-      initialized: !!localStorage.getItem('initialized')
-    }
-  };
-};
-
 // side effects, e.g. thunks
 
-export const completeInitialization = () => dispatch => {
+export const completeInitialization = () => async (dispatch) => {
   localStorage.setItem('initialized', '1');
-  dispatch(fetchWallet());
+  await dispatch(fetchWallet());
   dispatch({
     type: UNLOCK_WALLET
   });
@@ -107,6 +92,7 @@ export const fetchWallet = () => async (dispatch, getState) => {
   const client = walletClient.forNetwork(getState().wallet.network);
   const walletInfo = await client.getWalletInfo();
   const accountInfo = await client.getAccountInfo();
+
   dispatch(
     setWallet({
       initialized: !!walletInfo && !!accountInfo && !!localStorage.getItem('initialized'),
@@ -135,3 +121,9 @@ export const lockWallet = () => async (dispatch, getState) => {
   });
   await client.lock();
 };
+
+export const removeWallet = () => async (dispatch, getState) => {
+  const client = walletClient.forNetwork(getState().wallet.network);
+  await client.reset();
+  return dispatch(fetchWallet());
+}

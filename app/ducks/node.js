@@ -42,7 +42,11 @@ const setNodeInfo = () => async dispatch => {
 export function getInitialState() {
   return {
     isRunning: false,
-    network: null
+    network: null,
+    chain: {
+      height: 0,
+      tip: '',
+    }
   };
 }
 

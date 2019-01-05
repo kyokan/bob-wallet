@@ -21,7 +21,7 @@ export function forNetwork(net) {
   };
 
   const walletClient = new WalletClient(walletOptions);
-  const wallet = walletClient.wallet(WALLET_ID);
+  let wallet = walletClient.wallet(WALLET_ID);
 
   const ret = {
     getWalletInfo: async () => {
@@ -38,7 +38,9 @@ export function forNetwork(net) {
         witness: false,
         watchOnly: false
       };
-      return walletClient.createWallet(WALLET_ID, options);
+      const res = await walletClient.createWallet(WALLET_ID, options);
+      wallet = walletClient.wallet(WALLET_ID);
+      return res;
     },
 
     importSeed: async (passphrase, mnemonic) => {
@@ -49,7 +51,9 @@ export function forNetwork(net) {
         watchOnly: false,
         mnemonic
       };
-      return walletClient.createWallet(WALLET_ID, options);
+      const res = await walletClient.createWallet(WALLET_ID, options);
+      wallet = walletClient.wallet(WALLET_ID);
+      return res;
     },
 
     getMasterHDKey: async () => {

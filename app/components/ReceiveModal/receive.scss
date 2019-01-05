@@ -3,9 +3,13 @@
 .receive {
   max-width: 22rem;
 
+  &__modal {
+    width: 400px;
+    padding: 3rem;
+  }
+
   &__container {
     @extend %col-nowrap;
-    margin-top: 3rem;
   }
 
   &__header {
@@ -42,11 +46,12 @@
     font-weight: 400;
     color: rgba($black, 0.8);
     padding: 1rem 0;
+    text-align: center;
   }
 
   &__show-address-btn {
     @extend %btn-primary;
-    margin: 3rem 0;
+    margin: 2rem 0 0 0;
     width: 300px;
   }
 

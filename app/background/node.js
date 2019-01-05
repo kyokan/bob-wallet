@@ -5,6 +5,8 @@ import { defaultServer, makeClient } from './ipc';
 import gunzip from 'gunzip-maybe';
 import tar from 'tar-fs';
 import { execFile } from 'child_process';
+import kill from 'tree-kill';
+import * as nodeClient from '../utils/nodeClient';
 
 const path = require('path');
 const fs = require('fs');
@@ -96,22 +98,21 @@ export async function start(net) {
     args.push(`--seeds=${SEEDS[network].join(',')}`);
   }
 
-  const startTime = Date.now();
-  hsd = execFile(path.join(hsdBinDir, 'bin', 'node'), args, args);
+  hsd = execFile(path.join(hsdBinDir, 'bin', 'node-pure-js'), args, args);
   hsd.stdout.on('data', data => stdout.write(data));
   hsd.stderr.on('data', data => stderr.write(data));
 
-  await new Promise((resolve, reject) => {
-    hsd.on('exit', () => {
-      stdout.end();
-      stderr.end();
+  const nClient = nodeClient.forNetwork(network);
+  for (let i = 0; i < 5; i++) {
+    try {
+      await nClient.getInfo();
+      return;
+    } catch (e) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+  }
 
-      if (Date.now() - startTime < 3000) {
-        reject(new Error('hsd crashed, check the logs'));
-      }
-    });
-    setTimeout(resolve, 3000);
-  });
+  throw new Error('timed out');
 }
 
 export async function stop() {
@@ -120,26 +121,26 @@ export async function stop() {
   }
 
   await new Promise((resolve, reject) => {
-    hsd.on('exit', () => {
+    kill(hsd.pid, 'SIGTERM', (err) => {
+      if (err) {
+        return reject(err);
+      }
+
       hsd = null;
       resolve();
     });
-    hsd.on('error', reject);
-    hsd.kill('SIGTERM');
   });
 
   await awaitFSNotBusy();
 }
 
 async function awaitFSNotBusy(count = 0) {
-  console.log('polling');
-
   if (count === 3) {
     throw new Error('timeout exceeded');
   }
 
   return new Promise((resolve, reject) => {
-    fs.open(path.join(hsdPrefixDir, network, 'chain', 'LOCK'), 'rw+', (err) => {
+    fs.open(path.join(hsdPrefixDir, network, 'chain', 'LOCK'), 'r+', (err) => {
       if (err && err.code === 'ENOENT') {
         return resolve();
       }
