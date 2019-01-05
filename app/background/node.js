@@ -4,7 +4,7 @@ import rimraf from 'rimraf';
 import { defaultServer, makeClient } from './ipc';
 import gunzip from 'gunzip-maybe';
 import tar from 'tar-fs';
-import { spawn } from 'child_process';
+import { spawn, execFile } from 'child_process';
 
 const path = require('path');
 const fs = require('fs');
@@ -84,7 +84,6 @@ export async function start(net) {
   await pify(cb => stdout.on('open', cb()));
   await pify(cb => stderr.on('open', cb()));
   const args = [
-    path.join(hsdBinDir, 'bin', 'node'),
     `--prefix=${hsdPrefixDir}`,
     `--network=${network}`,
     '--log-console=false',
@@ -99,7 +98,7 @@ export async function start(net) {
   }
 
   const startTime = Date.now();
-  hsd = spawn('node', args, args);
+  hsd = execFile(path.join(hsdBinDir, 'bin', 'node'), args, args);
   hsd.stdout.on('data', data => stdout.write(data));
   hsd.stderr.on('data', data => stderr.write(data));
 
