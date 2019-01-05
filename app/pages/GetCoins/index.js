@@ -29,12 +29,7 @@ export default class GetCoins extends Component {
     if (isShowingGitHubModal) {
       return (
         <ProofModal
-          stepOneInstruction="Check your SSH keys for 2500 HNS"
-          stepOneDescription="Look for the “on-chain airdrop” message in your SSH keys. To qualify for the Handshake Network’s on-chain airdrop, you must have 15 or more followers on GitHub and SSH keys during the week of 2018-08-27."
-          stepTwoInstruction="Submit your Handshake address below in your SSH keys"
-          stepTwoDescription="If you qualify, you will see a field requesting a Handshake address. Copy the address below and paste it in the field asking for “Your Handshake Address.”"
-          stepThreeInstruction="Copy your proof contents found in your SSH keys. Paste them below."
-          stepThreeDescription="After submitting your Handshake address into your Github SSH keys. Paste your GitHub SSH proof below."
+          type="SSH"
           onSubmit={() => console.log('submit github proof')}
           onClose={this.closeModal}
         />
@@ -44,12 +39,7 @@ export default class GetCoins extends Component {
     if (isShowingPGPModal) {
       return (
         <ProofModal
-          stepOneInstruction="Copy your Handshake and meow meow human pass me milk"
-          stepOneDescription="Look for the “on-chain airdrop” message in your SSH keys. To qualify for the Handshake Network’s on-chain airdrop, you must have 15 or more followers on GitHub and SSH keys during the week of 2018-08-27."
-          stepTwoInstruction="After submitting your Handshake address into your PGP keys, paste your PGP proof below."
-          stepTwoDescription="If you qualify, you will see a field requesting a Handshake address. Copy the address below and paste it in the field asking for “Your Handshake Address.”"
-          stepThreeInstruction="Eat a rug and furry furry hairs everywhere oh no human coming lie on counter don't get off "
-          stepThreeDescription="After submitting your Handshake address into your Github SSH keys. Paste your GitHub SSH proof below."
+          type="PGP"
           onSubmit={() => console.log('submit pgp proof')}
           onClose={this.closeModal}
         />
@@ -167,17 +157,15 @@ export default class GetCoins extends Component {
             <div className="get-coins__panel__offer">
               <div>+2500 HNS</div>
               <div>GitHub Developers</div>
-              <div>
-                <span>15 or more followers</span>
-              </div>
-              <div>SSH keys</div>
+              <div>15 or more followers</div>
+              <div>SSH key</div>
               <button onClick={this.openGitHubModal}>Submit SSH Proof</button>
             </div>
             <div className="get-coins__panel__offer">
               <div>+2500 HNS</div>
               <div>PGP Web of Trust</div>
-              <div>Strong set email</div>
-              <div>SSH keys</div>
+              <div>PGP key</div>
+              <div>Member of strong set</div>
               <button onClick={this.openPGPModal}>Submit PGP Proof</button>
             </div>
           </div>

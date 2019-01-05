@@ -24,7 +24,7 @@ export default class ReceiveModal extends Component {
   };
 
   copyAddress = () => {
-    copy('3P3QsMVK89JBNqZQv5zMAKG8FK3kJM4rjt');
+    copy(this.props.address);
     this.setState({ hasCopied: true });
     setTimeout(() => this.setState({ hasCopied: false }), 2500);
   };

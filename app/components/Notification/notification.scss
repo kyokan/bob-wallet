@@ -1,0 +1,18 @@
+@import "../../variables";
+
+.notification {
+  $width: 500px;
+  position: absolute;
+  width: $width;
+  background: $success-green;
+  border-radius: 0 0 0.5rem 0.5rem;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.25);
+  padding: 1rem;
+  z-index: 50;
+  left: 50%;
+  top: 0;
+  margin-left: -($width / 2);
+  color: white;
+  transform: translateY(calc(-100% - 8px));
+  transition: transform 250ms linear;
+}

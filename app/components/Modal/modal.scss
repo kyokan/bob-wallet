@@ -9,6 +9,7 @@
     left: 0;
     background-color: rgba($black, .7);
     z-index: 100;
+    overflow: auto;
   }
 
   &__wrapper {

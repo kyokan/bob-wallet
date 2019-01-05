@@ -2,11 +2,9 @@ import pify from '../utils/pify';
 import { app } from 'electron';
 import rimraf from 'rimraf';
 import { defaultServer, makeClient } from './ipc';
-import gunzip from 'gunzip-maybe';
-import tar from 'tar-fs';
-import { execFile } from 'child_process';
 import kill from 'tree-kill';
 import * as nodeClient from '../utils/nodeClient';
+import { executeBinDep, installBinDep } from './bindeps';
 
 const path = require('path');
 const fs = require('fs');
@@ -72,7 +70,7 @@ export async function start(net) {
 
   network = newNetwork;
 
-  await installHSD();
+  await installBinDep('hsd', 'darwin', 'x86_64');
   if (!fs.existsSync(hsdPrefixDir)) {
     await pify(cb => fs.mkdir(hsdPrefixDir, {recursive: true}, cb));
   }
@@ -98,7 +96,7 @@ export async function start(net) {
     args.push(`--seeds=${SEEDS[network].join(',')}`);
   }
 
-  hsd = execFile(path.join(hsdBinDir, 'bin', 'node-pure-js'), args, args);
+  hsd = await executeBinDep('spawn', 'hsd', path.join('bin', 'node-pure-js'), args);
   hsd.stdout.on('data', data => stdout.write(data));
   hsd.stderr.on('data', data => stderr.write(data));
 
@@ -156,20 +154,6 @@ async function awaitFSNotBusy(count = 0) {
       return resolve();
     });
   });
-}
-
-async function installHSD() {
-  const tarballPath = path.join(__dirname, '../', 'bindeps', 'hsd-darwin-x86_64.tgz');
-
-  if (fs.existsSync(hsdBinDir)) {
-    return;
-  }
-  await pify(cb => fs.mkdir(hsdBinDir, {recursive: true}, cb));
-
-  const stream = fs.createReadStream(tarballPath);
-  return new Promise((resolve, reject) => stream.pipe(gunzip()).pipe(tar.extract(udPath))
-    .on('error', reject)
-    .on('finish', resolve));
 }
 
 const sName = 'Node';
