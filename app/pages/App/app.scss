@@ -6,6 +6,23 @@
   height: 100vh;
   width: 100vw;
 
+  &__uninitialized-wrapper {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__uninitialized {
+    width: 400px;
+    height: 500px;
+    background: white;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.25);
+    border-radius: 0.5rem;
+  }
+
   &__sidebar-wrapper {
     flex: 0 0 auto;
     width: 220px;

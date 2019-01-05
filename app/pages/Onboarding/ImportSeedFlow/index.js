@@ -7,37 +7,22 @@ import ImportSeedWarning from '../ImportSeedWarning/index';
 import CreatePassword from '../CreatePassword/index';
 import ImportSeedEnterMnemonic from '../ImportSeedEnterMnemonic/index';
 import Terms from '../Terms/index';
-// import * as walletActions from '../../../ducks/wallet';
-// import client from '../../../utils/client';
-
-// import {
-//   CREATE_WALLET,
-//   IMPORT_SEED
-// } from '../../../../chrome/extension/background/actionTypes';
+import * as walletActions from '../../../ducks/wallet';
+import *as walletClient from '../../../utils/walletClient';
 
 const TERM_OF_USE = 'TERM_OF_USE';
 const WARNING_STEP = 'WARNING';
 const CREATE_PASSWORD = 'CREATE_PASSWORD';
 const ENTRY_STEP = 'ENTRY';
 
-// @connect(
-//   state => ({}),
-//   dispatch => ({
-//     importSeed: (passphrase, mnemonic) =>
-//       dispatch(walletActions.importSeed(passphrase, mnemonic)),
-//     completeInitialization: () =>
-//       dispatch(walletActions.completeInitialization())
-//   })
-// )
-@withRouter
 class ImportSeedFlow extends Component {
-  // static propTypes = {
-  //   history: PropTypes.shape({
-  //     push: PropTypes.func
-  //   }).isRequired,
-  //   completeInitialization: PropTypes.func.isRequired,
-  //   importSeed: PropTypes.func.isRequired
-  // };
+  static propTypes = {
+    history: PropTypes.shape({
+      push: PropTypes.func
+    }).isRequired,
+    completeInitialization: PropTypes.func.isRequired,
+    network: PropTypes.string.isRequired,
+  };
 
   state = {
     currentStep: TERM_OF_USE,
@@ -49,7 +34,7 @@ class ImportSeedFlow extends Component {
       case TERM_OF_USE:
         return (
           <Terms
-            onAccept={() => this.setState({ currentStep: WARNING_STEP })}
+            onAccept={() => this.setState({currentStep: WARNING_STEP})}
             onBack={() => this.props.history.push('/existing-options')}
           />
         );
@@ -68,7 +53,7 @@ class ImportSeedFlow extends Component {
           <CreatePassword
             currentStep={2}
             totalSteps={3}
-            onBack={() => this.setState({ currentStep: WARNING_STEP })}
+            onBack={() => this.setState({currentStep: WARNING_STEP})}
             onNext={passphrase => {
               this.setState({
                 passphrase,
@@ -98,13 +83,23 @@ class ImportSeedFlow extends Component {
   }
 
   finishFlow = async mnemonic => {
-    // try {
-    //   await this.props.importSeed(this.state.passphrase, mnemonic);
-    //   await this.props.completeInitialization();
-    // } catch (e) {
-    //   console.error(e);
-    // }
+    try {
+      await walletClient.forNetwork(this.props.network).importSeed(this.state.passphrase, mnemonic);
+      await this.props.completeInitialization();
+    } catch (e) {
+      console.error(e);
+    }
   };
 }
 
-export default ImportSeedFlow;
+export default withRouter(
+  connect(
+    (state) => ({
+      network: state.wallet.network,
+    }),
+    dispatch => ({
+      completeInitialization: () =>
+        dispatch(walletActions.completeInitialization())
+    })
+  )(ImportSeedFlow)
+);

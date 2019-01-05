@@ -10,7 +10,7 @@ export const SET_NODE_INFO = 'node/SET_NODE_INFO';
 export const STOP = 'node/STOP';
 
 export function start(network) {
-  return async (dispatch) => {
+  return async dispatch => {
     await client.start(network);
 
     if (interval) {
@@ -43,7 +43,7 @@ export function getInitialState() {
   return {
     isRunning: false,
     network: null
-  }
+  };
 }
 
 export default function nodeReducer(state = getInitialState(), action = {}) {

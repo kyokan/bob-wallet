@@ -1,23 +1,16 @@
 import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
-// import { connect } from 'react-redux';
+import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 // import classNames from 'classnames';
 // import * as auctions.js from '../../../ducks/extension';
 import './access.scss';
 
-// @connect(
-//   state => ({
-//   }),
-//   dispatch => ({
-//   }),
-// )
-@withRouter
 class FundAccessOptions extends Component {
   static propTypes = {
     history: PropTypes.shape({
-      push: PropTypes.func,
-    }).isRequired,
+      push: PropTypes.func
+    }).isRequired
   };
 
   render() {
@@ -57,4 +50,9 @@ class FundAccessOptions extends Component {
   }
 }
 
-export default FundAccessOptions;
+export default withRouter(
+  connect(
+    state => ({}),
+    dispatch => ({})
+  )(FundAccessOptions)
+);

@@ -61,6 +61,7 @@ class Sidebar extends Component {
       location: { pathname }
     } = this.props;
 
+    //use NavLink component check out docs
     return (
       <React.Fragment>
         <div className="sidebar__section">Wallet</div>
@@ -112,7 +113,7 @@ class Sidebar extends Component {
             className={c('sidebar__action', {
               'sidebar__action--selected': /domains/.test(pathname)
             })}
-            onClick={() => console.log('push("/domains")')}
+            onClick={() => push('/domains')}
           >
             Browse Domains
           </a>

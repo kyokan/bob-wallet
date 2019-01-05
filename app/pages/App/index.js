@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { Redirect, Route, Switch } from 'react-router-dom';
+import { Redirect, Route, Switch, withRouter } from 'react-router-dom';
+import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
@@ -14,22 +15,70 @@ import Account from '../Account';
 import GetCoins from '../GetCoins';
 import Settings from '../Settings';
 import Auction from '../Auction';
+import SearchTLD from '../SearchTLD';
+import * as walletActions from '../../ducks/wallet';
 import './app.scss';
+import AccountLogin from '../AcountLogin';
 
-export default class Home extends Component {
+class App extends Component {
   static propTypes = {
     isLocked: PropTypes.bool.isRequired,
-    initialized: PropTypes.bool.isRequired
+    initialized: PropTypes.bool.isRequired,
+    fetchWallet: PropTypes.func.isRequired,
   };
 
   state = {
-    isLoading: false
+    isLoading: true
   };
+
+  async componentDidMount() {
+    this.setState({
+      isLoading: true
+    });
+    await this.props.fetchWallet();
+    this.setState({
+      isLoading: false
+    });
+  }
 
   render() {
     return (
       <div className="app">
-        {/* <SubHeader /> */}
+        {this.renderContent()}
+      </div>
+    );
+  }
+
+  renderContent() {
+    if (this.state.isLoading) {
+      return null;
+    }
+
+    const {isLocked, initialized} = this.props;
+
+    if (isLocked || !initialized) {
+      return (
+        <div className="app__uninitialized-wrapper">
+          <div className="app__uninitialized">
+            <Switch>
+              <Route
+                path="/login"
+                render={() => <AccountLogin className="app__login" />}
+              />
+              <Route path="/funding-options" render={FundAccessOptions} />
+              <Route path="/existing-options" render={ExistingAccountOptions} />
+              <Route path="/new-wallet" render={CreateNewAccount} />
+              <Route path="/import-seed" render={ImportSeedFlow} />
+              <Route path="/connect-ledger" render={ConnectLedgerFlow} />
+              {this.renderDefault()}
+            </Switch>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <React.Fragment>
         <div className="app__sidebar-wrapper">
           <Sidebar />
         </div>
@@ -37,57 +86,11 @@ export default class Home extends Component {
           <Topbar title="Portfolio" />
           <div className="app__content">{this.renderRoutes()}</div>
         </div>
-        {/* <div className="app__footer">
-          <Footer />
-        </div> */}
-      </div>
+      </React.Fragment>
     );
   }
 
   renderRoutes() {
-    let { isLocked, initialized } = {};
-
-    // temp fix to show authenticated views until ducks are set up
-    isLocked = false;
-    initialized = true;
-
-    if (this.state.isLoading) {
-      return null;
-    }
-
-    if (isLocked || !initialized) {
-      return (
-        <Switch>
-          {/* Do we need this route? */}
-          {/* <Route
-            path="/login"
-            render={() => <AccountLogin className="app__login" />}
-          /> */}
-          <Route
-            path="/funding-options"
-            render={this.renderWrapper(FundAccessOptions)}
-          />
-          <Route
-            path="/existing-options"
-            render={this.renderWrapper(ExistingAccountOptions)}
-          />
-          <Route
-            path="/new-wallet"
-            render={this.renderWrapper(CreateNewAccount)}
-          />
-          <Route
-            path="/import-seed"
-            render={this.renderWrapper(ImportSeedFlow)}
-          />
-          <Route
-            path="/connect-ledger"
-            render={this.renderWrapper(ConnectLedgerFlow)}
-          />
-          {this.renderDefault()}
-        </Switch>
-      );
-    }
-
     return (
       <Switch>
         <Route path="/account" component={Account} />
@@ -95,20 +98,16 @@ export default class Home extends Component {
         <Route path="/receive" component={ReceiveModal} />
         <Route path="/get_coins" component={GetCoins} />
         <Route path="/settings" component={Settings} />
+        <Route path="/domains" component={SearchTLD} />
         {/* Let's implement Auction once ducks are set up and we're connected to the blockchain  */}
-         <Route path="/domain/:name?" component={Auction} />
+        <Route path="/domain/:name?" component={Auction} />
         {this.renderDefault()}
       </Switch>
     );
   }
 
   renderDefault = () => {
-    let { isLocked, initialized } = this.props;
-
-    // temp fix to show authenticated views until ducks are set up
-    isLocked = false;
-    initialized = true;
-
+    let {isLocked, initialized} = this.props;
     if (!initialized) {
       return <Redirect to="/funding-options" />;
     }
@@ -119,13 +118,16 @@ export default class Home extends Component {
 
     return <Redirect to="/account" />;
   };
-
-  renderWrapper = c => {
-    const Comp = c;
-    return () => (
-      <div className="app__component-wrapper">
-        <Comp />
-      </div>
-    );
-  };
 }
+
+export default withRouter(
+  connect(
+    state => ({
+      isLocked: state.wallet.isLocked,
+      initialized: state.wallet.initialized
+    }),
+    dispatch => ({
+      fetchWallet: () => dispatch(walletActions.fetchWallet())
+    })
+  )(App)
+);

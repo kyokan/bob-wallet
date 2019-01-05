@@ -19,7 +19,7 @@
     "package-ci": "yarn postinstall && yarn build && electron-builder --publish always",
     "package-linux": "yarn build && electron-builder build --linux",
     "package-win": "yarn build && electron-builder build --win --x64",
-    "postinstall": "electron-builder install-app-deps package.json && yarn build-dll && opencollective-postinstall && yarn setup-hsd",
+    "postinstall": "electron-builder install-app-deps package.json && yarn build-dll && opencollective-postinstall",
     "postlint-fix": "prettier --ignore-path .eslintignore --single-quote --write '**/*.{*{js,jsx,json},babelrc,eslintrc,prettierrc,stylelintrc}'",
     "postlint-styles-fix": "prettier --ignore-path .eslintignore --single-quote --write '**/*.{css,scss}'",
     "prestart": "yarn build",
@@ -139,7 +139,7 @@
     ]
   },
   "devDependencies": {
-    "@babel/core": "^7.1.6",
+    "@babel/core": "^7.2.2",
     "@babel/plugin-proposal-class-properties": "^7.1.0",
     "@babel/plugin-proposal-decorators": "^7.1.6",
     "@babel/plugin-proposal-do-expressions": "^7.0.0",
@@ -161,7 +161,6 @@
     "@babel/preset-env": "^7.1.6",
     "@babel/preset-react": "^7.0.0",
     "@babel/register": "^7.0.0",
-    "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "^10.0.1",
     "babel-jest": "^23.6.0",
     "babel-loader": "^8.0.4",
@@ -174,7 +173,7 @@
     "cross-spawn": "^6.0.5",
     "css-loader": "^1.0.1",
     "detect-port": "^1.3.0",
-    "electron": "^3.0.10",
+    "electron": "^4.0.1",
     "electron-builder": "^20.34.0",
     "electron-devtools-installer": "^2.2.4",
     "enzyme": "^3.7.0",
@@ -205,7 +204,6 @@
     "react-test-renderer": "^16.6.3",
     "redux-logger": "^3.0.6",
     "resolve-url-loader": "^3.0.0",
-    "rimraf": "^2.6.2",
     "sass-loader": "^7.1.0",
     "sinon": "^7.1.1",
     "spectron": "^5.0.0",
@@ -235,8 +233,10 @@
     "electron-debug": "^2.0.0",
     "electron-log": "^2.2.17",
     "electron-updater": "^3.2.3",
+    "gunzip-maybe": "^1.4.1",
     "history": "^4.7.2",
     "hs-airdrop": "git://github.com/kyokan/hs-airdrop#master",
+    "hs-client": "git://github.com/handshake-org/hs-client#master",
     "hsd": "git://github.com/handshake-org/hsd.git#master",
     "moment": "^2.23.0",
     "prop-types": "^15.6.2",
@@ -249,15 +249,21 @@
     "react-router-dom": "^4.3.1",
     "redux": "^4.0.1",
     "redux-thunk": "^2.3.0",
-    "source-map-support": "^0.5.9"
+    "rimraf": "^2.6.2",
+    "sha3": "^2.0.0",
+    "source-map-support": "^0.5.9",
+    "tar-fs": "^1.16.3"
   },
   "devEngines": {
-    "node": ">=7.x",
+    "node": "10.11.0",
     "npm": ">=4.x",
     "yarn": ">=0.21.3"
   },
   "collective": {
     "url": "https://opencollective.com/electron-react-boilerplate-594"
   },
-  "browserslist": "electron 1.6"
+  "browserslist": "electron 1.6",
+  "resolutions": {
+    "brq": "https://github.com/kyokan/brq.git"
+  }
 }

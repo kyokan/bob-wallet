@@ -1,0 +1,84 @@
+import { WalletClient } from 'hs-client';
+import { clientStub } from '../background/node';
+
+const client = clientStub(() => require('electron').ipcRenderer);
+const Network = require('hsd/lib/protocol/network');
+
+const WALLET_ID = 'allison';
+
+const clientPool = {};
+
+export function forNetwork(net) {
+  if (clientPool[net]) {
+    return clientPool[net];
+  }
+
+  const network = Network.get(net);
+  const walletOptions = {
+    network: network.type,
+    port: network.walletPort,
+    apiKey: 'api-key'
+  };
+
+  const walletClient = new WalletClient(walletOptions);
+  const wallet = walletClient.wallet(WALLET_ID);
+
+  const ret = {
+    getWalletInfo: async () => {
+      return wallet.getInfo();
+    },
+
+    getAccountInfo: async () => {
+      return wallet.getAccount('default');
+    },
+
+    createNewWallet: async (passphrase) => {
+      const options = {
+        passphrase,
+        witness: false,
+        watchOnly: false
+      };
+      return walletClient.createWallet(WALLET_ID, options);
+    },
+
+    importSeed: async (passphrase, mnemonic) => {
+      const options = {
+        passphrase,
+        witness: false,
+        watchOnly: false,
+        mnemonic
+      };
+      return walletClient.createWallet(WALLET_ID, options);
+    },
+
+    getMasterHDKey: async () => {
+      return wallet.getMaster();
+    },
+
+    setPassphrase: async (newPass) => {
+      return wallet.setPassphrase(newPass);
+    },
+
+    generateReceivingAddress: async () => {
+      return wallet.createAddress('default');
+    },
+
+    getPublicKeyByAddress: async (address) => {
+      return wallet.getKey(address);
+    },
+
+    getPrivateKeyByAddress: async (address, passphrase) => {
+      return wallet.getWIF(address, passphrase);
+    },
+
+    lock: async () => {
+      return wallet.lock();
+    },
+
+    unlock: async (passphrase) => {
+      return wallet.unlock(passphrase, 0);
+    }
+  };
+  clientPool[net] = ret;
+  return ret;
+}

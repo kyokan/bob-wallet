@@ -1,7 +1,10 @@
 import pify from '../utils/pify';
 import { app } from 'electron';
-import { spawn } from 'child_process';
+import rimraf from 'rimraf';
 import { defaultServer, makeClient } from './ipc';
+import gunzip from 'gunzip-maybe';
+import tar from 'tar-fs';
+import { spawn, execFile } from 'child_process';
 
 const path = require('path');
 const fs = require('fs');
@@ -24,8 +27,35 @@ export const SEEDS = {
   ]
 };
 
+let udPath;
+let hsdBinDir;
+let hsdPrefixDir;
+let outputDir;
+
+export function setPaths() {
+  udPath = app.getPath('userData');
+  hsdBinDir = path.join(udPath, 'hsd');
+  hsdPrefixDir = path.join(udPath, 'hsd_data');
+  outputDir = path.join(udPath, 'hsd_output');
+}
+
 let hsd;
 let network;
+
+export async function reset() {
+  await stop();
+  const udPath = app.getPath('userData');
+  const walletDir = path.join(udPath, 'hsd', 'wallet');
+  await new Promise((resolve, reject) => {
+    rimraf(walletDir, error => {
+      if (error) {
+        return reject(error);
+      }
+      resolve();
+    });
+  });
+  await start();
+}
 
 export async function start(net) {
   if (hsd && network === net) {
@@ -38,40 +68,39 @@ export async function start(net) {
   if (hsd) {
     await stop();
   }
+
   network = newNetwork;
 
-  const udPath = app.getPath('userData');
-  const hsdDir = path.join(udPath, 'hsd');
-  const logsDir = path.join(udPath, 'hsd_output');
-  if (!fs.existsSync(hsdDir)) {
-    await pify((cb) => fs.mkdir(hsdDir, {recursive: true}, cb));
+  await installHSD();
+  if (!fs.existsSync(hsdPrefixDir)) {
+    await pify(cb => fs.mkdir(hsdPrefixDir, {recursive: true}, cb));
   }
-  if (!fs.existsSync(logsDir)) {
-    await pify((cb) => fs.mkdir(logsDir, {recursive: true}, cb));
+  if (!fs.existsSync(outputDir)) {
+    await pify(cb => fs.mkdir(outputDir, {recursive: true}, cb));
   }
 
-  const stdout = fs.createWriteStream(path.join(logsDir, 'hsd.out.log'));
-  const stderr = fs.createWriteStream(path.join(logsDir, 'hsd.err.log'));
-  await pify((cb) => stdout.on('open', cb()));
-  await pify((cb) => stderr.on('open', cb()));
+  const stdout = fs.createWriteStream(path.join(outputDir, 'hsd.out.log'));
+  const stderr = fs.createWriteStream(path.join(outputDir, 'hsd.err.log'));
+  await pify(cb => stdout.on('open', cb()));
+  await pify(cb => stderr.on('open', cb()));
   const args = [
-    `--prefix=${hsdDir}`,
+    `--prefix=${hsdPrefixDir}`,
     `--network=${network}`,
     '--log-console=false',
     '--log-file=true',
     '--log-level=debug',
     '--listen',
-    '--bip37',
+    '--bip37'
   ];
 
   if (SEEDS[network]) {
-    args.push(`--seeds=${SEEDS[network].join(',')}`)
+    args.push(`--seeds=${SEEDS[network].join(',')}`);
   }
 
   const startTime = Date.now();
-  hsd = spawn('./node_modules/hsd/bin/hsd', args);
-  hsd.stdout.on('data', (data) => stdout.write(data));
-  hsd.stderr.on('data', (data) => stderr.write(data));
+  hsd = execFile(path.join(hsdBinDir, 'bin', 'node'), args, args);
+  hsd.stdout.on('data', data => stdout.write(data));
+  hsd.stderr.on('data', data => stderr.write(data));
 
   await new Promise((resolve, reject) => {
     hsd.on('exit', () => {
@@ -82,7 +111,6 @@ export async function start(net) {
         reject(new Error('hsd crashed, check the logs'));
       }
     });
-
     setTimeout(resolve, 3000);
   });
 }
@@ -102,11 +130,27 @@ export async function stop() {
   });
 }
 
+async function installHSD() {
+  const tarballPath = path.join(__dirname, '../', 'bindeps', 'hsd-darwin-x86_64.tgz');
+
+  if (fs.existsSync(hsdBinDir)) {
+    return;
+  }
+  await pify(cb => fs.mkdir(hsdBinDir, {recursive: true}, cb));
+
+  const stream = fs.createReadStream(tarballPath);
+  return new Promise((resolve, reject) => stream.pipe(gunzip()).pipe(tar.extract(udPath))
+    .on('error', reject)
+    .on('finish', resolve));
+}
+
 const sName = 'Node';
 const methods = {
   start,
   stop,
+  reset
 };
 
-export const clientStub = (ipcRendererInjector) => makeClient(ipcRendererInjector, sName, Object.keys(methods));
+export const clientStub = ipcRendererInjector =>
+  makeClient(ipcRendererInjector, sName, Object.keys(methods));
 defaultServer.withService(sName, methods);
