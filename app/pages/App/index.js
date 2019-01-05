@@ -51,7 +51,9 @@ class App extends Component {
   }
 
   renderRoutes() {
-    let { isLocked, initialized } = this.props;
+    // let { isLocked, initialized } = this.props;
+    let isLocked = false;
+    let initialized = true;
     if (this.state.isLoading) {
       return null;
     }
