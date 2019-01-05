@@ -1,11 +1,30 @@
 import { defaultServer, makeClient } from './ipc';
-import { spawn } from 'child_process';
 import readline from 'readline';
+import { executeBinDep, installBinDep } from './bindeps';
+
+const path = require('path');
 
 export async function proveFaucet(keyFile, keyId, addr, fee, passphrase) {
   const isPGP = keyFile.indexOf('.asc') > -1 || keyFile.indexOf('.gpg') > -1 || keyFile.indexOf('.pgp') > -1;
   if (isPGP && !keyId) {
     throw new Error('keyId is required for PGP keys.');
+  }
+
+  // IMPORTANT: all input to this function must be checked to prevent
+  // shell command injection.
+  //
+  // NOTE: passphrase is sent to stdin, so is safe.
+
+  if (!fs.existsSync(keyFile)) {
+    throw new Error('keyFile does not exist.')
+  }
+
+  if (!addr.match(/[a-z0-9]{42}/i)) {
+    throw new Error('invalid address.')
+  }
+
+  if (isNaN(Number(fee))) {
+    throw new Error('invalid fee.');
   }
 
   const args = [
@@ -15,6 +34,10 @@ export async function proveFaucet(keyFile, keyId, addr, fee, passphrase) {
   ];
 
   if (keyId) {
+    if (!keyId.match(/[A-F0-9]+/i)) {
+      throw new Error('Invalid key id.');
+    }
+
     args.splice(1, 0, keyId);
   }
 
@@ -36,9 +59,13 @@ export function proveAirdrop(addr, value, isSponsor) {
 }
 
 async function executeProver(args, passphrase = '') {
-  const airdrop = spawn('./node_modules/hs-airdrop/bin/hs-airdrop', args);
+  await installBinDep('hs-airdrop', 'darwin', 'x86_64');
+  const airdrop = await executeBinDep('spawn', 'hs-airdrop', path.join('bin', 'hs-airdrop'), args);
   let errData = [];
+  airdrop.stdout.on('data', (d) => console.log('out', d.toString('utf-8')));
+  airdrop.stdin.setEncoding('utf-8');
   airdrop.stdin.write(`${passphrase}\n`);
+  airdrop.stdin.end();
   airdrop.stderr.on('data', (d) => errData.push(d.toString('utf-8')));
 
   let lastLine;

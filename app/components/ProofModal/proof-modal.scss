@@ -54,95 +54,31 @@
     margin-bottom: 1rem;
   }
 
-  &__address-display {
-    @extend %row-nowrap;
-
-    border-radius: 0.25rem;
-    background-color: $athens-gray;
+  &__choose-key {
+    display: flex;
     align-items: center;
-    padding: 0.5rem 0.8rem;
   }
 
-  &__address {
-    flex: 1 0 auto;
-    font-size: 0.9rem;
-    font-family: "Roboto Mono", monospace;
+  &__choose-key-path {
+    color: $manatee-gray;
+    font-size: 0.75rem;
   }
 
-  &__copy-btn {
-    @extend %row-nowrap;
-
-    position: relative;
-    align-items: center;
-    border: none;
-    outline: none;
-    font-size: 0.7rem;
-    padding: 0.25rem 0.75rem;
-    background-color: rgba($azure-blue, 0.15);
-    color: $azure-blue;
-    font-weight: 700;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    user-select: none;
-    transition: background-color 200ms ease-in-out;
-
-    &:hover {
-      background-color: rgba($azure-blue, 0.13);
-
-      &::after {
-        content: "Copy to Clipboard";
-        position: absolute;
-        top: -1.8rem;
-        left: -2rem;
-        width: 7rem;
-        background-color: rgba($black, 0.8);
-        color: $white;
-        padding: 0.3rem 0.4rem;
-        border-radius: 0.25rem;
-      }
-
-      &::before {
-        content: " ";
-        top: -0.375rem;
-        left: 1.45rem;
-        position: absolute;
-        border: 0.25rem solid transparent;
-        border-top-color: rgba($black, 0.8);
-      }
-    }
-
-    &:active {
-      background-color: rgba($azure-blue, 0.17);
-    }
-
-    &--copied {
-      &:hover {
-        &::after {
-          content: "Copied!";
-        }
-      }
-    }
+  &__choose-key-btn {
+    @extend %btn-primary;
+    padding: 0.5rem;
+    flex: 0 0 auto;
+    margin-right: 1rem;
   }
 
-  &__paste-area {
-    @extend %row-nowrap;
+  &__text-input {
+    @extend %box-input;
+    box-shadow: 0 0 0 1.25px $mischka-gray;
+    width: 100%;
+    box-sizing: border-box;
 
-    textarea {
-      @extend %box-input;
-
-      flex: 1 0 auto;
-      resize: none;
-      font-size: 0.9rem;
-      line-height: 1.25rem;
-      border-radius: 0.25rem;
-      border: none;
-      outline: none;
-      padding: 0.5rem 0.8rem;
-      height: 7.5rem;
-
-      &::-webkit-input-placeholder {
-        color: $manatee-gray;
-      }
+    input {
+      width: 100%;
     }
   }
 
@@ -158,6 +94,7 @@
     width: 48%;
     padding: 0.7rem 2rem;
   }
+
   &__details-btn {
     @extend %btn-secondary;
 

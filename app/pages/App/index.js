@@ -23,6 +23,7 @@ import './app.scss';
 import AccountLogin from '../AcountLogin';
 import * as node from '../../ducks/node';
 import { NETWORKS } from '../../background/node';
+import Notification from '../../components/Notification';
 
 class App extends Component {
   static propTypes = {
@@ -85,6 +86,7 @@ class App extends Component {
 
     return (
       <React.Fragment>
+        <Notification />
         <div className="app__sidebar-wrapper">
           <Sidebar />
         </div>
