@@ -9,12 +9,20 @@ import './account.scss';
 
 // Dummy transactions state until we have ducks
 import { transactionsDummyOrder } from '../../utils/mockingTransactionsState';
+import { displayBalance } from '../../utils/balances';
 
+@connect(
+  (state) => ({
+    confirmedBalance: state.wallet.balance.confirmed,
+    unconfirmedBalance: state.wallet.balance.unconfirmed
+  })
+)
 class Account extends Component {
   static propTypes = {
     accountBase: PropTypes.string.isRequired,
     accountIndex: PropTypes.number.isRequired,
-    balance: PropTypes.object.isRequired,
+    confirmedBalance: PropTypes.number.isRequired,
+    unconfirmedBalance: PropTypes.number.isRequired,
     domains: PropTypes.array.isRequired
   };
 
@@ -96,8 +104,7 @@ class Account extends Component {
   }
 
   render() {
-    // const { balance } = this.props;
-    const balance = bn(0);
+    const { confirmedBalance, unconfirmedBalance } = this.props;
 
     return (
       <div className="account">
@@ -107,9 +114,7 @@ class Account extends Component {
               <div>Total Balance</div>
             </div>
             <div className="account__balance-wrapper">
-              <div className="account__balance-wrapper__amount">{`HNS ${balance.toFixed(
-                5
-              )}`}</div>
+              <div className="account__balance-wrapper__amount">{`HNS ${displayBalance(unconfirmedBalance)}`}</div>
             </div>
           </div>
           <div className="account__header-section">
@@ -118,9 +123,7 @@ class Account extends Component {
               <div className="account__info-icon" />
             </div>
             <div className="account__balance-wrapper">
-              <div className="account__balance-wrapper__amount">{`HNS ${balance.toFixed(
-                5
-              )}`}</div>
+              <div className="account__balance-wrapper__amount">{`HNS ${displayBalance(confirmedBalance)}`}</div>
             </div>
           </div>
         </div>

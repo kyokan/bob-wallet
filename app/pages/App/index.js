@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
 import SendModal from '../../components/SendModal';
-import ReceiveModal from '../../components/ReceiveModal';
 import FundAccessOptions from '../Onboarding/FundAccessOptions';
 import CreateNewAccount from '../Onboarding/CreateNewAccount';
 import ExistingAccountOptions from '../Onboarding/ExistingAccountOptions';
@@ -91,8 +90,7 @@ class App extends Component {
           <Sidebar />
         </div>
         <div className="app__main-wrapper">
-          <Topbar title="Portfolio" />
-          <div className="app__content">{this.renderRoutes()}</div>
+          {this.renderRoutes()}
         </div>
       </React.Fragment>
     );
@@ -101,18 +99,27 @@ class App extends Component {
   renderRoutes() {
     return (
       <Switch>
-        <Route path="/account" component={Account} />
-        <Route path="/send" component={SendModal} />
-        <Route path="/receive" component={ReceiveModal} />
-        <Route path="/get_coins" component={GetCoins} />
-        <Route path="/settings" component={Settings} />
-        <Route path="/domains" component={SearchTLD} />
-        <Route path="/domain_manager/:name" component={MyDomain} />
-        <Route path="/domain_manager" component={DomainManager} />
-        {/* Let's implement Auction once ducks are set up and we're connected to the blockchain  */}
-        <Route path="/domain/:name?" component={Auction} />
+        <Route path="/account" render={this.routeRenderer('Portfolio', Account)} />
+        <Route path="/send" render={this.routeRenderer('Send', SendModal)} />
+        <Route path="/get_coins" render={this.routeRenderer('Get Coins', GetCoins)} />
+        <Route path="/settings" render={this.routeRenderer('Settings', Settings)} />
+        <Route path="/domains" render={this.routeRenderer('Domains', SearchTLD)} />
+        <Route path="/domain_manager/:name" render={this.routeRenderer('Domain Manager', MyDomain)} />
+        <Route path="/domain_manager" render={this.routeRenderer('Domain Manager', DomainManager)} />
+        <Route path="/domain/:name?" render={this.routeRenderer('Browse Domains', Auction)} />
         {this.renderDefault()}
       </Switch>
+    );
+  }
+
+  routeRenderer(title, Component) {
+    return () => (
+      <React.Fragment>
+        <Topbar title={title} />
+        <div className="app__content">
+          <Component />
+        </div>
+      </React.Fragment>
     );
   }
 

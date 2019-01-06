@@ -1,4 +1,6 @@
 import * as walletClient from '../utils/walletClient';
+import { showSuccess } from './notifications';
+import ellipsify from '../utils/ellipsify';
 
 const SET_WALLET = 'app/wallet/setWallet';
 const UNLOCK_WALLET = 'app/wallet/unlockWallet';
@@ -60,12 +62,12 @@ export default function walletReducer(state = initialState, {type, payload}) {
 
 // Action Creators
 export const setWallet = ({
-  initialized = false,
-  address = '',
-  type = NONE,
-  isLocked = true,
-  balance = {}
-}) => {
+                            initialized = false,
+                            address = '',
+                            type = NONE,
+                            isLocked = true,
+                            balance = {}
+                          }) => {
   return {
     type: SET_WALLET,
     payload: {
@@ -126,4 +128,11 @@ export const removeWallet = () => async (dispatch, getState) => {
   const client = walletClient.forNetwork(getState().wallet.network);
   await client.reset();
   return dispatch(fetchWallet());
-}
+};
+
+export const send = (to, amount, fee) => async (dispatch, getState) => {
+  const client = walletClient.forNetwork(getState().wallet.network);
+  await client.send(to, amount, fee);
+  await dispatch(fetchWallet());
+  await dispatch(showSuccess(`Successfully sent ${amount} HNS to ${ellipsify(to, 10)}.`));
+};

@@ -1,5 +1,6 @@
 import { WalletClient } from 'hs-client';
 import { clientStub } from '../background/node';
+import { toBaseUnits } from './balances';
 
 const client = clientStub(() => require('electron').ipcRenderer);
 const Network = require('hsd/lib/protocol/network');
@@ -17,7 +18,6 @@ export function forNetwork(net) {
   const walletOptions = {
     network: network.type,
     port: network.walletPort,
-    apiKey: 'api-key'
   };
 
   const walletClient = new WalletClient(walletOptions);
@@ -75,6 +75,16 @@ export function forNetwork(net) {
 
     getPrivateKeyByAddress: async (address, passphrase) => {
       return wallet.getWIF(address, passphrase);
+    },
+
+    send: async (to, amount, fee) => {
+      return wallet.send({
+        rate: Number(toBaseUnits(fee)),
+        outputs: [{
+          value: Number(toBaseUnits(amount)),
+          address: to
+        }]
+      });
     },
 
     lock: async () => {

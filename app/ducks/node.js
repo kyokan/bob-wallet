@@ -1,8 +1,7 @@
+import * as nodeClient from '../utils/nodeClient';
 import { clientStub } from '../background/node';
+const hsdClient = clientStub(() => require('electron').ipcRenderer);
 
-const client = clientStub(() => require('electron').ipcRenderer);
-
-const NODE_API = 'http://127.0.0.1:15037';
 let interval;
 
 export const START = 'node/START';
@@ -10,8 +9,8 @@ export const SET_NODE_INFO = 'node/SET_NODE_INFO';
 export const STOP = 'node/STOP';
 
 export function start(network) {
-  return async dispatch => {
-    await client.start(network);
+  return async (dispatch) => {
+    await hsdClient.start(network);
 
     if (interval) {
       clearInterval(interval);
@@ -29,14 +28,18 @@ export function start(network) {
   };
 }
 
-const setNodeInfo = () => async dispatch => {
+const setNodeInfo = () => async (dispatch, getState) => {
   try {
-    const resp = await fetch(NODE_API);
-    const json = await resp.json();
+    const client = nodeClient.forNetwork(getState().wallet.network);
+    const info = await client.getInfo();
+    const fees = await client.getFees();
 
     dispatch({
       type: SET_NODE_INFO,
-      payload: json,
+      payload: {
+        info,
+        fees,
+      },
     });
   } catch (error) {
     dispatch({ type: STOP });
@@ -47,6 +50,11 @@ export function getInitialState() {
   return {
     isRunning: false,
     network: null,
+    fees: {
+      slow: 0,
+      medium: 0,
+      fast: 0
+    },
     chain: {
       height: 0,
       tip: '',
@@ -63,7 +71,8 @@ export default function nodeReducer(state = getInitialState(), action = {}) {
     case SET_NODE_INFO:
       return {
         ...state,
-        chain: action.payload.chain,
+        chain: action.payload.info.chain,
+        fees: action.payload.fees,
       };
     default:
       return state;
