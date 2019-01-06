@@ -2,6 +2,7 @@ import * as walletClient from '../utils/walletClient';
 import { showSuccess } from './notifications';
 import ellipsify from '../utils/ellipsify';
 import BigNumber from 'bignumber.js';
+import * as namesDb from '../db/names';
 
 const SET_WALLET = 'app/wallet/setWallet';
 const UNLOCK_WALLET = 'app/wallet/unlockWallet';
@@ -13,7 +14,6 @@ export const LEDGER = 'LEDGER';
 export const IMPORTED = 'IMPORTED';
 export const ELECTRON = 'ELECTRON';
 
-// Intial State
 const initialState = {
   address: '',
   type: NONE,
@@ -27,10 +27,8 @@ const initialState = {
   transactions: [],
 };
 
-// Reducer
 export default function walletReducer(state = initialState, {type, payload}) {
   switch (type) {
-    // do reducer stuff
     case SET_WALLET:
       return {
         ...state,
@@ -68,7 +66,6 @@ export default function walletReducer(state = initialState, {type, payload}) {
   }
 }
 
-// Action Creators
 export const setWallet = (opts) => {
   const {
     initialized = false,
@@ -90,8 +87,6 @@ export const setWallet = (opts) => {
   };
 };
 
-// side effects, e.g. thunks
-
 export const completeInitialization = () => async (dispatch) => {
   localStorage.setItem('initialized', '1');
   await dispatch(fetchWallet());
@@ -105,17 +100,14 @@ export const fetchWallet = () => async (dispatch, getState) => {
   const walletInfo = await client.getWalletInfo();
   const accountInfo = await client.getAccountInfo();
 
-  dispatch(
-    setWallet({
-      initialized: !!walletInfo && !!accountInfo && !!localStorage.getItem('initialized'),
-      address: accountInfo && accountInfo.receiveAddress,
-      type: NONE,
-      // isLocked: false,
-      balance: (accountInfo && accountInfo.balance) || {
-        ...initialState.balance
-      }
-    })
-  );
+  dispatch(setWallet({
+    initialized: !!walletInfo && !!accountInfo && !!localStorage.getItem('initialized'),
+    address: accountInfo && accountInfo.receiveAddress,
+    type: NONE,
+    balance: (accountInfo && accountInfo.balance) || {
+      ...initialState.balance
+    }
+  }));
 };
 
 export const unlockWallet = (passphrase) => async (dispatch, getState) => {
@@ -153,61 +145,84 @@ export const fetchTransactions = () => async (dispatch, getState) => {
   let aggregate = new BigNumber(0);
   let payload = [];
   for (const tx of txs) {
-    const {value, type, sender, receiver} = parseInputsOutputs(tx);
-    aggregate = type === 'sent' ? aggregate.minus(value) : aggregate.plus(value);
+    const ios = await parseInputsOutputs(tx);
+    aggregate = ios.type !== 'RECEIVE' ? aggregate.minus(ios.value) : aggregate.plus(ios.value);
     payload.push({
       id: tx.hash,
-      type,
       date: tx.mtime,
       pending: tx.block > -1,
-      receiver,
-      sender,
-      value,
-      balance: aggregate.toString()
+      balance: aggregate.toString(),
+      ...ios
     });
   }
 
   payload = payload.reverse();
-
   dispatch({
     type: SET_TRANSACTIONS,
     payload,
   });
 };
 
-function parseInputsOutputs(tx) {
-  let type = 'received';
-  let receiver = '';
-  let sender;
-  for (const input of tx.inputs) {
-    if (input.path) {
-      type = 'sent';
-      break;
-    }
 
-    sender = input.address;
+// TODO: Make this method smarter
+async function parseInputsOutputs(tx) {
+  if (tx.outputs.length !== 2) {
+    return {
+      type: 'UNKNOWN',
+      meta: {},
+      value: '0'
+    };
   }
 
-  const aggOutputs = tx.outputs.reduce((total, output) => {
-    // ignore change outputs
-    if ((type === 'sent' && output.path) || (type === 'received' && !output.path)) {
-      return total;
+  const covenant = tx.outputs[0].covenant;
+  if (covenant && covenant.action !== 'NONE') {
+    const covData = await parseCovenant(covenant);
+    return {
+      ...covData,
+      fee: tx.fee,
+      value: tx.fee,
+    };
+  }
+
+
+  for (const input of tx.inputs) {
+    if (input.path) {
+      return {
+        type: 'SEND',
+        meta: {
+          to: tx.outputs[0].address
+        },
+        value: tx.outputs[0].value,
+        fee: tx.fee
+      };
     }
+  }
 
-    if (type === 'sent' && !output.path) {
-      receiver = output.address;
+  for (const output of tx.outputs) {
+    if (output.path) {
+      return {
+        type: 'RECEIVE',
+        meta: {
+          from: tx.inputs[0].address,
+        },
+        value: output.value,
+        fee: tx.fee
+      };
     }
-
-    return total.plus(output.value);
-  }, new BigNumber(0));
-
-  // TODO: handle sending funds to yourself (shouldn't happen, but need to support anyway)
-  // TODO: display fee
+  }
 
   return {
-    value: aggOutputs.toString(),
-    type,
-    receiver,
-    sender,
+    type: 'UNKNOWN',
+    meta: {},
+    value: '0'
+  };
+}
+
+async function parseCovenant(covenant) {
+  switch (covenant.action) {
+    case 'OPEN':
+      return {type: 'OPEN', meta: {domain: (await namesDb.findNameByHash(covenant.items[0])) || 'unknown'}}
+    default:
+      return {type: 'UNKNOWN', meta: {}}
   }
 }

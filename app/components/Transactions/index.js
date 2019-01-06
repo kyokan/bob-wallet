@@ -17,7 +17,7 @@ import { fetchTransactions } from '../../ducks/wallet';
 )
 export default class Transactions extends Component {
   static propTypes = {
-    transactionsDummyOrder: PropTypes.array.isRequired
+    transactions: PropTypes.array.isRequired
   };
 
   async componentDidMount() {

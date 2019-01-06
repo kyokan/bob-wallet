@@ -37,7 +37,15 @@ export function forNetwork(net) {
         standard,
         fast,
       };
-    }
+    },
+
+    getNameInfo: async (name) => {
+      return nodeClient.execute('getnameinfo', [name]);
+    },
+
+    getAuctionInfo: async (name) => {
+      return nodeClient.execute('getauctioninfo', [name]);
+    },
   };
   clientPool[net] = ret;
   return ret;

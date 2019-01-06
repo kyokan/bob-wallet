@@ -8,8 +8,9 @@ import { displayBalance } from '../../../utils/balances';
 import ellipsify from '../../../utils/ellipsify';
 // Dummy transactions state until we have ducks
 
-const RECEIVED = 'received';
-const SENT = 'sent';
+const RECEIVE = 'RECEIVE';
+const SEND = 'SEND';
+const OPEN = 'OPEN';
 
 
 export default class Transaction extends Component {
@@ -22,8 +23,8 @@ export default class Transaction extends Component {
   iconStyling = tx =>
     classnames('transaction__tx-icon ', {
       'transaction__tx-icon--pending': tx.pending,
-      'transaction__tx-icon--received': tx.type === RECEIVED && !tx.pending,
-      'transaction__tx-icon--sent': tx.type === SENT && !tx.pending
+      'transaction__tx-icon--received': tx.type === RECEIVE && !tx.pending,
+      'transaction__tx-icon--sent': tx.type === SEND && !tx.pending
     });
 
   titleStyling = tx =>
@@ -34,8 +35,8 @@ export default class Transaction extends Component {
   numberStyling = tx =>
     classnames('transaction__number', {
       'transaction__number--pending': tx.pending,
-      'transaction__number--positive': tx.type === RECEIVED && !tx.pending,
-      'transaction__number--negative': tx.type === SENT && !tx.pending
+      'transaction__number--positive': tx.type === RECEIVE && !tx.pending,
+      'transaction__number--negative': tx.type === SEND || tx.type === OPEN && !tx.pending
     });
 
   renderTimestamp = tx => {
@@ -52,19 +53,25 @@ export default class Transaction extends Component {
 
   renderDescription = tx => {
     let description = '';
-    if (tx.type === SENT) {
+    let content = '';
+    if (tx.type === SEND) {
       description = 'Sent funds';
-    } else if (tx.type === RECEIVED) {
+      content = ellipsify(tx.meta.to, 12);
+    } else if (tx.type === RECEIVE) {
       description = 'Received funds';
+      content = ellipsify(tx.meta.from, 12);
+    } else if (tx.type === OPEN) {
+      description = 'Opened bidding';
+      content = tx.meta.domain;
     } else {
-      description = 'undefined tx type';
+      description = 'Unknown Transaction';
     }
 
     return (
       <div className="transaction__tx-description">
         <div className={this.titleStyling(tx)}>{description}</div>
         <div className="transaction__party">
-          {ellipsify(tx.type === RECEIVED ? tx.sender : tx.receiver, 12)}
+          {content}
         </div>
       </div>
     );
@@ -75,7 +82,7 @@ export default class Transaction extends Component {
       <div className={this.numberStyling(tx)}>
         {tx.pending ? <em>(pending)</em> : null}
         {' '}
-        {tx.type === RECEIVED ? '+' : '-'}
+        {tx.type === RECEIVE ? '+' : '-'}
         {displayBalance(tx.value)} HNS
       </div>
     </div>

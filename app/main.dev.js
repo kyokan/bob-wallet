@@ -108,4 +108,6 @@ app.on('ready', async () => {
   require('./background/ipc');
   require('./background/node').setPaths();
   require('./background/airdrop');
+  const db = require('./background/db');
+  await db.open();
 });

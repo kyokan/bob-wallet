@@ -77,6 +77,11 @@ export function forNetwork(net) {
       return wallet.getWIF(address, passphrase);
     },
 
+    getAuctionInfo: async (name) => {
+      await walletClient.execute('selectwallet', [ WALLET_ID ]);
+      return walletClient.execute('getauctioninfo', [ name ]);
+    },
+
     getTransactionHistory: async () => {
       return wallet.getHistory('default');
     },
@@ -89,6 +94,16 @@ export function forNetwork(net) {
           address: to
         }]
       });
+    },
+
+    sendOpen: async (name) => {
+      await walletClient.execute('selectwallet', [ WALLET_ID ]);
+      return walletClient.execute('sendopen', [ name ]);
+    },
+
+    sendBid: async (name, amount, lockup) => {
+      await walletClient.execute('selectwallet', [ WALLET_ID ]);
+      await walletClient.execute('sendbid', [ name, amount, lockup ]);
     },
 
     lock: async () => {
