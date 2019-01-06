@@ -51,16 +51,6 @@ class Account extends Component {
     );
   }
 
-  renderDomains() {
-    const { domains } = this.props;
-
-    return !domains.length
-      ? this.renderEmpty(
-          'No domains yet. Get your first domain here. (add CTA button)'
-        )
-      : domains.map(() => <div>I am a domain</div>);
-  }
-
   renderAccountModal() {
     const { accountBase, accountIndex } = this.props;
 
@@ -125,12 +115,6 @@ class Account extends Component {
             <div className="account__balance-wrapper">
               <div className="account__balance-wrapper__amount">{`HNS ${displayBalance(confirmedBalance)}`}</div>
             </div>
-          </div>
-        </div>
-        <div className="account__content">
-          <div className="account__domains">
-            <div className="account__panel-title">Your Domains</div>
-            {this.renderDomains()}
           </div>
         </div>
         <div className="account__transactions">

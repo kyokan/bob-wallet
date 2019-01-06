@@ -77,6 +77,10 @@ export function forNetwork(net) {
       return wallet.getWIF(address, passphrase);
     },
 
+    getTransactionHistory: async () => {
+      return wallet.getHistory('default');
+    },
+
     send: async (to, amount, fee) => {
       return wallet.send({
         rate: Number(toBaseUnits(fee)),

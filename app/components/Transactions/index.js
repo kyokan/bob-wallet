@@ -4,30 +4,40 @@ import PropTypes from 'prop-types';
 
 import Transaction from './Transaction';
 import './index.scss';
-
 // Dummy transactions state until we have ducks
-import { transactionsDummyOrder } from '../../utils/mockingTransactionsState';
+import { fetchTransactions } from '../../ducks/wallet';
 
-@connect(state => ({
-  transactionsDummyOrder: transactionsDummyOrder || []
-}))
+@connect(
+  (state) => ({
+    transactions: state.wallet.transactions,
+  }),
+  (dispatch) => ({
+    fetchTransactions: () => dispatch(fetchTransactions())
+  })
+)
 export default class Transactions extends Component {
   static propTypes = {
     transactionsDummyOrder: PropTypes.array.isRequired
   };
 
+  async componentDidMount() {
+    await this.props.fetchTransactions()
+  }
+
   render() {
-    return transactionsDummyOrder && transactionsDummyOrder.map ? (
-      transactionsDummyOrder.map(txId => (
-        <div className="transaction__container" key={txId}>
-          <Transaction transactionId={txId} />
+    if (!this.props.transactions.length) {
+      return (
+        <div className="account__empty-list">
+          You do not have any transactions
         </div>
-      ))
-    ) : (
-      <div className="account__empty-list">
-        You do not have any transactions
+      );
+    }
+
+    return this.props.transactions.map((tx) => (
+      <div className="transaction__container" key={tx.id}>
+        <Transaction transaction={tx} />
       </div>
-    );
+    ));
   }
 }
 

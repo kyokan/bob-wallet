@@ -1,11 +1,12 @@
 import * as walletClient from '../utils/walletClient';
 import { showSuccess } from './notifications';
 import ellipsify from '../utils/ellipsify';
+import BigNumber from 'bignumber.js';
 
 const SET_WALLET = 'app/wallet/setWallet';
 const UNLOCK_WALLET = 'app/wallet/unlockWallet';
 const LOCK_WALLET = 'app/wallet/lockWallet';
-const REMOVE_WALLET = 'app/wallet/removeWallet';
+const SET_TRANSACTIONS = 'app/wallet/setTransactions';
 
 export const NONE = 'NONE';
 export const LEDGER = 'LEDGER';
@@ -22,7 +23,8 @@ const initialState = {
   balance: {
     confirmed: '0',
     unconfirmed: '0'
-  }
+  },
+  transactions: [],
 };
 
 // Reducer
@@ -49,11 +51,17 @@ export default function walletReducer(state = initialState, {type, payload}) {
           ...initialState.balance
         },
         isLocked: true,
+        transactions: [],
       };
     case UNLOCK_WALLET:
       return {
         ...state,
         isLocked: false,
+      };
+    case SET_TRANSACTIONS:
+      return {
+        ...state,
+        transactions: payload
       };
     default:
       return state;
@@ -61,13 +69,15 @@ export default function walletReducer(state = initialState, {type, payload}) {
 }
 
 // Action Creators
-export const setWallet = ({
-                            initialized = false,
-                            address = '',
-                            type = NONE,
-                            isLocked = true,
-                            balance = {}
-                          }) => {
+export const setWallet = (opts) => {
+  const {
+    initialized = false,
+    address = '',
+    type = NONE,
+    isLocked = true,
+    balance = {}
+  } = opts;
+
   return {
     type: SET_WALLET,
     payload: {
@@ -136,3 +146,68 @@ export const send = (to, amount, fee) => async (dispatch, getState) => {
   await dispatch(fetchWallet());
   await dispatch(showSuccess(`Successfully sent ${amount} HNS to ${ellipsify(to, 10)}.`));
 };
+
+export const fetchTransactions = () => async (dispatch, getState) => {
+  const client = walletClient.forNetwork(getState().wallet.network);
+  const txs = await client.getTransactionHistory();
+  let aggregate = new BigNumber(0);
+  let payload = [];
+  for (const tx of txs) {
+    const {value, type, sender, receiver} = parseInputsOutputs(tx);
+    aggregate = type === 'sent' ? aggregate.minus(value) : aggregate.plus(value);
+    payload.push({
+      id: tx.hash,
+      type,
+      date: tx.mtime,
+      pending: tx.block > -1,
+      receiver,
+      sender,
+      value,
+      balance: aggregate.toString()
+    });
+  }
+
+  payload = payload.reverse();
+
+  dispatch({
+    type: SET_TRANSACTIONS,
+    payload,
+  });
+};
+
+function parseInputsOutputs(tx) {
+  let type = 'received';
+  let receiver = '';
+  let sender;
+  for (const input of tx.inputs) {
+    if (input.path) {
+      type = 'sent';
+      break;
+    }
+
+    sender = input.address;
+  }
+
+  const aggOutputs = tx.outputs.reduce((total, output) => {
+    // ignore change outputs
+    if ((type === 'sent' && output.path) || (type === 'received' && !output.path)) {
+      return total;
+    }
+
+    if (type === 'sent' && !output.path) {
+      receiver = output.address;
+    }
+
+    return total.plus(output.value);
+  }, new BigNumber(0));
+
+  // TODO: handle sending funds to yourself (shouldn't happen, but need to support anyway)
+  // TODO: display fee
+
+  return {
+    value: aggOutputs.toString(),
+    type,
+    receiver,
+    sender,
+  }
+}

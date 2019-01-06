@@ -33,7 +33,7 @@ export const ReserveInfo = () => (
       Reserved for the top 100,000 Alexa websites
     </div>
     <div className="domains__action-panel__reserved-timestamp">
-      Alex websites as of 6/1/18
+      In the top 100,000 as of 6/1/18
     </div>
   </div>
 );

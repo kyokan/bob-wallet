@@ -4,21 +4,21 @@ const createAMPMTimeStamp = timestamp => {
     .getFullYear()
     .toString()
     .slice(2);
-  const month = date.getMonth();
-  const day = date.getDate();
-  const twentyfourHours = date.getHours();
-  const m = date.getMinutes();
-  const ampm = twentyfourHours >= 12 ? 'PM' : 'AM';
-  let twelveHours = twentyfourHours % 12;
-  twelveHours = twelveHours || 12; // the hour '0' should be '12'
-  const mm = m < 10 ? `0${m}` : m;
-  const strTime = `${twelveHours}:${mm} ${ampm}`;
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
   return {
     year,
     month,
     day,
-    strTime
   };
 };
+
+function pad(num) {
+  if (num < 10) {
+    return `0${num}`
+  }
+
+  return num.toString();
+}
 
 export default createAMPMTimeStamp;

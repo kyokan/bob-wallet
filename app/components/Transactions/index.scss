@@ -1,22 +1,13 @@
 @import '../../variables.scss';
 
 .transaction {
-  display: grid;
-  grid-template-columns: 1.5rem 4rem auto auto;
-  grid-column-gap: 1.25rem;
+  display: flex;
+  border-bottom: 1px solid $athens-gray;
+  padding: 1rem 0;
+  align-items: center;
 
   &--pending {
     opacity: 0.5;
-  }
-
-  &__container {
-    // background-color: rgba($black, 0.03);
-    padding: 1rem 0;
-    border-radius: 0.5rem;
-  }
-
-  &__container + &__container {
-    margin-top: 0.625rem; // 10px
   }
 
   &__tx-icon {
@@ -48,26 +39,17 @@
   }
 
   &__tx-timestamp {
-    @extend %col-nowrap;
+    margin-right: 2rem;
   }
 
   &__tx-description {
-    @extend %col-nowrap;
-
+    display: flex;
     flex: 1 1 auto;
-    text-overflow: ellipsis;
-    white-space: no-wrap;
     overflow: hidden;
   }
 
   &__tx-value {
-    @extend %col-nowrap;
-
     flex: 0 0 auto;
-    text-overflow: ellipsis;
-    white-space: no-wrap;
-    overflow: hidden;
-    text-align: end;
   }
 
   &__title {
@@ -80,6 +62,11 @@
     &--pending {
       color: rgba($black, 0.5);
     }
+  }
+
+  &__party {
+    margin-left: 1rem;
+    color: $manatee-gray;
   }
 
   &__subtitle {
@@ -105,6 +92,10 @@
 
     &--pending {
       color: rgba($black, 0.5);
+
+      em {
+        color: $manatee-gray;
+      }
     }
   }
 }

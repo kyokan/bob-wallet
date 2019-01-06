@@ -1,21 +1,17 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
-import { BigNumber as bn } from 'bignumber.js';
 
 import createAMPMTimeStamp from '../../../utils/timeConverter';
 import '../index.scss';
-
+import { displayBalance } from '../../../utils/balances';
+import ellipsify from '../../../utils/ellipsify';
 // Dummy transactions state until we have ducks
-import { transactionsDummyMap } from '../../../utils/mockingTransactionsState';
 
 const RECEIVED = 'received';
 const SENT = 'sent';
 
-@connect((state, ownProps) => ({
-  transaction: transactionsDummyMap[ownProps.transactionId] || {}
-}))
+
 export default class Transaction extends Component {
   static propTypes = {
     transaction: PropTypes.object.isRequired
@@ -42,28 +38,21 @@ export default class Transaction extends Component {
       'transaction__number--negative': tx.type === SENT && !tx.pending
     });
 
-  // conditional rendering
-
-  renderIcon = tx => <div className={this.iconStyling(tx)} />;
-
   renderTimestamp = tx => {
-    const { year, month, day, strTime } = createAMPMTimeStamp(tx.date);
+    const {year, month, day} = createAMPMTimeStamp(tx.date);
 
     return (
       <div className="transaction__tx-timestamp">
         <div className={this.titleStyling(tx)}>
-          {day}/{month}/{year}
+          {month}/{day}/{year}
         </div>
-        <div className="transaction__subtitle">{strTime}</div>
       </div>
     );
   };
 
   renderDescription = tx => {
     let description = '';
-    if (tx.pending) {
-      description = 'Pending transaction';
-    } else if (tx.type === SENT) {
+    if (tx.type === SENT) {
       description = 'Sent funds';
     } else if (tx.type === RECEIVED) {
       description = 'Received funds';
@@ -74,8 +63,8 @@ export default class Transaction extends Component {
     return (
       <div className="transaction__tx-description">
         <div className={this.titleStyling(tx)}>{description}</div>
-        <div className="transaction__subtitle">
-          {tx.type === RECEIVED ? `from ${tx.sender}` : `to ${tx.receiver}`}
+        <div className="transaction__party">
+          {ellipsify(tx.type === RECEIVED ? tx.sender : tx.receiver, 12)}
         </div>
       </div>
     );
@@ -84,27 +73,19 @@ export default class Transaction extends Component {
   renderNumber = tx => (
     <div className="transaction__tx-value">
       <div className={this.numberStyling(tx)}>
+        {tx.pending ? <em>(pending)</em> : null}
+        {' '}
         {tx.type === RECEIVED ? '+' : '-'}
-        {tx.value % 1 === 0
-          ? bn(tx.value).toFixed(1)
-          : bn(tx.value).toFixed()}{' '}
-        HNS
-      </div>
-      <div className="transaction__subtitle">
-        {tx.balance % 1 === 0
-          ? bn(tx.balance).toFixed(1)
-          : bn(tx.balance).toFixed()}{' '}
-        HNS
+        {displayBalance(tx.value)} HNS
       </div>
     </div>
   );
 
   render() {
-    const { transaction } = this.props;
+    const {transaction} = this.props;
 
     return (
       <div className="transaction">
-        {this.renderIcon(transaction)}
         {this.renderTimestamp(transaction)}
         {this.renderDescription(transaction)}
         {this.renderNumber(transaction)}
