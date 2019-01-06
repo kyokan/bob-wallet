@@ -6,7 +6,6 @@ import { connect } from 'react-redux';
 import ReceiveModal from '../ReceiveModal';
 import './sidebar.scss';
 import ellipsify from '../../utils/ellipsify';
-import Hash from '../Hash';
 
 @withRouter
 @connect(
@@ -24,8 +23,6 @@ class Sidebar extends Component {
     location: PropTypes.shape({
       pathname: PropTypes.string.isRequired,
     }).isRequired,
-    isLocked: PropTypes.bool.isRequired,
-    initialized: PropTypes.bool.isRequired,
     height: PropTypes.number.isRequired,
     tip: PropTypes.string.isRequired,
   };
