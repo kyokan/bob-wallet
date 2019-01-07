@@ -34,11 +34,11 @@ class BidStatus extends Component {
     const stats = info.stats || {};
 
     if (this.isBidding()) {
-      return hoursToNow(stats.hoursUntilBidding);
+      return hoursToNow(stats.hoursUntilReveal);
     }
 
     if (this.isOpening()) {
-      return hoursToNow(stats.hoursUntilReveal);
+      return hoursToNow(stats.hoursUntilBidding);
     }
 
     if (this.isReveal()) {

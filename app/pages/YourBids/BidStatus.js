@@ -73,7 +73,7 @@ class BidStatus extends Component {
     }
 
     if (this.isBidding()) {
-      const { bids } = domain.info;
+      const { bids } = domain;
 
       return (
         <span>
