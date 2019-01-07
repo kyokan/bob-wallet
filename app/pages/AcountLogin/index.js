@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import c from 'classnames';
 import * as walletActions from '../../ducks/wallet';
 import './login.scss';
 import Submittable from '../../components/Submittable';
@@ -43,7 +44,9 @@ export default class AccountLogin extends Component {
         <Submittable onSubmit={() => this.handleLogin(passphrase)}>
           <div>
             <input
-              className="login_password_input"
+              className={c('login_password_input', {
+                'login_password_input--error': showError
+              })}
               type="password"
               placeholder="Your password"
               onChange={e =>
