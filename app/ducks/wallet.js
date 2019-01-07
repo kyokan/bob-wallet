@@ -8,6 +8,7 @@ const SET_WALLET = 'app/wallet/setWallet';
 const UNLOCK_WALLET = 'app/wallet/unlockWallet';
 const LOCK_WALLET = 'app/wallet/lockWallet';
 const SET_TRANSACTIONS = 'app/wallet/setTransactions';
+export const SET_PENDING_TRANSACTIONS = 'app/wallet/setPendingTransactions';
 
 export const NONE = 'NONE';
 export const LEDGER = 'LEDGER';
@@ -163,6 +164,28 @@ export const fetchTransactions = () => async (dispatch, getState) => {
   });
 };
 
+export const fetchPendingTransactions = () => async (dispatch, getState) => {
+  if (!getState().wallet.initialized) {
+    return;
+  }
+
+  const client = walletClient.forNetwork(getState().wallet.network);
+  const payload = await client.getPendingTransactions();
+  dispatch({
+    type: SET_PENDING_TRANSACTIONS,
+    payload
+  });
+};
+
+let isPolling = false;
+export const pollPendingTransactions = (force) => async (dispatch) => {
+  if (!force && isPolling) {
+    return;
+  }
+  isPolling = true;
+  await dispatch(fetchPendingTransactions());
+  setTimeout(() => dispatch(pollPendingTransactions(true)), 1000);
+};
 
 // TODO: Make this method smarter
 async function parseInputsOutputs(tx) {

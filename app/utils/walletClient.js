@@ -86,6 +86,10 @@ export function forNetwork(net) {
       return wallet.getHistory('default');
     },
 
+    getPendingTransactions: async () => {
+      return wallet.getPending('default');
+    },
+
     send: async (to, amount, fee) => {
       return wallet.send({
         rate: Number(toBaseUnits(fee)),

@@ -6,6 +6,12 @@ export const states = {
   REVOKED: 'REVOKED',
 };
 
+const STATES_TO_OPS = {
+  OPENING: 'OPEN',
+  BIDDING: 'BID',
+  REVEAL: 'REVEAL'
+};
+
 export const isAvailable = name => {
   const { start, info } = name || {};
 
@@ -46,7 +52,14 @@ export const isRevoked = name => checkState(name, states.REVOKED);
 export const isClosed = name => checkState(name, states.CLOSED);
 
 function checkState(name, expectedState) {
-  const { start, info } = name || {};
+  if (!name) {
+    return false;
+  }
+
+  const { start, info } = name;
+  if (name.pendingOperation === STATES_TO_OPS[expectedState]) {
+    return true;
+  }
 
   // Not available if start is undefined
   if (!start || !info) {

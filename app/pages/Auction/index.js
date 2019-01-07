@@ -130,15 +130,18 @@ export default class Auction extends Component {
       return 'Loading...';
     }
 
-    const stats = this.props.domain.info && this.props.domain.info.stats || {};
+    const domain = this.props.domain;
+    const stats = domain.info && domain.info.stats || {};
 
     return (
       <React.Fragment>
         {this.renderStatusInfo()}
-        {this.maybeRenderDateBlock(() => isBidding(name), 'Bidding Open', stats.bidPeriodStart, stats.hoursUntilClose)}
-        {this.maybeRenderDateBlock(() => isBidding(name), 'Bidding Close', stats.bidPeriodEnd, stats.hoursUntilClose)}
-        {this.maybeRenderDateBlock(() => isReveal(name), 'Reveal Open', stats.revealPeriodStart, stats.hoursUntilClose)}
-        {this.maybeRenderDateBlock(() => isReveal(name), 'Reveal Close', stats.revealPeriodEnd, stats.hoursUntilClose)}
+        {this.maybeRenderDateBlock(() => isOpening(domain), 'Opened At', stats.openPeriodStart, stats.hoursUntilBidding)}
+        {this.maybeRenderDateBlock(() => isOpening(domain), 'Bidding Starts', stats.openPeriodEnd, stats.hoursUntilBidding)}
+        {this.maybeRenderDateBlock(() => isBidding(domain), 'Bidding Open', stats.bidPeriodStart, stats.hoursUntilReveal)}
+        {this.maybeRenderDateBlock(() => isBidding(domain), 'Bidding Close', stats.bidPeriodEnd, stats.hoursUntilReveal)}
+        {this.maybeRenderDateBlock(() => isReveal(domain), 'Reveal Open', stats.revealPeriodStart, stats.hoursUntilClose)}
+        {this.maybeRenderDateBlock(() => isReveal(domain), 'Reveal Close', stats.revealPeriodEnd, stats.hoursUntilClose)}
       </React.Fragment>
     );
   }
@@ -191,8 +194,8 @@ export default class Auction extends Component {
     if (isReserved(domain)) {
       status = 'Reserved';
     } else if (isOpening(domain)) {
-      status = 'Available';
-      description = 'Opening Bid';
+      status = 'Opening';
+      description = 'Bidding Soon';
     } else if (isBidding(name)) {
       status = 'Available';
       description = 'Bidding Now';
