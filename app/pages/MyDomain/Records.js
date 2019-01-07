@@ -79,7 +79,7 @@ function getRecords(domain) {
   }
 
   const resource = Resource.decode(new Buffer(data, 'hex'));
-  window.test = resource
+
   return [
     ...getRecord(resource, 'toA'),
     ...getRecord(resource, 'toAAAA'),
