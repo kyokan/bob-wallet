@@ -99,7 +99,7 @@ class Topbar extends Component {
         {shouldHideSidebar(pathname)
           ? this.renderLogo()
           : this.renderTitle(title)}
-        <TLDInput minimalErrorDisplay />
+        {!/domains$/.test(pathname) && <TLDInput minimalErrorDisplay />}
         <div
           className={c('topbar__synced', {
             'topbar__synced--success': isSynchronized,
