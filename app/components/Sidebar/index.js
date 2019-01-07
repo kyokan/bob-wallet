@@ -3,7 +3,6 @@ import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import c from 'classnames';
 import { connect } from 'react-redux';
-import ReceiveModal from '../ReceiveModal';
 import './sidebar.scss';
 import ellipsify from '../../utils/ellipsify';
 import { Logo } from '../Logo';
@@ -19,22 +18,14 @@ import { Logo } from '../Logo';
 class Sidebar extends Component {
   static propTypes = {
     history: PropTypes.shape({
-      push: PropTypes.func.isRequired,
+      push: PropTypes.func.isRequired
     }).isRequired,
     location: PropTypes.shape({
-      pathname: PropTypes.string.isRequired,
+      pathname: PropTypes.string.isRequired
     }).isRequired,
     height: PropTypes.number.isRequired,
-    tip: PropTypes.string.isRequired,
+    tip: PropTypes.string.isRequired
   };
-
-  state = {
-    isShowingReceiveModal: false,
-  };
-
-  toggleReceiveModal = (val) => this.setState({
-    isShowingReceiveModal: val
-  });
 
   render() {
     return (
@@ -83,7 +74,7 @@ class Sidebar extends Component {
             className={c('sidebar__action', {
               'sidebar__action--selected': /receive/.test(pathname)
             })}
-            onClick={() => this.toggleReceiveModal(true)}
+            onClick={() => push('/receive')}
           >
             Receive
           </a>
@@ -131,7 +122,6 @@ class Sidebar extends Component {
             Watching
           </a>
         </div>
-        {this.state.isShowingReceiveModal ? <ReceiveModal onClose={() => this.toggleReceiveModal(false)} /> : null}
       </React.Fragment>
     );
   }
@@ -141,11 +131,15 @@ class Sidebar extends Component {
       <div className="sidebar__footer">
         <div className="sidebar__footer__row">
           <div className="sidebar__footer__title">Current Height</div>
-          <div className="sidebar__footer__text">{this.props.height || '--'}</div>
+          <div className="sidebar__footer__text">
+            {this.props.height || '--'}
+          </div>
         </div>
         <div className="sidebar__footer__row">
           <div className="sidebar__footer__title">Current Hash</div>
-          <div className="sidebar__footer__text">{this.props.tip ? ellipsify(this.props.tip) : '--'}</div>
+          <div className="sidebar__footer__text">
+            {this.props.tip ? ellipsify(this.props.tip) : '--'}
+          </div>
         </div>
       </div>
     );

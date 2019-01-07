@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
 import SendModal from '../../components/SendModal';
+import ReceiveModal from '../../components/ReceiveModal';
 import FundAccessOptions from '../Onboarding/FundAccessOptions';
 import CreateNewAccount from '../Onboarding/CreateNewAccount';
 import ExistingAccountOptions from '../Onboarding/ExistingAccountOptions';
@@ -30,7 +31,7 @@ class App extends Component {
     isLocked: PropTypes.bool.isRequired,
     initialized: PropTypes.bool.isRequired,
     fetchWallet: PropTypes.func.isRequired,
-    startNode: PropTypes.func.isRequired,
+    startNode: PropTypes.func.isRequired
   };
 
   state = {
@@ -50,11 +51,7 @@ class App extends Component {
   }
 
   render() {
-    return (
-      <div className="app">
-        {this.renderContent()}
-      </div>
-    );
+    return <div className="app">{this.renderContent()}</div>;
   }
 
   renderContent() {
@@ -62,7 +59,7 @@ class App extends Component {
       return null;
     }
 
-    const {isLocked, initialized} = this.props;
+    const { isLocked, initialized } = this.props;
 
     if (isLocked || !initialized) {
       return (
@@ -91,9 +88,7 @@ class App extends Component {
         <div className="app__sidebar-wrapper">
           <Sidebar />
         </div>
-        <div className="app__main-wrapper">
-          {this.renderRoutes()}
-        </div>
+        <div className="app__main-wrapper">{this.renderRoutes()}</div>
       </React.Fragment>
     );
   }
@@ -101,15 +96,40 @@ class App extends Component {
   renderRoutes() {
     return (
       <Switch>
-        <Route path="/account" render={this.routeRenderer('Portfolio', Account)} />
+        <Route
+          path="/account"
+          render={this.routeRenderer('Portfolio', Account)}
+        />
         <Route path="/send" render={this.routeRenderer('Send', SendModal)} />
-        <Route path="/get_coins" render={this.routeRenderer('Get Coins', GetCoins)} />
-        <Route path="/settings" render={this.routeRenderer('Settings', Settings)} />
+        <Route
+          path="/receive"
+          render={this.routeRenderer('Receive', ReceiveModal)}
+        />
+        <Route
+          path="/get_coins"
+          render={this.routeRenderer('Get Coins', GetCoins)}
+        />
+        <Route
+          path="/settings"
+          render={this.routeRenderer('Settings', Settings)}
+        />
         <Route path="/bids" render={this.routeRenderer('Domains', YourBids)} />
-        <Route path="/domains" render={this.routeRenderer('Domains', SearchTLD)} />
-        <Route path="/domain_manager/:name" render={this.routeRenderer('Domain Manager', MyDomain)} />
-        <Route path="/domain_manager" render={this.routeRenderer('Domain Manager', DomainManager)} />
-        <Route path="/domain/:name?" render={this.routeRenderer('Browse Domains', Auction)} />
+        <Route
+          path="/domains"
+          render={this.routeRenderer('Domains', SearchTLD)}
+        />
+        <Route
+          path="/domain_manager/:name"
+          render={this.routeRenderer('Domain Manager', MyDomain)}
+        />
+        <Route
+          path="/domain_manager"
+          render={this.routeRenderer('Domain Manager', DomainManager)}
+        />
+        <Route
+          path="/domain/:name?"
+          render={this.routeRenderer('Browse Domains', Auction)}
+        />
         {this.renderDefault()}
       </Switch>
     );
@@ -127,7 +147,7 @@ class App extends Component {
   }
 
   renderDefault = () => {
-    let {isLocked, initialized} = this.props;
+    let { isLocked, initialized } = this.props;
     if (!initialized) {
       return <Redirect to="/funding-options" />;
     }
@@ -149,7 +169,8 @@ export default withRouter(
     dispatch => ({
       fetchWallet: () => dispatch(walletActions.fetchWallet()),
       startNode: () => dispatch(node.start(NETWORKS.SIMNET)),
-      pollPendingTransactions: () => dispatch(walletActions.pollPendingTransactions())
+      pollPendingTransactions: () =>
+        dispatch(walletActions.pollPendingTransactions())
     })
   )(App)
 );
