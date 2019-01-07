@@ -91,14 +91,7 @@ class App extends Component {
     return (
       <React.Fragment>
         <Notification />
-        <div
-          className={c('app__sidebar-wrapper', {
-            'app__sidebar-wrapper--hide': shouldHideSidebar(pathname)
-          })}
-        >
-          <Sidebar />
-        </div>
-        <div className="app__main-wrapper">{this.renderRoutes()}</div>
+        {this.renderRoutes()}
       </React.Fragment>
     );
   }
@@ -122,7 +115,7 @@ class App extends Component {
         <Route path="/bids" render={this.routeRenderer('Domains', YourBids)} />
         <Route
           path="/domains"
-          render={this.routeRenderer('Domains', SearchTLD)}
+          render={this.routeRenderer('Domains', SearchTLD, true)}
         />
         <Route
           path="/watching"
@@ -138,19 +131,28 @@ class App extends Component {
         />
         <Route
           path="/domain/:name?"
-          render={this.routeRenderer('Browse Domains', Auction)}
+          render={this.routeRenderer('Browse Domains', Auction, true)}
         />
         {this.renderDefault()}
       </Switch>
     );
   }
 
-  routeRenderer(title, Component) {
+  routeRenderer(title, Component, hideSidebar = false) {
     return () => (
       <React.Fragment>
-        <Topbar title={title} />
-        <div className="app__content">
-          <Component />
+        <div
+          className={c('app__sidebar-wrapper', {
+            'app__sidebar-wrapper--hide': hideSidebar
+          })}
+        >
+          <Sidebar />
+        </div>
+        <div className="app__main-wrapper">
+          <Topbar title={title} />
+          <div className="app__content">
+            <Component />
+          </div>
         </div>
       </React.Fragment>
     );
