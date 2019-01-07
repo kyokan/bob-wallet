@@ -5,7 +5,10 @@
   padding: 1.25rem 2rem;
 
   &__container {
-    max-width: 22rem;
+    max-width: 25rem;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 0.6rem;
+    padding: 2rem;
   }
 
   &__close-btn {
@@ -183,16 +186,16 @@
     }
   }
 
-  &__estimated-time {
+  &__input-disclaimer {
     color: rgba($black, 0.4);
     font-size: 0.8rem;
-    padding: 1rem 0;
+    padding-top: 0.8rem;
     font-style: italic;
   }
 
   &__cta-btn {
     @extend %btn-primary;
-
+    margin-top: 1rem;
     width: 100%;
   }
 
@@ -228,7 +231,7 @@
     &__to,
     &__time {
       padding: 1rem 0;
-      border-bottom: 1px solid rgba($black, 0.05);
+      // border-bottom: 1px solid rgba($black, 0.05);
     }
 
     &__label {
@@ -266,7 +269,7 @@
       background-color: rgba($azure-blue, 0.1);
       border-radius: 0.25rem;
       padding: 1rem;
-      margin: 1rem 0;
+      margin: 1rem 0 2rem 0;
     }
 
     &__summary-amount,
