@@ -10,7 +10,7 @@ export const getYourBids = () => async (dispatch, getState) => {
   const net = getState().wallet.network;
   const wClient = walletClient.forNetwork(net);
 
-  const result = await wClient.getBids();
+  let result = await wClient.getBids();
   // result = [
   //   {
   //     "name": "megatest",
