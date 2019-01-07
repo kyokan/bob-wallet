@@ -32,6 +32,7 @@
       &__content {
         display: flex;
         flex-flow: row wrap;
+        margin-left: -1rem;
       }
     }
 
@@ -125,7 +126,7 @@
       @extend %row-nowrap;
 
       align-items: center;
-      font-size: .7rem;
+      font-size: .8rem;
 
       &__label {
         flex: 0 0 auto;
@@ -224,5 +225,13 @@
         margin-bottom: 1rem;
       }
     }
+  }
+
+  &__bid-now-divider {
+    height: 1px;
+    width: calc(100% + 3rem);
+    background: $mischka-gray;
+    margin: 1rem 0 1rem -1.5rem;
+    content: '';
   }
 }

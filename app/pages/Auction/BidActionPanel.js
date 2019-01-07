@@ -10,6 +10,7 @@ import {
 import Checkbox from '../../components/Checkbox';
 import * as nameActions from '../../ducks/names';
 import './domains.scss';
+import { displayBalance, toBaseUnits } from '../../utils/balances';
 
 class BidActionPanel extends Component {
   static propTypes = {
@@ -30,6 +31,11 @@ class BidActionPanel extends Component {
 
     if (this.state.isReviewing) {
       return this.renderReviewBid();
+    }
+
+    const ownBid = this.findOwnBid();
+    if (ownBid) {
+      return this.renderPlacedBid(ownBid)
     }
 
     if (isOpening(domain)) {
@@ -78,13 +84,18 @@ class BidActionPanel extends Component {
     );
   }
 
-  // TODO: render placed bid
-  renderPlacedBid() {
+  renderPlacedBid(ownBid) {
     return (
       <div className="domains__bid-now">
         <div className="domains__bid-now__title">Bid Placed!</div>
         <div className="domains__bid-now__content">
-          To be updated
+          {this.renderInfoRow('Reveal', this.getTimeRemaining(this.props.domain.info.stats.hoursUntilReveal))}
+          {this.renderInfoRow('Total Bids', this.props.domain.bids.length)}
+          {this.renderInfoRow('Highest Mask', this.findHighestMask())}
+          <div className="domains__bid-now-divider" />
+          {this.renderInfoRow('Bid Amount', displayBalance(ownBid.value, true))}
+          {this.renderInfoRow('Mask Amount', displayBalance(ownBid.lockup, true))}
+          {this.renderRevealAction(ownBid)}
         </div>
       </div>
     );
@@ -92,7 +103,7 @@ class BidActionPanel extends Component {
 
   getTimeRemaining(hoursUntilReveal) {
     if (!hoursUntilReveal) {
-      return 'N/A';
+      return 'Revealing now!';
     }
 
     if (hoursUntilReveal < 24) {
@@ -266,6 +277,57 @@ class BidActionPanel extends Component {
       </div>
     );
   }
+
+  renderRevealAction(ownBid) {
+    if (!ownBid) {
+      return null;
+    }
+
+    return (
+      <div className="domains__bid-now__action">
+        <button
+          className="domains__bid-now__action__cta"
+          onClick={() => this.props.sendReveal(this.props.domain.name)}
+        >
+          Reveal Your Bid
+        </button>
+      </div>
+    )
+  }
+
+  renderInfoRow(label, value) {
+    return (
+      <div className="domains__bid-now__info">
+        <div className="domains__bid-now__info__label">
+          {label}:
+        </div>
+        <div className="domains__bid-now__info__value">
+          {value}
+        </div>
+      </div>
+    );
+  }
+
+  findHighestMask() {
+    let highest = 0;
+    for (const bid of this.props.domain.bids) {
+      if (bid.lockup > highest) {
+        highest = bid.lockup;
+      }
+    }
+
+    return displayBalance(highest, true);
+  }
+
+  findOwnBid() {
+    for (const bid of this.props.domain.bids) {
+      if (bid.own) {
+        return bid;
+      }
+    }
+
+    return null;
+  }
 }
 
 export default withRouter(
@@ -273,7 +335,8 @@ export default withRouter(
     null,
     dispatch => ({
       sendOpen: name => dispatch(nameActions.sendOpen(name)),
-      sendBid: (name, amount, lockup) => dispatch(nameActions.sendBid(name, amount, lockup)),
+      sendBid: (name, amount, lockup) => dispatch(nameActions.sendBid(name, toBaseUnits(amount), toBaseUnits(lockup))),
+      sendReveal: (name) => dispatch(nameActions.sendReveal(name))
     }),
   )(BidActionPanel)
 );

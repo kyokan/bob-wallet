@@ -11,7 +11,8 @@ import ellipsify from '../../../utils/ellipsify';
 const RECEIVE = 'RECEIVE';
 const SEND = 'SEND';
 const OPEN = 'OPEN';
-
+const BID = 'BID';
+const REVEAL = 'REVEAL';
 
 export default class Transaction extends Component {
   static propTypes = {
@@ -36,7 +37,7 @@ export default class Transaction extends Component {
     classnames('transaction__number', {
       'transaction__number--pending': tx.pending,
       'transaction__number--positive': tx.type === RECEIVE && !tx.pending,
-      'transaction__number--negative': tx.type === SEND || tx.type === OPEN && !tx.pending
+      'transaction__number--negative': tx.type !== RECEIVE && !tx.pending
     });
 
   renderTimestamp = tx => {
@@ -62,7 +63,13 @@ export default class Transaction extends Component {
       content = ellipsify(tx.meta.from, 12);
     } else if (tx.type === OPEN) {
       description = 'Opened bidding';
-      content = tx.meta.domain;
+      content = this.formatDomain(tx.meta.domain);
+    } else if (tx.type === BID) {
+      description = 'Placed bid';
+      content = this.formatDomain(tx.meta.domain);
+    } else if (tx.type === REVEAL){
+      description = 'Revealed bid';
+      content = this.formatDomain(tx.meta.domain);
     } else {
       description = 'Unknown Transaction';
     }
@@ -99,6 +106,8 @@ export default class Transaction extends Component {
       </div>
     );
   }
-}
 
-//TODO: Connect component to Redux and grab transactionsMap directly
+  formatDomain(domain) {
+    return domain ? `${domain}/` : '(unknown)';
+  }
+}

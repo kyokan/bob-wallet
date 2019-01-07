@@ -221,8 +221,16 @@ async function parseInputsOutputs(tx) {
 async function parseCovenant(covenant) {
   switch (covenant.action) {
     case 'OPEN':
-      return {type: 'OPEN', meta: {domain: (await namesDb.findNameByHash(covenant.items[0])) || 'unknown'}}
+      return {type: 'OPEN', meta: {domain: await nameByHash(covenant)}};
+    case 'BID':
+      return {type: 'BID', meta: {domain: await nameByHash(covenant)}};
+    case 'REVEAL':
+      return {type: 'REVEAL', meta: {domain: await nameByHash(covenant)}};
     default:
       return {type: 'UNKNOWN', meta: {}}
   }
+}
+
+async function nameByHash(covenant) {
+  return await namesDb.findNameByHash(covenant.items[0])
 }

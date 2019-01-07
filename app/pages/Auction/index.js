@@ -6,25 +6,19 @@ import cn from 'classnames';
 import moment from 'moment';
 
 import * as names from '../../ducks/names';
-import {
-  isAvailable,
-  isReserved,
-  isClosed,
-  isBidding,
-  isOpening,
-  isReveal,
-} from '../../utils/name-helpers';
-import { SoldInfo, ReserveInfo } from './info';
+import { isAvailable, isBidding, isClosed, isOpening, isReserved, isReveal, } from '../../utils/name-helpers';
+import { ReserveInfo, SoldInfo } from './info';
 import BidActionPanel from './BidActionPanel';
 import BidReminder from './BidReminder';
 import Collapsible from '../../components/Collapsible';
 import Blocktime from '../../components/Blocktime';
 import './domains.scss';
+import { showError } from '../../ducks/notifications';
 
 @withRouter
 @connect(
   (state, ownProps) => {
-    const { name } = ownProps.match.params;
+    const {name} = ownProps.match.params;
     return {
       domain: state.names[name],
       chain: state.node.chain,
@@ -32,6 +26,7 @@ import './domains.scss';
   },
   dispatch => ({
     getNameInfo: tld => dispatch(names.getNameInfo(tld)),
+    showError: (message) => dispatch(showError(message))
   }),
 )
 export default class Auction extends Component {
@@ -52,9 +47,15 @@ export default class Auction extends Component {
     chain: PropTypes.object,
   };
 
-  componentWillMount() {
-    this.props.getNameInfo(this.getDomain())
-      .catch(e => console.error(e.message));
+  async componentWillMount() {
+    try {
+      this.setState({ isLoading: true });
+      await this.props.getNameInfo(this.getDomain())
+    } catch (e) {
+      this.showError('Something went wrong fetching this name. Please try again.');
+    } finally {
+      this.setState({ isLoading: false });
+    }
   }
 
   getDomain = () => this.props.match.params.name;
@@ -62,7 +63,7 @@ export default class Auction extends Component {
   render() {
     return (
       <div className="domains">
-        { this.renderContent() }
+        {this.renderContent()}
         <div className="domains__action">
           {this.renderAuctionRight()}
         </div>
@@ -71,7 +72,7 @@ export default class Auction extends Component {
   }
 
   renderAuctionRight = () => {
-    const { domain, chain } = this.props;
+    const {domain, chain} = this.props;
 
     if (isReserved(domain)) {
       return <ReserveInfo />;
@@ -86,7 +87,7 @@ export default class Auction extends Component {
       );
     }
 
-    if (isOpening(domain) || isBidding(domain)) {
+    if (isOpening(domain) || isBidding(domain) || isReveal(domain)) {
       return <BidActionPanel domain={domain} />;
     }
 
@@ -110,15 +111,13 @@ export default class Auction extends Component {
           <div className="domains__content__info-panel">
             <div className="domains__content__info-panel__title">Auction Details</div>
             <div className={this.getContentClassName()}>
-              { this.renderStatusInfo() }
-              { this.renderStart() }
-              { this.renderEnd() }
+              {this.renderAuctionDetails()}
             </div>
           </div>
-          <Collapsible  className="domains__content__info-panel" title="Bid History" defaultCollapsed>
+          <Collapsible className="domains__content__info-panel" title="Bid History" defaultCollapsed>
             hi
           </Collapsible>
-          <Collapsible  className="domains__content__info-panel" title="Vickrey Auction Process" defaultCollapsed>
+          <Collapsible className="domains__content__info-panel" title="Vickrey Auction Process" defaultCollapsed>
             hi
           </Collapsible>
         </div>
@@ -126,8 +125,24 @@ export default class Auction extends Component {
     );
   }
 
+  renderAuctionDetails() {
+    if (this.state.isLoading) {
+      return 'Loading...';
+    }
+
+    const stats = this.props.domain.info && this.props.domain.info.stats || {};
+
+    return (
+      <React.Fragment>
+        {this.renderStatusInfo()}
+        {this.maybeRenderDateBlock(() => isReveal(name), 'Reveal Open', stats.revealPeriodStart, stats.hoursUntilClose)}
+        {this.maybeRenderDateBlock(() => isReveal(name), 'Reveal Close', stats.revealPeriodEnd, stats.hoursUntilClose)}
+      </React.Fragment>
+    );
+  }
+
   getContentClassName() {
-    const { domain } = this.props;
+    const {domain} = this.props;
     const className = 'domains__content__info-panel__content';
 
     return cn(className, {
@@ -137,10 +152,38 @@ export default class Auction extends Component {
     })
   }
 
-  renderStatusInfo() {
-    const { domain } = this.props;
+  renderDetailBlock(title, content, description) {
     const className = 'domains__content__auction-detail';
+    return (
+      <div className={className}>
+        <div className={`${className}__label`}>{title}:</div>
+        <div className={`${className}__status`}>{content}</div>
+        <div className={`${className}__description`}>{description}</div>
+      </div>
+    );
+  }
 
+  renderDateBlock(title, height, adjust) {
+    return this.renderDetailBlock(
+      title,
+      <Blocktime
+        height={height}
+        adjust={d => moment(d).add(adjust, 'h')}
+      />,
+      `Block #${height}`
+    );
+  }
+
+  maybeRenderDateBlock(condition, title, height, adjust) {
+    if (!condition) {
+      return null;
+    }
+
+    return this.renderDateBlock(title, height, adjust);
+  }
+
+  renderStatusInfo() {
+    const {domain} = this.props;
     let status = '';
     let description = '';
     if (isReserved(domain)) {
@@ -162,116 +205,6 @@ export default class Auction extends Component {
       status = 'Unavailable';
     }
 
-    return (
-      <div className={className}>
-        <div className={`${className}__label`}>Status:</div>
-        <div className={`${className}__status`}>{status}</div>
-        <div className={`${className}__description`}>{description}</div>
-      </div>
-    );
-  }
-
-  renderStart() {
-    const { domain } = this.props;
-    const className = 'domains__content__auction-detail';
-
-    let label = '';
-    let status = '';
-    let block = '';
-
-    if (isReserved(domain)) {
-      return null;
-    } else if (isOpening(domain)) {
-      label = 'Bidding Open:';
-      status = <Blocktime height={domain.info.stats.openPeriodStart} />;
-      block = domain.info.stats.openPeriodStart;
-    } else if (isBidding(name)) {
-      label = 'Bidding Start:';
-      status = <Blocktime height={domain.info.stats.bidPeriodStart} />;
-      block = domain.info.stats.bidPeriodStart;
-    } else if (isAvailable(domain)) {
-      label = 'Bidding Open:';
-      status = <Blocktime height={0} adjust={d => moment(d).add(domain.start.week, 'w')} />;
-      block = domain.start.start;
-    } else if (isClosed(domain)) {
-      label = 'Renewal Start:';
-      status = <Blocktime height={domain.info.stats.renewalPeriodStart} />;
-      block = domain.info.stats.renewalPeriodStart;
-    } else if (isReveal(domain)) {
-      label = 'Reveal Start:';
-      status = <Blocktime height={domain.info.stats.revealPeriodStart} />;
-      block = domain.info.stats.revealPeriodStart;
-    } else {
-      return null;
-    }
-
-    return (
-      <div className={className}>
-        <div className={`${className}__label`}>{label}</div>
-        <div className={`${className}__status`}>{status}</div>
-        <div className={`${className}__description`}>{`Block # ${block}`}</div>
-      </div>
-    );
-  }
-
-  renderEnd() {
-    const { domain } = this.props;
-    const className = 'domains__content__auction-detail';
-
-    let label = '';
-    let status = '';
-    let block = '';
-
-    if (isReserved(domain)) {
-      return null;
-    } else if (isOpening(domain)) {
-      label = 'Bidding Start:';
-      status = (
-        <Blocktime
-          height={domain.info.stats.openPeriodStart}
-          adjust={d => moment(d).add(domain.info.stats.hoursUntilBidding, 'h')}
-        />
-      );
-      block = domain.info.stats.openPeriodEnd;
-    } else if (isBidding(name)) {
-      label = 'Reveal Start:';
-      status = (
-        <Blocktime
-          height={domain.info.stats.bidPeriodStart}
-          adjust={d => moment(d).add(domain.info.stats.hoursUntilReveal, 'h')}
-        />
-      );
-      block = domain.info.stats.bidPeriodEnd;
-    } else if (isAvailable(domain)) {
-      return null;
-    } else if (isClosed(domain)) {
-      label = 'Expired:';
-      status = (
-        <Blocktime
-          height={domain.info.stats.renewalPeriodStart}
-          adjust={d => moment(d).add(domain.info.stats.daysUntilExpire, 'd')}
-        />
-      );
-      block = domain.info.stats.renewalPeriodEnd;
-    } else if (isReveal(domain)) {
-      label = 'Bidding Close:';
-      status = (
-        <Blocktime
-          height={domain.info.stats.revealPeriodStart}
-          adjust={d => moment(d).add(domain.info.stats.hoursUntilClose, 'h')}
-        />
-      );
-      block = domain.info.stats.revealPeriodEnd;
-    } else {
-      return null;
-    }
-
-    return (
-      <div className={className}>
-        <div className={`${className}__label`}>{label}</div>
-        <div className={`${className}__status`}>{status}</div>
-        <div className={`${className}__description`}>{`Block # ${block}`}</div>
-      </div>
-    );
+    return this.renderDetailBlock('Status', status, description);
   }
 }

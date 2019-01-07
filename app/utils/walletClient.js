@@ -1,6 +1,6 @@
 import { WalletClient } from 'hs-client';
 import { clientStub } from '../background/node';
-import { toBaseUnits } from './balances';
+import { displayBalance, toBaseUnits } from './balances';
 
 const client = clientStub(() => require('electron').ipcRenderer);
 const Network = require('hsd/lib/protocol/network');
@@ -78,8 +78,8 @@ export function forNetwork(net) {
     },
 
     getAuctionInfo: async (name) => {
-      await walletClient.execute('selectwallet', [ WALLET_ID ]);
-      return walletClient.execute('getauctioninfo', [ name ]);
+      await walletClient.execute('selectwallet', [WALLET_ID]);
+      return walletClient.execute('getauctioninfo', [name]);
     },
 
     getTransactionHistory: async () => {
@@ -97,13 +97,18 @@ export function forNetwork(net) {
     },
 
     sendOpen: async (name) => {
-      await walletClient.execute('selectwallet', [ WALLET_ID ]);
-      return walletClient.execute('sendopen', [ name ]);
+      await walletClient.execute('selectwallet', [WALLET_ID]);
+      return walletClient.execute('sendopen', [name]);
     },
 
     sendBid: async (name, amount, lockup) => {
-      await walletClient.execute('selectwallet', [ WALLET_ID ]);
-      await walletClient.execute('sendbid', [ name, amount, lockup ]);
+      await walletClient.execute('selectwallet', [WALLET_ID]);
+      await walletClient.execute('sendbid', [name, Number(displayBalance(amount)), Number(displayBalance(lockup))]);
+    },
+
+    sendReveal: async (name) => {
+      await walletClient.execute('selectwallet', [WALLET_ID]);
+      await walletClient.execute('sendreveal', [name]);
     },
 
     lock: async () => {

@@ -1,7 +1,6 @@
 import * as nodeClient from '../utils/nodeClient';
 import * as walletClient from '../utils/walletClient';
 import * as namesDb from '../db/names';
-import { showError } from './notifications';
 
 // Action Types
 const SET_NAME = 'app/names/setName';
@@ -24,22 +23,25 @@ export const getNameInfo = name => async (dispatch, getState) => {
   const nClient = nodeClient.forNetwork(net);
   const wClient = walletClient.forNetwork(net);
 
-  let result;
-  try {
-    result = await nClient.getNameInfo(name);
-  } catch (err) {
+  const result = await nClient.getNameInfo(name);
+  const { start, info } = result;
+  let bids = [];
+  if (!info) {
     dispatch({
       type: SET_NAME,
-      error: true,
-      payload: err,
+      payload: {
+        name,
+        start,
+        info,
+        bids
+      }
     });
-    throw err;
+    return;
   }
 
-  const start = result.start;
-  let info = result.info;
   try {
-    info = await wClient.getAuctionInfo(name);
+    const auctionInfo = await wClient.getAuctionInfo(name);
+    bids = auctionInfo.bids;
   } catch (e) {
     if (!e.message.match(/auction not found/i)) {
       throw e;
@@ -48,7 +50,7 @@ export const getNameInfo = name => async (dispatch, getState) => {
 
   dispatch({
     type: SET_NAME,
-    payload: { name, start, info },
+    payload: { name, start, info, bids },
   });
 };
 
@@ -67,13 +69,20 @@ export const sendBid = (name, amount, lockup) => async (dispatch, getState) => {
   await wClient.sendBid(name, amount, lockup);
 };
 
+export const sendReveal = (name) => async (dispatch, getState) => {
+  if (!name) {
+    return;
+  }
+
+  const wClient = walletClient.forNetwork(getState().wallet.network);
+  await wClient.sendReveal(name);
+};
+
 export default function namesReducer(state = initialState, action) {
-  const { type, payload, error } = action;
+  const { type, payload } = action;
   switch (type) {
     case SET_NAME:
-      return error
-        ? state
-        : { ...state, [payload.name]: payload };
+      return { ...state, [payload.name]: payload };
     default:
       return state;
   }

@@ -1,52 +1,94 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
-import { getBlockByHeight } from '../../utils/block-helpers';
+import { connect } from 'react-redux';
+import * as nodeClient from '../../utils/nodeClient';
 
+// 5 minute blocks
+const BLOCK_TIME = 5 * 60 * 1000;
+
+let firstBlock = null;
+let deferred = null;
+let cachedNet = null;
+
+// use this function to make sure that multiple components
+// rendered at once don't fire off multiple requests at once.
+async function getFirstBlockTime(net) {
+  if (firstBlock && net === cachedNet) {
+    return firstBlock
+  }
+
+  if (deferred) {
+    return deferred;
+  }
+
+  cachedNet = net;
+  const client = nodeClient.forNetwork(net);
+  deferred = new Promise((resolve, reject) => client.getBlockByHeight(1, true).then((res) => {
+    firstBlock = res;
+    deferred = null;
+    resolve(firstBlock);
+  }).catch(() => {
+    deferred = null;
+    reject();
+  }));
+  return deferred;
+}
+
+@connect(
+  (state) => ({
+    network: state.wallet.network,
+  })
+)
 export default class Blocktime extends Component {
   static propTypes = {
+    network: PropTypes.string.isRequired,
     height: PropTypes.number.isRequired,
-    adjust: PropTypes.func,
     className: PropTypes.string,
     fromNow: PropTypes.bool,
   };
 
   static defaultProps = {
     className: '',
-    adjust: date => date,
     fromNow: false,
   };
 
   state = {
-    block: null,
+    time: null,
   };
 
   async componentWillMount() {
-    const { result } = await getBlockByHeight(this.props.height);
-    this.setState({ block: result });
+    await this.getBlockTime();
   }
 
   render() {
     return (
       <span className={this.props.className}>
-        {this.getBlocktime()}
+        {this.renderTime()}
       </span>
-    )
+    );
   }
 
-  getBlocktime() {
-    const { fromNow } = this.props;
-    const { block } = this.state;
-
-    if (!block || !block.time) {
+  renderTime() {
+    if (!this.state.time) {
       return 'Loading...';
     }
 
-    if (fromNow) {
-      console.log(this.props.adjust(moment.unix(block.time)).format('YYYY-MM-DD'))
-      return '~' + this.props.adjust(moment.unix(block.time)).toNow(true);
+    return this.state.time;
+  }
+
+  async getBlockTime() {
+    const block = await getFirstBlockTime(this.props.network);
+    const start = moment.unix(block.time);
+    const delta = this.props.height * BLOCK_TIME;
+    const end = start.add(delta);
+
+    if (this.props.fromNow) {
+      return '~' + this.props.adjust(end).toNow(true);
     }
 
-    return this.props.adjust(moment.unix(block.time)).format('YYYY-MM-DD');
+    this.setState({
+      time: end.format('YYYY-MM-DD')
+    });
   }
 }

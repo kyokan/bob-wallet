@@ -46,6 +46,10 @@ export function forNetwork(net) {
     getAuctionInfo: async (name) => {
       return nodeClient.execute('getauctioninfo', [name]);
     },
+
+    getBlockByHeight: async (height, verbose, details) => {
+      return nodeClient.execute('getblockbyheight', [height, verbose ? 1 : 0, details ? 1 : 0])
+    }
   };
   clientPool[net] = ret;
   return ret;
