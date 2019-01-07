@@ -12,4 +12,10 @@
   &__bob {
     color: #27a3e2;
   }
+
+  &--clickable {
+    &:hover {
+      cursor: pointer;
+    }
+  }
 }
