@@ -37,6 +37,7 @@ class SendModal extends Component {
   state = {
     selectedGasOption: STANDARD,
     isConfirming: false,
+    transactionSent: false,
     isSending: false,
     to: '',
     amount: '',
@@ -56,31 +57,38 @@ class SendModal extends Component {
     return { isValid: true };
   }
 
-  send = async () => {
-    const { to, amount, isSending, selectedGasOption } = this.state;
-    const fee = this.props.fees[selectedGasOption.toLowerCase()];
+  send = () => {
+    this.setState({
+      isSending: false,
+      isConfirming: false,
+      transactionSent: true,
+      errorMessage: ''
+    });
+    // const { to, amount, isSending, selectedGasOption } = this.state;
+    // const fee = this.props.fees[selectedGasOption.toLowerCase()];
 
-    if (isSending) {
-      return;
-    }
+    // if (isSending) {
+    //   return;
+    // }
 
-    this.setState({ isSending: true, errorMessage: '' });
-    try {
-      await this.props.send(to, amount, fee);
-      this.setState({
-        isSending: false,
-        isConfirming: false,
-        to: '',
-        amount: '',
-        errorMessage: ''
-      });
-    } catch (e) {
-      console.error(e);
-      this.setState({
-        errorMessage: 'Something went wrong, please try again.',
-        isSending: false
-      });
-    }
+    // this.setState({ isSending: true, errorMessage: '' });
+    // try {
+    //   await this.props.send(to, amount, fee);
+    //   this.setState({
+    //     isSending: false,
+    //     isConfirming: false,
+    //     transactionSent: true,
+    //     to: '',
+    //     amount: '',
+    //     errorMessage: ''
+    //   });
+    // } catch (e) {
+    //   console.error(e);
+    //   this.setState({
+    //     errorMessage: 'Something went wrong, please try again.',
+    //     isSending: false
+    //   });
+    // }
   };
 
   sendMax = () => {
@@ -88,6 +96,13 @@ class SendModal extends Component {
       amount: this.props.totalBalance
     });
   };
+
+  addDecimalsToInteger(value) {
+    if (value % 1 === 0) {
+      return Math.floor(value).toFixed(2);
+    }
+    return value;
+  }
 
   renderSend() {
     const { selectedGasOption, amount, to } = this.state;
@@ -212,7 +227,9 @@ class SendModal extends Component {
               <div className="send__confirm__summary-label">
                 Amount to send:
               </div>
-              <div className="send__confirm__summary-value">{`${amount} HNS`}</div>
+              <div className="send__confirm__summary-value">{`${bn(
+                amount
+              ).toFixed(2)} HNS`}</div>
             </div>
             <div className="send__confirm__summary-fee">
               <div className="send__confirm__summary-label">Network Fee:</div>
@@ -247,8 +264,36 @@ class SendModal extends Component {
     );
   }
 
+  renderTransactionSent() {
+    const { amount } = this.state;
+    return (
+      <div className="send__container">
+        <div className="send__sent__wrapper">
+          <div className="send__sent__confirm-icon" />
+          <div className="send__sent__headline">Transaction Sent</div>
+          <div className="send__sent__description">
+            {`You just sent ${bn(amount).toFixed(
+              2
+            )} HNS to an external Handshake address.`}
+          </div>
+          <div className="send__sent__description">
+            Your balance will update as soon as the blockchain has confirmed
+            your transaction.
+          </div>
+          <div className="send__sent__details">See Details</div>
+        </div>
+      </div>
+    );
+  }
+
   renderContent() {
-    return this.state.isConfirming ? this.renderConfirm() : this.renderSend();
+    if (this.state.isConfirming) {
+      return this.renderConfirm();
+    }
+    if (this.state.transactionSent) {
+      return this.renderTransactionSent();
+    }
+    return this.renderSend();
   }
 
   render() {

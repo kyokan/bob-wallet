@@ -320,6 +320,48 @@
       margin: 0 auto;
     }
   }
+  &__sent {
+    &__confirm-icon {
+      background-image: url('../../assets/images/check-circle-blue.svg');
+      height: 2.5rem;
+      width: 2.5rem;
+      background-position: center;
+      background-size: cover;
+      margin: 1rem 0;
+    }
+    &__wrapper {
+      @extend %col-nowrap;
+      flex: 1 1 auto;
+      align-items: center;
+      vertical-align: center;
+    }
+
+    &__headline {
+      font-size: 2.5rem;
+      line-height: 2.5rem * 1.4;
+      font-weight: 700;
+      color: $azure-blue;
+      margin-bottom: 1rem;
+    }
+
+    &__description {
+      text-align: center;
+      @extend %h1;
+      font-weight: 500;
+      color: $manatee-gray;
+      margin-top: 1.5rem;
+    }
+
+    &__details {
+      @extend %h3;
+      margin: 4rem 0 0.5rem 0;
+      font-weight: 700;
+      color: $azure-blue;
+      &:hover {
+        cursor: pointer;
+      }
+    }
+  }
 }
 
 @keyframes spin {
