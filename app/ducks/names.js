@@ -34,6 +34,8 @@ export const getNameInfo = name => async (dispatch, getState) => {
   const result = await nClient.getNameInfo(name);
   const {start, info} = result;
   let bids = [];
+  let reveals = [];
+  let winner = null;
   if (!info) {
     dispatch({
       type: SET_NAME,
@@ -41,7 +43,9 @@ export const getNameInfo = name => async (dispatch, getState) => {
         name,
         start,
         info,
-        bids
+        bids,
+        reveals,
+        winner,
       }
     });
     return;
@@ -49,18 +53,47 @@ export const getNameInfo = name => async (dispatch, getState) => {
 
   try {
     const auctionInfo = await wClient.getAuctionInfo(name);
-    bids = auctionInfo.bids;
+    bids = await inflateBids(nClient, auctionInfo.bids);
+    reveals = auctionInfo.reveals;
   } catch (e) {
     if (!e.message.match(/auction not found/i)) {
       throw e;
     }
   }
 
+  if (info.state === NAME_STATES.CLOSED) {
+    const buyTx = await nClient.getTx(info.owner.hash);
+    const buyOutput = buyTx.outputs[info.owner.index];
+    winner = {
+      address: buyOutput.address,
+    };
+  }
+
   dispatch({
     type: SET_NAME,
-    payload: {name, start, info, bids},
+    payload: {name, start, info, bids, reveals, winner},
   });
 };
+
+async function inflateBids(nClient, bids) {
+  if (!bids.length) {
+    return [];
+  }
+
+  const ret = [];
+  for (const bid of bids) {
+    const tx = await nClient.getTx(bid.prevout.hash);
+    const out = tx.outputs[bid.prevout.index];
+    ret.push({
+      bid,
+      from: out.address,
+      date: tx.mtime,
+      value: out.value
+    });
+  }
+
+  return ret;
+}
 
 export const sendOpen = name => async (dispatch, getState) => {
   const wClient = walletClient.forNetwork(getState().wallet.network);

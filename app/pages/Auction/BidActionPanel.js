@@ -2,12 +2,13 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
-import { isAvailable, isBidding, isOpening, } from '../../utils/name-helpers';
+import { isAvailable, isBidding, isOpening, isReveal, } from '../../utils/name-helpers';
 import Checkbox from '../../components/Checkbox';
 import * as nameActions from '../../ducks/names';
 import './domains.scss';
 import { displayBalance, toBaseUnits } from '../../utils/balances';
 import { showError, showSuccess } from '../../ducks/notifications';
+import Blocktime from '../../components/Blocktime';
 
 class BidActionPanel extends Component {
   static propTypes = {
@@ -31,21 +32,25 @@ class BidActionPanel extends Component {
       return this.renderReviewBid();
     }
 
-    const ownBid = this.findOwnBid();
-    if (ownBid) {
-      return this.renderPlacedBid(ownBid)
-    }
-
     if (isOpening(domain)) {
       return this.renderOpeningBid();
     }
 
+    const ownBid = this.findOwnBid();
     if (isBidding(domain)) {
+      if (ownBid || domain.pendingOperation === 'BID') {
+        return this.renderPlacedBid(ownBid)
+      }
+
       return this.renderBidNow();
     }
 
     if (isAvailable(domain)) {
       return this.renderOpenBid();
+    }
+
+    if (isReveal(domain)) {
+      return this.renderRevealing(ownBid);
     }
 
     return <noscript />;
@@ -106,18 +111,29 @@ class BidActionPanel extends Component {
   renderPlacedBid(ownBid) {
     return (
       <div className="domains__bid-now">
-        <div className="domains__bid-now__title">Bid Placed!</div>
+        <div className="domains__bid-now__title">Bid placed.</div>
         <div className="domains__bid-now__content">
-          {this.renderInfoRow('Reveal', this.getTimeRemaining(this.props.domain.info.stats.hoursUntilReveal))}
-          {this.renderInfoRow('Total Bids', this.props.domain.bids.length)}
-          {this.renderInfoRow('Highest Mask', this.findHighestMask())}
-          <div className="domains__bid-now-divider" />
-          {this.renderInfoRow('Bid Amount', displayBalance(ownBid.value, true))}
-          {this.renderInfoRow('Mask Amount', displayBalance(ownBid.lockup, true))}
-          {this.renderRevealAction(ownBid)}
+          {this.renderPlacedBidContent(ownBid)}
         </div>
       </div>
     );
+  }
+
+  renderPlacedBidContent(ownBid) {
+    if (ownBid) {
+      return (
+        <React.Fragment>
+          {this.renderInfoRow('Reveal', this.getTimeRemaining(this.props.domain.info.stats.hoursUntilReveal))}
+          {this.renderInfoRow('Total Bids', this.props.domain.bids.length)}
+          {this.renderInfoRow('Highest Mask', displayBalance(this.findHighestMaskBid().lockup, true))}
+          <div className="domains__bid-now-divider" />
+          {this.renderInfoRow('Bid Amount', displayBalance(ownBid.value, true))}
+          {this.renderInfoRow('Mask Amount', displayBalance(ownBid.lockup, true))}
+        </React.Fragment>
+      );
+    }
+
+    return 'Your bid has been placed. Please wait a few minutes while the transaction confirms.';
   }
 
   getTimeRemaining(hoursUntilReveal) {
@@ -213,10 +229,11 @@ class BidActionPanel extends Component {
           </div>
           <button
             className="domains__bid-now__action__cta"
-            onClick={() => {
-              const {sendBid, domain} = this.props;
-              sendBid(domain.name, bidAmount, maskAmount);
-            }}
+            onClick={() => this.handleCTA(
+              () => this.props.sendBid(this.props.domain.name, bidAmount, maskAmount),
+              'Bid successfully placed!',
+              'Failed to place bid. Please try again.'
+            )}
           >
             Submit Bid
           </button>
@@ -297,21 +314,40 @@ class BidActionPanel extends Component {
     );
   }
 
-  renderRevealAction(ownBid) {
-    if (!ownBid) {
-      return null;
-    }
-
+  renderRevealAction() {
     return (
       <div className="domains__bid-now__action">
         <button
           className="domains__bid-now__action__cta"
-          onClick={() => this.props.sendReveal(this.props.domain.name)}
+          onClick={() => this.handleCTA(
+            () => this.props.sendReveal(this.props.domain.name),
+            'Successfully revealed bid!',
+            'Failed to reveal bid. Please try again.'
+          )}
         >
           Reveal Your Bid
         </button>
       </div>
     )
+  }
+
+  renderRevealing(ownBid) {
+    const ownReveal = this.findOwnReveal();
+    const highestReveal = this.findHighestReveal();
+    const domain = this.props.domain;
+    const stats = domain.info && domain.info.stats || {};
+
+    return (
+      <div className="domains__bid-now">
+        <div className="domains__bid-now__title">{ownReveal ? 'Bid revealed.' : 'Revealing'}</div>
+        <div className="domains__bid-now__content">
+          {this.renderInfoRow('Reveal Ends', <Blocktime height={stats.revealPeriodEnd} fromNow />)}
+          {ownReveal ? this.renderInfoRow('Your Reveal', displayBalance(ownReveal.value, true)) : null}
+          {highestReveal ? this.renderInfoRow('Highest Reveal', displayBalance(highestReveal.value, true)) : null}
+          {ownReveal ||!ownBid ? null : this.renderRevealAction()}
+        </div>
+      </div>
+    );
   }
 
   renderInfoRow(label, value) {
@@ -327,21 +363,44 @@ class BidActionPanel extends Component {
     );
   }
 
-  findHighestMask() {
+  findHighestMaskBid() {
     let highest = 0;
-    for (const bid of this.props.domain.bids) {
+    for (const {bid} of this.props.domain.bids) {
       if (bid.lockup > highest) {
         highest = bid.lockup;
       }
     }
 
-    return displayBalance(highest, true);
+    return highest;
+  }
+
+  findHighestReveal() {
+    let highest = 0;
+    let highestReveal;
+    for (const reveal of this.props.domain.reveals) {
+      if (reveal.value > highest) {
+        highest = reveal.value;
+        highestReveal = reveal;
+      }
+    }
+
+    return highestReveal;
   }
 
   findOwnBid() {
-    for (const bid of this.props.domain.bids) {
+    for (const {bid} of this.props.domain.bids) {
       if (bid.own) {
         return bid;
+      }
+    }
+
+    return null;
+  }
+
+  findOwnReveal() {
+    for (const reveal of this.props.domain.reveals) {
+      if (reveal.own) {
+        return reveal;
       }
     }
 

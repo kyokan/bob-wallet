@@ -49,6 +49,10 @@ export function forNetwork(net) {
 
     getBlockByHeight: async (height, verbose, details) => {
       return nodeClient.execute('getblockbyheight', [height, verbose ? 1 : 0, details ? 1 : 0])
+    },
+
+    getTx: async (hash) => {
+      return nodeClient.getTX(hash);
     }
   };
   clientPool[net] = ret;

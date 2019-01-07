@@ -1,26 +1,28 @@
 /* eslint-disable react/prop-types,no-use-before-define */
 import React from 'react';
 import Hash from '../../components/Hash';
+import { displayBalance } from '../../utils/balances';
+import ellipsify from '../../utils/ellipsify';
 
 
-export const SoldInfo = ({ owner, paidValue }) => (
+export const SoldInfo = ({ owner, highestBid }) => (
   <div className="domains__action-panel">
-    <div className="domains__bid-now__title">Domain sold</div>
+    <div className="domains__bid-now__title">Domain is no longer available</div>
     <div className="domains__bid-now__content">
       <div className="domains__bid-now__info">
         <div className="domains__bid-now__info__label">
-          Owner:
+          Highest bid:
         </div>
         <div className="domains__bid-now__info__value">
-          <Hash value={owner} />
+          {displayBalance(highestBid, true)}
         </div>
       </div>
       <div className="domains__bid-now__info">
         <div className="domains__bid-now__info__label">
-          Sold for:
+          Winner:
         </div>
         <div className="domains__bid-now__info__value">
-          {`${paidValue} HNS`}
+          {ellipsify(owner, 10)}
         </div>
       </div>
     </div>

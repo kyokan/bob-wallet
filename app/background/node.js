@@ -89,7 +89,9 @@ export async function start(net) {
     '--log-file=true',
     '--log-level=debug',
     '--listen',
-    '--bip37'
+    '--bip37',
+    '--index-address=true',
+    '--index-tx=true'
   ];
 
   if (SEEDS[network]) {

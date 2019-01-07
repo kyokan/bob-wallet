@@ -84,7 +84,10 @@ export default class Blocktime extends Component {
     const end = start.add(delta);
 
     if (this.props.fromNow) {
-      return '~' + this.props.adjust(end).toNow(true);
+      this.setState({
+        time: '~' + end.toNow(true)
+      });
+      return;
     }
 
     this.setState({

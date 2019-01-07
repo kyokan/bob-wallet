@@ -14,6 +14,8 @@ import Collapsible from '../../components/Collapsible';
 import Blocktime from '../../components/Blocktime';
 import './domains.scss';
 import { showError } from '../../ducks/notifications';
+import VickreyProcess from './VickreyProcess';
+import BidHistory from './BidHistory';
 
 @withRouter
 @connect(
@@ -81,8 +83,8 @@ export default class Auction extends Component {
     if (isClosed(domain)) {
       return (
         <SoldInfo
-          owner={domain.info.owner.hash}
-          paidValue={domain.info.value}
+          owner={domain.winner.address}
+          highestBid={domain.info.highest}
         />
       );
     }
@@ -115,10 +117,10 @@ export default class Auction extends Component {
             </div>
           </div>
           <Collapsible className="domains__content__info-panel" title="Bid History" defaultCollapsed>
-            hi
+            {this.props.domain ? <BidHistory bids={this.props.domain.bids} /> : 'Loading...'}
           </Collapsible>
           <Collapsible className="domains__content__info-panel" title="Vickrey Auction Process" defaultCollapsed>
-            hi
+            <VickreyProcess />
           </Collapsible>
         </div>
       </React.Fragment>
@@ -203,7 +205,7 @@ export default class Auction extends Component {
       status = 'Available';
       description = 'No Bids';
     } else if (isClosed(domain)) {
-      status = 'Closed';
+      status = 'Sold';
     } else if (isReveal(domain)) {
       status = 'Revealing';
     } else {
