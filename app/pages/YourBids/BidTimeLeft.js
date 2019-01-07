@@ -24,7 +24,13 @@ class BidStatus extends Component {
   isOpening = () => isOpening(this.props.domain);
 
   render() {
-    const info = this.props.domain.info || {};
+    const { domain } = this.props;
+
+    if (!domain) {
+      return 'N/A';
+    }
+
+    const info = domain.info || {};
     const stats = info.stats || {};
 
     if (this.isBidding()) {
