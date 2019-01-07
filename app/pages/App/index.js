@@ -26,7 +26,6 @@ import AccountLogin from '../AcountLogin';
 import * as node from '../../ducks/node';
 import { NETWORKS } from '../../background/node';
 import Notification from '../../components/Notification';
-import { shouldHideSidebar } from '../../utils/shouldHideSidebar';
 
 class App extends Component {
   static propTypes = {
