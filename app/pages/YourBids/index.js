@@ -6,7 +6,9 @@ import { HeaderItem, HeaderRow, Table, TableItem, TableRow } from '../../compone
 import BidStatus from './BidStatus';
 import BidTimeLeft from './BidTimeLeft';
 import * as bidsActions from '../../ducks/bids';
+import { displayBalance } from '../../utils/balances';
 import './your-bids.scss';
+import BidAction from './BidAction';
 
 class YourBids extends Component {
   static propTypes = {
@@ -54,8 +56,8 @@ class YourBids extends Component {
         <TableItem><BidStatus name={bid.name} /></TableItem>
         <TableItem>{`${bid.name}/`}</TableItem>
         <TableItem><BidTimeLeft name={bid.name} /></TableItem>
-        <TableItem>{`${bid.value} HNS`}</TableItem>
-        <TableItem></TableItem>
+        <TableItem>{displayBalance(bid.value)}</TableItem>
+        <TableItem><BidAction name={bid.name} /></TableItem>
       </TableRow>
     ));
   }

@@ -6,6 +6,7 @@ import node from './node';
 import myDomains from './myDomains';
 import notifications from './notifications';
 import bids from './bids';
+import watching from './watching';
 
 export default function createRootReducer(history) {
   return combineReducers({
@@ -16,5 +17,6 @@ export default function createRootReducer(history) {
     myDomains,
     notifications,
     bids,
+    watching,
   });
 }

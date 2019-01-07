@@ -6,7 +6,7 @@ import * as nameActions from '../../ducks/names';
 import { isReveal, isBidding, isOpening } from '../../utils/name-helpers';
 import { hoursToNow } from '../../utils/timeConverter';
 
-class BidStatus extends Component {
+class BidTimeLeft extends Component {
   static propTypes = {
     name: PropTypes.string.isRequired,
     getNameInfo: PropTypes.func.isRequired,
@@ -34,11 +34,11 @@ class BidStatus extends Component {
     const stats = info.stats || {};
 
     if (this.isBidding()) {
-      return hoursToNow(stats.hoursUntilBidding);
+      return hoursToNow(stats.hoursUntilReveal);
     }
 
     if (this.isOpening()) {
-      return hoursToNow(stats.hoursUntilReveal);
+      return hoursToNow(stats.hoursUntilBidding);
     }
 
     if (this.isReveal()) {
@@ -61,5 +61,5 @@ export default withRouter(
     (dispatch, ownProps) => ({
       getNameInfo: () => dispatch(nameActions.getNameInfo(ownProps.name)),
     }),
-  )(BidStatus)
+  )(BidTimeLeft)
 );
