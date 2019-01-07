@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
 import SendModal from '../../components/SendModal';
+import ReceiveModal from '../../components/ReceiveModal';
 import FundAccessOptions from '../Onboarding/FundAccessOptions';
 import CreateNewAccount from '../Onboarding/CreateNewAccount';
 import ExistingAccountOptions from '../Onboarding/ExistingAccountOptions';
@@ -59,11 +60,7 @@ class App extends Component {
       return null;
     }
 
-    const {
-      isLocked,
-      initialized,
-      location: { pathname }
-    } = this.props;
+    const { isLocked, initialized } = this.props;
 
     if (isLocked || !initialized) {
       return (
@@ -102,6 +99,10 @@ class App extends Component {
           render={this.routeRenderer('Portfolio', Account)}
         />
         <Route path="/send" render={this.routeRenderer('Send', SendModal)} />
+        <Route
+          path="/receive"
+          render={this.routeRenderer('Receive', ReceiveModal)}
+        />
         <Route
           path="/get_coins"
           render={this.routeRenderer('Get Coins', GetCoins)}

@@ -5,7 +5,10 @@
   padding: 1.25rem 2rem;
 
   &__container {
-    max-width: 22rem;
+    max-width: 25rem;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 0.6rem;
+    padding: 2rem;
   }
 
   &__close-btn {
@@ -183,16 +186,16 @@
     }
   }
 
-  &__estimated-time {
+  &__input-disclaimer {
     color: rgba($black, 0.4);
     font-size: 0.8rem;
-    padding: 1rem 0;
+    padding-top: 0.8rem;
     font-style: italic;
   }
 
   &__cta-btn {
     @extend %btn-primary;
-
+    margin-top: 1rem;
     width: 100%;
   }
 
@@ -228,7 +231,7 @@
     &__to,
     &__time {
       padding: 1rem 0;
-      border-bottom: 1px solid rgba($black, 0.05);
+      // border-bottom: 1px solid rgba($black, 0.05);
     }
 
     &__label {
@@ -266,7 +269,7 @@
       background-color: rgba($azure-blue, 0.1);
       border-radius: 0.25rem;
       padding: 1rem;
-      margin: 1rem 0;
+      margin: 1rem 0 2rem 0;
     }
 
     &__summary-amount,
@@ -315,6 +318,48 @@
       border-radius: 50%;
       animation: spin 750ms infinite cubic-bezier(0.55, 0.09, 0.68, 0.53);
       margin: 0 auto;
+    }
+  }
+  &__sent {
+    &__confirm-icon {
+      background-image: url('../../assets/images/check-circle-blue.svg');
+      height: 2.5rem;
+      width: 2.5rem;
+      background-position: center;
+      background-size: cover;
+      margin: 1rem 0;
+    }
+    &__wrapper {
+      @extend %col-nowrap;
+      flex: 1 1 auto;
+      align-items: center;
+      vertical-align: center;
+    }
+
+    &__headline {
+      font-size: 2.5rem;
+      line-height: 2.5rem * 1.4;
+      font-weight: 600;
+      color: $azure-blue;
+      margin-bottom: 1rem;
+    }
+
+    &__description {
+      text-align: center;
+      @extend %h2;
+      font-weight: 400;
+      color: $manatee-gray;
+      margin-top: 1.5rem;
+    }
+
+    &__details {
+      @extend %h4;
+      margin: 4rem 0 0.5rem 0;
+      font-weight: 600;
+      color: $azure-blue;
+      &:hover {
+        cursor: pointer;
+      }
     }
   }
 }

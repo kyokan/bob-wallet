@@ -7,11 +7,9 @@ import c from 'classnames';
 import Modal from '../Modal';
 import './receive.scss';
 
-@connect(
-  state => ({
-    address: state.wallet.address,
-  }),
-)
+@connect(state => ({
+  address: state.wallet.address
+}))
 export default class ReceiveModal extends Component {
   static propTypes = {
     onClose: PropTypes.func.isRequired,
@@ -38,10 +36,9 @@ export default class ReceiveModal extends Component {
         <div className="receive__qr-code">
           <QRCode value={address} />
         </div>
+        <div className="receive__disclaimer">Your Address:</div>
         <div className="receive__address-display">
-          <div className="receive__address">
-            {address}
-          </div>
+          <div className="receive__address">{address}</div>
           <button
             className={c('receive__copy-btn', {
               'receive__copy-btn--copied': hasCopied
@@ -50,6 +47,10 @@ export default class ReceiveModal extends Component {
           >
             Copy
           </button>
+        </div>
+        <div className="receive__disclaimer">
+          This QR code can be scanned by the person who is sending you HNS
+          coins.
         </div>
       </div>
     ) : (
@@ -75,10 +76,6 @@ export default class ReceiveModal extends Component {
   render() {
     const { onClose } = this.props;
 
-    return (
-      <Modal onClose={onClose} className="receive__modal">
-        <div className="receive__container">{this.renderContent()}</div>
-      </Modal>
-    );
+    return <div className="receive__container">{this.renderContent()}</div>;
   }
 }

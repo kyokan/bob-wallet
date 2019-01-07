@@ -3,7 +3,6 @@ import { withRouter, NavLink } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import c from 'classnames';
 import { connect } from 'react-redux';
-import ReceiveModal from '../ReceiveModal';
 import './sidebar.scss';
 import ellipsify from '../../utils/ellipsify';
 import { Logo } from '../Logo';
