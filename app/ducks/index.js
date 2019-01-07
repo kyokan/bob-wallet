@@ -5,6 +5,7 @@ import wallet from './wallet';
 import node from './node';
 import myDomains from './myDomains';
 import notifications from './notifications';
+import bids from './bids';
 
 export default function createRootReducer(history) {
   return combineReducers({
@@ -13,6 +14,7 @@ export default function createRootReducer(history) {
     wallet,
     node,
     myDomains,
-    notifications
+    notifications,
+    bids,
   });
 }

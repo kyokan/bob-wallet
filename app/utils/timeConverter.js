@@ -21,4 +21,21 @@ function pad(num) {
   return num.toString();
 }
 
+export function hoursToNow(hoursUntil) {
+  if (!hoursUntil) {
+    return 'N/A';
+  }
+
+  if (hoursUntil < 24) {
+    const hours = Math.floor(hoursUntil % 24);
+    const mins = Math.floor((hoursUntil % 1) * 60);
+    return `~${hours}h ${mins}m`
+  }
+
+  const days = Math.floor(hoursUntil / 24);
+  const hours = Math.floor(hoursUntil % 24);
+  const mins = Math.floor((hoursUntil % 1) * 60);
+  return `~${days}d ${hours}h ${mins}m`
+}
+
 export default createAMPMTimeStamp;

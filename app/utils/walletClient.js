@@ -90,6 +90,11 @@ export function forNetwork(net) {
       return wallet.getPending('default');
     },
 
+    getBids: async () => {
+      await walletClient.execute('selectwallet', [WALLET_ID]);
+      return walletClient.execute('getbids');
+    },
+
     send: async (to, amount, fee) => {
       return wallet.send({
         rate: Number(toBaseUnits(fee)),

@@ -118,7 +118,7 @@ class Sidebar extends Component {
             className={c('sidebar__action', {
               'sidebar__action--selected': /bids/.test(pathname)
             })}
-            onClick={() => console.log('push("/bids")')}
+            onClick={() => push('/bids')}
           >
             Your Bids
           </a>
