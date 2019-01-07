@@ -339,23 +339,23 @@
     &__headline {
       font-size: 2.5rem;
       line-height: 2.5rem * 1.4;
-      font-weight: 700;
+      font-weight: 600;
       color: $azure-blue;
       margin-bottom: 1rem;
     }
 
     &__description {
       text-align: center;
-      @extend %h1;
-      font-weight: 500;
+      @extend %h2;
+      font-weight: 400;
       color: $manatee-gray;
       margin-top: 1.5rem;
     }
 
     &__details {
-      @extend %h3;
+      @extend %h4;
       margin: 4rem 0 0.5rem 0;
-      font-weight: 700;
+      font-weight: 600;
       color: $azure-blue;
       &:hover {
         cursor: pointer;

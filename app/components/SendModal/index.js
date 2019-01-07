@@ -57,7 +57,7 @@ class SendModal extends Component {
     return { isValid: true };
   }
 
-  send = () => {
+  send = async () => {
     const { to, amount, isSending, selectedGasOption } = this.state;
     const fee = this.props.fees[selectedGasOption.toLowerCase()];
 
@@ -89,11 +89,11 @@ class SendModal extends Component {
     });
   };
 
-  addDecimalsToInteger(value) {
-    if (value % 1 === 0) {
-      return Math.floor(value).toFixed(2);
+  addDecimalsToInteger(amount) {
+    if (amount % 1 === 0) {
+      return bn(amount).toFixed(2);
     }
-    return value;
+    return amount;
   }
 
   renderSend() {
@@ -219,9 +219,9 @@ class SendModal extends Component {
               <div className="send__confirm__summary-label">
                 Amount to send:
               </div>
-              <div className="send__confirm__summary-value">{`${bn(
+              <div className="send__confirm__summary-value">{`${this.addDecimalsToInteger(
                 amount
-              ).toFixed(2)} HNS`}</div>
+              )} HNS`}</div>
             </div>
             <div className="send__confirm__summary-fee">
               <div className="send__confirm__summary-label">Network Fee:</div>
@@ -264,8 +264,8 @@ class SendModal extends Component {
           <div className="send__sent__confirm-icon" />
           <div className="send__sent__headline">Transaction Sent</div>
           <div className="send__sent__description">
-            {`You just sent ${bn(amount).toFixed(
-              2
+            {`You just sent ${this.addDecimalsToInteger(
+              amount
             )} HNS to an external Handshake address.`}
           </div>
           <div className="send__sent__description">
@@ -279,11 +279,11 @@ class SendModal extends Component {
   }
 
   renderContent() {
-    if (this.state.isConfirming) {
-      return this.renderConfirm();
-    }
     if (this.state.transactionSent) {
       return this.renderTransactionSent();
+    }
+    if (this.state.isConfirming) {
+      return this.renderConfirm();
     }
     return this.renderSend();
   }
