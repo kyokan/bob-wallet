@@ -34,7 +34,7 @@ export class HeaderItem extends Component {
 export class TableRow extends Component {
   render() {
     return (
-      <div className="table__row">
+      <div className={`table__row ${this.props.className}`}>
         {this.props.children}
       </div>
     )
