@@ -125,7 +125,7 @@ class BidActionPanel extends Component {
         <React.Fragment>
           {this.renderInfoRow('Reveal', this.getTimeRemaining(this.props.domain.info.stats.hoursUntilReveal))}
           {this.renderInfoRow('Total Bids', this.props.domain.bids.length)}
-          {this.renderInfoRow('Highest Mask', displayBalance(this.findHighestMaskBid().lockup, true))}
+          {this.renderInfoRow('Highest Mask', displayBalance(this.findHighestMaskBid(), true))}
           <div className="domains__bid-now-divider" />
           {this.renderInfoRow('Bid Amount', displayBalance(ownBid.value, true))}
           {this.renderInfoRow('Mask Amount', displayBalance(ownBid.lockup, true))}

@@ -17,6 +17,7 @@ import Auction from '../Auction';
 import DomainManager from '../DomainManager';
 import MyDomain from '../MyDomain';
 import YourBids from '../YourBids';
+import Watching from '../Watching';
 import SearchTLD from '../SearchTLD';
 import * as walletActions from '../../ducks/wallet';
 import './app.scss';
@@ -107,6 +108,7 @@ class App extends Component {
         <Route path="/settings" render={this.routeRenderer('Settings', Settings)} />
         <Route path="/bids" render={this.routeRenderer('Domains', YourBids)} />
         <Route path="/domains" render={this.routeRenderer('Domains', SearchTLD)} />
+        <Route path="/watching" render={this.routeRenderer('Watching', Watching)} />
         <Route path="/domain_manager/:name" render={this.routeRenderer('Domain Manager', MyDomain)} />
         <Route path="/domain_manager" render={this.routeRenderer('Domain Manager', DomainManager)} />
         <Route path="/domain/:name?" render={this.routeRenderer('Browse Domains', Auction)} />

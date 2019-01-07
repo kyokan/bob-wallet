@@ -4,8 +4,15 @@ import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import * as nameActions from '../../ducks/names';
-import { isReveal, isClosed, isBidding, isOpening } from '../../utils/name-helpers';
+import {
+  isReveal,
+  isClosed,
+  isBidding,
+  isOpening,
+  isAvailable,
+} from '../../utils/name-helpers';
 import Hash from '../../components/Hash';
+import Blocktime from '../../components/Blocktime';
 
 class BidStatus extends Component {
   static propTypes = {
@@ -24,17 +31,49 @@ class BidStatus extends Component {
     const { address, domain } = this.props;
     return isClosed(domain) && domain.info.owner.hash === address;
   };
-  isBidding = () => isOpening(this.props.domain) || isBidding(this.props.domain);
+  isBidding = () => isBidding(this.props.domain);
+  isOpening = () => isOpening(this.props.domain);
+  isAvailable = () => isAvailable(this.props.domain);
+
+  getStatusClass() {
+    let c = 'bid-status__dot';
+    const { domain } = this.props;
+
+    if (!domain) {
+      return c;
+    }
+
+    if (this.isReveal()) {
+      return `${c} ${c}--reveal`;
+    }
+
+    if (this.isOwned()) {
+      return `${c} ${c}--owned`;
+    }
+
+    if (this.isSold()) {
+      return `${c} ${c}--sold`;
+    }
+
+    if (this.isOpening()) {
+      return `${c} ${c}--opening`;
+    }
+
+    if (this.isBidding()) {
+      return `${c} ${c}--bidding`;
+    }
+
+    if (this.isAvailable()) {
+      return `${c} ${c}--available`;
+    }
+
+    return `${c} ${c}--unavailable`;
+  }
 
   render() {
     return (
       <div className="bid-status">
-        <div
-          className={cn('bid-status__dot', {
-            'bid-status__dot--sold': this.isSold(),
-            'bid-status__dot--owned': this.isOwned(),
-          })}
-        />
+        <div className={this.getStatusClass()} />
         <div className="bid-status__text">
           {this.getStatusText()}
         </div>
@@ -64,7 +103,7 @@ class BidStatus extends Component {
           <span className="bid-status__text__paren">
             <span>(</span>
             <span className="bid-status__text__link">
-              <Hash value={domain.info.owner.hash} start={4} end={-4} />
+              <Hash value={domain.winner.address} start={4} end={-4} />
             </span>
             <span>)</span>
           </span>
@@ -72,8 +111,12 @@ class BidStatus extends Component {
       );
     }
 
+    if (this.isOpening()) {
+      return 'OPENING NOW';
+    }
+
     if (this.isBidding()) {
-      const { bids } = domain.info;
+      const { bids } = domain;
 
       return (
         <span>
@@ -88,6 +131,19 @@ class BidStatus extends Component {
         </span>
       );
     }
+
+    if (this.isAvailable()) {
+      return (
+        <span>
+          <span>AVAILABLE ON</span>
+          <span className="bid-status__text__paren">
+            <Blocktime height={domain.start.start} />
+          </span>
+        </span>
+      )
+    }
+
+    return "UNAVAILABLE";
 
   }
 }

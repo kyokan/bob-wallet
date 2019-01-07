@@ -1,0 +1,130 @@
+@import '../../variables';
+
+.watching-table {
+  &__remove-icon {
+    width: 1rem;
+    height: 1rem;
+    background-image: url(../../assets/images/delete-gray.svg);
+    background-size: cover;
+    background-repeat: no-repeat;
+    opacity: .5;
+    cursor: pointer;
+    transition: opacity 250ms ease-in-out;
+
+    &:hover {
+      opacity: .4;
+    }
+
+    &:active {
+      opacity: .6;
+    }
+  }
+
+  &__empty-row {
+    @extend %row-nowrap;
+    height: 1.8rem;
+    font-size: .8rem;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__create-row {
+    @extend %row-nowrap;
+    align-items: center;
+    justify-content: center;
+
+    &__cta {
+      @extend %btn-primary;
+
+      font-size: .8rem;
+      padding: .5rem 1.5rem;
+    }
+
+    &__actions {
+      @extend %row-nowrap;
+      align-items: center;
+    }
+
+    &__form {
+      @extend %row-nowrap;
+      align-items: center;
+      flex: 1 0 auto;
+      padding: 5rem;
+
+      &__input {
+        @extend %box-input;
+        width: 100%;
+
+        input {
+          width: 100%;
+        }
+      }
+
+      &__cta {
+        @extend %btn-primary;
+        padding: .5rem 1.5rem;
+        font-size: .8rem;
+        margin: 0 1rem 0 1rem;
+      }
+
+      &__remove {
+        width: 1rem;
+        height: 1rem;
+        background-image: url(../../assets/images/delete-gray.svg);
+        background-size: cover;
+        background-repeat: no-repeat;
+        opacity: .5;
+        cursor: pointer;
+        transition: opacity 250ms ease-in-out;
+
+        &:hover {
+          opacity: .4;
+        }
+
+        &:active {
+          opacity: .6;
+        }
+      }
+    }
+  }
+
+  .table {
+    &__header {
+      &__item:nth-of-type(1) {
+        flex: 0 0 11rem;
+      }
+
+      &__item:nth-of-type(2) {
+        flex: 1 0 8rem;
+      }
+
+      &__item:nth-of-type(3) {
+        flex: 0 0 5rem;
+      }
+
+      &__item:nth-of-type(4) {
+        flex: 0 0 7rem;
+      }
+    }
+
+    &__row {
+      &__item:nth-of-type(1) {
+        flex: 0 0 11rem;
+      }
+
+      &__item:nth-of-type(2) {
+        flex: 1 0 8rem;
+      }
+
+      &__item:nth-of-type(3) {
+        flex: 0 0 5rem;
+      }
+
+      &__item:nth-of-type(4) {
+        @extend %row-nowrap;
+        flex: 0 0 7rem;
+        justify-content: flex-end;
+      }
+    }
+  }
+}
