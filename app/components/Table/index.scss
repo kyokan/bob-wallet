@@ -25,6 +25,10 @@
     &__item:nth-of-type(1) {
       padding-left: 1.5rem;
     }
+
+    &__item:last-of-type {
+      padding-right: 1.5rem;
+    }
   }
 
   &__row {
@@ -44,6 +48,10 @@
 
     &__item:nth-of-type(1) {
       padding-left: 1.5rem;
+    }
+
+    &__item:last-of-type {
+      padding-right: 1.5rem;
     }
   }
 }
