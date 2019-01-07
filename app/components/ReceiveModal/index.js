@@ -36,6 +36,7 @@ export default class ReceiveModal extends Component {
         <div className="receive__qr-code">
           <QRCode value={address} />
         </div>
+        <div className="receive__disclaimer">Your Address:</div>
         <div className="receive__address-display">
           <div className="receive__address">{address}</div>
           <button
@@ -46,6 +47,10 @@ export default class ReceiveModal extends Component {
           >
             Copy
           </button>
+        </div>
+        <div className="receive__disclaimer">
+          This QR code can be scanned by the person who is sending you HNS
+          coins.
         </div>
       </div>
     ) : (
