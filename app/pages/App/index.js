@@ -145,7 +145,7 @@ class App extends Component {
           </div>
         )}
         <div className="app__main-wrapper">
-          <Topbar title={title} />
+          <Topbar title={title} showLogo={!showSidebar} />
           <div className="app__content">
             <Component />
           </div>

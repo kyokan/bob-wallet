@@ -6,7 +6,6 @@ import { connect } from 'react-redux';
 import * as nameActions from '../../ducks/names';
 import TLDInput from '../TLDInput';
 import { Logo } from '../Logo';
-import { shouldHideSidebar } from '../../utils/shouldHideSidebar';
 import './topbar.scss';
 
 @withRouter
@@ -91,14 +90,13 @@ class Topbar extends Component {
       title,
       isSynchronized,
       isSynchronizing,
+      showLogo,
       location: { pathname }
     } = this.props;
 
     return (
       <React.Fragment>
-        {shouldHideSidebar(pathname)
-          ? this.renderLogo()
-          : this.renderTitle(title)}
+        {showLogo ? this.renderLogo() : this.renderTitle(title)}
         {!/domains$/.test(pathname) && <TLDInput minimalErrorDisplay />}
         <div
           className={c('topbar__synced', {
