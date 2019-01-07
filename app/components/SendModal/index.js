@@ -58,37 +58,29 @@ class SendModal extends Component {
   }
 
   send = () => {
-    this.setState({
-      isSending: false,
-      isConfirming: false,
-      transactionSent: true,
-      errorMessage: ''
-    });
-    // const { to, amount, isSending, selectedGasOption } = this.state;
-    // const fee = this.props.fees[selectedGasOption.toLowerCase()];
+    const { to, amount, isSending, selectedGasOption } = this.state;
+    const fee = this.props.fees[selectedGasOption.toLowerCase()];
 
-    // if (isSending) {
-    //   return;
-    // }
+    if (isSending) {
+      return;
+    }
 
-    // this.setState({ isSending: true, errorMessage: '' });
-    // try {
-    //   await this.props.send(to, amount, fee);
-    //   this.setState({
-    //     isSending: false,
-    //     isConfirming: false,
-    //     transactionSent: true,
-    //     to: '',
-    //     amount: '',
-    //     errorMessage: ''
-    //   });
-    // } catch (e) {
-    //   console.error(e);
-    //   this.setState({
-    //     errorMessage: 'Something went wrong, please try again.',
-    //     isSending: false
-    //   });
-    // }
+    this.setState({ isSending: true, errorMessage: '' });
+    try {
+      await this.props.send(to, amount, fee);
+      this.setState({
+        isSending: false,
+        isConfirming: false,
+        transactionSent: true,
+        errorMessage: ''
+      });
+    } catch (e) {
+      console.error(e);
+      this.setState({
+        errorMessage: 'Something went wrong, please try again.',
+        isSending: false
+      });
+    }
   };
 
   sendMax = () => {
