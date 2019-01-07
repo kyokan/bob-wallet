@@ -1,4 +1,4 @@
-const HIDDEN_PATHS = [/domains/, /domain\//];
+const HIDDEN_PATHS = [/domains$/, /domain\//];
 
 export const shouldHideSidebar = pathname => {
   let isHidden = false;
