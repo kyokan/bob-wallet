@@ -62,7 +62,7 @@ export default class Transaction extends Component {
       description = 'Received funds';
       content = ellipsify(tx.meta.from, 12);
     } else if (tx.type === OPEN) {
-      description = 'Opened bidding';
+      description = 'Opened bid';
       content = this.formatDomain(tx.meta.domain);
     } else if (tx.type === BID) {
       description = 'Placed bid';
