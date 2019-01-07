@@ -21,10 +21,10 @@ const GAS_TO_ESTIMATES = {
   state => ({
     address: state.wallet.address,
     fees: state.node.fees,
-    totalBalance: displayBalance(state.wallet.balance.confirmed),
+    totalBalance: displayBalance(state.wallet.balance.confirmed)
   }),
   dispatch => ({
-    send: (to, amount, fee) => dispatch(walletActions.send(to, amount, fee)),
+    send: (to, amount, fee) => dispatch(walletActions.send(to, amount, fee))
   })
 )
 class SendModal extends Component {
@@ -37,42 +37,42 @@ class SendModal extends Component {
   state = {
     selectedGasOption: STANDARD,
     isConfirming: false,
+    transactionSent: false,
     isSending: false,
     to: '',
     amount: '',
-    errorMessage: '',
+    errorMessage: ''
   };
 
-  updateToAddress = e => this.setState({to: e.target.value});
-  updateAmount = e => this.setState({amount: e.target.value});
+  updateToAddress = e => this.setState({ to: e.target.value });
+  updateAmount = e => this.setState({ amount: e.target.value });
 
   validate() {
-    const {to, amount} = this.state;
+    const { to, amount } = this.state;
 
     if (!to || !amount) {
-      return {isValid: false};
+      return { isValid: false };
     }
 
-    return {isValid: true};
+    return { isValid: true };
   }
 
   send = async () => {
-    const {to, amount, isSending, selectedGasOption} = this.state;
+    const { to, amount, isSending, selectedGasOption } = this.state;
     const fee = this.props.fees[selectedGasOption.toLowerCase()];
 
     if (isSending) {
       return;
     }
 
-    this.setState({isSending: true, errorMessage: ''});
+    this.setState({ isSending: true, errorMessage: '' });
     try {
       await this.props.send(to, amount, fee);
       this.setState({
         isSending: false,
         isConfirming: false,
-        to: '',
-        amount: '',
-        errorMessage: '',
+        transactionSent: true,
+        errorMessage: ''
       });
     } catch (e) {
       console.error(e);
@@ -85,13 +85,20 @@ class SendModal extends Component {
 
   sendMax = () => {
     this.setState({
-      amount: this.props.totalBalance,
-    })
+      amount: this.props.totalBalance
+    });
   };
 
+  addDecimalsToInteger(amount) {
+    if (amount % 1 === 0) {
+      return bn(amount).toFixed(2);
+    }
+    return amount;
+  }
+
   renderSend() {
-    const {selectedGasOption, amount, to} = this.state;
-    const {isValid} = this.validate();
+    const { selectedGasOption, amount, to } = this.state;
+    const { isValid } = this.validate();
     const gasFee = this.props.fees[selectedGasOption.toLowerCase()];
 
     return (
@@ -119,10 +126,16 @@ class SendModal extends Component {
                 onChange={this.updateAmount}
                 value={amount}
               />
-              <div className="send__amount-input__max-btn" onClick={this.sendMax}>
+              <div
+                className="send__amount-input__max-btn"
+                onClick={this.sendMax}
+              >
                 Send Max
               </div>
               <div className="send__amount-input__unit">HNS</div>
+            </div>
+            <div className="send__input-disclaimer">
+              {`Available to send: ${this.props.totalBalance} HNS`}
             </div>
           </div>
           <div className="send__network-fee">
@@ -135,7 +148,7 @@ class SendModal extends Component {
                 <div>{selectedGasOption}</div>
                 <select
                   onChange={e =>
-                    this.setState({selectedGasOption: e.target.value})
+                    this.setState({ selectedGasOption: e.target.value })
                   }
                   value={selectedGasOption}
                 >
@@ -148,7 +161,7 @@ class SendModal extends Component {
                 {`${gasFee} HNS`}
               </div>
             </div>
-            <div className="send__estimated-time">
+            <div className="send__input-disclaimer">
               {`Est. delivery: ${GAS_TO_ESTIMATES[selectedGasOption]}`}
             </div>
           </div>
@@ -157,7 +170,7 @@ class SendModal extends Component {
           <button
             className="send__cta-btn"
             key="continue"
-            onClick={() => isValid && this.setState({isConfirming: true})}
+            onClick={() => isValid && this.setState({ isConfirming: true })}
             disabled={!isValid}
           >
             Continue
@@ -176,34 +189,29 @@ class SendModal extends Component {
       isSending
     } = this.state;
     const gasFee = this.props.fees[selectedGasOption.toLowerCase()];
-    const {address, onClose} = this.props;
+    const { address, onClose } = this.props;
 
     return (
       <div className="send__container">
         <div className="send__header">
           <div className="send__title">Confirm Send</div>
-          <div className="send__close-btn" onClick={onClose}>
-            ✕
-          </div>
-          <div
-            className="send__back-btn"
-            onClick={() => this.setState({isConfirming: false})}
-          />
         </div>
         <div className="send__content">
           <Alert type="error" message={this.state.errorMessage} />
-          <div className="send__confirm__from">
-            <div className="send__confirm__label">Sending from:</div>
-            <div className="send__confirm__address">{address}</div>
-          </div>
           <div className="send__confirm__to">
             <div className="send__confirm__label">Sending to:</div>
             <div className="send__confirm__address">{to}</div>
           </div>
+          <div className="send__confirm__from">
+            <div className="send__confirm__label">Sending from:</div>
+            <div className="send__confirm__time-text">Default account</div>
+          </div>
           <div className="send__confirm__time">
             <div className="send__confirm__label">Transaction time:</div>
             <div className="send__confirm__time-text">
-              {`This might take ${GAS_TO_ESTIMATES[selectedGasOption]}`}
+              {`${selectedGasOption} - this may take up to ${
+                GAS_TO_ESTIMATES[selectedGasOption]
+              }`}
             </div>
           </div>
           <div className="send__confirm__summary">
@@ -211,7 +219,9 @@ class SendModal extends Component {
               <div className="send__confirm__summary-label">
                 Amount to send:
               </div>
-              <div className="send__confirm__summary-value">{`${amount} HNS`}</div>
+              <div className="send__confirm__summary-value">{`${this.addDecimalsToInteger(
+                amount
+              )} HNS`}</div>
             </div>
             <div className="send__confirm__summary-fee">
               <div className="send__confirm__summary-label">Network Fee:</div>
@@ -219,14 +229,16 @@ class SendModal extends Component {
             </div>
             <div className="send__confirm__summary-total">
               <div className="send__confirm__summary-label">Total:</div>
-              <div className="send__confirm__summary-value">{`${bn(amount).plus(gasFee).toFixed(6)} HNS`}</div>
+              <div className="send__confirm__summary-value">{`${bn(amount)
+                .plus(gasFee)
+                .toFixed(6)} HNS`}</div>
             </div>
           </div>
         </div>
         <div className="send__confirm__actions">
           <button
             className="send__confirm__cancel-btn"
-            onClick={onClose}
+            onClick={() => this.setState({ isConfirming: false })}
             disabled={isSending}
           >
             Cancel
@@ -244,14 +256,40 @@ class SendModal extends Component {
     );
   }
 
+  renderTransactionSent() {
+    const { amount } = this.state;
+    return (
+      <div className="send__container">
+        <div className="send__sent__wrapper">
+          <div className="send__sent__confirm-icon" />
+          <div className="send__sent__headline">Transaction Sent</div>
+          <div className="send__sent__description">
+            {`You just sent ${this.addDecimalsToInteger(
+              amount
+            )} HNS to an external Handshake address.`}
+          </div>
+          <div className="send__sent__description">
+            Your balance will update as soon as the blockchain has confirmed
+            your transaction.
+          </div>
+          <div className="send__sent__details">See Details</div>
+        </div>
+      </div>
+    );
+  }
+
   renderContent() {
-    return this.state.isConfirming ? this.renderConfirm() : this.renderSend();
+    if (this.state.transactionSent) {
+      return this.renderTransactionSent();
+    }
+    if (this.state.isConfirming) {
+      return this.renderConfirm();
+    }
+    return this.renderSend();
   }
 
   render() {
-    return (
-      this.renderContent()
-    );
+    return this.renderContent();
   }
 }
 

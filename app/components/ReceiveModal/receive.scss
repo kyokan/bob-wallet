@@ -1,15 +1,12 @@
 @import '../../variables';
 
 .receive {
-  max-width: 22rem;
-
-  &__modal {
-    width: 400px;
-    padding: 3rem;
-  }
-
   &__container {
     @extend %col-nowrap;
+    max-width: 25rem;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 0.6rem;
+    padding: 2rem;
   }
 
   &__header {
@@ -65,17 +62,15 @@
     width: 9.5rem;
     height: 9.5rem;
     box-sizing: border-box;
-    margin-bottom: 4rem;
-    border-radius: 0.25rem;
-    padding: 0.75rem;
-    box-shadow: 0 2px 4px 2px rgba($black, 0.2);
+    margin: 1rem 0;
     align-items: center;
     justify-content: center;
   }
 
   &__address-display {
     @extend %row-nowrap;
-    box-shadow: 0 0 0 1.25px rgba($black, 0.1);
+    border: solid 1.25px rgba($black, 0.1);
+    margin: 0.8rem 0 1.5rem 0;
     border-radius: 8px;
     width: 350px;
     align-items: center;
@@ -87,6 +82,14 @@
     font-size: 0.7rem;
     font-family: 'Roboto Mono', monospace;
     font-weight: 500;
+  }
+
+  &__disclaimer {
+    @extend %h3;
+    max-width: 20rem;
+    line-height: 1.5rem;
+    text-align: center;
+    color: $manatee-gray;
   }
 
   &__copy-btn {
