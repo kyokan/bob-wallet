@@ -126,7 +126,7 @@ export default class Auction extends Component {
   }
 
   renderAuctionDetails() {
-    if (this.state.isLoading) {
+    if (this.state.isLoading || !this.props.domain) {
       return 'Loading...';
     }
 
@@ -135,6 +135,8 @@ export default class Auction extends Component {
     return (
       <React.Fragment>
         {this.renderStatusInfo()}
+        {this.maybeRenderDateBlock(() => isBidding(name), 'Bidding Open', stats.bidPeriodStart, stats.hoursUntilClose)}
+        {this.maybeRenderDateBlock(() => isBidding(name), 'Bidding Close', stats.bidPeriodEnd, stats.hoursUntilClose)}
         {this.maybeRenderDateBlock(() => isReveal(name), 'Reveal Open', stats.revealPeriodStart, stats.hoursUntilClose)}
         {this.maybeRenderDateBlock(() => isReveal(name), 'Reveal Close', stats.revealPeriodEnd, stats.hoursUntilClose)}
       </React.Fragment>
@@ -175,7 +177,7 @@ export default class Auction extends Component {
   }
 
   maybeRenderDateBlock(condition, title, height, adjust) {
-    if (!condition) {
+    if (!condition()) {
       return null;
     }
 
