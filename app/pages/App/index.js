@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { Redirect, Route, Switch, withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import c from 'classnames';
 import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
 import SendModal from '../../components/SendModal';
@@ -114,7 +113,7 @@ class App extends Component {
         <Route path="/bids" render={this.routeRenderer('Domains', YourBids)} />
         <Route
           path="/domains"
-          render={this.routeRenderer('Domains', SearchTLD, true)}
+          render={this.routeRenderer('Domains', SearchTLD, false)}
         />
         <Route
           path="/watching"
@@ -130,23 +129,21 @@ class App extends Component {
         />
         <Route
           path="/domain/:name?"
-          render={this.routeRenderer('Browse Domains', Auction, true)}
+          render={this.routeRenderer('Browse Domains', Auction, false)}
         />
         {this.renderDefault()}
       </Switch>
     );
   }
 
-  routeRenderer(title, Component, hideSidebar = false) {
+  routeRenderer(title, Component, showSidebar = true) {
     return () => (
       <React.Fragment>
-        <div
-          className={c('app__sidebar-wrapper', {
-            'app__sidebar-wrapper--hide': hideSidebar
-          })}
-        >
-          <Sidebar />
-        </div>
+        {showSidebar && (
+          <div className={'app__sidebar-wrapper'}>
+            <Sidebar />
+          </div>
+        )}
         <div className="app__main-wrapper">
           <Topbar title={title} />
           <div className="app__content">
