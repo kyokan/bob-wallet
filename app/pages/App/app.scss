@@ -19,7 +19,7 @@
     width: 400px;
     height: 500px;
     background: white;
-    box-shadow: 0 1px 8px rgba(0,0,0,0.25);
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.25);
     border-radius: 0.5rem;
   }
 
@@ -27,12 +27,16 @@
     flex: 0 0 auto;
     width: 220px;
     z-index: 1;
+
+    &--hide {
+      display: none;
+    }
   }
 
   &__main-wrapper {
     flex: 1 1 auto;
     height: 100vh;
-    overflow: auto
+    overflow: auto;
   }
 
   &__content {

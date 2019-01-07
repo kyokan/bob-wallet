@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { withRouter } from 'react-router-dom';
+import { withRouter, NavLink } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import c from 'classnames';
 import { connect } from 'react-redux';
@@ -19,22 +19,14 @@ import { Logo } from '../Logo';
 class Sidebar extends Component {
   static propTypes = {
     history: PropTypes.shape({
-      push: PropTypes.func.isRequired,
+      push: PropTypes.func.isRequired
     }).isRequired,
     location: PropTypes.shape({
-      pathname: PropTypes.string.isRequired,
+      pathname: PropTypes.string.isRequired
     }).isRequired,
     height: PropTypes.number.isRequired,
-    tip: PropTypes.string.isRequired,
+    tip: PropTypes.string.isRequired
   };
-
-  state = {
-    isShowingReceiveModal: false,
-  };
-
-  toggleReceiveModal = (val) => this.setState({
-    isShowingReceiveModal: val
-  });
 
   render() {
     return (
@@ -57,81 +49,71 @@ class Sidebar extends Component {
       history: { push },
       location: { pathname }
     } = this.props;
-
-    //use NavLink component check out docs
     return (
       <React.Fragment>
         <div className="sidebar__section">Wallet</div>
         <div className="sidebar__actions">
-          <a
-            className={c('sidebar__action', {
-              'sidebar__action--selected': /account/.test(pathname)
-            })}
-            onClick={() => push('/account')}
+          <NavLink
+            className="sidebar__action"
+            to="/account"
+            activeClassName="sidebar__action--selected"
           >
             Portfolio
-          </a>
-          <a
-            className={c('sidebar__action', {
-              'sidebar__action--selected': /send/.test(pathname)
-            })}
-            onClick={() => push('/send')}
+          </NavLink>
+          <NavLink
+            className="sidebar__action"
+            to="/send"
+            activeClassName="sidebar__action--selected"
           >
             Send
-          </a>
-          <a
-            className={c('sidebar__action', {
-              'sidebar__action--selected': /receive/.test(pathname)
-            })}
-            onClick={() => this.toggleReceiveModal(true)}
+          </NavLink>
+          <NavLink
+            className="sidebar__action"
+            to="/receive"
+            activeClassName="sidebar__action--selected"
           >
             Receive
-          </a>
-          <a
-            className={c('sidebar__action', {
-              'sidebar__action--selected': /domain_manager/.test(pathname)
-            })}
-            onClick={() => push('/domain_manager')}
+          </NavLink>
+          <NavLink
+            className="sidebar__action"
+            to="/domain_manager"
+            activeClassName="sidebar__action--selected"
           >
             Domain Manager
-          </a>
-          <a
-            className={c('sidebar__action', {
-              'sidebar__action--selected': /get_coins/.test(pathname)
-            })}
-            onClick={() => push('/get_coins')}
+          </NavLink>
+          <NavLink
+            className="sidebar__action"
+            to="/get_coins"
+            activeClassName="sidebar__action--selected"
           >
             GooSig Airdrop
-          </a>
+          </NavLink>
         </div>
         <div className="sidebar__section">Top-Level Domains</div>
         <div className="sidebar__actions">
-          <a
-            className={c('sidebar__action', {
-              'sidebar__action--selected': /domains/.test(pathname)
-            })}
-            onClick={() => push('/domains')}
+          <NavLink
+            className="sidebar__action"
+            to="/domains"
+            activeClassName="sidebar__action--selected"
           >
             Browse Domains
-          </a>
-          <a
-            className={c('sidebar__action', {
-              'sidebar__action--selected': /bids/.test(pathname)
-            })}
-            onClick={() => push('/bids')}
+          </NavLink>
+
+          <NavLink
+            className="sidebar__action"
+            to="/bids"
+            activeClassName="sidebar__action--selected"
           >
             Your Bids
-          </a>
-          <a
-            className={c('sidebar__action', {
-              'sidebar__action--selected': /watching/.test(pathname)
-            })}
-            onClick={() => push("/watching")}
+          </NavLink>
+          <NavLink
+            className="sidebar__action"
+            to="/watching"
+            activeClassName="sidebar__action--selected"
           >
             Watching
-          </a>
+          </NavLink>
         </div>
-        {this.state.isShowingReceiveModal ? <ReceiveModal onClose={() => this.toggleReceiveModal(false)} /> : null}
       </React.Fragment>
     );
   }
@@ -141,11 +123,15 @@ class Sidebar extends Component {
       <div className="sidebar__footer">
         <div className="sidebar__footer__row">
           <div className="sidebar__footer__title">Current Height</div>
-          <div className="sidebar__footer__text">{this.props.height || '--'}</div>
+          <div className="sidebar__footer__text">
+            {this.props.height || '--'}
+          </div>
         </div>
         <div className="sidebar__footer__row">
           <div className="sidebar__footer__title">Current Hash</div>
-          <div className="sidebar__footer__text">{this.props.tip ? ellipsify(this.props.tip) : '--'}</div>
+          <div className="sidebar__footer__text">
+            {this.props.tip ? ellipsify(this.props.tip) : '--'}
+          </div>
         </div>
       </div>
     );
