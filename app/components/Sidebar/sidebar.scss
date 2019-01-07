@@ -5,7 +5,7 @@
 
   background-color: $athens-gray;
   box-shadow: 1px 0 0 0 rgba($black, 0.1);
-  padding: 0 2rem 0 1rem;
+  padding: 0 2rem 0 1.5rem;
   font-size: 0.9rem;
   flex: 1 1 auto;
   height: 100%;
@@ -19,23 +19,9 @@
 
   &__logo-wrapper {
     @extend %row-nowrap;
-    margin: 1.75rem 1rem;
+    margin: 1.75rem 0 1.75rem 0;
     justify-content: space-between;
     align-items: center;
-  }
-
-  &__logo-icon {
-    height: 1.5rem;
-    width: 1.5rem;
-    background-image: url('../../assets/images/icon-128.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-  }
-  &__logo-text {
-    @extend %h5;
-    font-weight: 700;
-    font-style: italic;
-    text-transform: uppercase;
   }
 
   &__content {
@@ -48,7 +34,7 @@
     @extend %h6;
     color: $manatee-gray;
     text-transform: uppercase;
-    padding: 0.5rem 0.75rem;
+    padding: 0.5rem 0.75rem 0.5rem 0;
   }
 
   &__actions {
@@ -61,7 +47,7 @@
     color: $black;
     font-size: 0.8rem;
     padding: 0.75rem 1rem;
-    margin: 0.2rem 0;
+    margin: 0.2rem 0 0.2rem -1rem;
     font-weight: 600;
     transition: background-color 250ms ease-in, color 200ms ease-in-out;
     background-color: rgba($azure-blue, 0);

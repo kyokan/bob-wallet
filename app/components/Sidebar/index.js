@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import ReceiveModal from '../ReceiveModal';
 import './sidebar.scss';
 import ellipsify from '../../utils/ellipsify';
+import { Logo } from '../Logo';
 
 @withRouter
 @connect(
@@ -41,8 +42,7 @@ class Sidebar extends Component {
         <div className="sidebar__content">
           <div>
             <div className="sidebar__logo-wrapper">
-              <div className="sidebar__logo-icon" />
-              <div className="sidebar__logo-text">Allison x Bob</div>
+              <Logo />
             </div>
             {this.renderNav()}
           </div>
