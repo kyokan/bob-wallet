@@ -39,7 +39,17 @@ class YourBids extends Component {
   }
 
   renderRows() {
-    return this.props.yourBids.map(bid => (
+    const { yourBids } = this.props;
+
+    if (!yourBids.length) {
+      return (
+        <TableRow className="bids-table__empty-row">
+          You have not made any bids yet.
+        </TableRow>
+      );
+    }
+
+    return yourBids.map(bid => (
       <TableRow>
         <TableItem><BidStatus name={bid.name} /></TableItem>
         <TableItem>{`${bid.name}/`}</TableItem>
