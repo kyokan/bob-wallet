@@ -15,5 +15,17 @@
     &__toggle {
       @extend %link;
     }
+
   }
+
+  &__content {
+    opacity: 1;
+    transition: 0.3s linear;
+
+    &--hidden {
+      opacity: 0;
+      transition: 0.3s linear;
+    }
+  }
+  
 }
