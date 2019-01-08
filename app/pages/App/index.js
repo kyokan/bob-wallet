@@ -86,10 +86,7 @@ class App extends Component {
     return (
       <React.Fragment>
         <Notification />
-        <div className="app__sidebar-wrapper">
-          <Sidebar />
-        </div>
-        <div className="app__main-wrapper">{this.renderRoutes()}</div>
+        {this.renderRoutes()}
       </React.Fragment>
     );
   }
@@ -115,22 +112,44 @@ class App extends Component {
           render={this.routeRenderer('Settings', Settings)}
         />
         <Route path="/bids" render={this.routeRenderer('Domains', YourBids)} />
-        <Route path="/domains" render={this.routeRenderer('Domains', SearchTLD)} />
-        <Route path="/watching" render={this.routeRenderer('Watching', Watching)} />
-        <Route path="/domain_manager/:name" render={this.routeRenderer('Domain Manager', MyDomain)} />
-        <Route path="/domain_manager" render={this.routeRenderer('Domain Manager', DomainManager)} />
-        <Route path="/domain/:name?" render={this.routeRenderer('Browse Domains', Auction)} />
+        <Route
+          path="/domains"
+          render={this.routeRenderer('Domains', SearchTLD, false)}
+        />
+        <Route
+          path="/watching"
+          render={this.routeRenderer('Watching', Watching)}
+        />
+        <Route
+          path="/domain_manager/:name"
+          render={this.routeRenderer('Domain Manager', MyDomain)}
+        />
+        <Route
+          path="/domain_manager"
+          render={this.routeRenderer('Domain Manager', DomainManager)}
+        />
+        <Route
+          path="/domain/:name?"
+          render={this.routeRenderer('Browse Domains', Auction, false)}
+        />
         {this.renderDefault()}
       </Switch>
     );
   }
 
-  routeRenderer(title, Component) {
+  routeRenderer(title, Component, showSidebar = true) {
     return () => (
       <React.Fragment>
-        <Topbar title={title} />
-        <div className="app__content">
-          <Component />
+        {showSidebar && (
+          <div className={'app__sidebar-wrapper'}>
+            <Sidebar />
+          </div>
+        )}
+        <div className="app__main-wrapper">
+          <Topbar title={title} showLogo={!showSidebar} />
+          <div className="app__content">
+            <Component />
+          </div>
         </div>
       </React.Fragment>
     );

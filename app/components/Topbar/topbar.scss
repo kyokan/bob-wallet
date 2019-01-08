@@ -21,7 +21,26 @@
     @extend %h1;
 
     font-weight: 500;
-    margin-right: auto;
+    flex: 1 1 auto;
+  }
+
+  &__logoHeader {
+    @extend %row-nowrap;
+    align-items: center;
+    flex: 1 1 auto;
+
+    &__backArrow {
+      background-image: url('../../assets/images/arrow-back-blue.svg');
+      height: 1rem;
+      width: 1rem;
+      background-size: cover;
+      background-position: center;
+      margin-right: 0.5rem;
+
+      &:hover {
+        cursor: pointer;
+      }
+    }
   }
 
   &__synced {
