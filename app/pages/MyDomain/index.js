@@ -8,6 +8,7 @@ import './my-domain.scss';
 import Collapsible from '../../components/Collapsible';
 import DomainDetails from './DomainDetails';
 import Records from './Records';
+import BidHistory from '../Auction/BidHistory';
 
 class MyDomain extends Component {
   static propTypes = {
@@ -49,7 +50,7 @@ class MyDomain extends Component {
           <Records  name={name} />
         </Collapsible>
         <Collapsible  className="my-domain__info-panel" title="Bid History" defaultCollapsed>
-          hi
+          {this.props.domain ? <BidHistory bids={this.props.domain.bids} /> : 'Loading...'}
         </Collapsible>
       </div>
     )

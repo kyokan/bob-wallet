@@ -95,7 +95,7 @@ class Watching extends Component {
   }
 
   renderRows() {
-    const { names } = this.props;
+    const { names, history } = this.props;
 
     if (!names.length) {
       return (
@@ -106,7 +106,7 @@ class Watching extends Component {
     }
 
     return names.map(name => (
-      <TableRow>
+      <TableRow onClick={() => history.push(`/domain/${name}`)}>
         <TableItem>
           <BidStatus name={name} />
         </TableItem>

@@ -9,54 +9,69 @@ import * as bidsActions from '../../ducks/bids';
 import { displayBalance } from '../../utils/balances';
 import './your-bids.scss';
 import BidAction from './BidAction';
+import Fuse from '../../utils/fuse';
 
 class YourBids extends Component {
   static propTypes = {
     yourBids: PropTypes.array.isRequired,
   };
 
+  state = {
+    query: '',
+  };
+
+  handleOnChange = e => this.setState({ query: e.target.value });
+
   render() {
     return (
       <div className="bids">
+        <div className="bids__search">
+          <div className="bids__search__icon" />
+          <input
+            className="bids__search__input"
+            placeholder="Search your bids"
+            onChange={this.handleOnChange}
+            value={this.state.query}
+          />
+        </div>
         <Table className="bids-table">
-          {this.renderHeaders()}
+          <Header />
           {this.renderRows()}
         </Table>
       </div>
     );
   }
 
-  renderHeaders() {
-    return (
-      <HeaderRow>
-        <HeaderItem>
-          <div>Status</div>
-        </HeaderItem>
-        <HeaderItem>TLD</HeaderItem>
-        <HeaderItem>Time Left</HeaderItem>
-        <HeaderItem>Your Bid</HeaderItem>
-        <HeaderItem />
-      </HeaderRow>
-    )
-  }
+
 
   renderRows() {
-    const { yourBids } = this.props;
+    const { yourBids, history } = this.props;
+    const { query } = this.state;
 
-    if (!yourBids.length) {
+    if (!this.fuse) {
+      this.fuse = new Fuse(yourBids, {
+        keys: ['name'],
+      });
+    }
+
+    const bids = query ? this.fuse.search(query) : yourBids;
+
+    if (!bids.length) {
       return (
         <TableRow className="bids-table__empty-row">
-          You have not made any bids yet.
+          No Bids Found
         </TableRow>
       );
     }
 
-    return yourBids.map(bid => (
-      <TableRow>
+
+
+    return bids.map(bid => (
+      <TableRow key={bid.name} onClick={() => history.push(`/domain/${bid.name}`)}>
         <TableItem><BidStatus name={bid.name} /></TableItem>
         <TableItem>{`${bid.name}/`}</TableItem>
         <TableItem><BidTimeLeft name={bid.name} /></TableItem>
-        <TableItem>{displayBalance(bid.value)}</TableItem>
+        <TableItem>{`${+displayBalance(bid.value)} HNS`}</TableItem>
         <TableItem><BidAction name={bid.name} /></TableItem>
       </TableRow>
     ));
@@ -73,3 +88,17 @@ export default withRouter(
     })
   )(YourBids)
 );
+
+function Header() {
+  return (
+    <HeaderRow>
+      <HeaderItem>
+        <div>Status</div>
+      </HeaderItem>
+      <HeaderItem>TLD</HeaderItem>
+      <HeaderItem>Time Left</HeaderItem>
+      <HeaderItem>Your Bid</HeaderItem>
+      <HeaderItem />
+    </HeaderRow>
+  )
+}

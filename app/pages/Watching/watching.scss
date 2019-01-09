@@ -20,6 +20,58 @@
     }
   }
 
+
+  .table {
+    &__header {
+      &__item:nth-of-type(1) {
+        flex: 0 0 11rem;
+      }
+
+      &__item:nth-of-type(2) {
+        flex: 1 0 8rem;
+      }
+
+      &__item:nth-of-type(3) {
+        flex: 0 0 5rem;
+      }
+
+      &__item:nth-of-type(4) {
+        flex: 0 0 7rem;
+      }
+    }
+
+    &__row {
+      cursor: pointer;
+      transition: background-color 250ms ease-in-out;
+
+      &:hover {
+        background-color: rgba($black, .025);
+      }
+
+      &:active {
+        background-color: rgba($black, .05);
+      }
+
+      &__item:nth-of-type(1) {
+        flex: 0 0 11rem;
+      }
+
+      &__item:nth-of-type(2) {
+        flex: 1 0 8rem;
+      }
+
+      &__item:nth-of-type(3) {
+        flex: 0 0 5rem;
+      }
+
+      &__item:nth-of-type(4) {
+        @extend %row-nowrap;
+        flex: 0 0 7rem;
+        justify-content: flex-end;
+      }
+    }
+  }
+
   &__empty-row {
     @extend %row-nowrap;
     height: 1.8rem;
@@ -30,8 +82,19 @@
 
   &__create-row {
     @extend %row-nowrap;
+
     align-items: center;
     justify-content: center;
+    cursor: default !important;
+    transition: none !important;
+
+    &:hover {
+      background-color: $white !important;
+    }
+
+    &:active {
+      background-color: $white !important;
+    }
 
     &__cta {
       @extend %btn-primary;
@@ -84,46 +147,6 @@
         &:active {
           opacity: .6;
         }
-      }
-    }
-  }
-
-  .table {
-    &__header {
-      &__item:nth-of-type(1) {
-        flex: 0 0 11rem;
-      }
-
-      &__item:nth-of-type(2) {
-        flex: 1 0 8rem;
-      }
-
-      &__item:nth-of-type(3) {
-        flex: 0 0 5rem;
-      }
-
-      &__item:nth-of-type(4) {
-        flex: 0 0 7rem;
-      }
-    }
-
-    &__row {
-      &__item:nth-of-type(1) {
-        flex: 0 0 11rem;
-      }
-
-      &__item:nth-of-type(2) {
-        flex: 1 0 8rem;
-      }
-
-      &__item:nth-of-type(3) {
-        flex: 0 0 5rem;
-      }
-
-      &__item:nth-of-type(4) {
-        @extend %row-nowrap;
-        flex: 0 0 7rem;
-        justify-content: flex-end;
       }
     }
   }

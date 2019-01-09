@@ -1,5 +1,32 @@
 @import '../../variables';
 
+.bids {
+  @extend %col-nowrap;
+
+  &__search {
+    @extend %box-input-secondary;
+    @extend %row-nowrap;
+
+    margin: 1rem 0;
+    width: 12rem;
+    align-self: flex-end;
+
+    &__icon {
+      background-image: url('../../assets/images/search.svg');
+      height: 1.25rem;
+      width: 1.25rem;
+      background-size: contain;
+      background-repeat: no-repeat;
+      transition: 200ms ease-in-out;
+      margin-right: .25rem;
+    }
+
+    &__input {
+      width: 100%;
+    }
+  }
+}
+
 .bids-table {
   &__empty-row {
     @extend %row-nowrap;
@@ -33,6 +60,17 @@
     }
 
     &__row {
+      cursor: pointer;
+      transition: background-color 250ms ease-in-out;
+
+      &:hover {
+        background-color: rgba($black, .025);
+      }
+
+      &:active {
+        background-color: rgba($black, .05);
+      }
+
       &__item:nth-of-type(1) {
         flex: 0 0 11rem;
       }
@@ -81,11 +119,15 @@
     }
 
     &--opening {
-      background-color: $school-bus-yellow;
+      background-color: mix($school-bus-yellow, $electric-violet, 40%);
     }
 
     &--available {
       background-color: $school-bus-yellow;
+    }
+
+    &--reveal {
+      background-color: mix($electric-violet, $success-green, 50%);
     }
   }
 
