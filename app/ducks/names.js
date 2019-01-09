@@ -14,7 +14,6 @@ export const RECORD_TYPE = {
 const SET_NAME = 'app/names/setName';
 
 // Other Constants
-const WALLET_API = 'http://127.0.0.1:15039';
 export const NAME_STATES = {
   OPENING: 'OPENING',
   BIDDING: 'BIDDING',
@@ -127,25 +126,9 @@ export const sendReveal = (name) => async (dispatch, getState) => {
 };
 
 export const sendUpdate = (name, json) => async (dispatch, getState) => {
-  if (!json.type || !json.name || !json.value || !json.ttl) {
-    return;
-  }
-  // console.log({ type, name, value, ttl });
-  // window.Resource = Resource;
-  // Resource.fromJSON({
-  //
-  // })
   const wClient = walletClient.forNetwork(getState().wallet.network);
-  console.log({
-    hosts: ['104.198.104.19', '2001:db8:85a3:8d3:1319:8a2e:370:7348'],
-    ttl: 86400,
-    canonical: 'google.com',
-  })
-  await wClient.sendUpdate(name, {
-    hosts: ['104.198.104.19', '2001:db8:85a3:8d3:1319:8a2e:370:7348'],
-    ttl: 86400,
-    canonical: 'google.com',
-  });
+  console.log(json)
+  await wClient.sendUpdate(name, json);
 };
 
 function reduceSetName(state, action) {

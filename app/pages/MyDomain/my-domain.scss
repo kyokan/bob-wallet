@@ -174,14 +174,32 @@
     }
 
   &__create-record {
+    position: relative;
+    height: 3.8rem !important;
+
+    &__error-message {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      text-align: center;
+      flex: 0 0 auto;
+      color: $orange-red;
+      font-size: .7rem;
+      padding-bottom: .15rem;
+    }
+
+    &__inputs {
+      @extend %row-nowrap;
+      flex: 0 0 auto;
+      width: 100%;
+    }
 
     &__create-btn {
       @extend %btn-secondary;
 
       margin: auto;
       font-size: .8rem;
-      height: 1.8rem;
-      padding: 0 1rem;
+      padding: .5rem 1rem;
     }
 
     .table {

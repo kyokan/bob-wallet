@@ -1,8 +1,6 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import * as nameActions from '../../ducks/names';
 import { TableItem, TableRow } from '../../components/Table';
-import { RECORD_TYPE } from '../../ducks/names';
+import { validate } from '../../utils/record-helpers';
 
 class CreateRecord extends Component {
   state = {
@@ -10,30 +8,34 @@ class CreateRecord extends Component {
     type: '',
     value: '',
     ttl: '',
+    errorMessage: '',
   };
 
   isValid() {
     const { type, value, ttl } = this.state;
-    console.log(!RECORD_TYPE[type], typeof value, typeof ttl)
-    if (!RECORD_TYPE[type]) {
-      return false;
-    }
-
-    if (typeof value !== 'string') {
-      return false;
-    }
-
-    if (isNaN(ttl)) {
-      return false;
-    }
-
-    return true;
+    return validate({ type, value, ttl });
   }
 
   createRecord = () => {
+    const errorMessage = this.isValid();
+
+    if (errorMessage) {
+      this.setState({ errorMessage });
+      return;
+    }
+
     const { type, value, ttl } = this.state;
-    this.props.sendUpdate(this.props.name, { type, value, ttl });
-    // this.setState({ isCreating: true })
+    this.props.onCreate({ type, value, ttl })
+      .then(() => this.setState({
+        isCreating: false,
+        type: '',
+        value: '',
+        ttl: '',
+        errorMessage: '',
+      }))
+      .catch(e => this.setState({
+        errorMessage: e.message,
+      }));
   };
 
   render() {
@@ -48,7 +50,10 @@ class CreateRecord extends Component {
         <input
           type="text"
           value={this.state[name]}
-          onChange={e => this.setState({ [name]: e.target.value })}
+          onChange={e => this.setState({
+            [name]: e.target.value,
+            errorMessage: '',
+          })}
         />
       </TableItem>
     );
@@ -57,24 +62,29 @@ class CreateRecord extends Component {
   renderCreationRow() {
     return (
       <TableRow className="records-table__create-record">
-        {this.renderInput('type')}
-        {this.renderInput('value')}
-        {this.renderInput('ttl')}
-        <TableItem>
-          <div className="records-table__actions">
-            <button
-              className="records-table__actions__accept"
-              disabled={!this.isValid()}
-              onClick={this.createRecord}
-            >
-              Accept
-            </button>
-            <div
-              className="records-table__actions__remove"
-              onClick={() => this.setState({ isCreating: false })}
-            />
-          </div>
-        </TableItem>
+        <div className="records-table__create-record__error-message">
+          {this.state.errorMessage}
+        </div>
+        <div className="records-table__create-record__inputs">
+          {this.renderInput('type')}
+          {this.renderInput('value')}
+          {this.renderInput('ttl')}
+          <TableItem>
+            <div className="records-table__actions">
+              <button
+                className="records-table__actions__accept"
+                disabled={this.state.errorMessage}
+                onClick={this.createRecord}
+              >
+                Accept
+              </button>
+              <div
+                className="records-table__actions__remove"
+                onClick={() => this.setState({ isCreating: false })}
+              />
+            </div>
+          </TableItem>
+        </div>
       </TableRow>
     );
   }
@@ -93,9 +103,4 @@ class CreateRecord extends Component {
   }
 }
 
-export default connect(
-  null,
-  dispatch => ({
-    sendUpdate: (name, json) => dispatch(nameActions.sendUpdate(name, json)),
-  })
-)(CreateRecord);
+export default CreateRecord;

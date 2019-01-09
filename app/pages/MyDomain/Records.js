@@ -1,18 +1,85 @@
 import React, { Component } from 'react';
-import { Table, HeaderRow, HeaderItem, TableRow, TableItem } from '../../components/Table';
+import { Table, HeaderRow, HeaderItem } from '../../components/Table';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import connect from 'react-redux/es/connect/connect';
 import Resource from '../../../node_modules/hsd/lib/dns/resource'
 import CreateRecord from './CreateRecord';
 import EditableRecord from './EditableRecord';
+import { RECORD_TYPE } from '../../ducks/names';
+import * as nameActions from '../../ducks/names';
 
 class Records extends Component {
   static propTypes = {
     name: PropTypes.string.isRequired,
-    domain: PropTypes.object.isRequired,
-    record: PropTypes.array.isRequired,
+    records: PropTypes.array.isRequired,
     resource: PropTypes.object,
+  };
+
+  sendUpdate = json => {
+    return this.props.sendUpdate(this.props.name, json);
+  };
+
+  onCreate = async ({ type, value, ttl }) => {
+    const json = this.props.resource
+      ? this.props.resource.toJSON()
+      : { hosts: [] };
+
+    switch (type) {
+      case RECORD_TYPE.A:
+      case RECORD_TYPE.AAAA:
+        json.hosts.push(value);
+        json.ttl = Number(ttl);
+        break;
+      case RECORD_TYPE.CNAME:
+        json.canonical = value;
+        json.ttl = Number(ttl);
+        break;
+      default:
+        break;
+    }
+
+    await this.sendUpdate(json);
+  };
+
+  makeOnEdit = ({ type: lastType, value: lastValue, ttl: lastTtl }) => async ({ type, value, ttl }) => {
+    const json = this.props.resource
+      ? this.props.resource.toJSON()
+      : { hosts: [] };
+
+    // Remove old record
+    switch (lastType) {
+      case RECORD_TYPE.A:
+      case RECORD_TYPE.AAAA:
+        json.hosts = json.hosts.filter(host => host !== lastValue);
+        break;
+      case RECORD_TYPE.CNAME:
+        json.canonical = null;
+        break;
+      default:
+        break;
+    }
+
+    // Add updated record
+    switch (type) {
+      case RECORD_TYPE.A:
+      case RECORD_TYPE.AAAA:
+        json.hosts.push(value);
+        json.ttl = Number(ttl);
+        break;
+      case RECORD_TYPE.CNAME:
+        json.canonical = value;
+        json.ttl = Number(ttl);
+        break;
+      default:
+        break;
+    }
+
+    if (lastTtl !== ttl) {
+      json.ttl = ttl;
+    }
+
+    await this.sendUpdate(json);
   };
 
   renderHeaders() {
@@ -35,13 +102,14 @@ class Records extends Component {
           name={this.props.name}
           record={record}
           key={i}
+          onEdit={this.makeOnEdit(getRecordJson(record))}
         />
       );
     });
   }
 
   renderCreateRecord() {
-    return <CreateRecord name={this.props.name}/>;
+    return <CreateRecord name={this.props.name} onCreate={this.onCreate}/>;
   }
 
   render() {
@@ -64,11 +132,13 @@ export default withRouter(
       const resource = getResource(domain);
       const records = getRecords(resource);
       return {
-        domain: state.names[ownProps.name],
         resource,
         records,
       }
     },
+    dispatch => ({
+      sendUpdate: (name, json) => dispatch(nameActions.sendUpdate(name, json)),
+    })
   )(Records)
 );
 
@@ -122,4 +192,22 @@ function getRecord(resource, methodName) {
   } catch (error) {
     return [];
   }
+}
+
+function getRecordJson(record) {
+  const json = record.getJSON();
+  const type = json.type;
+  const ttl = json.ttl;
+
+  let value = '';
+
+  if ([RECORD_TYPE.A, RECORD_TYPE.AAAA].includes(type)) {
+    value = json.data.address;
+  }
+
+  if (type === RECORD_TYPE.CNAME) {
+    value = json.data.target;
+  }
+
+  return { type, value, ttl };
 }
