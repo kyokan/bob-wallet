@@ -53,12 +53,14 @@ export default class Collapsible extends Component {
   }
 
   renderContent() {
-    return this.state.isCollapsed
-      ? null
-      : (
-        <div className="collapsible__content">
-          { this.props.children }
-        </div>
-      );
+    return (
+      <div className={cn('collapsible__content', {
+        'collapsible__content--hidden': this.state.isCollapsed
+      })} >  
+        { this.props.children }
+      </div>
+    )
   }
 }
+
+
