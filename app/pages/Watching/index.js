@@ -29,7 +29,7 @@ class Watching extends Component {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "my_data.csv");
+    link.setAttribute("download", "allison_and_bob_watchlist.csv");
     document.body.appendChild(link); // Required for FF
     link.click();
     link.remove();
