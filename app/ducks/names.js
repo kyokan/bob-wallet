@@ -4,11 +4,16 @@ import * as namesDb from '../db/names';
 import { fetchPendingTransactions, SET_PENDING_TRANSACTIONS } from './wallet';
 import { hashName } from '../utils/nameChecker';
 
+export const RECORD_TYPE = {
+  A: 'A',
+  CNAME: 'CNAME',
+  AAAA: 'AAAA',
+};
+
 // Action Types
 const SET_NAME = 'app/names/setName';
 
 // Other Constants
-const WALLET_API = 'http://127.0.0.1:15039';
 export const NAME_STATES = {
   OPENING: 'OPENING',
   BIDDING: 'BIDDING',
@@ -118,6 +123,12 @@ export const sendReveal = (name) => async (dispatch, getState) => {
 
   const wClient = walletClient.forNetwork(getState().wallet.network);
   await wClient.sendReveal(name);
+};
+
+export const sendUpdate = (name, json) => async (dispatch, getState) => {
+  const wClient = walletClient.forNetwork(getState().wallet.network);
+  console.log(json)
+  await wClient.sendUpdate(name, json);
 };
 
 function reduceSetName(state, action) {

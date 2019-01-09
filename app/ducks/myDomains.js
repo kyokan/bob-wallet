@@ -1,9 +1,10 @@
+import * as walletClient from '../utils/walletClient';
 import { NAME_STATES } from './names';
 
 const FETCH_MY_NAMES_START = 'app/myDomains/fetchMyNamesStart';
 const FETCH_MY_NAMES_STOP = 'app/myDomains/fetchMyNamesStop';
 
-const WALLET_API = 'http://127.0.0.1:15039';
+const EMPTY_OWNER_HASH = '0000000000000000000000000000000000000000000000000000000000000000';
 
 const initialState = {
   names: [],
@@ -16,33 +17,26 @@ export const getMyNames = () => async (dispatch, getState) => {
 
   dispatch({ type: FETCH_MY_NAMES_START });
 
-  const resp = await fetch(WALLET_API, {
-    method: 'POST',
-    body: JSON.stringify({
-      method: 'getnames',
-    }),
-  });
-  let { result, error } = await resp.json();
-
-  if (error) {
+  try {
+    const client = walletClient.forNetwork(getState().wallet.network);
+    const result = await client.getNames();
+    dispatch({
+      type: FETCH_MY_NAMES_STOP,
+      payload: address
+        ? result.filter(({ state, owner }) => {
+          return state === NAME_STATES.CLOSED && (owner && owner.hash !== EMPTY_OWNER_HASH);
+        })
+        : [],
+    });
+  } catch (error) {
     dispatch({
       type: FETCH_MY_NAMES_STOP,
       payload: new Error(error.message),
       error: true,
     });
-    return;
   }
 
-  result = getMockNames(address);
 
-  dispatch({
-    type: FETCH_MY_NAMES_STOP,
-    payload: address
-      ? result.filter(({ state, owner }) => {
-        return state === NAME_STATES.CLOSED && (owner && owner.hash === address);
-      })
-      : [],
-  });
 };
 
 export default function myDomainsReducer(state = initialState, action) {

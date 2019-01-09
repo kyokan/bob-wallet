@@ -1,25 +1,55 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { TableItem, TableRow } from '../../components/Table';
+import { RECORD_TYPE } from '../../ducks/names';
+import { validate } from '../../utils/record-helpers';
 
 class EditableRecord extends Component {
   static propTypes = {
     record: PropTypes.shape({
-      type: PropTypes.string,
+      type: PropTypes.number,
       name: PropTypes.string,
       data: PropTypes.object,
       ttl: PropTypes.number,
     }).isRequired,
+    onEdit: PropTypes.func.isRequired,
   };
 
-  state = {
-    isEditing: false,
-    type: undefined,
-    name: undefined,
-    value: undefined,
-    ttl: undefined,
-  };
+  constructor(props) {
+    super(props);
+    const { type, value, ttl } = getRecordJson(props.record);
+    this.state = {
+      isEditing: false,
+      type,
+      value,
+      ttl,
+      errorMessage: '',
+    };
+  }
 
+  isValid() {
+    const { type, value, ttl } = this.state;
+    return validate({ type, value, ttl });
+  }
+
+  editRecord = () => {
+    const errorMessage = this.isValid();
+
+    if (errorMessage) {
+      this.setState({ errorMessage });
+      return;
+    }
+
+    const { type, value, ttl } = this.state;
+    this.props.onEdit({ type, value, ttl })
+      .then(() => this.setState({
+        isEditing: false,
+        errorMessage: '',
+      }))
+      .catch(e => this.setState({
+        errorMessage: e.message,
+      }));
+  };
 
   render() {
     return this.state.isEditing
@@ -28,87 +58,60 @@ class EditableRecord extends Component {
   }
 
   renderInput(name) {
-    const { record } = this.props;
-    const json = record.getJSON();
-    let defaultValue = '';
-
-    if (name === 'type') {
-      defaultValue = json.type;
-    }
-
-    if (name === 'name') {
-      defaultValue = json.name;
-    }
-
-    if (name === 'ttl') {
-      defaultValue = json.ttl;
-    }
-
-    if (name === 'value') {
-      if (json.type === 'A') {
-        defaultValue = json.data.address;
-      }
-    }
-
     return (
       <TableItem>
         <input
           type="text"
           value={this.state[name]}
-          defaultValue={defaultValue}
-          onChange={e => this.setState({ [name]: e.target.value })}
+          onChange={e => this.setState({
+            [name]: e.target.value,
+            errorMessage: '',
+          })}
         />
       </TableItem>
     );
   }
 
   renderEditableRow() {
-    const { type, name, value, ttl } = this.state;
     return (
       <TableRow className="records-table__create-record">
-        {this.renderInput('type')}
-        {this.renderInput('name')}
-        {this.renderInput('value')}
-        {this.renderInput('ttl')}
-        <TableItem>
-          <div className="records-table__actions">
-            <button
-              className="records-table__actions__accept"
-              disabled={!type || !name || !value || !ttl}
-            >
-              Accept
-            </button>
-            <div
-              className="records-table__actions__remove"
-              onClick={() => this.setState({
-                isEditing: false,
-                type: undefined,
-                name: undefined,
-                value: undefined,
-                ttl: undefined,
-              })}
-            />
-          </div>
-        </TableItem>
+        <div className="records-table__create-record__error-message">
+          {this.state.errorMessage}
+        </div>
+        <div className="records-table__create-record__inputs">
+          {this.renderInput('type')}
+          {this.renderInput('value')}
+          {this.renderInput('ttl')}
+          <TableItem>
+            <div className="records-table__actions">
+              <button
+                className="records-table__actions__accept"
+                disabled={this.state.errorMessage}
+                onClick={this.editRecord}
+              >
+                Accept
+              </button>
+              <div
+                className="records-table__actions__remove"
+                onClick={() => this.setState({
+                  isEditing: false,
+                  ...getRecordJson(this.props.record),
+                })}
+              />
+            </div>
+          </TableItem>
+        </div>
       </TableRow>
     );
   }
 
   renderRow() {
     const { record } = this.props;
-    const json = record.getJSON();
-    const type = json.type;
-    const name = json.name;
-    const ttl = json.ttl;
+    const { type, value, ttl } = getRecordJson(record);
 
-    let value = '';
-    if (type === 'A') {
-      value = json.data.address;
-    }
     return (
       <TableRow>
         <TableItem>{type}</TableItem>
-        <TableItem>{name}</TableItem>
         <TableItem>{value}</TableItem>
         <TableItem>{ttl}</TableItem>
         <TableItem>
@@ -125,3 +128,21 @@ class EditableRecord extends Component {
 }
 
 export default EditableRecord;
+
+function getRecordJson(record) {
+  const json = record.getJSON();
+  const type = json.type;
+  const ttl = json.ttl;
+
+  let value = '';
+
+  if ([RECORD_TYPE.A, RECORD_TYPE.AAAA].includes(type)) {
+    value = json.data.address;
+  }
+
+  if (type === RECORD_TYPE.CNAME) {
+    value = json.data.target;
+  }
+
+  return { type, value, ttl };
+}
