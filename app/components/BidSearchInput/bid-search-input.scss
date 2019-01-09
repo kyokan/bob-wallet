@@ -1,0 +1,23 @@
+@import '../../variables';
+
+.bid-search-input {
+  @extend %box-input-secondary;
+  @extend %row-nowrap;
+
+  padding: .25rem .5rem;
+
+  &__icon {
+    background-image: url('../../assets/images/search.svg');
+    height: 1.25rem;
+    width: 1.25rem;
+    background-size: contain;
+    background-repeat: no-repeat;
+    transition: 200ms ease-in-out;
+    margin-right: .25rem;
+  }
+
+  &__input {
+    width: 100%;
+    font-size: .75rem !important;
+  }
+}
