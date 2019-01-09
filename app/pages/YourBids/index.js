@@ -2,14 +2,16 @@ import React, { Component } from 'react';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { HeaderItem, HeaderRow, Table, TableItem, TableRow } from '../../components/Table';
 import BidStatus from './BidStatus';
 import BidTimeLeft from './BidTimeLeft';
+import BidAction from './BidAction';
+import { HeaderItem, HeaderRow, Table, TableItem, TableRow } from '../../components/Table';
+import BidSearchInput from '../../components/BidSearchInput';
 import * as bidsActions from '../../ducks/bids';
 import { displayBalance } from '../../utils/balances';
-import './your-bids.scss';
-import BidAction from './BidAction';
 import Fuse from '../../utils/fuse';
+import './your-bids.scss';
+
 
 class YourBids extends Component {
   static propTypes = {
@@ -25,15 +27,11 @@ class YourBids extends Component {
   render() {
     return (
       <div className="bids">
-        <div className="bids__search">
-          <div className="bids__search__icon" />
-          <input
-            className="bids__search__input"
-            placeholder="Search your bids"
-            onChange={this.handleOnChange}
-            value={this.state.query}
-          />
-        </div>
+        <BidSearchInput
+          className="bids__search"
+          onChange={this.handleOnChange}
+          value={this.state.query}
+        />
         <Table className="bids-table">
           <Header />
           {this.renderRows()}
@@ -42,29 +40,24 @@ class YourBids extends Component {
     );
   }
 
-
-
   renderRows() {
     const { yourBids, history } = this.props;
     const { query } = this.state;
+
+    if (!yourBids.length) {
+      return <EmptyResult />;
+    }
 
     if (!this.fuse) {
       this.fuse = new Fuse(yourBids, {
         keys: ['name'],
       });
     }
-
     const bids = query ? this.fuse.search(query) : yourBids;
 
     if (!bids.length) {
-      return (
-        <TableRow className="bids-table__empty-row">
-          No Bids Found
-        </TableRow>
-      );
+      return <EmptyResult />;
     }
-
-
 
     return bids.map(bid => (
       <TableRow key={bid.name} onClick={() => history.push(`/domain/${bid.name}`)}>
@@ -101,4 +94,12 @@ function Header() {
       <HeaderItem />
     </HeaderRow>
   )
+}
+
+function EmptyResult() {
+  return (
+    <TableRow className="bids-table__empty-row">
+      No Bids Found
+    </TableRow>
+  );
 }

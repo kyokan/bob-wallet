@@ -1,5 +1,47 @@
 @import '../../variables';
 
+.watching {
+
+  &__actions {
+    @extend %row-nowrap;
+    align-items: center;
+  }
+
+  &__warning-text {
+    text-align: right;
+    flex: 1 1 auto;
+    font-size: .7rem;
+    color: $manatee-gray;
+    padding-right: 1rem;
+  }
+
+  &__download {
+    @extend %row-nowrap;
+    @extend %link;
+
+    align-items: center;
+
+    &__icon {
+      background-image: url(../../assets/images/download-blue.png);
+      background-repeat: no-repeat;
+      background-size: contain;
+      background-position: center;
+      padding-right: .5rem;
+      width: .8rem;
+      height: .8rem;
+    }
+
+    &__link {
+      font-size: .8rem;
+    }
+  }
+
+  &__search {
+    margin: 1rem 0;
+    width: 12rem;
+  }
+}
+
 .watching-table {
   &__remove-icon {
     width: 1rem;
@@ -19,7 +61,6 @@
       opacity: .6;
     }
   }
-
 
   .table {
     &__header {
