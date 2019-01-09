@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { TableItem, TableRow } from '../../components/Table';
+import { RECORD_TYPE } from '../../ducks/names';
 
 class EditableRecord extends Component {
   static propTypes = {
@@ -67,7 +68,6 @@ class EditableRecord extends Component {
     return (
       <TableRow className="records-table__create-record">
         {this.renderInput('type')}
-        {this.renderInput('name')}
         {this.renderInput('value')}
         {this.renderInput('ttl')}
         <TableItem>
@@ -98,17 +98,21 @@ class EditableRecord extends Component {
     const { record } = this.props;
     const json = record.getJSON();
     const type = json.type;
-    const name = json.name;
     const ttl = json.ttl;
 
     let value = '';
-    if (type === 'A') {
+
+    if ([RECORD_TYPE.A, RECORD_TYPE.AAAA].includes(type)) {
       value = json.data.address;
     }
+
+    if (type === RECORD_TYPE.CNAME) {
+      value = json.data.target;
+    }
+
     return (
       <TableRow>
         <TableItem>{type}</TableItem>
-        <TableItem>{name}</TableItem>
         <TableItem>{value}</TableItem>
         <TableItem>{ttl}</TableItem>
         <TableItem>

@@ -11,6 +11,8 @@ class Records extends Component {
   static propTypes = {
     name: PropTypes.string.isRequired,
     domain: PropTypes.object.isRequired,
+    record: PropTypes.array.isRequired,
+    resource: PropTypes.object,
   };
 
   renderHeaders() {
@@ -19,7 +21,6 @@ class Records extends Component {
         <HeaderItem>
           <div>Type</div>
         </HeaderItem>
-        <HeaderItem>Name</HeaderItem>
         <HeaderItem>Value</HeaderItem>
         <HeaderItem>TTL</HeaderItem>
         <HeaderItem />
@@ -40,7 +41,7 @@ class Records extends Component {
   }
 
   renderCreateRecord() {
-    return <CreateRecord />;
+    return <CreateRecord name={this.props.name}/>;
   }
 
   render() {
@@ -58,27 +59,39 @@ class Records extends Component {
 
 export default withRouter(
   connect(
-    (state, ownProps) => ({
-      domain: state.names[ownProps.name],
-      records: getRecords(state.names[ownProps.name]),
-    }),
+    (state, ownProps) => {
+      const domain = state.names[ownProps.name];
+      const resource = getResource(domain);
+      const records = getRecords(resource);
+      return {
+        domain: state.names[ownProps.name],
+        resource,
+        records,
+      }
+    },
   )(Records)
 );
 
-function getRecords(domain) {
+function getResource(domain) {
   const { info } = domain || {};
 
   if (!info) {
-    return [];
+    return;
   }
 
   const { data } = info;
 
   if (!data) {
-    return [];
+    return;
   }
 
-  const resource = Resource.decode(new Buffer(data, 'hex'));
+  return Resource.decode(new Buffer(data, 'hex'));
+}
+
+function getRecords(resource) {
+  if (!resource) {
+    return [];
+  }
 
   return [
     ...getRecord(resource, 'toA'),

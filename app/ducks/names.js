@@ -4,6 +4,12 @@ import * as namesDb from '../db/names';
 import { fetchPendingTransactions, SET_PENDING_TRANSACTIONS } from './wallet';
 import { hashName } from '../utils/nameChecker';
 
+export const RECORD_TYPE = {
+  A: 'A',
+  CNAME: 'CNAME',
+  AAAA: 'AAAA',
+};
+
 // Action Types
 const SET_NAME = 'app/names/setName';
 
@@ -118,6 +124,28 @@ export const sendReveal = (name) => async (dispatch, getState) => {
 
   const wClient = walletClient.forNetwork(getState().wallet.network);
   await wClient.sendReveal(name);
+};
+
+export const sendUpdate = (name, json) => async (dispatch, getState) => {
+  if (!json.type || !json.name || !json.value || !json.ttl) {
+    return;
+  }
+  // console.log({ type, name, value, ttl });
+  // window.Resource = Resource;
+  // Resource.fromJSON({
+  //
+  // })
+  const wClient = walletClient.forNetwork(getState().wallet.network);
+  console.log({
+    hosts: ['104.198.104.19', '2001:db8:85a3:8d3:1319:8a2e:370:7348'],
+    ttl: 86400,
+    canonical: 'google.com',
+  })
+  await wClient.sendUpdate(name, {
+    hosts: ['104.198.104.19', '2001:db8:85a3:8d3:1319:8a2e:370:7348'],
+    ttl: 86400,
+    canonical: 'google.com',
+  });
 };
 
 function reduceSetName(state, action) {
