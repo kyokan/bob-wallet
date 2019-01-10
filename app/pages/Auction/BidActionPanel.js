@@ -29,25 +29,21 @@ class BidActionPanel extends Component {
   };
 
   render() {
-    const {domain} = this.props;
+    const { domain } = this.props;
 
-    if (this.state.successfullyBid) {
-      return this.renderSuccessfullyBid();
-    }
     if (this.state.isReviewing) {
       return this.renderReviewBid();
     }
-
+    
     if (isOpening(domain)) {
       return this.renderOpeningBid();
     }
-
+    
     const ownBid = this.findOwnBid();
-    if (isBidding(domain)) {
-      if (ownBid || domain.pendingOperation === 'BID') {
+    if (isBidding(domain) || this.state.successfullyBid) {
+      if (this.state.successfullyBid || ownBid || domain.pendingOperation === 'BID') {
         return this.renderPlacedBid(ownBid)
       }
-
       return this.renderBidNow();
     }
 
@@ -115,9 +111,17 @@ class BidActionPanel extends Component {
   }
 
   renderPlacedBid(ownBid) {
+    const { showSuccessModal, bidAmount, maskAmount } = this.state;
+
     return (
       <div className="domains__bid-now">
-        <div className="domains__bid-now__title">Bid placed.</div>
+        {showSuccessModal && 
+          <SuccessModal 
+            bidAmount={bidAmount} 
+            maskAmount={maskAmount} 
+            onClose={() => this.setState({ showSuccessModal: false })}
+          />}
+        <div className="domains__bid-now__title">Bid placed!</div>
         <div className="domains__bid-now__content">
           {this.renderPlacedBidContent(ownBid)}
         </div>
@@ -257,14 +261,13 @@ class BidActionPanel extends Component {
             className="domains__bid-now__action__cta"
             onClick={
               () => this.handleCTA(
-                () => {
+                async () => {
                   try {
                     const lockup = bidAmount + maskAmount;
-                    this.props.sendBid(this.props.domain.name, bidAmount, lockup)
+                    await this.props.sendBid(this.props.domain.name, bidAmount, lockup)
+                    await this.setState({ successfullyBid: true, showSuccessModal: true });
                   } catch (error) {
                     console.log(error);
-                  } finally {
-                    this.setState({ successfullyBid: true, showSuccessModal: true });
                   }
                 },
                 'Bid successfully placed!',
@@ -279,62 +282,6 @@ class BidActionPanel extends Component {
           >
             Submit Bid
           </button>
-        </div>
-      </div>
-    );
-  }
-
-  renderSuccessfullyBid() {
-    const {bidAmount, maskAmount, showSuccessModal} = this.state;
-    const {domain} = this.props;
-    const stats = domain.info && domain.info.stats || {};
-    console.log(domain)
-    return (
-      <div className="domains__bid-now">
-        {showSuccessModal && <SuccessModal bidAmount={bidAmount} maskAmount={maskAmount} onClose={() => this.setState({ showSuccessModal: false })}/>}
-        <div className="domains__bid-now__title">Bid Placed!</div>
-        <div className="domains__bid-now__content">
-          <div className="domains__bid-now__info">
-            <div className="domains__bid-now__info__label">
-              Reveal:
-            </div>
-            <div className="domains__bid-now__info__value">
-              {stats.revealPeriodEnd}
-            </div>
-          </div>
-          <div className="domains__bid-now__info">
-            <div className="domains__bid-now__info__label">
-              Total Bids:
-            </div>
-            <div className="domains__bid-now__info__value">
-              7
-            </div>
-          </div>
-          <div className="domains__bid-now__info">
-            <div className="domains__bid-now__info__label">
-             Highest Mask:
-            </div>
-            <div className="domains__bid-now__info__value">
-              1.00 HNS
-            </div>
-          </div>
-          <div className="domains__bid-now__divider" />
-          <div className="domains__bid-now__info">
-            <div className="domains__bid-now__info__label">
-              Your Bid:
-            </div>
-            <div className="domains__bid-now__info__value">
-              {`${bidAmount} HNS`}
-            </div>
-          </div>
-          <div className="domains__bid-now__info">
-            <div className="domains__bid-now__info__label">
-              Your Mask:
-            </div>
-            <div className="domains__bid-now__info__value">
-              {maskAmount ? `${maskAmount} HNS` : ' - '}
-            </div>
-          </div>
         </div>
       </div>
     );

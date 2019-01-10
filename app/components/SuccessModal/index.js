@@ -33,7 +33,7 @@ class SuccessModal extends Component {
             <div className='success_modal__description'>Your Bid</div>
             <div className='success_modal__value'>{`${bidAmount} HNS`}</div>
             <div className='success_modal__description'>Your Mask</div>
-            <div className='success_modal__value'>{maskAmount? `${maskAmount} HNS` : ' - '} HNS`}</div>
+            <div className='success_modal__value'>{maskAmount? `${maskAmount} HNS` : ' - '}</div>
             <div className='success_modal__reveal_wrapper'>
               <div className='success_modal__description'>Reveal Period:</div>
               <div className='success_modal__value'>01/31/19 - 02/02/19</div>
