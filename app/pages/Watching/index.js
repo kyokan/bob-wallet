@@ -8,7 +8,7 @@ import BidStatus from '../YourBids/BidStatus';
 import BidTimeLeft from '../YourBids/BidTimeLeft';
 import * as watchingActions from '../../ducks/watching';
 import BidSearchInput from '../../components/BidSearchInput';
-import Fuse from '../../utils/fuse';
+import Fuse from '../../vendor/fuse';
 
 class Watching extends Component {
 

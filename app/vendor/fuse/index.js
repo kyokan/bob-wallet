@@ -1,4 +1,4 @@
-const Bitap = require('./bitap')
+const Bitap = require('./bitap/index')
 const deepValue = require('./helpers/deep_value')
 const isArray = require('./helpers/is_array')
 

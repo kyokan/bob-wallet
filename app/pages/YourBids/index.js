@@ -9,7 +9,7 @@ import { HeaderItem, HeaderRow, Table, TableItem, TableRow } from '../../compone
 import BidSearchInput from '../../components/BidSearchInput';
 import * as bidsActions from '../../ducks/bids';
 import { displayBalance } from '../../utils/balances';
-import Fuse from '../../utils/fuse';
+import Fuse from '../../vendor/fuse';
 import './your-bids.scss';
 
 
