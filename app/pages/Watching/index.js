@@ -13,6 +13,7 @@ import Fuse from '../../utils/fuse';
 class Watching extends Component {
 
   state = {
+    name: '',
     isAddingName: false,
     query: '',
 
@@ -34,6 +35,13 @@ class Watching extends Component {
     link.click();
     link.remove();
   };
+
+  onAdd = () => {
+    this.props.addName(this.state.name);
+    this.onClose();
+  };
+
+  onClose = () => this.setState({ isAddingName: false, name: '' });
 
   render() {
     return (
@@ -71,27 +79,27 @@ class Watching extends Component {
             <input
               value={this.state.name}
               onChange={e => this.setState({ name: e.target.value })}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  this.onAdd()
+                }
+
+                if (e.key === 'Escape') {
+                  this.onClose();
+                }
+              }}
             />
           </div>
           <div className="watching-table__create-row__actions">
             <button
               className="watching-table__create-row__form__cta"
-              onClick={() => {
-                this.props.addName(this.state.name);
-                this.setState({
-                  isAddingName: false,
-                  name: '',
-                });
-              }}
+              onClick={this.onAdd}
             >
               Accept
             </button>
             <div
               className="watching-table__create-row__form__remove"
-              onClick={() => this.setState({
-                isAddingName: false,
-                name: '',
-              })}
+              onClick={this.onClose}
             />
           </div>
         </div>
@@ -149,7 +157,7 @@ class Watching extends Component {
     }
 
     return results.map(name => (
-      <TableRow onClick={() => history.push(`/domain/${name}`)}>
+      <TableRow key={name} onClick={() => history.push(`/domain/${name}`)}>
         <TableItem>
           <BidStatus name={name} />
         </TableItem>
@@ -160,7 +168,10 @@ class Watching extends Component {
         <TableItem>
           <div
             className="watching-table__remove-icon"
-            onClick={() => this.props.removeName(name)}
+            onClick={e => {
+              e.stopPropagation();
+              this.props.removeName(name)
+            }}
           />
         </TableItem>
       </TableRow>
