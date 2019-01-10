@@ -28,6 +28,7 @@ class Records extends Component {
     switch (type) {
       case RECORD_TYPE.A:
       case RECORD_TYPE.AAAA:
+        json.hosts = json.hosts || [];
         json.hosts.push(value);
         json.ttl = Number(ttl);
         break;
@@ -51,6 +52,7 @@ class Records extends Component {
     switch (lastType) {
       case RECORD_TYPE.A:
       case RECORD_TYPE.AAAA:
+        json.hosts = json.hosts || [];
         json.hosts = json.hosts.filter(host => host !== lastValue);
         break;
       case RECORD_TYPE.CNAME:
@@ -64,6 +66,7 @@ class Records extends Component {
     switch (type) {
       case RECORD_TYPE.A:
       case RECORD_TYPE.AAAA:
+        json.hosts = json.hosts || [];
         json.hosts.push(value);
         json.ttl = Number(ttl);
         break;

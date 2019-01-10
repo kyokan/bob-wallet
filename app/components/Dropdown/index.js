@@ -10,6 +10,7 @@ export default class Dropdown extends Component {
         label: PropTypes.string.isRequired,
       }),
     ).isRequired,
+    className: PropTypes.string,
     currentIndex: PropTypes.number,
     onChange: PropTypes.func,
     reversed: PropTypes.bool,
@@ -18,6 +19,7 @@ export default class Dropdown extends Component {
   static defaultProps = {
     currentIndex: 0,
     onChange() {},
+    className: '',
   };
 
   state = {
@@ -32,12 +34,12 @@ export default class Dropdown extends Component {
   }
 
   render() {
-    const { items, currentIndex, onChange } = this.props;
+    const { items, currentIndex, className } = this.props;
     const { label: currentLabel } = items[currentIndex] || {};
 
     return (
       <div
-        className={c('dropdown', {
+        className={c('dropdown', className, {
           'dropdown--opened': this.state.isOpen,
           'dropdown--reversed': this.props.reversed,
         })}

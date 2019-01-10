@@ -157,15 +157,15 @@
     .table {
       &__header {
         &__item:nth-of-type(1) {
-          flex: 0 0 3rem;
+          flex: 0 0 7rem;
         }
 
         &__item:nth-of-type(2) {
-          flex: 1 1 auto;
+          flex: 1 0 16rem;
         }
 
         &__item:nth-of-type(3) {
-          flex: 0 0 5rem;
+          flex: 0 0 4rem;
         }
 
         &__item:nth-of-type(4) {
@@ -175,15 +175,15 @@
 
       &__row {
         &__item:nth-of-type(1) {
-          flex: 0 0 3rem;
+          flex: 0 0 7rem;
         }
 
         &__item:nth-of-type(2) {
-          flex: 1 1 auto;
+          flex: 1 0 16rem;
         }
 
         &__item:nth-of-type(3) {
-          flex: 0 0 5rem;
+          flex: 0 0 4rem;
         }
 
         &__item:nth-of-type(4) {
@@ -219,6 +219,47 @@
       margin: auto;
       font-size: .8rem;
       padding: .5rem 1rem;
+    }
+
+    &__record-type-dropdown {
+      .dropdown {
+        align-self: center;
+
+        &__current-item {
+          width: 6rem;
+          padding: .25rem .5rem;
+          font-size: .7rem;
+          border-radius: .25rem;
+
+          &::after {
+            top: .3rem;
+            right: .5rem;
+            height: .4rem;
+            width: .4rem;
+          }
+        }
+
+        &__options {
+          padding: .25rem 0;
+        }
+
+        &__option {
+          padding: .25rem .5rem;
+          font-size: .7rem;
+        }
+
+        &--opened {
+          .dropdown {
+            &__current-item {
+              border-bottom-left-radius: 0;
+              border-bottom-right-radius: 0;
+              &::after {
+                top: .55rem;
+              }
+            }
+          }
+        }
+      }
     }
 
     .table {

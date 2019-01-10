@@ -47,7 +47,7 @@ export class TableRow extends Component {
 export class TableItem extends Component {
   render() {
     return (
-      <div className="table__row__item">
+      <div className={`table__row__item ${this.props.className}`}>
         {this.props.children}
       </div>
     )
