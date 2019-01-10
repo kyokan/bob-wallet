@@ -86,29 +86,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/electron-react-boilerplate/electron-react-boilerplate.git"
+    "url": "git+https://github.com/kyokan/onoma-electron.git"
   },
-  "author": {
-    "name": "Electron React Boilerplte Maintainers",
-    "email": "electronreactboilerplate@gmail.com",
-    "url": "https://electron-react-boilerplate.js.org"
-  },
-  "contributors": [
-    {
-      "name": "Vikram Rangaraj",
-      "email": "vikr01@icloud.com",
-      "url": "https://github.com/vikr01"
-    },
-    {
-      "name": "Amila Welihinda",
-      "email": "amilajack@gmail.com",
-      "url": "https://github.com/amilajack"
-    }
-  ],
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/electron-react-boilerplate/electron-react-boilerplate/issues"
-  },
   "keywords": [
     "electron",
     "boilerplate",
@@ -119,7 +99,7 @@
     "hot",
     "reload"
   ],
-  "homepage": "https://github.com/electron-react-boilerplate/electron-react-boilerplate#readme",
+  "homepage": "https://github.com/kyokan/onoma-electron#readme",
   "jest": {
     "testURL": "http://localhost/",
     "moduleNameMapper": {
@@ -191,9 +171,7 @@
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-react": "^7.11.1",
     "eslint-plugin-testcafe": "^0.2.1",
-    "fbjs-scripts": "^1.0.1",
     "file-loader": "^2.0.0",
-    "husky": "^1.1.4",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^23.6.0",
     "mini-css-extract-plugin": "^0.4.4",
@@ -206,7 +184,6 @@
     "resolve-url-loader": "^3.0.0",
     "sass-loader": "^7.1.0",
     "sinon": "^7.1.1",
-    "spectron": "^5.0.0",
     "style-loader": "^0.23.1",
     "stylelint": "^9.8.0",
     "stylelint-config-prettier": "^4.0.0",
@@ -261,9 +238,6 @@
     "node": "10.11.0",
     "npm": ">=4.x",
     "yarn": ">=0.21.3"
-  },
-  "collective": {
-    "url": "https://opencollective.com/electron-react-boilerplate-594"
   },
   "browserslist": "electron 1.6",
   "resolutions": {
