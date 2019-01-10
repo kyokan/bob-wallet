@@ -187,6 +187,7 @@
         margin-bottom: 1rem;
 
         &__label {
+          @extend %row-nowrap;
           flex: 1 0 auto;
           font-size: .7rem;
           font-weight: 600;
@@ -224,6 +225,21 @@
         text-align: right;
         margin-bottom: 1rem;
       }
+    }
+
+    &__mask {
+      margin-right: .2rem;
+      border-bottom: 1px dashed $manatee-gray;
+      color: $manatee-gray;
+
+      .tooltipable__tooltip {
+        display: inline-block !important;
+        width: 14.75rem;
+      }
+    }
+
+    &__mask-tooltip {
+      font-size: .75rem;
     }
   }
 

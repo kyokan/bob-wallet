@@ -6,16 +6,18 @@
 
   &__tooltip {
     position: absolute;
-    top: 100%;
-    background-color: rgba($black, .8);
-    border-radius: 1rem;
-    color: rgba($white, .9);
+    top: calc(100% + 4px);
+    left: 0;
+    background-color: rgba($black, .95);
+    border-radius: .25rem;
+    color: rgba($white, .7);
     width: 16rem;
-    font-size: .8rem;
+    font-size: .75rem;
     line-height: 1rem;
     padding: 0;
     opacity: 0;
     height: 0;
+    font-weight: 400;
   }
 
   &:hover {
@@ -25,7 +27,7 @@
       display: block;
       transition: opacity 250ms;
       transition-delay: 750ms;
-      padding: 1rem;
+      padding: .75rem 1rem;
     }
   }
 }
