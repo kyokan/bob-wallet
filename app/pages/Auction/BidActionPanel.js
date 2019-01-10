@@ -9,6 +9,7 @@ import './domains.scss';
 import { displayBalance, toBaseUnits } from '../../utils/balances';
 import { showError, showSuccess } from '../../ducks/notifications';
 import Blocktime from '../../components/Blocktime';
+import Tooltipable from '../../components/Tooltipable';
 
 class BidActionPanel extends Component {
   static propTypes = {
@@ -182,7 +183,7 @@ class BidActionPanel extends Component {
           </div>
           <div className="domains__bid-now__info">
             <div className="domains__bid-now__info__label">
-              Highest <span>Mask</span>:
+              Highest <Tooltipable>Mask</Tooltipable>:
             </div>
             <div className="domains__bid-now__info__value">
               {highest}
