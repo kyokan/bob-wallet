@@ -58,9 +58,9 @@ class BidActionPanel extends Component {
     return <noscript />;
   }
 
-  async handleCTA(handler, successMessage, errorMessage) {
+  async handleCTA(handler, successMessage, errorMessage, callback) {
     try {
-      this.setState({isLoading: true});
+      this.setState({ isLoading: true });
       await handler();
     } catch (e) {
       console.error(e);
@@ -68,9 +68,13 @@ class BidActionPanel extends Component {
       return;
     } finally {
       this.setState({isLoading: false});
+      if (callback){
+        callback();
+      }
     }
-
-    this.props.showSuccess(successMessage);
+    if (successMessage) {
+      this.props.showSuccess(successMessage);
+    }
   }
 
   renderOpenBid() {
@@ -261,17 +265,18 @@ class BidActionPanel extends Component {
             className="domains__bid-now__action__cta"
             onClick={
               () => this.handleCTA(
-                async () => {
-                  try {
-                    const lockup = bidAmount + maskAmount;
-                    await this.props.sendBid(this.props.domain.name, bidAmount, lockup)
-                    await this.setState({ successfullyBid: true, showSuccessModal: true });
-                  } catch (error) {
-                    console.log(error);
-                  }
+                () => {
+                  const lockup = bidAmount + maskAmount;
+                  this.props.sendBid(this.props.domain.name, bidAmount, lockup)
                 },
-                'Bid successfully placed!',
-                'Failed to place bid. Please try again.'
+                null,
+                'Failed to place bid. Please try again.',
+                () => this.setState({ 
+                  isReviewing: false, 
+                  isPlacingBid: false, 
+                  successfullyBid: true, 
+                  showSuccessModal: true,
+                })
               )
             //   () => this.handleCTA(
             //   () => this.props.sendBid(this.props.domain.name, bidAmount, maskAmount),
