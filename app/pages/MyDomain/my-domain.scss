@@ -75,6 +75,25 @@
 
   &__value {
     flex: 1 1 auto;
+
+    &__data {
+      @extend %row-nowrap;
+      align-items: center;
+      font-family: "Roboto Mono", monospace;
+
+      .copy-btn {
+        margin-left: .25rem;
+      }
+    }
+
+    &__data-content {
+      flex: 1 1 auto;
+      width: 0;
+      font-family: "Roboto Mono", monospace;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+    }
   }
 }
 
