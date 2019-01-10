@@ -1,18 +1,21 @@
 import React, { Component } from 'react';
 import { TableItem, TableRow } from '../../components/Table';
 import { validate } from '../../utils/record-helpers';
+import { DROPDOWN_TYPES } from '../../ducks/names';
+import Dropdown from '../../components/Dropdown';
 
 class CreateRecord extends Component {
   state = {
     isCreating: false,
-    type: '',
+    currentTypeIndex: 0,
     value: '',
     ttl: '',
     errorMessage: '',
   };
 
   isValid() {
-    const { type, value, ttl } = this.state;
+    const { value, ttl, currentTypeIndex } = this.state;
+    const {label: type} = DROPDOWN_TYPES[currentTypeIndex];
     return validate({ type, value, ttl });
   }
 
@@ -24,11 +27,12 @@ class CreateRecord extends Component {
       return;
     }
 
-    const { type, value, ttl } = this.state;
+    const { value, ttl, currentTypeIndex } = this.state;
+    const {label: type} = DROPDOWN_TYPES[currentTypeIndex];
     this.props.onCreate({ type, value, ttl })
       .then(() => this.setState({
         isCreating: false,
-        type: '',
+        currentTypeIndex: 0,
         value: '',
         ttl: '',
         errorMessage: '',
@@ -42,6 +46,18 @@ class CreateRecord extends Component {
     return this.state.isCreating
       ? this.renderCreationRow()
       : this.renderCreateButton();
+  }
+
+  renderTypeDropdown() {
+    return (
+      <TableItem className="records-table__create-record__record-type-dropdown">
+        <Dropdown
+          currentIndex={this.state.currentTypeIndex}
+          onChange={i => this.setState({ currentTypeIndex: i, errorMessage: '' })}
+          items={DROPDOWN_TYPES}
+        />
+      </TableItem>
+    )
   }
 
   renderInput(name) {
@@ -66,7 +82,7 @@ class CreateRecord extends Component {
           {this.state.errorMessage}
         </div>
         <div className="records-table__create-record__inputs">
-          {this.renderInput('type')}
+          {this.renderTypeDropdown()}
           {this.renderInput('value')}
           {this.renderInput('ttl')}
           <TableItem>

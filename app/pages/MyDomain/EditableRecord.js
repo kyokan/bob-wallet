@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { TableItem, TableRow } from '../../components/Table';
-import { RECORD_TYPE } from '../../ducks/names';
+import { RECORD_TYPE, DROPDOWN_TYPES } from '../../ducks/names';
 import { validate } from '../../utils/record-helpers';
+import Dropdown from '../../components/Dropdown';
 
 class EditableRecord extends Component {
   static propTypes = {
@@ -18,17 +19,19 @@ class EditableRecord extends Component {
   constructor(props) {
     super(props);
     const { type, value, ttl } = getRecordJson(props.record);
+    const currentTypeIndex = DROPDOWN_TYPES.findIndex(d => d.label === type);
     this.state = {
       isEditing: false,
-      type,
       value,
       ttl,
       errorMessage: '',
+      currentTypeIndex: Math.max(currentTypeIndex, 0),
     };
   }
 
   isValid() {
-    const { type, value, ttl } = this.state;
+    const { value, ttl, currentTypeIndex } = this.state;
+    const {label: type} = DROPDOWN_TYPES[currentTypeIndex];
     return validate({ type, value, ttl });
   }
 
@@ -40,7 +43,8 @@ class EditableRecord extends Component {
       return;
     }
 
-    const { type, value, ttl } = this.state;
+    const { value, ttl, currentTypeIndex } = this.state;
+    const {label: type} = DROPDOWN_TYPES[currentTypeIndex];
     this.props.onEdit({ type, value, ttl })
       .then(() => this.setState({
         isEditing: false,
@@ -55,6 +59,18 @@ class EditableRecord extends Component {
     return this.state.isEditing
       ? this.renderEditableRow()
       : this.renderRow();
+  }
+
+  renderTypeDropdown() {
+    return (
+      <TableItem className="records-table__create-record__record-type-dropdown">
+        <Dropdown
+          currentIndex={this.state.currentTypeIndex}
+          onChange={i => this.setState({ currentTypeIndex: i, errorMessage: '' })}
+          items={DROPDOWN_TYPES}
+        />
+      </TableItem>
+    )
   }
 
   renderInput(name) {
@@ -79,7 +95,8 @@ class EditableRecord extends Component {
           {this.state.errorMessage}
         </div>
         <div className="records-table__create-record__inputs">
-          {this.renderInput('type')}
+          {/*{this.renderInput('type')}*/}
+          {this.renderTypeDropdown()}
           {this.renderInput('value')}
           {this.renderInput('ttl')}
           <TableItem>

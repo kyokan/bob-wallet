@@ -10,6 +10,12 @@ export const RECORD_TYPE = {
   AAAA: 'AAAA',
 };
 
+export const DROPDOWN_TYPES = [
+  { label: RECORD_TYPE.A },
+  { label: RECORD_TYPE.AAAA },
+  { label: RECORD_TYPE.CNAME },
+];
+
 // Action Types
 const SET_NAME = 'app/names/setName';
 
@@ -127,7 +133,6 @@ export const sendReveal = (name) => async (dispatch, getState) => {
 
 export const sendUpdate = (name, json) => async (dispatch, getState) => {
   const wClient = walletClient.forNetwork(getState().wallet.network);
-  console.log(json)
   await wClient.sendUpdate(name, json);
 };
 
