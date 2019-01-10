@@ -9,7 +9,7 @@ import './domains.scss';
 import { displayBalance, toBaseUnits } from '../../utils/balances';
 import { showError, showSuccess } from '../../ducks/notifications';
 import Blocktime from '../../components/Blocktime';
-import SuccessModal from "../../components/SuccessModal"
+import SuccessModal from "../../components/SuccessModal";
 
 class BidActionPanel extends Component {
   static propTypes = {
@@ -24,8 +24,8 @@ class BidActionPanel extends Component {
     bidAmount: '',
     maskAmount: '',
     isLoading: false,
-    successfullyBid: true,
-    showSuccessModal: true,
+    successfullyBid: false,
+    showSuccessModal: false,
   };
 
   render() {
@@ -43,8 +43,7 @@ class BidActionPanel extends Component {
     }
 
     const ownBid = this.findOwnBid();
-    // if (isBidding(domain)) {
-      if (true) {
+    if (isBidding(domain)) {
       if (ownBid || domain.pendingOperation === 'BID') {
         return this.renderPlacedBid(ownBid)
       }
@@ -195,6 +194,9 @@ class BidActionPanel extends Component {
               {highest}
             </div>
           </div>
+          <div className="domains__bid-now__info__disclaimer">
+            Winner pays 2nd highest bid price.
+          </div>
         </div>
         {this.renderBidNowAction()}
       </div>
@@ -205,7 +207,7 @@ class BidActionPanel extends Component {
     const {bidAmount, maskAmount, hasAccepted} = this.state;
     return (
       <div className="domains__bid-now">
-        <div className="domains__bid-now__title">Review Bid</div>
+        <div className="domains__bid-now__title">Review Your Bid</div>
         <div className="domains__bid-now__content">
           <div className="domains__bid-now__info">
             <div className="domains__bid-now__info__label">
@@ -214,6 +216,9 @@ class BidActionPanel extends Component {
             <div className="domains__bid-now__info__value">
               {`${bidAmount} HNS`}
             </div>
+            <div className="domains__bid-now__action__edit-icon" 
+              onClick={() => this.setState({ isReviewing: false }) } 
+            />
           </div>
           <div className="domains__bid-now__info">
             <div className="domains__bid-now__info__label">
@@ -222,8 +227,22 @@ class BidActionPanel extends Component {
             <div className="domains__bid-now__info__value">
               {maskAmount ? `${maskAmount} HNS` : ' - '}
             </div>
+            <div className="domains__bid-now__action__edit-icon" 
+              onClick={() => this.setState({ isReviewing: false }) } 
+            />
+          </div>
+          <div className="domains__bid-now__divider" />
+          <div className="domains__bid-now__info">
+            <div className="domains__bid-now__info__label">
+              Total Lockup
+            </div>
+            <div className="domains__bid-now__info__value">
+              {`${bidAmount + maskAmount} HNS`}
+            </div>
+            <div className="domains__bid-now__action__placeholder" />
           </div>
         </div>
+
         <div className="domains__bid-now__action">
           <div className="domains__bid-now__action__agreement">
             <Checkbox
@@ -238,7 +257,16 @@ class BidActionPanel extends Component {
             className="domains__bid-now__action__cta"
             onClick={
               () => this.handleCTA(
-                () => this.setState({ successfullyBid: true }),
+                () => {
+                  try {
+                    const lockup = bidAmount + maskAmount;
+                    this.props.sendBid(this.props.domain.name, bidAmount, lockup)
+                  } catch (error) {
+                    console.log(error);
+                  } finally {
+                    this.setState({ successfullyBid: true, showSuccessModal: true });
+                  }
+                },
                 'Bid successfully placed!',
                 'Failed to place bid. Please try again.'
               )
@@ -258,9 +286,12 @@ class BidActionPanel extends Component {
 
   renderSuccessfullyBid() {
     const {bidAmount, maskAmount, showSuccessModal} = this.state;
+    const {domain} = this.props;
+    const stats = domain.info && domain.info.stats || {};
+    console.log(domain)
     return (
       <div className="domains__bid-now">
-        {showSuccessModal && <SuccessModal onClose={() => this.setState({ showSuccessModal: false })}/>}
+        {showSuccessModal && <SuccessModal bidAmount={bidAmount} maskAmount={maskAmount} onClose={() => this.setState({ showSuccessModal: false })}/>}
         <div className="domains__bid-now__title">Bid Placed!</div>
         <div className="domains__bid-now__content">
           <div className="domains__bid-now__info">
@@ -268,7 +299,7 @@ class BidActionPanel extends Component {
               Reveal:
             </div>
             <div className="domains__bid-now__info__value">
-              2019-01-31
+              {stats.revealPeriodEnd}
             </div>
           </div>
           <div className="domains__bid-now__info">
@@ -340,9 +371,11 @@ class BidActionPanel extends Component {
 
   renderBidNowAction() {
     const {isPlacingBid, bidAmount} = this.state;
+    const { confirmedBalance } = this.props;
 
     if (isPlacingBid) {
       return (
+        <React.Fragment>
         <div className="domains__bid-now__action domains__bid-now__action--placing-bid">
           <div className="domains__bid-now__form">
             <div className="domains__bid-now__form__row">
@@ -366,6 +399,12 @@ class BidActionPanel extends Component {
             Review Bid
           </button>
         </div>
+        <div className="domains__bid-now__action domains__bid-now__action--placing-bid">
+          <div className="domains__bid-now__HNS-status">
+            {`${displayBalance(confirmedBalance)} HNS Unlocked Balance Available`}
+          </div>
+        </div>
+        </React.Fragment>
       )
     }
 
@@ -477,7 +516,9 @@ class BidActionPanel extends Component {
 
 export default withRouter(
   connect(
-    null,
+    (state) => ({
+      confirmedBalance: state.wallet.balance.confirmed,
+    }),
     dispatch => ({
       sendOpen: name => dispatch(nameActions.sendOpen(name)),
       sendBid: (name, amount, lockup) => dispatch(nameActions.sendBid(name, toBaseUnits(amount), toBaseUnits(lockup))),
