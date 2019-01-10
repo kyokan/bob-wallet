@@ -7,7 +7,6 @@ import * as nameActions from '../../ducks/names';
 import TLDInput from '../TLDInput';
 import { Logo } from '../Logo';
 import './topbar.scss';
-import Tooltipable from '../Tooltipable';
 
 @withRouter
 @connect(
@@ -83,15 +82,7 @@ class Topbar extends Component {
   }
 
   renderTitle(title) {
-    return (
-      <div className="topbar__title">
-        <Tooltipable
-          tooltipContent="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged."
-        >
-          {title}
-        </Tooltipable>
-      </div>
-    );
+    return <div className="topbar__title">{title}</div>;
   }
 
   renderNav() {

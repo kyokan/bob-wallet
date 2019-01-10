@@ -183,7 +183,7 @@ class BidActionPanel extends Component {
           </div>
           <div className="domains__bid-now__info">
             <div className="domains__bid-now__info__label">
-              Highest <Tooltipable>Mask</Tooltipable>:
+              Highest <span>Mask</span>:
             </div>
             <div className="domains__bid-now__info__value">
               {highest}
@@ -249,7 +249,20 @@ class BidActionPanel extends Component {
     if (shouldAddMask) {
       return (
         <div className="domains__bid-now__form__row">
-          <div className="domains__bid-now__form__row__label">Mask Amount:</div>
+          <div className="domains__bid-now__form__row__label">
+            <Tooltipable
+              className="domains__bid-now__mask"
+              tooltipContent={(
+                <span className="domains__bid-now__mask-tooltip">
+                  <span>Masks help disguise your actual bid amount. Other bidders can only tell that the value included in the transaction is greater than or equal to your actual bid</span>
+                  <span>All masks will be returned after the reveal period, regardless of outcome.</span>
+                </span>
+              )}
+            >
+              Mask
+            </Tooltipable>
+            <span> Amount:</span>
+          </div>
           <div className="domains__bid-now__form__row__input">
             <input
               type="number"
