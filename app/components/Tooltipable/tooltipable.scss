@@ -1,0 +1,31 @@
+@import '../../variables';
+
+.tooltipable {
+  position: relative;
+  cursor: pointer;
+
+  &__tooltip {
+    position: absolute;
+    top: 100%;
+    background-color: rgba($black, .8);
+    border-radius: 1rem;
+    color: rgba($white, .9);
+    width: 16rem;
+    font-size: .8rem;
+    line-height: 1rem;
+    padding: 0;
+    opacity: 0;
+    height: 0;
+  }
+
+  &:hover {
+    .tooltipable__tooltip {
+      opacity: 1;
+      height: auto;
+      display: block;
+      transition: opacity 250ms;
+      transition-delay: 750ms;
+      padding: 1rem;
+    }
+  }
+}
