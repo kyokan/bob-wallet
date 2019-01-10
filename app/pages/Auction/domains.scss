@@ -225,6 +225,11 @@
         margin-bottom: 1rem;
       }
     }
+    &__divider {
+      height: 1px;
+      background-color: rgba($black, 0.1);
+      margin: 0.5rem 0;
+    }
   }
 
   &__bid-now-divider {

@@ -9,6 +9,7 @@ import './domains.scss';
 import { displayBalance, toBaseUnits } from '../../utils/balances';
 import { showError, showSuccess } from '../../ducks/notifications';
 import Blocktime from '../../components/Blocktime';
+import SuccessModal from "../../components/SuccessModal"
 
 class BidActionPanel extends Component {
   static propTypes = {
@@ -23,11 +24,16 @@ class BidActionPanel extends Component {
     bidAmount: '',
     maskAmount: '',
     isLoading: false,
+    successfullyBid: true,
+    showSuccessModal: true,
   };
 
   render() {
     const {domain} = this.props;
 
+    if (this.state.successfullyBid) {
+      return this.renderSuccessfullyBid();
+    }
     if (this.state.isReviewing) {
       return this.renderReviewBid();
     }
@@ -37,7 +43,8 @@ class BidActionPanel extends Component {
     }
 
     const ownBid = this.findOwnBid();
-    if (isBidding(domain)) {
+    // if (isBidding(domain)) {
+      if (true) {
       if (ownBid || domain.pendingOperation === 'BID') {
         return this.renderPlacedBid(ownBid)
       }
@@ -229,14 +236,74 @@ class BidActionPanel extends Component {
           </div>
           <button
             className="domains__bid-now__action__cta"
-            onClick={() => this.handleCTA(
-              () => this.props.sendBid(this.props.domain.name, bidAmount, maskAmount),
-              'Bid successfully placed!',
-              'Failed to place bid. Please try again.'
-            )}
+            onClick={
+              () => this.handleCTA(
+                () => this.setState({ successfullyBid: true }),
+                'Bid successfully placed!',
+                'Failed to place bid. Please try again.'
+              )
+            //   () => this.handleCTA(
+            //   () => this.props.sendBid(this.props.domain.name, bidAmount, maskAmount),
+            //   'Bid successfully placed!',
+            //   'Failed to place bid. Please try again.'
+            // )
+          }
           >
             Submit Bid
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  renderSuccessfullyBid() {
+    const {bidAmount, maskAmount, showSuccessModal} = this.state;
+    return (
+      <div className="domains__bid-now">
+        {showSuccessModal && <SuccessModal onClose={() => this.setState({ showSuccessModal: false })}/>}
+        <div className="domains__bid-now__title">Bid Placed!</div>
+        <div className="domains__bid-now__content">
+          <div className="domains__bid-now__info">
+            <div className="domains__bid-now__info__label">
+              Reveal:
+            </div>
+            <div className="domains__bid-now__info__value">
+              2019-01-31
+            </div>
+          </div>
+          <div className="domains__bid-now__info">
+            <div className="domains__bid-now__info__label">
+              Total Bids:
+            </div>
+            <div className="domains__bid-now__info__value">
+              7
+            </div>
+          </div>
+          <div className="domains__bid-now__info">
+            <div className="domains__bid-now__info__label">
+             Highest Mask:
+            </div>
+            <div className="domains__bid-now__info__value">
+              1.00 HNS
+            </div>
+          </div>
+          <div className="domains__bid-now__divider" />
+          <div className="domains__bid-now__info">
+            <div className="domains__bid-now__info__label">
+              Your Bid:
+            </div>
+            <div className="domains__bid-now__info__value">
+              {`${bidAmount} HNS`}
+            </div>
+          </div>
+          <div className="domains__bid-now__info">
+            <div className="domains__bid-now__info__label">
+              Your Mask:
+            </div>
+            <div className="domains__bid-now__info__value">
+              {maskAmount ? `${maskAmount} HNS` : ' - '}
+            </div>
+          </div>
         </div>
       </div>
     );
