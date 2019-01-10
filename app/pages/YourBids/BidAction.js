@@ -76,9 +76,7 @@ class BidAction extends Component {
     }
 
     return (
-      <div className="bid-action">
-        <div className="bid-action__delete-icon" />
-      </div>
+      <div className="bid-action" />
     );
   }
 }
