@@ -24,7 +24,7 @@ class MyDomain extends Component {
   }
 
   render() {
-    const { name, history, domain } = this.props;
+    const { name, history } = this.props;
 
     return (
       <div className="my-domain">
