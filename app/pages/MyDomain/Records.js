@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Table, HeaderRow, HeaderItem } from '../../components/Table';
+import { Table, HeaderRow, HeaderItem, TableRow } from '../../components/Table';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import connect from 'react-redux/es/connect/connect';
@@ -16,36 +16,50 @@ class Records extends Component {
     resource: PropTypes.object,
   };
 
+  constructor(props) {
+    super(props);
+    this.state = {
+      updatedResource: props.resource,
+    };
+  }
+
+  state = {
+    isEditing: false,
+  };
+
   sendUpdate = json => {
     return this.props.sendUpdate(this.props.name, json);
   };
 
   onCreate = async ({ type, value, ttl }) => {
-    const json = this.props.resource
-      ? this.props.resource.toJSON()
+    const json = this.state.updatedResource
+      ? this.state.updatedResource.toJSON()
       : { hosts: [] };
 
-    switch (type) {
-      case RECORD_TYPE.A:
-      case RECORD_TYPE.AAAA:
-        json.hosts = json.hosts || [];
-        json.hosts.push(value);
-        json.ttl = Number(ttl);
-        break;
-      case RECORD_TYPE.CNAME:
-        json.canonical = value;
-        json.ttl = Number(ttl);
-        break;
-      default:
-        break;
-    }
+    // switch (type) {
+    //   case RECORD_TYPE.A:
+    //   case RECORD_TYPE.AAAA:
+    //     json.hosts = json.hosts || [];
+    //     json.hosts.push(value);
+    //     json.ttl = Number(ttl);
+    //     break;
+    //   case RECORD_TYPE.CNAME:
+    //     json.canonical = value;
+    //     json.ttl = Number(ttl);
+    //     break;
+    //   default:
+    //     break;
+    // }
 
-    await this.sendUpdate(json);
+    addRecordWithMutation(json, { type, value, ttl });
+    console.log(json)
+    this.setState({ updatedResource: Resource.fromJSON(json) });
+    // await this.sendUpdate(json);
   };
 
   makeOnEdit = ({ type: lastType, value: lastValue, ttl: lastTtl }) => async ({ type, value, ttl }) => {
-    const json = this.props.resource
-      ? this.props.resource.toJSON()
+    const json = this.state.updatedResource
+      ? this.state.updatedResource.toJSON()
       : { hosts: [] };
 
     // Remove old record
@@ -62,27 +76,14 @@ class Records extends Component {
         break;
     }
 
-    // Add updated record
-    switch (type) {
-      case RECORD_TYPE.A:
-      case RECORD_TYPE.AAAA:
-        json.hosts = json.hosts || [];
-        json.hosts.push(value);
-        json.ttl = Number(ttl);
-        break;
-      case RECORD_TYPE.CNAME:
-        json.canonical = value;
-        json.ttl = Number(ttl);
-        break;
-      default:
-        break;
-    }
+    addRecordWithMutation(json, { type, value });
 
     if (lastTtl !== ttl) {
       json.ttl = ttl;
     }
 
-    await this.sendUpdate(json);
+    this.setState({ updatedResource: Resource.fromJSON(json) });
+    // await this.sendUpdate(json);
   };
 
   renderHeaders() {
@@ -99,7 +100,8 @@ class Records extends Component {
   }
 
   renderRows() {
-    return this.props.records.map((record, i) => {
+    const records = getRecords(this.state.updatedResource);
+    return records.map((record, i) => {
       return (
         <EditableRecord
           name={this.props.name}
@@ -115,13 +117,27 @@ class Records extends Component {
     return <CreateRecord name={this.props.name} onCreate={this.onCreate}/>;
   }
 
+  renderActionRow() {
+    return (
+      <TableRow className="records-table__action-row">
+        <button className="records-table__action-row__submit-btn">
+          Submit
+        </button>
+        <div className="records-table__action-row__dismiss-link">
+          Discard Changes
+        </div>
+      </TableRow>
+    )
+  }
+
   render() {
     return (
       <div>
         <Table className="records-table">
           {this.renderHeaders()}
-          {this.renderCreateRecord()}
           {this.renderRows()}
+          {this.renderCreateRecord()}
+          {this.renderActionRow()}
         </Table>
       </div>
     )
@@ -213,4 +229,25 @@ function getRecordJson(record) {
   }
 
   return { type, value, ttl };
+}
+
+function addRecordWithMutation(json, { type, value, ttl }) {
+  switch (type) {
+    case RECORD_TYPE.A:
+    case RECORD_TYPE.AAAA:
+      json.hosts = json.hosts || [];
+      json.hosts.push(value);
+      break;
+    case RECORD_TYPE.CNAME:
+      json.canonical = value;
+      break;
+    default:
+      break;
+  }
+
+  if (ttl != null) {
+    json.ttl = Number(ttl);
+  }
+
+  return json;
 }
