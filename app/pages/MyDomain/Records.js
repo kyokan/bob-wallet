@@ -90,17 +90,13 @@ class Records extends Component {
 
   onCreate = async ({ type, value, ttl }) => {
     const json = this.getResourceJSON();
-
     addRecordWithMutation(json, { type, value, ttl });
-
     this.setState({ updatedResource: Resource.fromJSON(json) });
   };
 
   onRemove = async ({ type, value, ttl }) => {
     const json = this.getResourceJSON();
-
     removeRecordWithMutation(json, { type, value, ttl });
-    console.log(json);
     this.setState({ updatedResource: Resource.fromJSON(json) });
   };
 
@@ -129,12 +125,12 @@ class Records extends Component {
     return records.map((record, i) => {
       const json = getRecordJson(record);
       const { type, value } = json;
-      return (
+      return (type && value) && (
         <EditableRecord
           key={`${name}-${type}-${value}-${i}`}
           name={name}
           record={json}
-          onEdit={this.makeOnEdit(getRecordJson(record))}
+          onEdit={this.makeOnEdit(json)}
           onRemove={this.onRemove}
         />
       );
