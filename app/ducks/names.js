@@ -133,7 +133,7 @@ export const sendReveal = (name) => async (dispatch, getState) => {
 
 export const sendUpdate = (name, json) => async (dispatch, getState) => {
   const wClient = walletClient.forNetwork(getState().wallet.network);
-  await wClient.sendUpdate(name, json);
+  return await wClient.sendUpdate(name, json);
 };
 
 function reduceSetName(state, action) {

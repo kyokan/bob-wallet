@@ -309,6 +309,21 @@
 
     &__dismiss-link {
       @extend %link;
+      font-size: .8rem;
+      margin-right: 1rem;
+      border: none;
+      outline: none;
+      background-color: transparent;
+      &:disabled {
+        opacity: .25;
+        cursor: default;
+      }
+    }
+
+    &__error-message {
+      font-size: .8rem;
+      color: $orange-red;
+      margin-right: 1rem;
     }
   }
 }

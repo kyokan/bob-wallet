@@ -7,6 +7,7 @@ import Resource from '../../../node_modules/hsd/lib/dns/resource'
 import CreateRecord from './CreateRecord';
 import EditableRecord from './EditableRecord';
 import * as nameActions from '../../ducks/names';
+import { filterOne, deepEqual } from '../../utils/helpers';
 
 const { RECORD_TYPE } = nameActions;
 
@@ -31,6 +32,8 @@ class Records extends Component {
 
   state = {
     updatedResource: null,
+    isUpdating: false,
+    errorMessage: '',
   };
 
   getResource= () => {
@@ -43,8 +46,31 @@ class Records extends Component {
     return resource ? resource.toJSON() : {};
   };
 
-  sendUpdate = json => {
-    return this.props.sendUpdate(this.props.name, json);
+  hasChanged = () => {
+    const oldResource = this.props.resource;
+    const newResource = this.state.updatedResource;
+
+    if (!oldResource || !newResource) {
+      return false;
+    }
+
+    return !deepEqual(oldResource.toJSON(), newResource.toJSON());
+  };
+
+  sendUpdate = async () => {
+    this.setState({ isUpdating: true });
+    try {
+      const newResource = this.state.updatedResource;
+      const json = newResource.toJSON();
+      await this.props.sendUpdate(this.props.name, json);
+      this.setState({ isUpdating: false });
+    } catch (e) {
+      this.setState({
+        isUpdating: false,
+        errorMessage: e.message,
+      });
+    }
+
   };
 
   onCreate = async ({ type, value, ttl }) => {
@@ -53,7 +79,6 @@ class Records extends Component {
     addRecordWithMutation(json, { type, value, ttl });
 
     this.setState({ updatedResource: Resource.fromJSON(json) });
-    // await this.sendUpdate(json);
   };
 
   onRemove = async ({ type, value, ttl }) => {
@@ -81,7 +106,6 @@ class Records extends Component {
     }
 
     this.setState({ updatedResource: Resource.fromJSON(json) });
-    // await this.sendUpdate(json);
   };
 
   renderRows() {
@@ -108,15 +132,23 @@ class Records extends Component {
   renderActionRow() {
     return (
       <TableRow className="records-table__action-row">
-        <button className="records-table__action-row__submit-btn">
+        <div className="records-table__action-row__error-message">
+          {this.state.errorMessage}
+        </div>
+        <button
+          className="records-table__action-row__submit-btn"
+          disabled={!this.hasChanged() || this.state.isUpdating}
+          onClick={this.sendUpdate}
+        >
           Submit
         </button>
-        <div
+        <button
           className="records-table__action-row__dismiss-link"
           onClick={() => this.setState({ updatedResource: null })}
+          disabled={!this.hasChanged() || this.state.isUpdating}
         >
           Discard Changes
-        </div>
+        </button>
       </TableRow>
     )
   }
@@ -258,21 +290,4 @@ function removeRecordWithMutation(json, { type, value, ttl }) {
   }
 
   return json;
-}
-
-function filterOne(array, filterFn) {
-  let hasFiltered = false;
-  return array.filter(d => {
-    if (hasFiltered) {
-      return true;
-    }
-
-    const ret = filterFn(d);
-
-    if (!ret) {
-      hasFiltered = true;
-    }
-
-    return ret;
-  })
 }
