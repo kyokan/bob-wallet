@@ -339,7 +339,8 @@
     background-color: rgba($black, .45);
     color: $white;
     z-index: 100;
-    border-radius: 4px;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
 
     &__content {
       @extend %row-nowrap;

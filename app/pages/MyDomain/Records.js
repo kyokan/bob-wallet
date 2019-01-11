@@ -16,7 +16,7 @@ class Records extends Component {
   static propTypes = {
     name: PropTypes.string.isRequired,
     resource: PropTypes.object,
-    pendingUpdateTx: PropTypes.object,
+    pendingData: PropTypes.string,
   };
 
   static renderHeaders() {
@@ -39,10 +39,10 @@ class Records extends Component {
   };
 
   getResource= () => {
-    if (this.props.pendingUpdateTx) {
+    if (this.props.pendingData) {
       return getDecodedResource({
         info: {
-          data: this.props.pendingUpdateTx.meta.data,
+          data: this.props.pendingData,
         },
       })
     }
@@ -176,14 +176,14 @@ class Records extends Component {
       <div>
         <Table
           className={cn("records-table", {
-            'records-table--pending': this.props.pendingUpdateTx,
+            'records-table--pending': this.props.pendingData,
           })}
         >
           {Records.renderHeaders()}
           {this.renderRows()}
-          {!this.props.pendingUpdateTx ? this.renderCreateRecord() : null}
-          {!this.props.pendingUpdateTx ?  this.renderActionRow() : null}
-          {this.props.pendingUpdateTx ? this.renderPendingUpdateOverlay() : null}
+          {!this.props.pendingData ? this.renderCreateRecord() : null}
+          {!this.props.pendingData ?  this.renderActionRow() : null}
+          {this.props.pendingData ? this.renderPendingUpdateOverlay() : null}
         </Table>
       </div>
     )
@@ -195,9 +195,10 @@ export default withRouter(
     (state, ownProps) => {
       const domain = state.names[ownProps.name];
       const resource = getDecodedResource(domain);
+      console.log({ pendingData: getPendingData(domain) })
       return {
         resource,
-        pendingUpdateTx: hasPendingUpdate(state.wallet.transactions, ownProps.name),
+        pendingData: getPendingData(domain),
       }
     },
     dispatch => ({
@@ -315,18 +316,14 @@ function removeRecordWithMutation(json, { type, value, ttl }) {
   return json;
 }
 
-function hasPendingUpdate(transactions, name) {
-  if (!Array.isArray(transactions)) {
-    return false;
+function getPendingData(domain) {
+  if (!domain) {
+    return '';
   }
 
-  for (let i = 0; i < transactions.length; i++) {
-    const tx = transactions[i];
-    const meta = tx.meta || {};
-    if (tx.type === 'UPDATE' && meta.domain === name && tx.pending) {
-      return tx;
-    }
+  if (domain.pendingOperation === 'UPDATE') {
+    return domain.pendingOperationMeta.data;
   }
 
-  return false;
+  return '';
 }
