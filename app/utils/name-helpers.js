@@ -9,7 +9,7 @@ export const states = {
 const STATES_TO_OPS = {
   OPENING: 'OPEN',
   BIDDING: 'BID',
-  REVEAL: 'REVEAL'
+  REVEAL: 'REVEAL',
 };
 
 export const isAvailable = name => {
@@ -57,7 +57,9 @@ function checkState(name, expectedState) {
   }
 
   const { start, info } = name;
-  if (name.pendingOperation === STATES_TO_OPS[expectedState]) {
+  const ops = STATES_TO_OPS[expectedState];
+
+  if (typeof ops !== 'undefined' && name.pendingOperation === ops) {
     return true;
   }
 
