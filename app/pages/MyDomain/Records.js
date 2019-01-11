@@ -12,19 +12,24 @@ import * as nameActions from '../../ducks/names';
 class Records extends Component {
   static propTypes = {
     name: PropTypes.string.isRequired,
+    info: PropTypes.string,
     records: PropTypes.array.isRequired,
     resource: PropTypes.object,
   };
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      updatedResource: props.resource,
-    };
-  }
-
   state = {
-    isEditing: false,
+    updatedResource: null,
+  };
+
+  getResource= () => {
+    const resource = this.state.updatedResource || this.props.resource;
+    return resource;
+  };
+
+  getResourceJSON = () => {
+    const resource = this.getResource();
+
+    return resource ? resource.toJSON() : {};
   };
 
   sendUpdate = json => {
@@ -32,9 +37,7 @@ class Records extends Component {
   };
 
   onCreate = async ({ type, value, ttl }) => {
-    const json = this.state.updatedResource
-      ? this.state.updatedResource.toJSON()
-      : { hosts: [] };
+    const json = this.getResourceJSON();
 
     // switch (type) {
     //   case RECORD_TYPE.A:
@@ -52,15 +55,12 @@ class Records extends Component {
     // }
 
     addRecordWithMutation(json, { type, value, ttl });
-    console.log(json)
     this.setState({ updatedResource: Resource.fromJSON(json) });
     // await this.sendUpdate(json);
   };
 
   makeOnEdit = ({ type: lastType, value: lastValue, ttl: lastTtl }) => async ({ type, value, ttl }) => {
-    const json = this.state.updatedResource
-      ? this.state.updatedResource.toJSON()
-      : { hosts: [] };
+    const json = this.getResourceJSON();
 
     // Remove old record
     switch (lastType) {
@@ -78,8 +78,8 @@ class Records extends Component {
 
     addRecordWithMutation(json, { type, value });
 
-    if (lastTtl !== ttl) {
-      json.ttl = ttl;
+    if (ttl != null && ttl !== '' && lastTtl !== ttl) {
+      json.ttl = Number(ttl);
     }
 
     this.setState({ updatedResource: Resource.fromJSON(json) });
@@ -100,7 +100,7 @@ class Records extends Component {
   }
 
   renderRows() {
-    const records = getRecords(this.state.updatedResource);
+    const records = getRecords(this.getResource());
     return records.map((record, i) => {
       return (
         <EditableRecord
@@ -148,9 +148,11 @@ export default withRouter(
   connect(
     (state, ownProps) => {
       const domain = state.names[ownProps.name];
-      const resource = getResource(domain);
+      const resource = getDecodedResource(domain);
       const records = getRecords(resource);
+
       return {
+        info: domain && domain.info,
         resource,
         records,
       }
@@ -161,7 +163,7 @@ export default withRouter(
   )(Records)
 );
 
-function getResource(domain) {
+function getDecodedResource(domain) {
   const { info } = domain || {};
 
   if (!info) {
@@ -189,19 +191,19 @@ function getRecords(resource) {
     ...getRecord(resource, 'toDNAME'),
     ...getRecord(resource, 'toDNS'),
     ...getRecord(resource, 'toDS'),
-    ...getRecord(resource, 'toGlue'),
+    // ...getRecord(resource, 'toGlue'),
     ...getRecord(resource, 'toLOC'),
     ...getRecord(resource, 'toMX'),
-    ...getRecord(resource, 'toMXIP'),
+    // ...getRecord(resource, 'toMXIP'),
     ...getRecord(resource, 'toNS'),
     // ...getRecord(resource, 'toNSEC'),
     ...getRecord(resource, 'toNSIP'),
     ...getRecord(resource, 'toOPENPGPKEY'),
     ...getRecord(resource, 'toRP'),
     ...getRecord(resource, 'toSMIMEA'),
-    ...getRecord(resource, 'toSRC'),
-    ...getRecord(resource, 'toSRCIP'),
-    ...getRecord(resource, 'toSSHFP'),
+    ...getRecord(resource, 'toSRV'),
+    // ...getRecord(resource, 'toSRCIP'),
+    // ...getRecord(resource, 'toSSHFP'),
   ];
 }
 
@@ -245,7 +247,7 @@ function addRecordWithMutation(json, { type, value, ttl }) {
       break;
   }
 
-  if (ttl != null) {
+  if (ttl != null && ttl !== '') {
     json.ttl = Number(ttl);
   }
 
