@@ -255,6 +255,22 @@ async function parseCovenant(covenant) {
       return { type: 'BID', meta: { domain: await nameByHash(covenant) } };
     case 'REVEAL':
       return { type: 'REVEAL', meta: { domain: await nameByHash(covenant) } };
+    case 'UPDATE':
+      return {
+        type: 'UPDATE',
+        meta: {
+          domain: await nameByHash(covenant),
+          data: covenant.items[2],
+        },
+      };
+    case 'REGISTER':
+      return {
+        type: 'UPDATE',
+        meta: {
+          domain: await nameByHash(covenant),
+          data: covenant.items[2],
+        },
+      };
     default:
       return { type: 'UNKNOWN', meta: {} };
   }

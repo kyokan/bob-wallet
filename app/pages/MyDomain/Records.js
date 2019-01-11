@@ -3,6 +3,7 @@ import { Table, HeaderRow, HeaderItem, TableRow } from '../../components/Table';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import connect from 'react-redux/es/connect/connect';
+import cn from 'classnames';
 import Resource from '../../../node_modules/hsd/lib/dns/resource'
 import CreateRecord from './CreateRecord';
 import EditableRecord from './EditableRecord';
@@ -15,6 +16,7 @@ class Records extends Component {
   static propTypes = {
     name: PropTypes.string.isRequired,
     resource: PropTypes.object,
+    pendingUpdateTx: PropTypes.object,
   };
 
   static renderHeaders() {
@@ -37,6 +39,14 @@ class Records extends Component {
   };
 
   getResource= () => {
+    if (this.props.pendingUpdateTx) {
+      return getDecodedResource({
+        info: {
+          data: this.props.pendingUpdateTx.meta.data,
+        },
+      })
+    }
+
     return this.state.updatedResource || this.props.resource;
   };
 
@@ -153,14 +163,27 @@ class Records extends Component {
     )
   }
 
+  renderPendingUpdateOverlay() {
+    return (
+      <div className="records-table__pending-overlay">
+        <div className="records-table__pending-overlay__content">Updating records...</div>
+      </div>
+    )
+  }
+
   render() {
     return (
       <div>
-        <Table className="records-table">
+        <Table
+          className={cn("records-table", {
+            'records-table--pending': this.props.pendingUpdateTx,
+          })}
+        >
           {Records.renderHeaders()}
           {this.renderRows()}
-          {this.renderCreateRecord()}
-          {this.renderActionRow()}
+          {!this.props.pendingUpdateTx ? this.renderCreateRecord() : null}
+          {!this.props.pendingUpdateTx ?  this.renderActionRow() : null}
+          {this.props.pendingUpdateTx ? this.renderPendingUpdateOverlay() : null}
         </Table>
       </div>
     )
@@ -172,9 +195,9 @@ export default withRouter(
     (state, ownProps) => {
       const domain = state.names[ownProps.name];
       const resource = getDecodedResource(domain);
-
       return {
         resource,
+        pendingUpdateTx: hasPendingUpdate(state.wallet.transactions, ownProps.name),
       }
     },
     dispatch => ({
@@ -290,4 +313,20 @@ function removeRecordWithMutation(json, { type, value, ttl }) {
   }
 
   return json;
+}
+
+function hasPendingUpdate(transactions, name) {
+  if (!Array.isArray(transactions)) {
+    return false;
+  }
+
+  for (let i = 0; i < transactions.length; i++) {
+    const tx = transactions[i];
+    const meta = tx.meta || {};
+    if (tx.type === 'UPDATE' && meta.domain === name && tx.pending) {
+      return tx;
+    }
+  }
+
+  return false;
 }
