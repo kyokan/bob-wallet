@@ -8,6 +8,7 @@ export default class Dropdown extends Component {
     items: PropTypes.arrayOf(
       PropTypes.shape({
         label: PropTypes.string.isRequired,
+        disabled: PropTypes.bool,
       }),
     ).isRequired,
     className: PropTypes.string,
@@ -50,11 +51,13 @@ export default class Dropdown extends Component {
           </div>
         </div>
         <div className="dropdown__options">
-          {items.map(({ label }, i) => (
+          {items.map(({ label, disabled }, i) => (
             <div
               key={i}
-              className="dropdown__option"
-              onClick={() => this.select(i)}
+              className={c('dropdown__option', {
+                'dropdown__option--disabled': disabled,
+              })}
+              onClick={() => !disabled && this.select(i)}
             >
               {label}
             </div>

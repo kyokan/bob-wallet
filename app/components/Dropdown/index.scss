@@ -57,6 +57,18 @@
     &:active {
       background-color: darken($grey, 5);
     }
+
+    &--disabled {
+      opacity: .25;
+      cursor: default;
+      &:hover {
+        background-color: lighten($grey, 5);
+      }
+
+      &:active {
+        background-color: lighten($grey, 5);
+      }
+    }
   }
 
   &--opened {
@@ -74,6 +86,7 @@
         @extend %col-nowrap;
 
         background-color: lighten($grey, 5);
+        z-index: 200;
       }
     }
   }

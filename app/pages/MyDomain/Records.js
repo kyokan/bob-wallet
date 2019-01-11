@@ -75,7 +75,8 @@ class Records extends Component {
     try {
       const newResource = this.state.updatedResource;
       const json = newResource.toJSON();
-      await this.props.sendUpdate(this.props.name, json);
+      // await this.props.sendUpdate(this.props.name, json);
+      console.log(json);
       this.setState({ isUpdating: false });
       this.props.showSuccess('Your update request is sent successfully! It should be confirmed in 15 minutes.');
     } catch (e) {
@@ -91,7 +92,7 @@ class Records extends Component {
     const json = this.getResourceJSON();
 
     addRecordWithMutation(json, { type, value, ttl });
-
+    console.log(json);
     this.setState({ updatedResource: Resource.fromJSON(json) });
   };
 
@@ -99,7 +100,7 @@ class Records extends Component {
     const json = this.getResourceJSON();
 
     removeRecordWithMutation(json, { type, value, ttl });
-
+    console.log(json);
     this.setState({ updatedResource: Resource.fromJSON(json) });
   };
 
@@ -125,6 +126,7 @@ class Records extends Component {
   renderRows() {
     const { name } = this.props;
     const records = getRecords(this.getResource());
+    console.log(records, this.getResource());
     return records.map((record, i) => {
       const { type, value } = getRecordJson(record);
       return (
@@ -270,13 +272,17 @@ function getRecordJson(record) {
   const ttl = json.ttl;
 
   let value = '';
-
+  console.log(json)
   if ([RECORD_TYPE.A, RECORD_TYPE.AAAA].includes(type)) {
     value = json.data.address;
   }
 
   if (type === RECORD_TYPE.CNAME) {
     value = json.data.target;
+  }
+
+  if (type === RECORD_TYPE.MX) {
+    console.log(json);
   }
 
   return { type, value, ttl };
@@ -291,6 +297,17 @@ function addRecordWithMutation(json, { type, value, ttl }) {
       break;
     case RECORD_TYPE.CNAME:
       json.canonical = value;
+      break;
+    case RECORD_TYPE.MX:
+      // json.service = json.service || [];
+      // json.service.push({
+      //   target: value,
+      //   service: 'tcpmux.',
+      //   protocol: 'icmp.',
+      //   priority: 10,
+      //   weight: 10,
+      //   port: 10,
+      // });
       break;
     default:
       break;
@@ -313,6 +330,8 @@ function removeRecordWithMutation(json, { type, value, ttl }) {
       break;
     case RECORD_TYPE.CNAME:
       json.canonical = null;
+      break;
+    case RECORD_TYPE.MX:
       break;
     default:
       break;
