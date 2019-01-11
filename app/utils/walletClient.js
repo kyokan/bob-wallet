@@ -33,7 +33,8 @@ export function forNetwork(net) {
     },
 
     getNames: async () => {
-      return wallet.client.execute('getnames');
+      await walletClient.execute('selectwallet', [WALLET_ID]);
+      return walletClient.execute('getnames');
     },
 
     createNewWallet: async (passphrase) => {
