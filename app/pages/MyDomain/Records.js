@@ -195,7 +195,7 @@ export default withRouter(
     (state, ownProps) => {
       const domain = state.names[ownProps.name];
       const resource = getDecodedResource(domain);
-      console.log({ pendingData: getPendingData(domain) })
+
       return {
         resource,
         pendingData: getPendingData(domain),

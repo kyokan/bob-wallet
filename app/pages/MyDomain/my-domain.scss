@@ -315,9 +315,19 @@
       border: none;
       outline: none;
       background-color: transparent;
+      color: $orange-red;
+
       &:disabled {
-        opacity: .25;
+        opacity: .1;
         cursor: default;
+      }
+
+      &:hover {
+        color: lighten($orange-red, 10);
+      }
+
+      &:active {
+        color: darken($orange-red, 10);
       }
     }
 
@@ -325,6 +335,7 @@
       font-size: .8rem;
       color: $orange-red;
       margin-right: 1rem;
+
     }
   }
 

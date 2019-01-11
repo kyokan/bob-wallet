@@ -147,9 +147,11 @@ function reduceSetName(state, action) {
   return {
     ...state,
     [name]: {
+      ...state[name] || {},
+      ...state[name],
       ...payload,
       hash,
-      pendingOperation: null,
+      // pendingOperation: null,
     }
   };
 }
