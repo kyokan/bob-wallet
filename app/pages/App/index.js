@@ -41,25 +41,40 @@ class App extends Component {
   };
 
   async componentDidMount() {
-    this.setState({
-      isLoading: true
-    });
+    this.setState({ isLoading: true });
     await this.props.startNode();
     await this.props.fetchWallet();
     await this.props.pollPendingTransactions();
-    setTimeout(
-      () => this.setState({ isLoading: false }), 2000
-    );
+    setTimeout(() => this.setState({ isLoading: false }) , 1000)
   }
 
   render() {
     if (this.state.isLoading) {
-      return <div className="app__splash-image" />;
+      return this.renderSplash();
     }
+
+    // TODO: Figure out how to get error
     if (this.props.error) {
       return <div>Error</div>
     }
+
     return <div className="app">{this.renderContent()}</div>;
+  }
+
+  renderSplash() {
+    return (
+      <div className="app__splash">
+        <div className="app__splash__title"> 
+          Allison x Bob
+        </div>
+        <div className="app__splash__logo__wrapper">
+          <div className="app__splash__logo__alice" />
+          <div className="app__splash__logo__bob" />
+        </div>
+        <div className="app__splash__logo__spinner" />
+        <div className="app__splash__text">Loading the node...</div>
+      </div>
+      )
   }
 
   renderContent() {
