@@ -75,8 +75,8 @@ class Records extends Component {
     try {
       const newResource = this.state.updatedResource;
       const json = newResource.toJSON();
-      // await this.props.sendUpdate(this.props.name, json);
-      console.log(json);
+      await this.props.sendUpdate(this.props.name, json);
+      // console.log(json);
       this.setState({ isUpdating: false });
       this.props.showSuccess('Your update request is sent successfully! It should be confirmed in 15 minutes.');
     } catch (e) {
@@ -92,7 +92,7 @@ class Records extends Component {
     const json = this.getResourceJSON();
 
     addRecordWithMutation(json, { type, value, ttl });
-    console.log(json);
+
     this.setState({ updatedResource: Resource.fromJSON(json) });
   };
 
@@ -126,14 +126,14 @@ class Records extends Component {
   renderRows() {
     const { name } = this.props;
     const records = getRecords(this.getResource());
-    console.log(records, this.getResource());
     return records.map((record, i) => {
-      const { type, value } = getRecordJson(record);
+      const json = getRecordJson(record);
+      const { type, value } = json;
       return (
         <EditableRecord
           key={`${name}-${type}-${value}-${i}`}
           name={name}
-          record={record}
+          record={json}
           onEdit={this.makeOnEdit(getRecordJson(record))}
           onRemove={this.onRemove}
         />
@@ -239,20 +239,21 @@ function getRecords(resource) {
     ...getRecord(resource, 'toA'),
     ...getRecord(resource, 'toAAAA'),
     ...getRecord(resource, 'toCNAME'),
-    ...getRecord(resource, 'toDNAME'),
-    ...getRecord(resource, 'toDNS'),
-    ...getRecord(resource, 'toDS'),
+    ...getRecord(resource, 'toTXT'),
+    // ...getRecord(resource, 'toDNAME'),
+    // ...getRecord(resource, 'toDNS'),
+    // ...getRecord(resource, 'toDS'),
     // ...getRecord(resource, 'toGlue'),
-    ...getRecord(resource, 'toLOC'),
-    ...getRecord(resource, 'toMX'),
+    // ...getRecord(resource, 'toLOC'),
+    // ...getRecord(resource, 'toMX'),
     // ...getRecord(resource, 'toMXIP'),
-    ...getRecord(resource, 'toNS'),
+    // ...getRecord(resource, 'toNS'),
     // ...getRecord(resource, 'toNSEC'),
-    ...getRecord(resource, 'toNSIP'),
-    ...getRecord(resource, 'toOPENPGPKEY'),
-    ...getRecord(resource, 'toRP'),
-    ...getRecord(resource, 'toSMIMEA'),
-    ...getRecord(resource, 'toSRV'),
+    // ...getRecord(resource, 'toNSIP'),
+    // ...getRecord(resource, 'toOPENPGPKEY'),
+    // ...getRecord(resource, 'toRP'),
+    // ...getRecord(resource, 'toSMIMEA'),
+    // ...getRecord(resource, 'toSRV'),
     // ...getRecord(resource, 'toSRCIP'),
     // ...getRecord(resource, 'toSSHFP'),
   ];
@@ -272,7 +273,7 @@ function getRecordJson(record) {
   const ttl = json.ttl;
 
   let value = '';
-  console.log(json)
+
   if ([RECORD_TYPE.A, RECORD_TYPE.AAAA].includes(type)) {
     value = json.data.address;
   }
@@ -281,8 +282,8 @@ function getRecordJson(record) {
     value = json.data.target;
   }
 
-  if (type === RECORD_TYPE.MX) {
-    console.log(json);
+  if (type === RECORD_TYPE.TXT) {
+    value = json.data.txt[0];
   }
 
   return { type, value, ttl };
@@ -298,16 +299,9 @@ function addRecordWithMutation(json, { type, value, ttl }) {
     case RECORD_TYPE.CNAME:
       json.canonical = value;
       break;
-    case RECORD_TYPE.MX:
-      // json.service = json.service || [];
-      // json.service.push({
-      //   target: value,
-      //   service: 'tcpmux.',
-      //   protocol: 'icmp.',
-      //   priority: 10,
-      //   weight: 10,
-      //   port: 10,
-      // });
+    case RECORD_TYPE.TXT:
+      json.text = json.text || [];
+      json.text.push(value);
       break;
     default:
       break;
@@ -331,7 +325,9 @@ function removeRecordWithMutation(json, { type, value, ttl }) {
     case RECORD_TYPE.CNAME:
       json.canonical = null;
       break;
-    case RECORD_TYPE.MX:
+    case RECORD_TYPE.TXT:
+      json.text = json.text || [];
+      json.text = filterOne(json.text, txt => txt !== value);
       break;
     default:
       break;
