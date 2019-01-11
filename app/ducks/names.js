@@ -109,6 +109,14 @@ export const sendBid = (name, amount, lockup) => async (dispatch, getState) => {
 
   const wClient = walletClient.forNetwork(getState().wallet.network);
   await wClient.sendBid(name, amount, lockup);
+  // throw new Error('logging error');
+  // try {
+  //   await console.log('bid success')
+  // } catch (error) {
+  //   //continue digging here
+  //   console.log('bid failed')
+  //   throw new Error(error);
+  // }
 };
 
 export const sendReveal = (name) => async (dispatch, getState) => {

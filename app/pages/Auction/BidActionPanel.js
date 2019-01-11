@@ -62,18 +62,19 @@ class BidActionPanel extends Component {
     try {
       this.setState({ isLoading: true });
       await handler();
+      if (successMessage) {
+        this.props.showSuccess(successMessage);
+      }
+      // in case we want a callback rather than a successMessage
+      if (callback){
+        callback();
+      }
     } catch (e) {
       console.error(e);
       this.props.showError(errorMessage);
       return;
     } finally {
       this.setState({isLoading: false});
-      if (callback){
-        callback();
-      }
-    }
-    if (successMessage) {
-      this.props.showSuccess(successMessage);
     }
   }
 
@@ -213,6 +214,7 @@ class BidActionPanel extends Component {
 
   renderReviewBid() {
     const {bidAmount, maskAmount, hasAccepted} = this.state;
+    const lockup = bidAmount + maskAmount;
     return (
       <div className="domains__bid-now">
         <div className="domains__bid-now__title">Review Your Bid</div>
@@ -265,10 +267,7 @@ class BidActionPanel extends Component {
             className="domains__bid-now__action__cta"
             onClick={
               () => this.handleCTA(
-                () => {
-                  const lockup = bidAmount + maskAmount;
-                  this.props.sendBid(this.props.domain.name, bidAmount, lockup)
-                },
+                () => this.props.sendBid(this.props.domain.name, bidAmount, lockup),
                 null,
                 'Failed to place bid. Please try again.',
                 () => this.setState({ 

@@ -29,6 +29,7 @@ import Notification from '../../components/Notification';
 
 class App extends Component {
   static propTypes = {
+    error: PropTypes.string.isRequired,
     isLocked: PropTypes.bool.isRequired,
     initialized: PropTypes.bool.isRequired,
     fetchWallet: PropTypes.func.isRequired,
@@ -46,20 +47,22 @@ class App extends Component {
     await this.props.startNode();
     await this.props.fetchWallet();
     await this.props.pollPendingTransactions();
-    this.setState({
-      isLoading: false
-    });
+    setTimeout(
+      () => this.setState({ isLoading: false }), 2000
+    );
   }
 
   render() {
+    if (this.state.isLoading) {
+      return <div className="app__splash-image" />;
+    }
+    if (this.props.error) {
+      return <div>Error</div>
+    }
     return <div className="app">{this.renderContent()}</div>;
   }
 
   renderContent() {
-    if (this.state.isLoading) {
-      return null;
-    }
-
     const { isLocked, initialized } = this.props;
 
     if (isLocked || !initialized) {
@@ -172,6 +175,7 @@ class App extends Component {
 export default withRouter(
   connect(
     state => ({
+      error: state.node.error,
       isLocked: state.wallet.isLocked,
       initialized: state.wallet.initialized
     }),
