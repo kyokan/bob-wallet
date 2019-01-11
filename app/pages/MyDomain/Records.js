@@ -9,6 +9,7 @@ import CreateRecord from './CreateRecord';
 import EditableRecord from './EditableRecord';
 import * as nameActions from '../../ducks/names';
 import { filterOne, deepEqual } from '../../utils/helpers';
+import { showSuccess } from '../../ducks/notifications';
 
 const { RECORD_TYPE } = nameActions;
 
@@ -17,6 +18,8 @@ class Records extends Component {
     name: PropTypes.string.isRequired,
     resource: PropTypes.object,
     pendingData: PropTypes.string,
+    showSuccess: PropTypes.func.isRequired,
+    sendUpdate: PropTypes.func.isRequired,
   };
 
   static renderHeaders() {
@@ -74,6 +77,7 @@ class Records extends Component {
       const json = newResource.toJSON();
       await this.props.sendUpdate(this.props.name, json);
       this.setState({ isUpdating: false });
+      this.props.showSuccess('Your update request is sent successfully! It should be confirmed in 15 minutes.');
     } catch (e) {
       this.setState({
         isUpdating: false,
@@ -203,6 +207,7 @@ export default withRouter(
     },
     dispatch => ({
       sendUpdate: (name, json) => dispatch(nameActions.sendUpdate(name, json)),
+      showSuccess: (message) => dispatch(showSuccess(message)),
     })
   )(Records)
 );
