@@ -24,7 +24,7 @@ class BidActionPanel extends Component {
     bidAmount: '',
     maskAmount: '',
     isLoading: false,
-    successfullyBid: false,
+    successfullyBid: true,
     showSuccessModal: false,
   };
 
@@ -144,6 +144,7 @@ class BidActionPanel extends Component {
           <div className="domains__bid-now-divider" />
           {this.renderInfoRow('Bid Amount', displayBalance(ownBid.value, true))}
           {this.renderInfoRow('Mask Amount', displayBalance(ownBid.lockup, true))}
+          {this.renderRevealPeriodBox()}
         </React.Fragment>
       );
     }
@@ -418,6 +419,19 @@ class BidActionPanel extends Component {
         </div>
       </div>
     );
+  }
+
+  renderRevealPeriodBox() {
+    return (
+      <div className="domains__bid-now__reveal">
+        <div className="domains__bid-now__reveal__headline">
+          Reveal Period
+        </div>
+        <div className="domains__bid-now__reveal__date">01/31/19 - 02/02/19</div>
+        <div className="domains__bid-now__reveal__block">Block # 2039 - 3395</div>
+        <div className="domains__bid-now__reveal__cta">Set Email Reminder</div>
+      </div>
+    )
   }
 
   findHighestMaskBid() {

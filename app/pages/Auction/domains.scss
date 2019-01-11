@@ -261,7 +261,56 @@
       color: $manatee-gray;
       text-align: center;
     }
+
+    &__reveal {
+      @extend %col-nowrap;
+      justify-content: center;
+      align-items: center;
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 1rem;
+      background-color: $azure-blue;
+      color: white;
+
+      &__headline {
+        @extend %h2;
+        opacity: 0.5;
+      }
+
+      &__date {
+        margin: 0.8rem 0 0.5rem 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+      }
+
+      &__block {
+        @extend %h5;
+      }
+      &__cta {
+        @extend %h2;
+        @extend %btn-secondary;
+        background-color: white;
+        margin: 1.25rem 0 0.5rem 0;
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+
+        &:hover {
+          background-color: rgba($white, 1);
+          color: lighten($azure-blue, 10);
+        }
+        &:focus {
+          background-color: rgba($white, 0.9);
+          color: lighten($azure-blue, 10);
+        }
+        &:active {
+          background-color: rgba($white, 0.9);
+          color: lighten($azure-blue, 10);
+        }
+      }
+    }
+
   }
+
 
   &__bid-now-divider {
     height: 1px;
