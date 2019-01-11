@@ -19,7 +19,7 @@ class EditableRecord extends Component {
 
   constructor(props) {
     super(props);
-    const { type, value, ttl } = props.record | {};
+    const { type, value, ttl } = props.record || {};
     const currentTypeIndex = DROPDOWN_TYPES.findIndex(d => d.label === type);
     this.state = {
       isEditing: false,
@@ -157,21 +157,3 @@ class EditableRecord extends Component {
 }
 
 export default EditableRecord;
-
-function getRecordJson(record) {
-  const json = record.getJSON();
-  const type = json.type;
-  const ttl = json.ttl;
-
-  let value = '';
-
-  if ([RECORD_TYPE.A, RECORD_TYPE.AAAA].includes(type)) {
-    value = json.data.address;
-  }
-
-  if (type === RECORD_TYPE.CNAME) {
-    value = json.data.target;
-  }
-
-  return { type, value, ttl };
-}
