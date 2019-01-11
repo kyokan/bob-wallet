@@ -19,6 +19,16 @@ class CreateRecord extends Component {
     return validate({ type, value, ttl });
   }
 
+  cancel = () => {
+    this.setState({
+      isCreating: false,
+      value: '',
+      ttl: '',
+      errorMessage: '',
+      currentTypeIndex: 0,
+    });
+  };
+
   createRecord = () => {
     const errorMessage = this.isValid();
 
@@ -91,12 +101,10 @@ class CreateRecord extends Component {
                 className="records-table__actions__accept"
                 disabled={this.state.errorMessage}
                 onClick={this.createRecord}
-              >
-                Accept
-              </button>
+              />
               <div
-                className="records-table__actions__remove"
-                onClick={() => this.setState({ isCreating: false })}
+                className="records-table__actions__cancel"
+                onClick={this.cancel}
               />
             </div>
           </TableItem>

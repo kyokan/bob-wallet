@@ -56,23 +56,24 @@ class Records extends Component {
     // await this.sendUpdate(json);
   };
 
+  onRemove = async ({ type, value, ttl }) => {
+    const json = this.getResourceJSON();
+
+    removeRecordWithMutation(json, { type, value, ttl });
+
+    this.setState({ updatedResource: Resource.fromJSON(json) });
+  };
+
   makeOnEdit = ({ type: lastType, value: lastValue, ttl: lastTtl }) => async ({ type, value, ttl }) => {
     const json = this.getResourceJSON();
 
     // Remove old record
-    switch (lastType) {
-      case RECORD_TYPE.A:
-      case RECORD_TYPE.AAAA:
-        json.hosts = json.hosts || [];
-        json.hosts = filterOne(json.hosts, host => host !== lastValue);
-        break;
-      case RECORD_TYPE.CNAME:
-        json.canonical = null;
-        break;
-      default:
-        break;
-    }
+    removeRecordWithMutation(json, {
+      type: lastType,
+      value: lastValue,
+    });
 
+    // Add new record
     addRecordWithMutation(json, { type, value });
 
     if (ttl != null && ttl !== '' && lastTtl !== ttl) {
@@ -82,8 +83,6 @@ class Records extends Component {
     this.setState({ updatedResource: Resource.fromJSON(json) });
     // await this.sendUpdate(json);
   };
-
-
 
   renderRows() {
     const { name } = this.props;
@@ -96,6 +95,7 @@ class Records extends Component {
           name={name}
           record={record}
           onEdit={this.makeOnEdit(getRecordJson(record))}
+          onRemove={this.onRemove}
         />
       );
     });
@@ -237,6 +237,24 @@ function addRecordWithMutation(json, { type, value, ttl }) {
 
   if (ttl != null && ttl !== '') {
     json.ttl = Number(ttl);
+  }
+
+  return json;
+}
+
+function removeRecordWithMutation(json, { type, value, ttl }) {
+  // Remove old record
+  switch (type) {
+    case RECORD_TYPE.A:
+    case RECORD_TYPE.AAAA:
+      json.hosts = json.hosts || [];
+      json.hosts = filterOne(json.hosts, host => host !== value);
+      break;
+    case RECORD_TYPE.CNAME:
+      json.canonical = null;
+      break;
+    default:
+      break;
   }
 
   return json;

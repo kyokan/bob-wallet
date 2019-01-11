@@ -14,6 +14,7 @@ class EditableRecord extends Component {
       ttl: PropTypes.number,
     }).isRequired,
     onEdit: PropTypes.func.isRequired,
+    onRemove: PropTypes.func.isRequired,
   };
 
   constructor(props) {
@@ -146,7 +147,7 @@ class EditableRecord extends Component {
             />
             <div
               className="records-table__actions__remove"
-              onClick={() => this.setState({ isEditing: true })}
+              onClick={() => this.props.onRemove({ type, value, ttl })}
             />
           </div>
         </TableItem>
