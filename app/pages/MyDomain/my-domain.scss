@@ -315,19 +315,10 @@
       border: none;
       outline: none;
       background-color: transparent;
-      color: $orange-red;
 
       &:disabled {
         opacity: .1;
         cursor: default;
-      }
-
-      &:hover {
-        color: lighten($orange-red, 10);
-      }
-
-      &:active {
-        color: darken($orange-red, 10);
       }
     }
 

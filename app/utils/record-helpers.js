@@ -25,6 +25,23 @@ export const validate = ({ type, value, ttl }) => {
       }
       break;
     case RECORD_TYPE.CNAME:
+      if (!value) {
+        errorMessage = 'Record type CNAME must not be empty';
+      }
+
+      if (isV6Format(value)) {
+        errorMessage = 'Record type CNAME cannot be INET';
+      }
+      break;
+    case RECORD_TYPE.MX:
+      if (!value) {
+        errorMessage = 'Record type MX cannot be empty';
+      }
+
+      if (['tcp.', 'smtp.'].includes(value.toLowerCase())) {
+        errorMessage = 'Record type MX cannot be tcp. or smtp.';
+      }
+      break;
     default:
       break;
   }
