@@ -13,6 +13,7 @@ const SEND = 'SEND';
 const OPEN = 'OPEN';
 const BID = 'BID';
 const REVEAL = 'REVEAL';
+const UPDATE = 'UPDATE';
 
 export default class Transaction extends Component {
   static propTypes = {
@@ -70,6 +71,9 @@ export default class Transaction extends Component {
     } else if (tx.type === REVEAL){
       description = 'Revealed bid';
       content = this.formatDomain(tx.meta.domain);
+    } else if (tx.type === UPDATE) {
+      description = 'Updated Record';
+      content = this.formatDomain(tx.meta.domain)
     } else {
       description = 'Unknown Transaction';
     }

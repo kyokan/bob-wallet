@@ -1,5 +1,6 @@
 import * as walletClient from '../utils/walletClient';
 import { NAME_STATES } from './names';
+import { fetchPendingTransactions, SET_PENDING_TRANSACTIONS } from './wallet';
 
 const FETCH_MY_NAMES_START = 'app/myDomains/fetchMyNamesStart';
 const FETCH_MY_NAMES_STOP = 'app/myDomains/fetchMyNamesStop';

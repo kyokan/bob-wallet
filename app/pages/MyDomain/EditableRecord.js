@@ -14,6 +14,7 @@ class EditableRecord extends Component {
       ttl: PropTypes.number,
     }).isRequired,
     onEdit: PropTypes.func.isRequired,
+    onRemove: PropTypes.func.isRequired,
   };
 
   constructor(props) {
@@ -34,6 +35,18 @@ class EditableRecord extends Component {
     const {label: type} = DROPDOWN_TYPES[currentTypeIndex];
     return validate({ type, value, ttl });
   }
+
+  cancel = () => {
+    const { type, value, ttl } = getRecordJson(this.props.record);
+    const currentTypeIndex = DROPDOWN_TYPES.findIndex(d => d.label === type);
+    this.setState({
+      isEditing: false,
+      value,
+      ttl,
+      errorMessage: '',
+      currentTypeIndex: Math.max(currentTypeIndex, 0),
+    });
+  };
 
   editRecord = () => {
     const errorMessage = this.isValid();
@@ -105,15 +118,10 @@ class EditableRecord extends Component {
                 className="records-table__actions__accept"
                 disabled={this.state.errorMessage}
                 onClick={this.editRecord}
-              >
-                Accept
-              </button>
-              <div
-                className="records-table__actions__remove"
-                onClick={() => this.setState({
-                  isEditing: false,
-                  ...getRecordJson(this.props.record),
-                })}
+              />
+              <button
+                className="records-table__actions__cancel"
+                onClick={this.cancel}
               />
             </div>
           </TableItem>
@@ -136,6 +144,10 @@ class EditableRecord extends Component {
             <div
               className="records-table__actions__edit"
               onClick={() => this.setState({ isEditing: true })}
+            />
+            <div
+              className="records-table__actions__remove"
+              onClick={() => this.props.onRemove({ type, value, ttl })}
             />
           </div>
         </TableItem>

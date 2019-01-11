@@ -32,7 +32,9 @@ export const NAME_STATES = {
 const ALLOWED_COVENANTS = new Set([
   'OPEN',
   'BID',
-  'REVEAL'
+  'REVEAL',
+  'UPDATE',
+  'REGISTER',
 ]);
 
 const initialState = {};
@@ -134,6 +136,7 @@ export const sendReveal = (name) => async (dispatch, getState) => {
 export const sendUpdate = (name, json) => async (dispatch, getState) => {
   const wClient = walletClient.forNetwork(getState().wallet.network);
   await wClient.sendUpdate(name, json);
+  await dispatch(fetchPendingTransactions());
 };
 
 function reduceSetName(state, action) {
@@ -144,20 +147,24 @@ function reduceSetName(state, action) {
   return {
     ...state,
     [name]: {
+      ...state[name] || {},
+      ...state[name],
       ...payload,
       hash,
-      pendingOperation: null,
+      // pendingOperation: null,
     }
   };
 }
 
 function reducePendingTransactions(state, action) {
   const pendingOperationsByHash = {};
+  const pendingOpMetasByHash = {};
 
   for (const tx of action.payload) {
     for (const output of tx.outputs) {
       if (ALLOWED_COVENANTS.has(output.covenant.action)) {
         pendingOperationsByHash[output.covenant.items[0]] = output.covenant.action;
+        pendingOpMetasByHash[output.covenant.items[0]] = output.covenant;
         break;
       }
     }
@@ -169,9 +176,17 @@ function reducePendingTransactions(state, action) {
     const data = state[name];
     const hash = data.hash;
     const pendingOp = pendingOperationsByHash[hash];
+    const pendingCovenant = pendingOpMetasByHash[hash];
+    const pendingOperationMeta = {};
+
+    if (pendingOp === 'UPDATE') {
+      pendingOperationMeta.data = pendingCovenant.items[2];
+    }
+
     newNames[name] = {
       ...data,
-      pendingOperation: pendingOp || null
+      pendingOperation: pendingOp || null,
+      pendingOperationMeta: pendingOperationMeta,
     };
   }
 

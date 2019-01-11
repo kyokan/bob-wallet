@@ -10,7 +10,7 @@ import CopyButton from '../../components/CopyButton';
 class DomainDetails extends Component {
   static propTypes = {
     name: PropTypes.string.isRequired,
-    domain: PropTypes.object.isRequired,
+    domain: PropTypes.object,
   };
 
   render() {
@@ -69,7 +69,7 @@ class DomainDetails extends Component {
     return (
       <div className="domain-details">
         {order.map(([k, v]) => (
-          <div className="domain-detail">
+          <div key={k} className="domain-detail">
             <div className="domain-detail__label">{k}:</div>
             <div className="domain-detail__value">{v}</div>
           </div>
