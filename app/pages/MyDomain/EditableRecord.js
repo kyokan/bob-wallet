@@ -8,7 +8,7 @@ import Dropdown from '../../components/Dropdown';
 class EditableRecord extends Component {
   static propTypes = {
     record: PropTypes.shape({
-      type: PropTypes.number,
+      type: PropTypes.string,
       name: PropTypes.string,
       data: PropTypes.object,
       ttl: PropTypes.number,
@@ -19,7 +19,7 @@ class EditableRecord extends Component {
 
   constructor(props) {
     super(props);
-    const { type, value, ttl } = getRecordJson(props.record);
+    const { type, value, ttl } = props.record | {};
     const currentTypeIndex = DROPDOWN_TYPES.findIndex(d => d.label === type);
     this.state = {
       isEditing: false,
@@ -37,7 +37,7 @@ class EditableRecord extends Component {
   }
 
   cancel = () => {
-    const { type, value, ttl } = getRecordJson(this.props.record);
+    const { type, value, ttl } = this.props.record || {};
     const currentTypeIndex = DROPDOWN_TYPES.findIndex(d => d.label === type);
     this.setState({
       isEditing: false,
@@ -132,7 +132,7 @@ class EditableRecord extends Component {
 
   renderRow() {
     const { record } = this.props;
-    const { type, value, ttl } = getRecordJson(record);
+    const { type, value, ttl } = record || {};
 
     return (
       <TableRow>
