@@ -6,24 +6,35 @@ import connect from 'react-redux/es/connect/connect';
 import Resource from '../../../node_modules/hsd/lib/dns/resource'
 import CreateRecord from './CreateRecord';
 import EditableRecord from './EditableRecord';
-import { RECORD_TYPE } from '../../ducks/names';
 import * as nameActions from '../../ducks/names';
+
+const { RECORD_TYPE } = nameActions;
 
 class Records extends Component {
   static propTypes = {
     name: PropTypes.string.isRequired,
-    info: PropTypes.string,
-    records: PropTypes.array.isRequired,
     resource: PropTypes.object,
   };
+
+  static renderHeaders() {
+    return (
+      <HeaderRow>
+        <HeaderItem>
+          <div>Type</div>
+        </HeaderItem>
+        <HeaderItem>Value</HeaderItem>
+        <HeaderItem>TTL</HeaderItem>
+        <HeaderItem />
+      </HeaderRow>
+    )
+  }
 
   state = {
     updatedResource: null,
   };
 
   getResource= () => {
-    const resource = this.state.updatedResource || this.props.resource;
-    return resource;
+    return this.state.updatedResource || this.props.resource;
   };
 
   getResourceJSON = () => {
@@ -39,22 +50,8 @@ class Records extends Component {
   onCreate = async ({ type, value, ttl }) => {
     const json = this.getResourceJSON();
 
-    // switch (type) {
-    //   case RECORD_TYPE.A:
-    //   case RECORD_TYPE.AAAA:
-    //     json.hosts = json.hosts || [];
-    //     json.hosts.push(value);
-    //     json.ttl = Number(ttl);
-    //     break;
-    //   case RECORD_TYPE.CNAME:
-    //     json.canonical = value;
-    //     json.ttl = Number(ttl);
-    //     break;
-    //   default:
-    //     break;
-    // }
-
     addRecordWithMutation(json, { type, value, ttl });
+
     this.setState({ updatedResource: Resource.fromJSON(json) });
     // await this.sendUpdate(json);
   };
@@ -67,7 +64,7 @@ class Records extends Component {
       case RECORD_TYPE.A:
       case RECORD_TYPE.AAAA:
         json.hosts = json.hosts || [];
-        json.hosts = json.hosts.filter(host => host !== lastValue);
+        json.hosts = filterOne(json.hosts, host => host !== lastValue);
         break;
       case RECORD_TYPE.CNAME:
         json.canonical = null;
@@ -86,27 +83,18 @@ class Records extends Component {
     // await this.sendUpdate(json);
   };
 
-  renderHeaders() {
-    return (
-      <HeaderRow>
-        <HeaderItem>
-          <div>Type</div>
-        </HeaderItem>
-        <HeaderItem>Value</HeaderItem>
-        <HeaderItem>TTL</HeaderItem>
-        <HeaderItem />
-      </HeaderRow>
-    )
-  }
+
 
   renderRows() {
+    const { name } = this.props;
     const records = getRecords(this.getResource());
     return records.map((record, i) => {
+      const { type, value } = getRecordJson(record);
       return (
         <EditableRecord
-          name={this.props.name}
+          key={`${name}-${type}-${value}-${i}`}
+          name={name}
           record={record}
-          key={i}
           onEdit={this.makeOnEdit(getRecordJson(record))}
         />
       );
@@ -123,7 +111,10 @@ class Records extends Component {
         <button className="records-table__action-row__submit-btn">
           Submit
         </button>
-        <div className="records-table__action-row__dismiss-link">
+        <div
+          className="records-table__action-row__dismiss-link"
+          onClick={() => this.setState({ updatedResource: null })}
+        >
           Discard Changes
         </div>
       </TableRow>
@@ -134,7 +125,7 @@ class Records extends Component {
     return (
       <div>
         <Table className="records-table">
-          {this.renderHeaders()}
+          {Records.renderHeaders()}
           {this.renderRows()}
           {this.renderCreateRecord()}
           {this.renderActionRow()}
@@ -149,12 +140,9 @@ export default withRouter(
     (state, ownProps) => {
       const domain = state.names[ownProps.name];
       const resource = getDecodedResource(domain);
-      const records = getRecords(resource);
 
       return {
-        info: domain && domain.info,
         resource,
-        records,
       }
     },
     dispatch => ({
@@ -252,4 +240,21 @@ function addRecordWithMutation(json, { type, value, ttl }) {
   }
 
   return json;
+}
+
+function filterOne(array, filterFn) {
+  let hasFiltered = false;
+  return array.filter(d => {
+    if (hasFiltered) {
+      return true;
+    }
+
+    const ret = filterFn(d);
+
+    if (!ret) {
+      hasFiltered = true;
+    }
+
+    return ret;
+  })
 }
