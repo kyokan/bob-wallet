@@ -24,7 +24,7 @@ class BidActionPanel extends Component {
     bidAmount: '',
     maskAmount: '',
     isLoading: false,
-    successfullyBid: true,
+    successfullyBid: false,
     showSuccessModal: false,
   };
 
