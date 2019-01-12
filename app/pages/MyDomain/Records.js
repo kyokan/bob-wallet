@@ -76,6 +76,7 @@ class Records extends Component {
       const json = newResource.toJSON();
       await this.props.sendUpdate(this.props.name, json);
       this.setState({ isUpdating: false });
+      console.log({ json })
       this.props.showSuccess('Your update request is sent successfully! It should be confirmed in 15 minutes.');
     } catch (e) {
       this.setState({
@@ -228,7 +229,7 @@ function getRecords(resource) {
   if (!resource) {
     return [];
   }
-  console.log(resource.toMX())
+
   return [
     ...getRecord(resource, 'toA'),
     ...getRecord(resource, 'toAAAA'),
@@ -241,7 +242,7 @@ function getRecords(resource) {
     // ...getRecord(resource, 'toLOC'),
     ...getRecord(resource, 'toMX'),
     // ...getRecord(resource, 'toMXIP'),
-    // ...getRecord(resource, 'toNS'),
+    ...getRecord(resource, 'toNS'),
     // ...getRecord(resource, 'toNSEC'),
     // ...getRecord(resource, 'toNSIP'),
     // ...getRecord(resource, 'toOPENPGPKEY'),
@@ -284,6 +285,8 @@ function getRecordJson(record) {
   } else if (type === RECORD_TYPE.MX) {
     const { mx, preference } = json.data;
     value = `${preference} ${mx}`;
+  } else if (type === RECORD_TYPE.NS) {
+    value = json.data.ns;
   } else {
     console.log('uncaught', json)
   }
@@ -319,6 +322,9 @@ function addRecordWithMutation(json, { type, value, ttl }) {
         priority: Number(priority),
       });
       break;
+    case RECORD_TYPE.NS:
+      json.ns = json.ns || [];
+      json.ns.push(value);
     default:
       break;
   }
@@ -357,6 +363,10 @@ function removeRecordWithMutation(json, { type, value, ttl }) {
       json.service = filterOne(json.service, ({ target, priority}) => {
         return `${priority} ${target}` !== value;
       });
+      break;
+    case RECORD_TYPE.NS:
+      json.ns = json.ns || [];
+      json.ns = filterOne(json.ns, ns => ns !== value);
       break;
     default:
       break;

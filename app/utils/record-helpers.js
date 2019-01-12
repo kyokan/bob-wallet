@@ -33,6 +33,15 @@ export const validate = ({ type, value, ttl }) => {
         errorMessage = 'Record type CNAME cannot be INET';
       }
       break;
+    case RECORD_TYPE.NS:
+      if (!value) {
+        errorMessage = 'Record type NS must not be empty';
+      }
+
+      if (isV6Format(value)) {
+        errorMessage = 'Record type NS cannot be INET';
+      }
+      break;
     case RECORD_TYPE.TXT:
       if (!value) {
         errorMessage = 'Record type TXT cannot be empty';
