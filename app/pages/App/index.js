@@ -49,19 +49,20 @@ class App extends Component {
   }
 
   render() {
+    // TODO: Figure out how to get error
+    if (this.props.error) {
+      return this.renderSplash(this.props.error);
+    }
+
     if (this.state.isLoading) {
       return this.renderSplash();
     }
 
-    // TODO: Figure out how to get error
-    if (this.props.error) {
-      return <div>Error</div>
-    }
 
     return <div className="app">{this.renderContent()}</div>;
   }
 
-  renderSplash() {
+  renderSplash(error) {
     return (
       <div className="app__splash">
         <div className="app__splash__title"> 
@@ -71,8 +72,13 @@ class App extends Component {
           <div className="app__splash__logo__alice" />
           <div className="app__splash__logo__bob" />
         </div>
-        <div className="app__splash__logo__spinner" />
-        <div className="app__splash__text">Loading the node...</div>
+        {error ? <div className="app__splash__text"> {error} </div> :  (
+          <React.Fragment>
+            <div className="app__splash__logo__spinner" />
+            <div className="app__splash__text">Loading node...</div>
+          </React.Fragment>
+          )
+        }
       </div>
       )
   }
