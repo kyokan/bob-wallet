@@ -19,8 +19,8 @@ export const DROPDOWN_TYPES = [
   { label: RECORD_TYPE.AAAA },
   { label: RECORD_TYPE.CNAME },
   { label: RECORD_TYPE.TXT },
+  { label: RECORD_TYPE.DS },
   { label: RECORD_TYPE.MX, disabled: true },
-  { label: RECORD_TYPE.DS, disabled: true },
   { label: RECORD_TYPE.OPENPGPKEY, disabled: true },
 ];
 

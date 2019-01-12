@@ -38,6 +38,34 @@ export const validate = ({ type, value, ttl }) => {
         errorMessage = 'Record type TXT cannot be empty';
       }
       break;
+    case RECORD_TYPE.DS:
+      try {
+        const json = JSON.parse(value);
+
+        if ((json.keyTag & 0xffff) !== json.keyTag) {
+          errorMessage = 'keyTag must be a natural number between 0 - 65535';
+        }
+
+        if ((json.algorithm & 0xff) !== json.algorithm) {
+          errorMessage = 'algorithm must be a natural number between 0 - 255';
+        }
+
+        if ((json.digestType & 0xff) !== json.digestType) {
+          errorMessage = 'digestType must be a natural number between 0 - 255';
+        }
+
+        if (typeof json.digest !== 'string') {
+          errorMessage = 'digest must be a hex string';
+        }
+
+        if (json.digest.length >>> 1 > 255) {
+          errorMessage = 'digest is too long';
+        }
+
+      } catch (e) {
+        errorMessage = 'Expect json string with following keys: "keyTag", "algorithm", "digestType", "digest"';
+      }
+      break;
     default:
       break;
   }

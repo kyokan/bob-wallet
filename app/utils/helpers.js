@@ -35,7 +35,7 @@ export function deepEqual(x, y) {
   }
 
   if (typeof x === 'object' && x !== null && typeof x !== 'undefined') {
-    if (!deepEqual(Object.keys(x), Object.keys(y))) {
+    if (!deepEqual(Object.keys(x).sort(), Object.keys(y).sort())) {
       return false;
     }
 

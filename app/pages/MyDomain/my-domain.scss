@@ -182,6 +182,9 @@
 
         &__item:nth-of-type(2) {
           flex: 1 0 16rem;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          white-space: nowrap;
         }
 
         &__item:nth-of-type(3) {
@@ -326,7 +329,6 @@
       font-size: .8rem;
       color: $orange-red;
       margin-right: 1rem;
-
     }
   }
 
