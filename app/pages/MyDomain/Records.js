@@ -66,7 +66,6 @@ class Records extends Component {
     if (!oldResource || !newResource) {
       return false;
     }
-
     return !deepEqual(oldResource.toJSON(), newResource.toJSON());
   };
 
@@ -76,8 +75,8 @@ class Records extends Component {
       const newResource = this.state.updatedResource;
       const json = newResource.toJSON();
       await this.props.sendUpdate(this.props.name, json);
-      // console.log(json);
       this.setState({ isUpdating: false });
+      // console.log(json)
       this.props.showSuccess('Your update request is sent successfully! It should be confirmed in 15 minutes.');
     } catch (e) {
       this.setState({
@@ -236,9 +235,9 @@ function getRecords(resource) {
     ...getRecord(resource, 'toAAAA'),
     ...getRecord(resource, 'toCNAME'),
     ...getRecord(resource, 'toTXT'),
+    ...getRecord(resource, 'toDS'),
     // ...getRecord(resource, 'toDNAME'),
     // ...getRecord(resource, 'toDNS'),
-    // ...getRecord(resource, 'toDS'),
     // ...getRecord(resource, 'toGlue'),
     // ...getRecord(resource, 'toLOC'),
     // ...getRecord(resource, 'toMX'),
@@ -269,17 +268,21 @@ function getRecordJson(record) {
   const ttl = json.ttl;
 
   let value = '';
-
   if ([RECORD_TYPE.A, RECORD_TYPE.AAAA].includes(type)) {
     value = json.data.address;
-  }
-
-  if (type === RECORD_TYPE.CNAME) {
+  } else if (type === RECORD_TYPE.CNAME) {
     value = json.data.target;
-  }
-
-  if (type === RECORD_TYPE.TXT) {
+  } else if (type === RECORD_TYPE.TXT) {
     value = json.data.txt[0];
+  } else if (type === RECORD_TYPE.DS) {
+    value = JSON.stringify({
+      keyTag: json.data.keyTag,
+      algorithm: json.data.algorithm,
+      digest: json.data.digest,
+      digestType: json.data.digestType,
+    });
+  } else {
+    console.log('uncaught', json)
   }
 
   return { type, value, ttl };
@@ -298,6 +301,10 @@ function addRecordWithMutation(json, { type, value, ttl }) {
     case RECORD_TYPE.TXT:
       json.text = json.text || [];
       json.text.push(value);
+      break;
+    case RECORD_TYPE.DS:
+      json.ds = json.ds || [];
+      json.ds.push(JSON.parse(value));
       break;
     default:
       break;
@@ -325,10 +332,17 @@ function removeRecordWithMutation(json, { type, value, ttl }) {
       json.text = json.text || [];
       json.text = filterOne(json.text, txt => txt !== value);
       break;
+    case RECORD_TYPE.DS:
+      json.ds = json.ds || [];
+      json.ds = filterOne(json.ds, data => {
+        const { keyTag, algorithm, digestType, digest } = data;
+        return !deepEqual({ keyTag, algorithm, digestType, digest }, JSON.parse(value))
+      });
+      break;
     default:
       break;
   }
-
+  console.log(json)
   return json;
 }
 
