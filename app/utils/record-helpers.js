@@ -66,6 +66,22 @@ export const validate = ({ type, value, ttl }) => {
         errorMessage = 'Expect json string with following keys: "keyTag", "algorithm", "digestType", "digest"';
       }
       break;
+    case RECORD_TYPE.MX:
+      if (typeof value !== 'string') {
+        errorMessage = 'Expect string in the format of "[Priority] [Target]" (e.g. 10 mail.example.com.)';
+      }
+
+      const [ priority, target ] = value.split(' ');
+
+      if (!priority || !target) {
+        errorMessage = 'Expect string in the format of "[Priority] [Target]" (e.g. 10 mail.example.com.)';
+      } else if ((Number(priority) & 0xff) !== Number(priority)) {
+        errorMessage = 'priority must be a natural number between 0 - 255';
+      } else if (target.charCodeAt(target.length - 1) !== 0x2e) {
+        errorMessage = 'target should have trailing period';
+      }
+
+      break;
     default:
       break;
   }

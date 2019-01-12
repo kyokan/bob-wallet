@@ -76,7 +76,6 @@ class Records extends Component {
       const json = newResource.toJSON();
       await this.props.sendUpdate(this.props.name, json);
       this.setState({ isUpdating: false });
-      // console.log(json)
       this.props.showSuccess('Your update request is sent successfully! It should be confirmed in 15 minutes.');
     } catch (e) {
       this.setState({
@@ -229,7 +228,7 @@ function getRecords(resource) {
   if (!resource) {
     return [];
   }
-
+  console.log(resource.toMX())
   return [
     ...getRecord(resource, 'toA'),
     ...getRecord(resource, 'toAAAA'),
@@ -240,7 +239,7 @@ function getRecords(resource) {
     // ...getRecord(resource, 'toDNS'),
     // ...getRecord(resource, 'toGlue'),
     // ...getRecord(resource, 'toLOC'),
-    // ...getRecord(resource, 'toMX'),
+    ...getRecord(resource, 'toMX'),
     // ...getRecord(resource, 'toMXIP'),
     // ...getRecord(resource, 'toNS'),
     // ...getRecord(resource, 'toNSEC'),
@@ -268,6 +267,7 @@ function getRecordJson(record) {
   const ttl = json.ttl;
 
   let value = '';
+
   if ([RECORD_TYPE.A, RECORD_TYPE.AAAA].includes(type)) {
     value = json.data.address;
   } else if (type === RECORD_TYPE.CNAME) {
@@ -281,6 +281,9 @@ function getRecordJson(record) {
       digest: json.data.digest,
       digestType: json.data.digestType,
     });
+  } else if (type === RECORD_TYPE.MX) {
+    const { mx, preference } = json.data;
+    value = `${preference} ${mx}`;
   } else {
     console.log('uncaught', json)
   }
@@ -305,6 +308,16 @@ function addRecordWithMutation(json, { type, value, ttl }) {
     case RECORD_TYPE.DS:
       json.ds = json.ds || [];
       json.ds.push(JSON.parse(value));
+      break;
+    case RECORD_TYPE.MX:
+      const [ priority, target ] = value.split(' ');
+      json.service = json.service || [];
+      json.service.push({
+        protocol: 'tcp.',
+        service: 'smtp.',
+        target: target,
+        priority: Number(priority),
+      });
       break;
     default:
       break;
@@ -339,10 +352,15 @@ function removeRecordWithMutation(json, { type, value, ttl }) {
         return !deepEqual({ keyTag, algorithm, digestType, digest }, JSON.parse(value))
       });
       break;
+    case RECORD_TYPE.MX:
+      json.service = json.service || [];
+      json.service = filterOne(json.service, ({ target, priority}) => {
+        return `${priority} ${target}` !== value;
+      });
+      break;
     default:
       break;
   }
-  console.log(json)
   return json;
 }
 
