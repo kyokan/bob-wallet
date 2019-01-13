@@ -4,8 +4,8 @@ import PropTypes from 'prop-types';
 import QRCode from 'qrcode.react';
 import copy from 'copy-to-clipboard';
 import c from 'classnames';
-import Modal from '../Modal';
 import './receive.scss';
+import CopyButton from '../CopyButton';
 
 @connect(state => ({
   address: state.wallet.address
@@ -39,14 +39,7 @@ export default class ReceiveModal extends Component {
         <div className="receive__disclaimer">Your Address:</div>
         <div className="receive__address-display">
           <div className="receive__address">{address}</div>
-          <button
-            className={c('receive__copy-btn', {
-              'receive__copy-btn--copied': hasCopied
-            })}
-            onClick={this.copyAddress}
-          >
-            Copy
-          </button>
+          <CopyButton content={address} />
         </div>
         <div className="receive__disclaimer">
           This QR code can be scanned by the person who is sending you HNS

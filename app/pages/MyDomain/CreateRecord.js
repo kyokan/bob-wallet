@@ -1,20 +1,73 @@
 import React, { Component } from 'react';
 import { TableItem, TableRow } from '../../components/Table';
+import { validate } from '../../utils/record-helpers';
+import { DROPDOWN_TYPES } from '../../ducks/names';
+import Dropdown from '../../components/Dropdown';
 
 class CreateRecord extends Component {
   state = {
     isCreating: false,
-    type: '',
-    name: '',
+    currentTypeIndex: 0,
     value: '',
     ttl: '',
+    errorMessage: '',
   };
 
+  isValid() {
+    const { value, ttl, currentTypeIndex } = this.state;
+    const {label: type} = DROPDOWN_TYPES[currentTypeIndex];
+    return validate({ type, value, ttl });
+  }
+
+  cancel = () => {
+    this.setState({
+      isCreating: false,
+      value: '',
+      ttl: '',
+      errorMessage: '',
+      currentTypeIndex: 0,
+    });
+  };
+
+  createRecord = () => {
+    const errorMessage = this.isValid();
+
+    if (errorMessage) {
+      this.setState({ errorMessage });
+      return;
+    }
+
+    const { value, ttl, currentTypeIndex } = this.state;
+    const {label: type} = DROPDOWN_TYPES[currentTypeIndex];
+    this.props.onCreate({ type, value, ttl })
+      .then(() => this.setState({
+        isCreating: false,
+        currentTypeIndex: 0,
+        value: '',
+        ttl: '',
+        errorMessage: '',
+      }))
+      .catch(e => this.setState({
+        errorMessage: e.message,
+      }));
+  };
 
   render() {
     return this.state.isCreating
       ? this.renderCreationRow()
       : this.renderCreateButton();
+  }
+
+  renderTypeDropdown() {
+    return (
+      <TableItem className="records-table__create-record__record-type-dropdown">
+        <Dropdown
+          currentIndex={this.state.currentTypeIndex}
+          onChange={i => this.setState({ currentTypeIndex: i, errorMessage: '' })}
+          items={DROPDOWN_TYPES}
+        />
+      </TableItem>
+    )
   }
 
   renderInput(name) {
@@ -23,34 +76,39 @@ class CreateRecord extends Component {
         <input
           type="text"
           value={this.state[name]}
-          onChange={e => this.setState({ [name]: e.target.value })}
+          onChange={e => this.setState({
+            [name]: e.target.value,
+            errorMessage: '',
+          })}
         />
       </TableItem>
     );
   }
 
   renderCreationRow() {
-    const { type, name, value, ttl } = this.state;
     return (
       <TableRow className="records-table__create-record">
-        {this.renderInput('type')}
-        {this.renderInput('name')}
-        {this.renderInput('value')}
-        {this.renderInput('ttl')}
-        <TableItem>
-          <div className="records-table__actions">
-            <button
-              className="records-table__actions__accept"
-              disabled={!type || !name || !value || !ttl}
-            >
-              Accept
-            </button>
-            <div
-              className="records-table__actions__remove"
-              onClick={() => this.setState({ isCreating: false })}
-            />
-          </div>
-        </TableItem>
+        <div className="records-table__create-record__error-message">
+          {this.state.errorMessage}
+        </div>
+        <div className="records-table__create-record__inputs">
+          {this.renderTypeDropdown()}
+          {this.renderInput('value')}
+          {this.renderInput('ttl')}
+          <TableItem>
+            <div className="records-table__actions">
+              <button
+                className="records-table__actions__accept"
+                disabled={this.state.errorMessage}
+                onClick={this.createRecord}
+              />
+              <div
+                className="records-table__actions__cancel"
+                onClick={this.cancel}
+              />
+            </div>
+          </TableItem>
+        </div>
       </TableRow>
     );
   }

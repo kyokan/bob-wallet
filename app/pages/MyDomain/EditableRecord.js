@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { TableItem, TableRow } from '../../components/Table';
+import { RECORD_TYPE, DROPDOWN_TYPES } from '../../ducks/names';
+import { validate } from '../../utils/record-helpers';
+import Dropdown from '../../components/Dropdown';
 
 class EditableRecord extends Component {
   static propTypes = {
@@ -10,16 +13,60 @@ class EditableRecord extends Component {
       data: PropTypes.object,
       ttl: PropTypes.number,
     }).isRequired,
+    onEdit: PropTypes.func.isRequired,
+    onRemove: PropTypes.func.isRequired,
   };
 
-  state = {
-    isEditing: false,
-    type: undefined,
-    name: undefined,
-    value: undefined,
-    ttl: undefined,
+  constructor(props) {
+    super(props);
+    const { type, value, ttl } = props.record || {};
+    const currentTypeIndex = DROPDOWN_TYPES.findIndex(d => d.label === type);
+    this.state = {
+      isEditing: false,
+      value,
+      ttl,
+      errorMessage: '',
+      currentTypeIndex: Math.max(currentTypeIndex, 0),
+    };
+  }
+
+  isValid() {
+    const { value, ttl, currentTypeIndex } = this.state;
+    const {label: type} = DROPDOWN_TYPES[currentTypeIndex];
+    return validate({ type, value, ttl });
+  }
+
+  cancel = () => {
+    const { type, value, ttl } = this.props.record || {};
+    const currentTypeIndex = DROPDOWN_TYPES.findIndex(d => d.label === type);
+    this.setState({
+      isEditing: false,
+      value,
+      ttl,
+      errorMessage: '',
+      currentTypeIndex: Math.max(currentTypeIndex, 0),
+    });
   };
 
+  editRecord = () => {
+    const errorMessage = this.isValid();
+
+    if (errorMessage) {
+      this.setState({ errorMessage });
+      return;
+    }
+
+    const { value, ttl, currentTypeIndex } = this.state;
+    const {label: type} = DROPDOWN_TYPES[currentTypeIndex];
+    this.props.onEdit({ type, value, ttl })
+      .then(() => this.setState({
+        isEditing: false,
+        errorMessage: '',
+      }))
+      .catch(e => this.setState({
+        errorMessage: e.message,
+      }));
+  };
 
   render() {
     return this.state.isEditing
@@ -27,88 +74,69 @@ class EditableRecord extends Component {
       : this.renderRow();
   }
 
+  renderTypeDropdown() {
+    return (
+      <TableItem className="records-table__create-record__record-type-dropdown">
+        <Dropdown
+          currentIndex={this.state.currentTypeIndex}
+          onChange={i => this.setState({ currentTypeIndex: i, errorMessage: '' })}
+          items={DROPDOWN_TYPES}
+        />
+      </TableItem>
+    )
+  }
+
   renderInput(name) {
-    const { record } = this.props;
-    const json = record.getJSON();
-    let defaultValue = '';
-
-    if (name === 'type') {
-      defaultValue = json.type;
-    }
-
-    if (name === 'name') {
-      defaultValue = json.name;
-    }
-
-    if (name === 'ttl') {
-      defaultValue = json.ttl;
-    }
-
-    if (name === 'value') {
-      if (json.type === 'A') {
-        defaultValue = json.data.address;
-      }
-    }
-
     return (
       <TableItem>
         <input
           type="text"
           value={this.state[name]}
-          defaultValue={defaultValue}
-          onChange={e => this.setState({ [name]: e.target.value })}
+          onChange={e => this.setState({
+            [name]: e.target.value,
+            errorMessage: '',
+          })}
         />
       </TableItem>
     );
   }
 
   renderEditableRow() {
-    const { type, name, value, ttl } = this.state;
     return (
       <TableRow className="records-table__create-record">
-        {this.renderInput('type')}
-        {this.renderInput('name')}
-        {this.renderInput('value')}
-        {this.renderInput('ttl')}
-        <TableItem>
-          <div className="records-table__actions">
-            <button
-              className="records-table__actions__accept"
-              disabled={!type || !name || !value || !ttl}
-            >
-              Accept
-            </button>
-            <div
-              className="records-table__actions__remove"
-              onClick={() => this.setState({
-                isEditing: false,
-                type: undefined,
-                name: undefined,
-                value: undefined,
-                ttl: undefined,
-              })}
-            />
-          </div>
-        </TableItem>
+        <div className="records-table__create-record__error-message">
+          {this.state.errorMessage}
+        </div>
+        <div className="records-table__create-record__inputs">
+          {/*{this.renderInput('type')}*/}
+          {this.renderTypeDropdown()}
+          {this.renderInput('value')}
+          {this.renderInput('ttl')}
+          <TableItem>
+            <div className="records-table__actions">
+              <button
+                className="records-table__actions__accept"
+                disabled={this.state.errorMessage}
+                onClick={this.editRecord}
+              />
+              <button
+                className="records-table__actions__cancel"
+                onClick={this.cancel}
+              />
+            </div>
+          </TableItem>
+        </div>
       </TableRow>
     );
   }
 
   renderRow() {
     const { record } = this.props;
-    const json = record.getJSON();
-    const type = json.type;
-    const name = json.name;
-    const ttl = json.ttl;
+    const { type, value, ttl } = record || {};
 
-    let value = '';
-    if (type === 'A') {
-      value = json.data.address;
-    }
     return (
       <TableRow>
         <TableItem>{type}</TableItem>
-        <TableItem>{name}</TableItem>
         <TableItem>{value}</TableItem>
         <TableItem>{ttl}</TableItem>
         <TableItem>
@@ -116,6 +144,10 @@ class EditableRecord extends Component {
             <div
               className="records-table__actions__edit"
               onClick={() => this.setState({ isEditing: true })}
+            />
+            <div
+              className="records-table__actions__remove"
+              onClick={() => this.props.onRemove({ type, value, ttl })}
             />
           </div>
         </TableItem>

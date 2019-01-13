@@ -5,16 +5,17 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import Blocktime from '../../components/Blocktime';
 import Hash from '../../components/Hash';
+import CopyButton from '../../components/CopyButton';
 
 class DomainDetails extends Component {
   static propTypes = {
     name: PropTypes.string.isRequired,
-    domain: PropTypes.object.isRequired,
+    domain: PropTypes.object,
   };
 
   render() {
     const defaultStart = {};
-    const { info, start = defaultStart } = this.props.domain || {};
+    const { info, start = defaultStart, winner } = this.props.domain || {};
 
     if (!info || !start) {
       return (
@@ -41,14 +42,24 @@ class DomainDetails extends Component {
       ['Total Bids', info.bids ? info.bids.length : '0' ],
       ['Sold For', `${info.value} HNS`],
       ['Highest Bid', `${info.highest} HNS`],
-      ['Owner', <Hash value={info.owner ? info.owner.hash : ''} />],
+      ['Owner', (
+        <div className="domain-detail__value__data">
+          <Hash value={winner ? winner.address : 'ERR'} />
+          { winner && <CopyButton content={winner.address} /> }
+        </div>
+      )],
       ['Renew By', (
         <span>
           {moment().add(info.stats.daysUntilExpire, 'd').format('YYYY-MM-DD')}
           {` (Block # ${info.stats.renewalPeriodEnd})`}
         </span>
       )],
-      ['Data', info.data],
+      ['Data', (
+        <div className="domain-detail__value__data">
+          { info.data ? <Hash value={info.data} /> : 'NULL' }
+          { info.data && <CopyButton content={info.data} /> }
+        </div>
+      )],
       ['Transfered', info.transfer],
       ['Revoked', info.revoked],
       ['Claimed', info.claimed ? 'True' : 'False'],
@@ -58,7 +69,7 @@ class DomainDetails extends Component {
     return (
       <div className="domain-details">
         {order.map(([k, v]) => (
-          <div className="domain-detail">
+          <div key={k} className="domain-detail">
             <div className="domain-detail__label">{k}:</div>
             <div className="domain-detail__value">{v}</div>
           </div>

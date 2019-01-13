@@ -4,11 +4,30 @@ import * as namesDb from '../db/names';
 import { fetchPendingTransactions, SET_PENDING_TRANSACTIONS } from './wallet';
 import { hashName } from '../utils/nameChecker';
 
+export const RECORD_TYPE = {
+  A: 'A',
+  CNAME: 'CNAME',
+  AAAA: 'AAAA',
+  MX: 'MX',
+  TXT: 'TXT',
+  DS: 'DS',
+  OPENPGPKEY: 'OPENPGPKEY',
+};
+
+export const DROPDOWN_TYPES = [
+  { label: RECORD_TYPE.A },
+  { label: RECORD_TYPE.AAAA },
+  { label: RECORD_TYPE.CNAME },
+  { label: RECORD_TYPE.TXT },
+  { label: RECORD_TYPE.DS },
+  { label: RECORD_TYPE.MX },
+  { label: RECORD_TYPE.OPENPGPKEY, disabled: true },
+];
+
 // Action Types
 const SET_NAME = 'app/names/setName';
 
 // Other Constants
-const WALLET_API = 'http://127.0.0.1:15039';
 export const NAME_STATES = {
   OPENING: 'OPENING',
   BIDDING: 'BIDDING',
@@ -21,7 +40,9 @@ export const NAME_STATES = {
 const ALLOWED_COVENANTS = new Set([
   'OPEN',
   'BID',
-  'REVEAL'
+  'REVEAL',
+  'UPDATE',
+  'REGISTER',
 ]);
 
 const initialState = {};
@@ -120,6 +141,12 @@ export const sendReveal = (name) => async (dispatch, getState) => {
   await wClient.sendReveal(name);
 };
 
+export const sendUpdate = (name, json) => async (dispatch, getState) => {
+  const wClient = walletClient.forNetwork(getState().wallet.network);
+  await wClient.sendUpdate(name, json);
+  await dispatch(fetchPendingTransactions());
+};
+
 function reduceSetName(state, action) {
   const {payload} = action;
   const {name} = payload;
@@ -128,20 +155,24 @@ function reduceSetName(state, action) {
   return {
     ...state,
     [name]: {
+      ...state[name] || {},
+      ...state[name],
       ...payload,
       hash,
-      pendingOperation: null,
+      // pendingOperation: null,
     }
   };
 }
 
 function reducePendingTransactions(state, action) {
   const pendingOperationsByHash = {};
+  const pendingOpMetasByHash = {};
 
   for (const tx of action.payload) {
     for (const output of tx.outputs) {
       if (ALLOWED_COVENANTS.has(output.covenant.action)) {
         pendingOperationsByHash[output.covenant.items[0]] = output.covenant.action;
+        pendingOpMetasByHash[output.covenant.items[0]] = output.covenant;
         break;
       }
     }
@@ -153,9 +184,17 @@ function reducePendingTransactions(state, action) {
     const data = state[name];
     const hash = data.hash;
     const pendingOp = pendingOperationsByHash[hash];
+    const pendingCovenant = pendingOpMetasByHash[hash];
+    const pendingOperationMeta = {};
+
+    if (pendingOp === 'UPDATE') {
+      pendingOperationMeta.data = pendingCovenant.items[2];
+    }
+
     newNames[name] = {
       ...data,
-      pendingOperation: pendingOp || null
+      pendingOperation: pendingOp || null,
+      pendingOperationMeta: pendingOperationMeta,
     };
   }
 

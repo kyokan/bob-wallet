@@ -32,6 +32,11 @@ export function forNetwork(net) {
       return wallet.getAccount('default');
     },
 
+    getNames: async () => {
+      await walletClient.execute('selectwallet', [WALLET_ID]);
+      return walletClient.execute('getnames');
+    },
+
     createNewWallet: async (passphrase) => {
       await ret.reset();
       const options = {
@@ -113,6 +118,11 @@ export function forNetwork(net) {
     sendBid: async (name, amount, lockup) => {
       await walletClient.execute('selectwallet', [WALLET_ID]);
       await walletClient.execute('sendbid', [name, Number(displayBalance(amount)), Number(displayBalance(lockup))]);
+    },
+
+    sendUpdate: async (name, json) => {
+      await walletClient.execute('selectwallet', [WALLET_ID]);
+      await walletClient.execute('sendupdate', [name, json]);
     },
 
     sendReveal: async (name) => {

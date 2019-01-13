@@ -211,6 +211,7 @@
         margin-bottom: 1rem;
 
         &__label {
+          @extend %row-nowrap;
           flex: 1 0 auto;
           @extend %h4;
           font-weight: 500;
@@ -249,6 +250,7 @@
         margin-bottom: 1rem;
       }
     }
+    
     &__divider {
       height: 1px;
       background-color: rgba($black, 0.1);
@@ -308,7 +310,22 @@
         }
       }
     }
+    
+    &__mask {
+      margin-right: .2rem;
+      border-bottom: 1px dashed $manatee-gray;
+      color: $manatee-gray;
 
+      .tooltipable__tooltip {
+        display: inline-block !important;
+        width: 14.75rem;
+      }
+    }
+
+    &__mask-tooltip {
+      font-size: .75rem;
+    }
+    
   }
 
 

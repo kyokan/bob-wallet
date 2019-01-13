@@ -110,9 +110,7 @@ $school-bus-yellow: #ffe000;
   }
 
   &:disabled {
-    //border-color: darken($azure-blue, 10);
     border-color: $grey;
-    //background-color: $grey;
     color: $grey;
     cursor: default;
   }

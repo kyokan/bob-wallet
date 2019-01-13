@@ -8,8 +8,10 @@ export default class Dropdown extends Component {
     items: PropTypes.arrayOf(
       PropTypes.shape({
         label: PropTypes.string.isRequired,
+        disabled: PropTypes.bool,
       }),
     ).isRequired,
+    className: PropTypes.string,
     currentIndex: PropTypes.number,
     onChange: PropTypes.func,
     reversed: PropTypes.bool,
@@ -18,6 +20,7 @@ export default class Dropdown extends Component {
   static defaultProps = {
     currentIndex: 0,
     onChange() {},
+    className: '',
   };
 
   state = {
@@ -32,12 +35,12 @@ export default class Dropdown extends Component {
   }
 
   render() {
-    const { items, currentIndex, onChange } = this.props;
+    const { items, currentIndex, className } = this.props;
     const { label: currentLabel } = items[currentIndex] || {};
 
     return (
       <div
-        className={c('dropdown', {
+        className={c('dropdown', className, {
           'dropdown--opened': this.state.isOpen,
           'dropdown--reversed': this.props.reversed,
         })}
@@ -48,11 +51,13 @@ export default class Dropdown extends Component {
           </div>
         </div>
         <div className="dropdown__options">
-          {items.map(({ label }, i) => (
+          {items.map(({ label, disabled }, i) => (
             <div
               key={i}
-              className="dropdown__option"
-              onClick={() => this.select(i)}
+              className={c('dropdown__option', {
+                'dropdown__option--disabled': disabled,
+              })}
+              onClick={() => !disabled && this.select(i)}
             >
               {label}
             </div>

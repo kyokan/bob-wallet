@@ -34,12 +34,14 @@ export default class Notification extends Component {
       return;
     }
 
-    setTimeout(() => (this.el.style.transform = 'translateY(0)'), 0);
-    setTimeout(() => {
-      this.el.style.transform = 'translateY(calc(-100% - 8px))';
-      setTimeout(() => this.props.clear(), 150);
-    }, 7000);
+    setTimeout(() => (this.el.style.transform = 'translateY(60px)'), 0);
+    setTimeout(this.clear, 7000);
   }
+
+  clear = () => {
+    this.el.style.transform = 'translateY(calc(-100% - 8px))';
+    setTimeout(() => this.props.clear(), 150);
+  };
 
   render() {
     if (!this.props.message) {
@@ -50,6 +52,7 @@ export default class Notification extends Component {
 
     return (
       <div className={name} ref={(ref) => (this.el = ref)}>
+        <div className="notification__close" onClick={this.clear}/>
         {this.props.message}
       </div>
     );
