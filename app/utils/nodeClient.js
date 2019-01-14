@@ -53,6 +53,10 @@ export function forNetwork(net) {
 
     getTx: async (hash) => {
       return nodeClient.getTX(hash);
+    },
+
+    stop: async () => {
+      return nodeClient.execute('stop');
     }
   };
   clientPool[net] = ret;
