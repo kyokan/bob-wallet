@@ -53,6 +53,15 @@
       &:hover {
         border-color: $azure-blue;
       }
+
+      &--disabled {
+        opacity: .5;
+        cursor: default;
+
+        &:hover {
+          border-color: $grey;
+        }
+      }
     }
   }
 
