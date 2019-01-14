@@ -73,7 +73,9 @@ $school-bus-yellow: #ffe000;
   }
 
   &:disabled {
-    opacity: 0.25;
+    border-color: $grey;
+    background-color: $grey;
+    color: $manatee-gray;
     cursor: default;
   }
 }
