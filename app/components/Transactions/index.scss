@@ -12,6 +12,21 @@
     }
   }
 
+  &__tld-link {
+    cursor: pointer;
+    border-bottom: 1px dashed lighten($manatee-gray, 25);
+
+    &:hover {
+      color: lighten($manatee-gray, 10);
+      border-bottom: 1px dashed lighten($manatee-gray, 30);
+    }
+
+    &:active {
+      color: darken($manatee-gray, 10);
+      border-bottom: 1px dashed lighten($manatee-gray, 20);
+    }
+  }
+
   &--pending {
     opacity: 0.5;
   }
