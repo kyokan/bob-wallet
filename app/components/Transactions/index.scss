@@ -6,6 +6,12 @@
   padding: 1rem 0;
   align-items: center;
 
+  &__container {
+    &:nth-child(2) {
+      border-top: 1px solid darken($athens-gray, 5);
+    }
+  }
+
   &--pending {
     opacity: 0.5;
   }
@@ -95,6 +101,112 @@
 
       em {
         color: $manatee-gray;
+      }
+    }
+  }
+}
+
+.transactions {
+  @extend %col-nowrap;
+
+  &__page-control {
+    @extend %row-nowrap;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+
+    &__numbers {
+      @extend %row-nowrap;
+      align-items: center;
+    }
+
+    &__start,
+    &__end,
+    &__page {
+      font-size: 1rem;
+      padding: 0 .5rem;
+      color: $azure-blue;
+      cursor: pointer;
+      //transition: 100ms ease-in-out;
+
+      &:hover {
+        transform: scale(1.2);
+      }
+    }
+
+    &__start,
+    &__end {
+      width: 1rem;
+      height: 1rem;
+      background-repeat: no-repeat;
+      background-size: contain;
+      background-position: center;
+    }
+
+    &__start {
+      background-image: url(../../assets/images/arrow-left-blue.svg);
+    }
+
+    &__end {
+      background-image: url(../../assets/images/arrow-right-blue.svg);
+    }
+
+    &__page--active {
+      color: $black;
+      font-weight: 500;
+      cursor: default;
+
+      &:hover {
+        transform: none;
+      }
+    }
+
+    &__go-to {
+      @extend %row-nowrap;
+      align-items: center;
+      font-size: .65rem;
+
+      &__dropdown {
+        margin: 0 .5rem;
+        .dropdown {
+          align-self: center;
+
+          &__current-item {
+            width: 2.25rem;
+            padding: .25rem .5rem;
+            font-size: .7rem;
+            border-radius: .25rem;
+
+            &::after {
+              top: .3rem;
+              right: .5rem;
+              height: .4rem;
+              width: .4rem;
+            }
+          }
+
+          &__options {
+            padding: .25rem 0;
+          }
+
+          &__option {
+            padding: .25rem .5rem;
+            font-size: .7rem;
+          }
+
+          &--opened {
+            .dropdown {
+              &__current-item {
+                border-bottom-left-radius: 0;
+                border-bottom-right-radius: 0;
+                &::after {
+                  top: .55rem;
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
