@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { BigNumber as bn } from 'bignumber.js';
 import { connect } from 'react-redux';
+import c from 'classnames';
 import './send.scss';
 import { displayBalance } from '../../utils/balances';
 import * as walletActions from '../../ducks/wallet';
@@ -35,6 +36,8 @@ class SendModal extends Component {
   };
 
   state = {
+    step1: true,
+    step2: false,
     selectedGasOption: STANDARD,
     isConfirming: false,
     transactionSent: false,
@@ -103,6 +106,12 @@ class SendModal extends Component {
 
     return (
       <div className="send__container">
+        <div className="send__progress-bar">
+          <div className="send__progress-bar__dot" />
+          <div className={c("send__progress-bar__dot", {
+            "send__progress-bar__dot--empty": !this.state.isConfirming
+          })}/>
+        </div>
         <div className="send__content">
           <Alert type="error" message={this.state.errorMessage} />
           <div className="send__to">
@@ -193,21 +202,24 @@ class SendModal extends Component {
 
     return (
       <div className="send__container">
-        <div className="send__header">
-          <div className="send__title">Confirm Send</div>
+        <div className="send__progress-bar">
+          <div className="send__progress-bar__dot" />
+          <div className={c("send__progress-bar__dot", {
+            "send__progress-bar__dot--empty": !this.state.isConfirming
+          })}/>
         </div>
         <div className="send__content">
           <Alert type="error" message={this.state.errorMessage} />
           <div className="send__confirm__to">
-            <div className="send__confirm__label">Sending to:</div>
+            <div className="send__confirm__label">Sending to</div>
             <div className="send__confirm__address">{to}</div>
           </div>
           <div className="send__confirm__from">
-            <div className="send__confirm__label">Sending from:</div>
+            <div className="send__confirm__label">Sending from</div>
             <div className="send__confirm__time-text">Default account</div>
           </div>
           <div className="send__confirm__time">
-            <div className="send__confirm__label">Transaction time:</div>
+            <div className="send__confirm__label">Transaction time</div>
             <div className="send__confirm__time-text">
               {`${selectedGasOption} - this may take up to ${
                 GAS_TO_ESTIMATES[selectedGasOption]
