@@ -7,6 +7,8 @@ import * as nameActions from '../../ducks/names';
 import TLDInput from '../TLDInput';
 import { Logo } from '../Logo';
 import './topbar.scss';
+import { displayBalance } from '../../utils/balances';
+import * as walletActions from '../../ducks/wallet';
 
 @withRouter
 @connect(
@@ -17,11 +19,14 @@ import './topbar.scss';
     return {
       isSynchronizing: isRunning && progress < 1,
       isSynchronized: isRunning && progress === 1,
-      progress
+      progress,
+      confirmedBalance: state.wallet.balance.confirmed,
+      unconfirmedBalance: state.wallet.balance.unconfirmed,
     };
   },
   dispatch => ({
-    getNameInfo: tld => dispatch(nameActions.getNameInfo(tld))
+    getNameInfo: tld => dispatch(nameActions.getNameInfo(tld)),
+    lockWallet: () => dispatch(walletActions.lockWallet()),
   })
 )
 class Topbar extends Component {
@@ -35,11 +40,15 @@ class Topbar extends Component {
     }).isRequired,
     getNameInfo: PropTypes.func.isRequired,
     isSynchronizing: PropTypes.bool.isRequired,
-    isSynchronized: PropTypes.bool.isRequired
+    isSynchronized: PropTypes.bool.isRequired,
+    lockWallet: PropTypes.func.isRequired,
+    confirmedBalance: PropTypes.number,
+    unconfirmedBalance: PropTypes.number,
   };
 
   state = {
-    inputValue: ''
+    inputValue: '',
+    isShowingSettingMenu: false,
   };
 
   render() {
@@ -106,9 +115,68 @@ class Topbar extends Component {
         >
           {this.getSyncText()}
         </div>
-        <Link to="/settings" className="topbar__icon topbar__icon--settings" />
+        { this.renderSettingIcon() }
+        {/*<Link to="/settings" className="topbar__icon topbar__icon--settings" />*/}
       </React.Fragment>
     );
+  }
+
+  renderSettingIcon() {
+    const { confirmedBalance, unconfirmedBalance } = this.props;
+    const { isShowingSettingMenu } = this.state;
+    return (
+      <div
+        className={c('topbar__icon', 'topbar__icon--settings', {
+          'topbar__icon--settings--opened': this.state.isShowingSettingMenu,
+        })}
+        onClick={() => this.setState({ isShowingSettingMenu: !isShowingSettingMenu })}
+      >
+        {
+          isShowingSettingMenu
+            ? (
+              <div className="setting-menu">
+                <div className="setting-menu__balance-container">
+                  <div className="setting-menu__balance-container__item">
+                    <div className="setting-menu__balance-container__item__label">Total Balance</div>
+                    <div className="setting-menu__balance-container__item__amount">
+                      {`HNS ${displayBalance(unconfirmedBalance)}`}
+                    </div>
+                  </div>
+                  <div className="setting-menu__balance-container__item">
+                    <div className="setting-menu__balance-container__item__label">Unlocked Balance</div>
+                    <div className="setting-menu__balance-container__item__amount">
+                      {`HNS ${displayBalance(confirmedBalance)}`}
+                    </div>
+                  </div>
+                </div>
+                <div className="setting-menu__items">
+                  <div
+                    className="setting-menu__items__item"
+                    onClick={e => {
+                      e.stopPropagation();
+                      this.props.history.push('/settings');
+                      this.setState({ isShowingSettingMenu: false });
+                    }}
+                  >
+                    Settings
+                  </div>
+                  <div
+                    className="setting-menu__items__item"
+                    onClick={e => {
+                      e.stopPropagation();
+                      this.props.lockWallet();
+                      this.setState({ isShowingSettingMenu: false });
+                    }}
+                  >
+                    Logout
+                  </div>
+                </div>
+              </div>
+            )
+            : null
+        }
+      </div>
+    )
   }
 
   getSyncText() {

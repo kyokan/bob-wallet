@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
-
+import { withRouter } from 'react-router';
 import createAMPMTimeStamp from '../../../utils/timeConverter';
 import '../index.scss';
 import { displayBalance } from '../../../utils/balances';
@@ -15,7 +15,7 @@ const BID = 'BID';
 const REVEAL = 'REVEAL';
 const UPDATE = 'UPDATE';
 
-export default class Transaction extends Component {
+class Transaction extends Component {
   static propTypes = {
     transaction: PropTypes.object.isRequired
   };
@@ -112,6 +112,17 @@ export default class Transaction extends Component {
   }
 
   formatDomain(domain) {
-    return domain ? `${domain}/` : '(unknown)';
+    return domain
+      ? (
+        <div
+          className="transaction__tld-link"
+          onClick={() => this.props.history.push(`/domain/${domain}`)}
+        >
+          {`${domain}/`}
+        </div>
+      )
+      : '(unknown)';
   }
-}
+};
+
+export default withRouter(Transaction);

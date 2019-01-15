@@ -2,7 +2,6 @@ import pify from '../utils/pify';
 import { app } from 'electron';
 import rimraf from 'rimraf';
 import { defaultServer, makeClient } from './ipc';
-import kill from 'tree-kill';
 import * as nodeClient from '../utils/nodeClient';
 import { executeBinDep, installBinDep } from './bindeps';
 
@@ -120,18 +119,10 @@ export async function stop() {
     return;
   }
 
-  await new Promise((resolve, reject) => {
-    kill(hsd.pid, 'SIGTERM', (err) => {
-      if (err) {
-        return reject(err);
-      }
-
-      hsd = null;
-      resolve();
-    });
-  });
-
+  const nClient = nodeClient.forNetwork(network);
+  await nClient.stop();
   await awaitFSNotBusy();
+  hsd = null;
 }
 
 async function awaitFSNotBusy(count = 0) {

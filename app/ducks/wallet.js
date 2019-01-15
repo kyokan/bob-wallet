@@ -1,6 +1,4 @@
 import * as walletClient from '../utils/walletClient';
-import { showSuccess } from './notifications';
-import ellipsify from '../utils/ellipsify';
 import BigNumber from 'bignumber.js';
 import * as namesDb from '../db/names';
 
@@ -39,7 +37,9 @@ export default function walletReducer(state = initialState, { type, payload }) {
         balance: {
           ...state.balance,
           confirmed: payload.balance.confirmed || '',
-          unconfirmed: payload.balance.unconfirmed || ''
+          unconfirmed: payload.balance.unconfirmed || '',
+          lockedUnconfirmed: payload.balance.lockedUnconfirmed || 0,
+          lockedConfirmed: payload.balance.lockedConfirmed || 0,
         },
         initialized: payload.initialized
       };
@@ -96,11 +96,11 @@ export const completeInitialization = () => async dispatch => {
   });
 };
 
-export const fetchWallet = options => async (dispatch, getState) => {
+export const fetchWallet = () => async (dispatch, getState) => {
   const client = walletClient.forNetwork(getState().wallet.network);
   const walletInfo = await client.getWalletInfo();
   const accountInfo = await client.getAccountInfo();
-  const isLocked = options && options.isLocked;
+  const isLocked = await client.isLocked();
 
   dispatch(
     setWallet({
@@ -114,6 +114,32 @@ export const fetchWallet = options => async (dispatch, getState) => {
       }
     })
   );
+};
+
+let lockStateTimeout;
+export const pollLockState = () => async (dispatch, getState) => {
+  const poller = async () => {
+    try {
+      const client = walletClient.forNetwork(getState().wallet.network);
+      const isLocked = await client.isLocked();
+
+      if (isLocked) {
+        dispatch({
+          type: LOCK_WALLET
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    lockStateTimeout = setTimeout(poller, 5000);
+  };
+
+  poller();
+};
+
+export const stopPollingLockState = () => {
+  clearTimeout(lockStateTimeout);
 };
 
 export const unlockWallet = passphrase => async (dispatch, getState) => {
@@ -141,7 +167,7 @@ export const removeWallet = () => async (dispatch, getState) => {
 export const send = (to, amount, fee) => async (dispatch, getState) => {
   const client = walletClient.forNetwork(getState().wallet.network);
   await client.send(to, amount, fee);
-  await dispatch(fetchWallet({ isLocked: false }));
+  await dispatch(fetchWallet());
 };
 
 export const fetchTransactions = () => async (dispatch, getState) => {

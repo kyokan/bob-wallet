@@ -34,13 +34,7 @@ export default class Settings extends Component {
             ]}
           />
         </div>
-        <div className="settings__section-head">Your current account</div>
-        <div className="settings__hd-path">m / 44' / 5353' / 0</div>
-        <div className="settings__balance">0.00000 HNS</div>
         <ul className="settings__links">
-          <li>
-            <Link to="/settings/account-index">Change account index</Link>
-          </li>
           <li>
             <a href="#" onClick={this.props.lockWallet}>
               Log out
@@ -55,9 +49,9 @@ export default class Settings extends Component {
         </ul>
         <div className="settings__section-head">Reset your account</div>
         <ul className="settings__links">
-          <li>
-            <a href="#">Connect Ledger device</a>
-          </li>
+          {/*<li>*/}
+            {/*<a href="#">Connect Ledger device</a>*/}
+          {/*</li>*/}
           <li>
             <Link to="/settings/import-seed">Import recovery seed phrase</Link>
           </li>

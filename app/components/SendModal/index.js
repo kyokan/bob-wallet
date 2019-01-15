@@ -2,8 +2,9 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { BigNumber as bn } from 'bignumber.js';
 import { connect } from 'react-redux';
+import c from 'classnames';
 import './send.scss';
-import { displayBalance } from '../../utils/balances';
+import { displayUnlockedConfirmBalance } from '../../utils/balances';
 import * as walletActions from '../../ducks/wallet';
 import Alert from '../Alert';
 
@@ -21,7 +22,7 @@ const GAS_TO_ESTIMATES = {
   state => ({
     address: state.wallet.address,
     fees: state.node.fees,
-    totalBalance: displayBalance(state.wallet.balance.confirmed)
+    totalBalance: displayUnlockedConfirmBalance(state.wallet.balance),
   }),
   dispatch => ({
     send: (to, amount, fee) => dispatch(walletActions.send(to, amount, fee))
@@ -35,6 +36,8 @@ class SendModal extends Component {
   };
 
   state = {
+    step1: true,
+    step2: false,
     selectedGasOption: STANDARD,
     isConfirming: false,
     transactionSent: false,
@@ -84,8 +87,11 @@ class SendModal extends Component {
   };
 
   sendMax = () => {
+    const { selectedGasOption } = this.state;
+    const fee = this.props.fees[selectedGasOption.toLowerCase()];
+
     this.setState({
-      amount: this.props.totalBalance
+      amount: bn(this.props.totalBalance).minus(fee).toFixed()
     });
   };
 
@@ -103,6 +109,12 @@ class SendModal extends Component {
 
     return (
       <div className="send__container">
+        <div className="send__progress-bar">
+          <div className="send__progress-bar__dot" />
+          <div className={c("send__progress-bar__dot", {
+            "send__progress-bar__dot--empty": !this.state.isConfirming
+          })}/>
+        </div>
         <div className="send__content">
           <Alert type="error" message={this.state.errorMessage} />
           <div className="send__to">
@@ -193,21 +205,24 @@ class SendModal extends Component {
 
     return (
       <div className="send__container">
-        <div className="send__header">
-          <div className="send__title">Confirm Send</div>
+        <div className="send__progress-bar">
+          <div className="send__progress-bar__dot" />
+          <div className={c("send__progress-bar__dot", {
+            "send__progress-bar__dot--empty": !this.state.isConfirming
+          })}/>
         </div>
         <div className="send__content">
           <Alert type="error" message={this.state.errorMessage} />
           <div className="send__confirm__to">
-            <div className="send__confirm__label">Sending to:</div>
+            <div className="send__confirm__label">Sending to</div>
             <div className="send__confirm__address">{to}</div>
           </div>
           <div className="send__confirm__from">
-            <div className="send__confirm__label">Sending from:</div>
+            <div className="send__confirm__label">Sending from</div>
             <div className="send__confirm__time-text">Default account</div>
           </div>
           <div className="send__confirm__time">
-            <div className="send__confirm__label">Transaction time:</div>
+            <div className="send__confirm__label">Transaction time</div>
             <div className="send__confirm__time-text">
               {`${selectedGasOption} - this may take up to ${
                 GAS_TO_ESTIMATES[selectedGasOption]

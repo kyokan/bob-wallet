@@ -46,16 +46,16 @@ class ExistingAccountOptions extends Component {
             How would you like to access your Handshake wallet?
           </div>
           <div
-            className="existing-options__content__option"
+            className="existing-options__content__option existing-options__content__option--disabled"
             onMouseEnter={() => this.setState({ hovered: CONNECT_LEDGER })}
             onMouseLeave={() => this.setState({ hovered: NONE })}
-            onClick={() => this.props.history.push('/connect-ledger')}
+            // onClick={() => this.props.history.push('/connect-ledger')}
           >
             <div className="existing-options__content__option__title">
               Connect Ledger Device
             </div>
             <div className="existing-options__content__option__description">
-              Recommended
+              Coming Soon
             </div>
           </div>
           <div
