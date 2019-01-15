@@ -3,9 +3,8 @@
 .get-coins {
   @extend %row-nowrap;
   display: flex;
-  max-width: 42.5rem;
+  // max-width: 42.5rem;
   width: 100%;
-  margin: auto;
   padding: 0 0.1rem;
 
   h1 {
@@ -37,40 +36,12 @@
   &__left {
     @extend %col-nowrap;
     flex: 0 1 auto;
-    margin-right: 1rem;
+    margin-right: 2rem;
   }
 
   &__right {
     @extend %col-nowrap;
     flex: 0 0 auto;
-  }
-
-  &__ascii-panel {
-    @extend %col-nowrap;
-    background-color: #e4e4e8;
-    border-radius: 0.5rem;
-    box-shadow: 0 2px 4px 0 rgba($black, 0.35);
-    padding: 2rem;
-    text-align: center;
-    margin-bottom: 2rem;
-
-    pre {
-      @extend %col-nowrap;
-      margin: 0.1rem 0;
-
-      code {
-        font-size: 0.5rem;
-        font-weight: 600;
-      }
-
-      &:nth-of-type(2) {
-        color: rgba($black, 0.7);
-      }
-
-      &:nth-of-type(3) {
-        color: rgba($black, 0.4);
-      }
-    }
   }
 
   &__step {
@@ -110,7 +81,7 @@
 
   &__panel {
     background-color: $white;
-    width: 14rem;
+    width: 20rem;
     box-sizing: border-box;
     padding: 1rem 1.5rem;
     border: 1px solid $grey;

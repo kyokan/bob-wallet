@@ -51,29 +51,6 @@ export default class GetCoins extends Component {
     return (
       <div className="get-coins">
         <div className="get-coins__left">
-          <div className="get-coins__ascii-panel">
-            <pre>
-              <code>   ___    ______ ____   ____     __  __ _   __ _____ </code>
-              <code>  |__ \  / ____// __ \ / __ \   / / / // | / // ___/ </code>
-              <code>  __/ / /___ \ / / / // / / /  / /_/ //  |/ / \__ \  </code>
-              <code> / __/ ____/ // /_/ // /_/ /  / __  // /|  / ___/ /  </code>
-              <code>/____//_____/ \____/ \____/  /_/ /_//_/ |_/ /____/   </code>
-            </pre>
-            <pre>
-              <code>   ___    ______ ____   ____     __  __ _   __ _____ </code>
-              <code>  |__ \  / ____// __ \ / __ \   / / / // | / // ___/ </code>
-              <code>  __/ / /___ \ / / / // / / /  / /_/ //  |/ / \__ \  </code>
-              <code> / __/ ____/ // /_/ // /_/ /  / __  // /|  / ___/ /  </code>
-              <code>/____//_____/ \____/ \____/  /_/ /_//_/ |_/ /____/   </code>
-            </pre>
-            <pre>
-              <code>   ___    ______ ____   ____     __  __ _   __ _____ </code>
-              <code>  |__ \  / ____// __ \ / __ \   / / / // | / // ___/ </code>
-              <code>  __/ / /___ \ / / / // / / /  / /_/ //  |/ / \__ \  </code>
-              <code> / __/ ____/ // /_/ // /_/ /  / __  // /|  / ___/ /  </code>
-              <code>/____//_____/ \____/ \____/  /_/ /_//_/ |_/ /____/   </code>
-            </pre>
-          </div>
           <h1>Get Handshake coins</h1>
           <h2>How it works</h2>
           <p>
