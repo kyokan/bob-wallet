@@ -2,9 +2,11 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
+import c from 'classnames';
 import { isAvailable, isBidding, isOpening, isReveal, } from '../../utils/name-helpers';
 import Checkbox from '../../components/Checkbox';
 import * as nameActions from '../../ducks/names';
+import * as watchingActions from '../../ducks/watching';
 import './domains.scss';
 import { displayBalance, toBaseUnits } from '../../utils/balances';
 import { showError, showSuccess } from '../../ducks/notifications';
@@ -15,6 +17,12 @@ import Tooltipable from '../../components/Tooltipable';
 class BidActionPanel extends Component {
   static propTypes = {
     domain: PropTypes.object.isRequired,
+    watchList: PropTypes.array.isRequired,
+    match: PropTypes.shape({
+      params: PropTypes.shape({
+        name: PropTypes.string.isRequired
+      })
+    })
   };
 
   state = {
@@ -27,9 +35,37 @@ class BidActionPanel extends Component {
     isLoading: false,
     successfullyBid: false,
     showSuccessModal: false,
+    isWatching: this.props.watchList.includes(this.props.match.params.name),
   };
 
+  async componentWillMount() {
+    await this.props.getWatching();
+    const isWatching = this.props.watchList.includes(this.props.match.params.name)
+    this.setState({ isWatching: isWatching })
+
+  }
+
   render() {
+    console.log(this.props.watchList)
+    const name = this.props.match.params.name;
+    const isWatching = this.state.isWatching;
+    return (
+      <React.Fragment>
+        {this.renderActionPanel()}
+        <div className="domains__watch"> 
+          <div className={c("domains__watch__heart-icon", {
+                "domains__watch__heart-icon--active": this.state.isWatching
+                })} onClick={() => {
+                  isWatching ? this.props.unwatchDomain(name) : this.props.watchDomain(name);
+                  this.setState({ isWatching: !isWatching })
+                }}/>
+          <div className="domains__watch__text">{this.state.isWatching ? 'Added to Watchlist' : 'Add to Watchlist'}</div> 
+        </div>
+      </React.Fragment>
+    )
+  }
+
+  renderActionPanel() {
     const { domain } = this.props;
 
     if (this.state.isReviewing) {
@@ -498,6 +534,7 @@ export default withRouter(
   connect(
     (state) => ({
       confirmedBalance: state.wallet.balance.confirmed,
+      watchList: state.watching.names,
     }),
     dispatch => ({
       sendOpen: name => dispatch(nameActions.sendOpen(name)),
@@ -505,6 +542,9 @@ export default withRouter(
       sendReveal: (name) => dispatch(nameActions.sendReveal(name)),
       showError: (message) => dispatch(showError(message)),
       showSuccess: (message) => dispatch(showSuccess(message)),
+      getWatching: () => dispatch(watchingActions.getWatching()),
+      watchDomain: name => dispatch(watchingActions.addName(name)),
+      unwatchDomain: name => dispatch(watchingActions.removeName(name)),
     }),
   )(BidActionPanel)
 );
