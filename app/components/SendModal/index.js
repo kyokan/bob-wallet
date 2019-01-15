@@ -50,7 +50,7 @@ class SendModal extends Component {
   };
 
   updateToAddress = e => {
-    this.setState({ to: e.target.value });
+    this.setState({ to: e.target.value, errorMessage: '' });
     if (e.target.value.length > 2 && !isValidAddress(e.target.value, 'simnet')) {
       this.setState({ errorMessage: 'Invalid Address Prefix' });
     };
