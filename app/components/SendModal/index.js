@@ -12,6 +12,8 @@ import isValidAddress from '../../utils/verifyAddress';
 const SLOW = 'Slow';
 const STANDARD = 'Standard';
 const FAST = 'Fast';
+const SIMNET = 'simnet';
+// const MAINNET = 'main';
 
 const GAS_TO_ESTIMATES = {
   [SLOW]: '20-30 mins',
@@ -51,7 +53,7 @@ class SendModal extends Component {
 
   updateToAddress = e => {
     this.setState({ to: e.target.value, errorMessage: '' });
-    if (e.target.value.length > 2 && !isValidAddress(e.target.value, 'simnet')) {
+    if (e.target.value.length > 2 && !isValidAddress(e.target.value, SIMNET)) {
       this.setState({ errorMessage: 'Invalid Address Prefix' });
     };
   }
@@ -60,7 +62,7 @@ class SendModal extends Component {
   validate() {
     const { to, amount } = this.state;
 
-    if (!to || !amount) {
+    if (!to || !amount || !isValidAddress(to, SIMNET)) {
       return { isValid: false };
     }
 
