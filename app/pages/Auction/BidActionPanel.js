@@ -178,10 +178,14 @@ class BidActionPanel extends Component {
   }
 
   renderPlacedBidContent(ownBid) {
+    const domain = this.props.domain;
+    const stats = domain.info && domain.info.stats || {};
+
     if (ownBid) {
       return (
         <React.Fragment>
-          {this.renderInfoRow('Reveal', this.getTimeRemaining(this.props.domain.info.stats.hoursUntilReveal))}
+          {this.renderInfoRow('Reveal', <Blocktime height={stats.bidPeriodEnd} fromNow />)}
+          {/*{this.renderInfoRow('Reveal', this.getTimeRemaining(this.props.domain.info.stats.hoursUntilReveal))}*/}
           {this.renderInfoRow('Total Bids', this.props.domain.bids.length)}
           {this.renderInfoRow('Highest Mask', displayBalance(this.findHighestMaskBid(), true))}
           <div className="domains__bid-now-divider" />

@@ -45,6 +45,7 @@ class App extends Component {
     await this.props.startNode();
     await this.props.fetchWallet();
     await this.props.pollPendingTransactions();
+    await this.props.pollLockState();
     setTimeout(() => this.setState({ isLoading: false }) , 1000)
   }
 
@@ -203,8 +204,8 @@ export default withRouter(
     dispatch => ({
       fetchWallet: () => dispatch(walletActions.fetchWallet()),
       startNode: () => dispatch(node.start(NETWORKS.SIMNET)),
-      pollPendingTransactions: () =>
-        dispatch(walletActions.pollPendingTransactions())
+      pollPendingTransactions: () => dispatch(walletActions.pollPendingTransactions()),
+      pollLockState: () => dispatch(walletActions.pollLockState()),
     })
   )(App)
 );

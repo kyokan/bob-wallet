@@ -3,10 +3,11 @@
 .receive {
   &__container {
     @extend %col-nowrap;
-    max-width: 25rem;
-    border: 1px solid rgba(0, 0, 0, 0.15);
-    border-radius: 0.6rem;
-    padding: 2rem;
+    max-width: 30rem;
+    // border: 1px solid rgba(0, 0, 0, 0.15);
+    // border-radius: 0.6rem;
+    padding: 1rem;
+    margin: 0 auto;
   }
 
   &__header {
@@ -34,7 +35,7 @@
     background-position: center;
     height: 4rem;
     width: 4rem;
-    margin-bottom: 2rem;
+    margin: 2rem 0;
     opacity: 0.9;
   }
 

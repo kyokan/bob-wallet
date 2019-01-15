@@ -12,15 +12,18 @@ export const RECORD_TYPE = {
   TXT: 'TXT',
   DS: 'DS',
   OPENPGPKEY: 'OPENPGPKEY',
+  NS: 'NS',
 };
 
 export const DROPDOWN_TYPES = [
   { label: RECORD_TYPE.A },
   { label: RECORD_TYPE.AAAA },
   { label: RECORD_TYPE.CNAME },
-  { label: RECORD_TYPE.TXT },
   { label: RECORD_TYPE.DS },
   { label: RECORD_TYPE.MX },
+  { label: RECORD_TYPE.NS },
+  { label: RECORD_TYPE.TXT },
+
   { label: RECORD_TYPE.OPENPGPKEY, disabled: true },
 ];
 
