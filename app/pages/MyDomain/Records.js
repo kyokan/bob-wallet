@@ -63,9 +63,18 @@ class Records extends Component {
     const oldResource = this.props.resource;
     const newResource = this.state.updatedResource;
 
-    if (!oldResource || !newResource) {
+    if (!oldResource && !newResource) {
       return false;
     }
+
+    if (!oldResource && newResource) {
+      return true;
+    }
+
+    if (oldResource && !newResource) {
+      return false;
+    }
+
     return !deepEqual(oldResource.toJSON(), newResource.toJSON());
   };
 
@@ -76,7 +85,7 @@ class Records extends Component {
       const json = newResource.toJSON();
       await this.props.sendUpdate(this.props.name, json);
       this.setState({ isUpdating: false });
-      console.log({ json })
+      // console.log({ json })
       this.props.showSuccess('Your update request is sent successfully! It should be confirmed in 15 minutes.');
     } catch (e) {
       this.setState({
