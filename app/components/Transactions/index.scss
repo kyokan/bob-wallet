@@ -184,6 +184,7 @@
 
       &__dropdown {
         margin: 0 .5rem;
+
         .dropdown {
           align-self: center;
 
@@ -209,16 +210,16 @@
             padding: .25rem .5rem;
             font-size: .7rem;
           }
+        }
+      }
 
-          &--opened {
-            .dropdown {
-              &__current-item {
-                border-bottom-left-radius: 0;
-                border-bottom-right-radius: 0;
-                &::after {
-                  top: .55rem;
-                }
-              }
+      &__dropdown.dropdown--opened {
+        .dropdown {
+          &__current-item {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+            &::after {
+              top: .55rem;
             }
           }
         }

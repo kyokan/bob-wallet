@@ -36,8 +36,8 @@ export default function walletReducer(state = initialState, { type, payload }) {
         isLocked: payload.isLocked,
         balance: {
           ...state.balance,
-          confirmed: payload.balance.confirmed || '',
-          unconfirmed: payload.balance.unconfirmed || '',
+          confirmed: payload.balance.confirmed || 0,
+          unconfirmed: payload.balance.unconfirmed || 0,
           lockedUnconfirmed: payload.balance.lockedUnconfirmed || 0,
           lockedConfirmed: payload.balance.lockedConfirmed || 0,
         },
@@ -189,8 +189,8 @@ export const fetchTransactions = () => async (dispatch, getState) => {
       ...ios
     });
   }
-
   payload = payload.reverse();
+
   dispatch({
     type: SET_TRANSACTIONS,
     payload
@@ -222,6 +222,7 @@ export const pollPendingTransactions = force => async dispatch => {
 
 // TODO: Make this method smarter
 async function parseInputsOutputs(tx) {
+  console.log(tx)
   if (tx.outputs.length !== 2) {
     return {
       type: 'UNKNOWN',
