@@ -101,7 +101,7 @@ export const fetchWallet = () => async (dispatch, getState) => {
   const walletInfo = await client.getWalletInfo();
   const accountInfo = await client.getAccountInfo();
   const isLocked = await client.isLocked();
-
+  console.log(walletInfo, accountInfo)
   dispatch(
     setWallet({
       initialized:
@@ -222,7 +222,6 @@ export const pollPendingTransactions = force => async dispatch => {
 
 // TODO: Make this method smarter
 async function parseInputsOutputs(tx) {
-  console.log(tx)
   if (tx.outputs.length !== 2) {
     return {
       type: 'UNKNOWN',
@@ -237,18 +236,20 @@ async function parseInputsOutputs(tx) {
     return {
       ...covData,
       fee: tx.fee,
-      value: tx.fee
+      value: getValueByConvenant(tx, covenant),
     };
   }
 
   for (const input of tx.inputs) {
     if (input.path) {
+      const correctOutput = tx.outputs.filter(({ path }) => !path || !path.change)[0];
+
       return {
         type: 'SEND',
         meta: {
-          to: tx.outputs[0].address
+          to: correctOutput.address
         },
-        value: tx.outputs[0].value,
+        value: correctOutput.value,
         fee: tx.fee
       };
     }
@@ -300,6 +301,23 @@ async function parseCovenant(covenant) {
       };
     default:
       return { type: 'UNKNOWN', meta: {} };
+  }
+}
+
+function getValueByConvenant(tx, covenant) {
+  switch (covenant.action) {
+    case 'OPEN':
+      return 0;
+    case 'BID':
+      return tx.outputs[0].value;
+    case 'REVEAL':
+      return 0;
+    case 'UPDATE':
+      return 0;
+    case 'REGISTER':
+      return 0;
+    default:
+      return 0;
   }
 }
 
