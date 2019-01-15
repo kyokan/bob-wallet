@@ -191,6 +191,7 @@ export default class Auction extends Component {
 
   renderStatusInfo() {
     const {domain} = this.props;
+
     let status = '';
     let description = '';
     if (isReserved(domain)) {
@@ -198,9 +199,10 @@ export default class Auction extends Component {
     } else if (isOpening(domain)) {
       status = 'Opening';
       description = 'Bidding Soon';
-    } else if (isBidding(name)) {
+    } else if (isBidding(domain)) {
+      const bids = domain.bids || [];
       status = 'Available';
-      description = 'Bidding Now';
+      description = `Bidding Now (${bids.length} bids)`;
     } else if (isAvailable(domain)) {
       status = 'Available';
       description = 'No Bids';
