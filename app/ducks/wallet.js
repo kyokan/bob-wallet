@@ -101,7 +101,6 @@ export const fetchWallet = () => async (dispatch, getState) => {
   const walletInfo = await client.getWalletInfo();
   const accountInfo = await client.getAccountInfo();
   const isLocked = await client.isLocked();
-  console.log(walletInfo, accountInfo)
   dispatch(
     setWallet({
       initialized:
