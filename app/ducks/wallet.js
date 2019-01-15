@@ -39,7 +39,9 @@ export default function walletReducer(state = initialState, { type, payload }) {
         balance: {
           ...state.balance,
           confirmed: payload.balance.confirmed || '',
-          unconfirmed: payload.balance.unconfirmed || ''
+          unconfirmed: payload.balance.unconfirmed || '',
+          lockedUnconfirmed: payload.balance.lockedUnconfirmed || 0,
+          lockedConfirmed: payload.balance.lockedConfirmed || 0,
         },
         initialized: payload.initialized
       };

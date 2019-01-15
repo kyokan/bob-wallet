@@ -4,7 +4,7 @@ import { BigNumber as bn } from 'bignumber.js';
 import { connect } from 'react-redux';
 import c from 'classnames';
 import './send.scss';
-import { displayBalance } from '../../utils/balances';
+import { displayUnlockedConfirmBalance } from '../../utils/balances';
 import * as walletActions from '../../ducks/wallet';
 import Alert from '../Alert';
 
@@ -22,7 +22,7 @@ const GAS_TO_ESTIMATES = {
   state => ({
     address: state.wallet.address,
     fees: state.node.fees,
-    totalBalance: displayBalance(state.wallet.balance.confirmed)
+    totalBalance: displayUnlockedConfirmBalance(state.wallet.balance),
   }),
   dispatch => ({
     send: (to, amount, fee) => dispatch(walletActions.send(to, amount, fee))
@@ -87,8 +87,11 @@ class SendModal extends Component {
   };
 
   sendMax = () => {
+    const { selectedGasOption } = this.state;
+    const fee = this.props.fees[selectedGasOption.toLowerCase()];
+
     this.setState({
-      amount: this.props.totalBalance
+      amount: bn(this.props.totalBalance).minus(fee).toFixed()
     });
   };
 
