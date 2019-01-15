@@ -46,7 +46,6 @@ class BidActionPanel extends Component {
   }
 
   render() {
-    console.log(this.props.watchList)
     const name = this.props.match.params.name;
     const isWatching = this.state.isWatching;
     return (
@@ -252,7 +251,10 @@ class BidActionPanel extends Component {
             </div>
           </div>
           <div className="domains__bid-now__info__disclaimer">
-            Winner pays 2nd highest bid price.
+            <Tooltipable tooltipContent={'To prevent price sniping, Handshake uses a blind second-price auction called a Vickrey Auction. Users can buy and register top-level domains (TLDs) with Handshake coins (HNS).'}>
+              <div className="domains__bid-now__info__icon" />
+            </Tooltipable>
+            Winner pays 2nd highest bid price. 
           </div>
         </div>
         {this.renderBidNowAction()}

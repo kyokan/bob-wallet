@@ -146,9 +146,20 @@
 
       &__disclaimer {
         @extend %h4;
+        @extend %row-nowrap;
+        align-items: center;
         color: $manatee-gray;
         margin-top: 1rem;
         font-weight: 500;
+      }
+
+      &__icon {
+        background-image: url('../../assets/images/info.svg');
+        width: 1rem;
+        height: 1rem;
+        background-size: cover;
+        background-position: center;
+        margin-right: 0.3rem;
       }
     }
 
