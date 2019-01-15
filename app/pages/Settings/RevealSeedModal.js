@@ -3,14 +3,14 @@ import './reveal-seed-modal.scss';
 import { connect } from 'react-redux';
 import MiniModal from '../../components/Modal/MiniModal';
 import Submittable from '../../components/Submittable';
-// import * as walletActions from '../../../ducks/wallet';
+import * as walletActions from '../../ducks/wallet';
 
-// @connect(
-//   () => ({}),
-//   dispatch => ({
-//     revealSeed: passphrase => dispatch(walletActions.revealSeed(passphrase))
-//   })
-// )
+@connect(
+  () => ({}),
+  dispatch => ({
+    revealSeed: passphrase => dispatch(walletActions.revealSeed(passphrase))
+  })
+)
 class RevealSeedModal extends Component {
   constructor(props) {
     super(props);
@@ -23,17 +23,17 @@ class RevealSeedModal extends Component {
   }
 
   onClickReveal = async () => {
-    // try {
-    //   const { mnemonic } = await this.props.revealSeed(this.state.passphrase);
-    //   this.setState({
-    //     mnemonic
-    //   });
-    // } catch (e) {
-    //   this.setState({
-    //     errorMessage:
-    //       typeof e === 'string' ? e : 'An error occurred, please try again.'
-    //   });
-    // }
+    try {
+      const mnemonic = await this.props.revealSeed(this.state.passphrase);
+      this.setState({
+        mnemonic
+      });
+    } catch (e) {
+      this.setState({
+        errorMessage:
+          typeof e === 'string' ? e : 'An error occurred, please try again.'
+      });
+    }
   };
 
   onChangePassphrase = e => {

@@ -142,6 +142,11 @@ export const stopPollingLockState = () => {
   clearTimeout(lockStateTimeout);
 };
 
+export const revealSeed = (passphrase) => async (dispatch, getState) => {
+  const client = walletClient.forNetwork(getState().wallet.network);
+  return client.revealSeed(passphrase);
+};
+
 export const unlockWallet = passphrase => async (dispatch, getState) => {
   const client = walletClient.forNetwork(getState().wallet.network);
   await client.unlock(passphrase);

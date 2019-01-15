@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Route, Switch, Link } from 'react-router-dom';
+import { Route, Switch, Link, withRouter } from 'react-router-dom';
 import { ContentArea } from '../ContentArea';
 import { connect } from 'react-redux';
 import Dropdown from '../../components/Dropdown';
@@ -9,6 +9,7 @@ import RevealSeedModal from './RevealSeedModal';
 import InterstitialWarningModal from './InterstitialWarningModal';
 import * as walletActions from '../../ducks/wallet';
 
+@withRouter
 @connect(
   () => ({}),
   dispatch => ({

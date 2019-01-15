@@ -1,7 +1,8 @@
 import { WalletClient } from 'hs-client';
 import { clientStub } from '../background/node';
 import { displayBalance, toBaseUnits } from './balances';
-import { getUnlockReceiveAddress, setUnlockReceiveAddress } from '../db/system'  ;
+import { getUnlockReceiveAddress, setUnlockReceiveAddress } from '../db/system';
+import MasterKey from 'hsd/lib/wallet/masterkey';
 
 const client = clientStub(() => require('electron').ipcRenderer);
 const Network = require('hsd/lib/protocol/network');
@@ -69,6 +70,30 @@ export function forNetwork(net) {
 
     setPassphrase: async (newPass) => {
       return wallet.setPassphrase(newPass);
+    },
+
+    revealSeed: async (passphrase) => {
+      const data = await ret.getMasterHDKey();
+
+      // should always be encrypted - seed cannot be revealed via the UI until
+      // the user has finished onboarding. checking here for completeness' sake
+      if (!data.encrypted) {
+        return data.key.mnemonic.phrase;
+      }
+
+      const parsedData = {
+        encrypted: data.encrypted,
+        alg: data.algorithm,
+        iv: Buffer.from(data.iv, 'hex'),
+        ciphertext: Buffer.from(data.ciphertext, 'hex'),
+        n: data.n,
+        r: data.r,
+        p: data.p
+      };
+
+      const mk = new MasterKey(parsedData);
+      await mk.unlock(passphrase, 100);
+      return mk.mnemonic.getPhrase();
     },
 
     generateReceivingAddress: async () => {
