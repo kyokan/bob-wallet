@@ -197,6 +197,8 @@
     "prop-types": "15.6.2",
     "qrcode.react": "0.8.0",
     "react": "16.6.3",
+    "react-add-to-calendar": "^0.1.5",
+    "react-add-to-calendar-hoc": "^1.0.7",
     "react-dom": "16.6.3",
     "react-hot-loader": "4.3.12",
     "react-redux": "5.1.1",

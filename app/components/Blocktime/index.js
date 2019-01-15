@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import { connect } from 'react-redux';
 import * as nodeClient from '../../utils/nodeClient';
+import state from '../../ducks/index'
 
 // 5 minute blocks
 const BLOCK_TIME = 5 * 60 * 1000;
@@ -94,4 +95,12 @@ export default class Blocktime extends Component {
       time: end.format('YYYY-MM-DD')
     });
   }
+}
+
+export const returnBlockTime = async (height, fromNow) => {
+    const block = await getFirstBlockTime('simnet');
+    const start = moment.unix(block.time);
+    const delta = height * BLOCK_TIME;
+    const end = start.add(delta);
+    return end
 }

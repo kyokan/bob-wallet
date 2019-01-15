@@ -3,16 +3,20 @@ import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import c from 'classnames';
+import AddToCalendar from 'react-add-to-calendar';
+import moment from 'moment';
 import { isAvailable, isBidding, isOpening, isReveal, } from '../../utils/name-helpers';
 import Checkbox from '../../components/Checkbox';
 import * as nameActions from '../../ducks/names';
 import * as watchingActions from '../../ducks/watching';
 import './domains.scss';
+import './add-to-calendar.scss';
 import { displayBalance, toBaseUnits } from '../../utils/balances';
 import { showError, showSuccess } from '../../ducks/notifications';
-import Blocktime from '../../components/Blocktime';
+import Blocktime, { returnBlockTime } from '../../components/Blocktime';
 import SuccessModal from "../../components/SuccessModal";
 import Tooltipable from '../../components/Tooltipable';
+
 
 class BidActionPanel extends Component {
   static propTypes = {
@@ -35,13 +39,15 @@ class BidActionPanel extends Component {
     isLoading: false,
     successfullyBid: false,
     showSuccessModal: false,
-    isWatching: this.props.watchList.includes(this.props.match.params.name),
+    isWatching: false,
+    event: {},
   };
 
   async componentWillMount() {
     await this.props.getWatching();
     const isWatching = this.props.watchList.includes(this.props.match.params.name)
-    this.setState({ isWatching: isWatching })
+    const event = await this.generateEvent();
+    this.setState({ isWatching: isWatching, event: event || {} })
 
   }
 
@@ -478,15 +484,52 @@ class BidActionPanel extends Component {
     );
   }
 
+  async generateEvent() {
+    const name = this.props.match.params.name;
+    const { domain } = this.props;
+    const { info } = domain || {};
+    const { stats } = info || {};
+    const { bidPeriodEnd } = stats || {};
+
+    const startDatetime = await returnBlockTime(bidPeriodEnd, true);
+    const endDatetime = startDatetime.clone().add(8.33, 'hours');
+
+    const event = {
+      title: `Reveal of ${name}`,
+      description: `The Handshake domain ${name} will be revealed at block ${bidPeriodEnd}. Check back into the Allison x Bob app to reveal the winner of the auction.`,
+      location: 'The Decentralized Internet',
+      startDatetime: startDatetime.format('YYYYMMDDTHHmmssZ'),
+      endDatetime: endDatetime.format('YYYYMMDDTHHmmssZ'),
+    };
+
+    //TODO: GET THE RIGHT FORMAT 2016-09-16T20:15:00-04:00
+    console.log(event)
+
+    return event;
+  }
+
   renderRevealPeriodBox() {
+    const { domain } = this.props;
+    const { info } = domain || {};
+    const { stats } = info || {};
+    const { bidPeriodEnd } = stats || {};
+
+    let items = [
+      { google: 'Google' },
+      { apple: 'iCal' },
+      { outlook: 'Outlook' },
+   ];
     return (
       <div className="domains__bid-now__reveal">
         <div className="domains__bid-now__reveal__headline">
           Reveal Period
         </div>
-        <div className="domains__bid-now__reveal__date">01/31/19 - 02/02/19</div>
-        <div className="domains__bid-now__reveal__block">Block # 2039 - 3395</div>
-        <div className="domains__bid-now__reveal__cta">Set Email Reminder</div>
+        <div className="domains__bid-now__reveal__date"><Blocktime height={bidPeriodEnd} fromNow /></div>
+        <div className="domains__bid-now__reveal__block">Block # {bidPeriodEnd}</div>
+        <AddToCalendar
+          event={this.state.event}
+          listItems={items}
+        />
       </div>
     )
   }
