@@ -69,6 +69,7 @@ class SendModal extends Component {
     }
 
     this.setState({ isSending: true, errorMessage: '' });
+
     try {
       await this.props.send(to, amount, fee);
       this.setState({

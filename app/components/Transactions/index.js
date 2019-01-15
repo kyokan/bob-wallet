@@ -79,15 +79,16 @@ export default class Transactions extends Component {
               currentPageIndex: Math.max(currentPageIndex - 1, 0),
             })}
           />
-          {pageIndices.map(pageIndex => {
+          {pageIndices.map((pageIndex, i) => {
             if (pageIndex === '...') {
               return (
-                <div className="transactions__page-control__ellipsis">...</div>
+                <div key={pageIndex} className="transactions__page-control__ellipsis">...</div>
               );
             }
 
             return (
               <div
+                key={`${pageIndex}-${i}`}
                 className={c('transactions__page-control__page', {
                   'transactions__page-control__page--active': currentPageIndex === pageIndex,
                 })}
@@ -108,7 +109,7 @@ export default class Transactions extends Component {
           <div className="transactions__page-control__go-to__text">Go To Page</div>
           <Dropdown
             className="transactions__page-control__go-to__dropdown"
-            items={Array(totalPages).fill(0).map((_, i) => ({ label: i + 1 }))}
+            items={Array(totalPages).fill(0).map((_, i) => ({ label: `${i + 1}` }))}
             onChange={currentPageIndex => this.setState({ currentPageIndex })}
             currentIndex={currentPageIndex}
           />
