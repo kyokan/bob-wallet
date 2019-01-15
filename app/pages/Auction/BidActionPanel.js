@@ -118,6 +118,11 @@ class BidActionPanel extends Component {
 
   renderPlacedBid(ownBid) {
     const { showSuccessModal, bidAmount, maskAmount } = this.state;
+    const { domain } = this.props;
+    const { info } = domain || {};
+    const { stats } = info || {};
+
+    const { bidPeriodEnd } = stats || {};
 
     return (
       <div className="domains__bid-now">
@@ -125,6 +130,7 @@ class BidActionPanel extends Component {
           <SuccessModal 
             bidAmount={bidAmount} 
             maskAmount={maskAmount} 
+            revealStartBlock={bidPeriodEnd}
             onClose={() => this.setState({ showSuccessModal: false })}
           />}
         <div className="domains__bid-now__title">Bid placed!</div>
@@ -279,11 +285,6 @@ class BidActionPanel extends Component {
                   showSuccessModal: true,
                 })
               )
-            //   () => this.handleCTA(
-            //   () => this.props.sendBid(this.props.domain.name, bidAmount, maskAmount),
-            //   'Bid successfully placed!',
-            //   'Failed to place bid. Please try again.'
-            // )
           }
           >
             Submit Bid

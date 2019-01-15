@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
-import { displayBalance } from '../../utils/balances';
+import Blocktime from '../Blocktime';
 import './successmodal.scss';
 
 const modalRoot = document.querySelector('#modal-root');
@@ -12,16 +12,18 @@ class SuccessModal extends Component {
     className: PropTypes.string,
     bidAmount: PropTypes.string,
     maskAmount: PropTypes.string,
+    revealStartBlock: PropTypes.string,
   };
 
   static defaultProps = {
     className: '',
     bidAmount: 0,
     maskAmount: 0,
+    revealStartBlock: '0',
   };
 
   render() {
-    const { className, onClose, bidAmount, maskAmount } = this.props;
+    const { className, onClose, bidAmount, maskAmount, revealStartBlock } = this.props;
 
     return ReactDOM.createPortal(
       <div className="success_modal__overlay" onClick={onClose}>
@@ -35,9 +37,9 @@ class SuccessModal extends Component {
             <div className='success_modal__description'>Your Mask</div>
             <div className='success_modal__value'>{maskAmount? `${maskAmount} HNS` : ' - '}</div>
             <div className='success_modal__reveal_wrapper'>
-              <div className='success_modal__description'>Reveal Period:</div>
-              <div className='success_modal__value'>01/31/19 - 02/02/19</div>
-              <div className='success_modal__value--date'>Block # 2039 - 3395</div>
+              <div className='success_modal__description'>Reveal Start:</div>
+              <div className='success_modal__value'><Blocktime height={revealStartBlock} fromNow /></div>
+              <div className='success_modal__value--date'>Block # {revealStartBlock}</div>
             </div>
           </div>
         </div>
