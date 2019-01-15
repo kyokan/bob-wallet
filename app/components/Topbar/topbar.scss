@@ -103,10 +103,81 @@
       opacity: 0.5;
     }
     &--settings {
-      background-image: url('../../assets/images/settings.svg');
+      position: relative;
+      opacity: 1;
+      background-image: url('../../assets/images/settings-gray.svg');
+
+      &--opened {
+        background-image: url('../../assets/images/settings.svg');
+      }
+
+      &:hover {
+        opacity: 1;
+      }
+      &:active {
+        opacity: 1;
+      }
     }
     &--notifications {
       background-image: url('../../assets/images/notification-24.png');
+    }
+  }
+}
+
+.setting-menu {
+  @extend %col-nowrap;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  box-shadow: 0 2px 4px 2px rgba($black, .1);
+  min-width: 10rem;
+  border-radius: 1rem;
+  font-size: .8rem;
+  background-color: $white;
+  cursor: default;
+  user-select: none;
+  z-index: 500;
+
+  &__balance-container {
+    @extend %col-nowrap;
+    border-bottom: 1px solid rgba($black, .1);
+    padding: 1rem;
+
+    &__item {
+      @extend %col-nowrap;
+
+      &__label {
+        font-size: .6rem;
+        color: $manatee-gray;
+      }
+
+      &__amount {
+        padding-top: .25rem;
+        font-weight: 500;
+      }
+    }
+
+    &__item + &__item {
+      padding-top: 1rem;
+    }
+  }
+
+  &__items {
+    @extend %col-nowrap;
+    padding: .5rem 0;
+
+    &__item {
+      padding: .5rem 1rem;
+      cursor: pointer;
+      font-weight: 500;
+
+      &:hover {
+        background-color: rgba($azure-blue, .15);
+      }
+
+      &:active {
+        background-color: rgba($azure-blue, .20);
+      }
     }
   }
 }
