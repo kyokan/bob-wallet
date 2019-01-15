@@ -7,6 +7,7 @@ import './send.scss';
 import { displayUnlockedConfirmBalance } from '../../utils/balances';
 import * as walletActions from '../../ducks/wallet';
 import Alert from '../Alert';
+import isValidAddress from '../../utils/verifyAddress';
 
 const SLOW = 'Slow';
 const STANDARD = 'Standard';
@@ -44,10 +45,16 @@ class SendModal extends Component {
     isSending: false,
     to: '',
     amount: '',
-    errorMessage: ''
+    errorMessage: '',
+    addressError: false,
   };
 
-  updateToAddress = e => this.setState({ to: e.target.value });
+  updateToAddress = e => {
+    this.setState({ to: e.target.value });
+    if (e.target.value.length > 2 && !isValidAddress(e.target.value, 'simnet')) {
+      this.setState({ errorMessage: 'Invalid Address Prefix' });
+    };
+  }
   updateAmount = e => this.setState({ amount: e.target.value });
 
   validate() {
