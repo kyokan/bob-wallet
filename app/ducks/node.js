@@ -5,26 +5,33 @@ const hsdClient = clientStub(() => require('electron').ipcRenderer);
 let interval;
 
 export const START = 'node/START';
+export const START_ERROR = 'node/START_ERROR';
 export const SET_NODE_INFO = 'node/SET_NODE_INFO';
 export const STOP = 'node/STOP';
 
 export function start(network) {
   return async (dispatch) => {
-    await hsdClient.start(network);
-
-    if (interval) {
-      clearInterval(interval);
-    }
-
-    dispatch(setNodeInfo());
-    interval = setInterval(() => dispatch(setNodeInfo()), 5000);
-
-    dispatch({
-      type: START,
-      payload: {
-        network
+    try {
+      await hsdClient.start(network);
+      dispatch(setNodeInfo());
+      interval = setInterval(() => dispatch(setNodeInfo()), 5000);
+      if (interval) {
+        clearInterval(interval);
       }
-    });
+      dispatch({
+        type: START,
+        payload: {
+          network
+        }
+      });
+    } catch (error){
+      dispatch( {
+        type: START_ERROR, 
+        payload: {
+          error
+        } 
+      });
+    }
   };
 }
 
@@ -48,6 +55,7 @@ const setNodeInfo = () => async (dispatch, getState) => {
 
 export function getInitialState() {
   return {
+    error: '',
     isRunning: false,
     network: null,
     fees: {
@@ -68,6 +76,8 @@ export default function nodeReducer(state = getInitialState(), action = {}) {
       return { ...state, isRunning: true, network: action.payload.network };
     case STOP:
       return { ...state, isRunning: false, network: null };
+    case START_ERROR: 
+      return {...state, error: payload.error };
     case SET_NODE_INFO:
       return {
         ...state,

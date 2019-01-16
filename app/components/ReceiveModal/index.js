@@ -12,8 +12,7 @@ import CopyButton from '../CopyButton';
 }))
 export default class ReceiveModal extends Component {
   static propTypes = {
-    onClose: PropTypes.func.isRequired,
-    address: PropTypes.string.isRequired
+    address: PropTypes.string.isRequired,
   };
 
   state = {

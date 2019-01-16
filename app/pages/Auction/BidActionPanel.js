@@ -2,18 +2,30 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
+import c from 'classnames';
+import AddToCalendar from 'react-add-to-calendar';
 import { isAvailable, isBidding, isOpening, isReveal, } from '../../utils/name-helpers';
 import Checkbox from '../../components/Checkbox';
 import * as nameActions from '../../ducks/names';
+import * as watchingActions from '../../ducks/watching';
 import './domains.scss';
+import './add-to-calendar.scss';
 import { displayBalance, toBaseUnits } from '../../utils/balances';
 import { showError, showSuccess } from '../../ducks/notifications';
-import Blocktime from '../../components/Blocktime';
+import Blocktime, { returnBlockTime } from '../../components/Blocktime';
+import SuccessModal from "../../components/SuccessModal";
 import Tooltipable from '../../components/Tooltipable';
+
 
 class BidActionPanel extends Component {
   static propTypes = {
     domain: PropTypes.object.isRequired,
+    watchList: PropTypes.array.isRequired,
+    match: PropTypes.shape({
+      params: PropTypes.shape({
+        name: PropTypes.string.isRequired
+      })
+    })
   };
 
   state = {
@@ -24,25 +36,55 @@ class BidActionPanel extends Component {
     bidAmount: '',
     maskAmount: '',
     isLoading: false,
+    successfullyBid: false,
+    showSuccessModal: false,
+    isWatching: false,
+    event: {},
   };
 
+  async componentWillMount() {
+    await this.props.getWatching();
+    const isWatching = this.props.watchList.includes(this.props.match.params.name)
+    const event = await this.generateEvent();
+    this.setState({ isWatching: isWatching, event: event || {} })
+
+  }
+
   render() {
-    const {domain} = this.props;
+    const name = this.props.match.params.name;
+    const isWatching = this.state.isWatching;
+    return (
+      <React.Fragment>
+        {this.renderActionPanel()}
+        <div className="domains__watch"> 
+          <div className={c("domains__watch__heart-icon", {
+                "domains__watch__heart-icon--active": this.state.isWatching
+                })} onClick={() => {
+                  isWatching ? this.props.unwatchDomain(name) : this.props.watchDomain(name);
+                  this.setState({ isWatching: !isWatching })
+                }}/>
+          <div className="domains__watch__text">{this.state.isWatching ? 'Added to Watchlist' : 'Add to Watchlist'}</div> 
+        </div>
+      </React.Fragment>
+    )
+  }
+
+  renderActionPanel() {
+    const { domain } = this.props;
 
     if (this.state.isReviewing) {
       return this.renderReviewBid();
     }
-
+    
     if (isOpening(domain)) {
       return this.renderOpeningBid();
     }
-
+    
     const ownBid = this.findOwnBid();
-    if (isBidding(domain)) {
-      if (ownBid || domain.pendingOperation === 'BID') {
+    if (isBidding(domain) || this.state.successfullyBid) {
+      if (this.state.successfullyBid || ownBid || domain.pendingOperation === 'BID') {
         return this.renderPlacedBid(ownBid)
       }
-
       return this.renderBidNow();
     }
 
@@ -57,10 +99,17 @@ class BidActionPanel extends Component {
     return <noscript />;
   }
 
-  async handleCTA(handler, successMessage, errorMessage) {
+  async handleCTA(handler, successMessage, errorMessage, callback) {
     try {
-      this.setState({isLoading: true});
+      this.setState({ isLoading: true });
       await handler();
+      if (successMessage) {
+        this.props.showSuccess(successMessage);
+      }
+      // in case we want a callback rather than a successMessage
+      if (callback){
+        callback();
+      }
     } catch (e) {
       console.error(e);
       this.props.showError(errorMessage);
@@ -68,8 +117,6 @@ class BidActionPanel extends Component {
     } finally {
       this.setState({isLoading: false});
     }
-
-    this.props.showSuccess(successMessage);
   }
 
   renderOpenBid() {
@@ -110,9 +157,23 @@ class BidActionPanel extends Component {
   }
 
   renderPlacedBid(ownBid) {
+    const { showSuccessModal, bidAmount, maskAmount } = this.state;
+    const { domain } = this.props;
+    const { info } = domain || {};
+    const { stats } = info || {};
+
+    const { bidPeriodEnd } = stats || {};
+
     return (
       <div className="domains__bid-now">
-        <div className="domains__bid-now__title">Bid placed.</div>
+        {showSuccessModal && 
+          <SuccessModal 
+            bidAmount={bidAmount} 
+            maskAmount={maskAmount} 
+            revealStartBlock={bidPeriodEnd}
+            onClose={() => this.setState({ showSuccessModal: false })}
+          />}
+        <div className="domains__bid-now__title">Bid placed!</div>
         <div className="domains__bid-now__content">
           {this.renderPlacedBidContent(ownBid)}
         </div>
@@ -134,6 +195,7 @@ class BidActionPanel extends Component {
           <div className="domains__bid-now-divider" />
           {this.renderInfoRow('Bid Amount', displayBalance(ownBid.value, true))}
           {this.renderInfoRow('Mask Amount', displayBalance(ownBid.lockup, true))}
+          {this.renderRevealPeriodBox()}
         </React.Fragment>
       );
     }
@@ -193,6 +255,12 @@ class BidActionPanel extends Component {
               {highest}
             </div>
           </div>
+          <div className="domains__bid-now__info__disclaimer">
+            <Tooltipable tooltipContent={'To prevent price sniping, Handshake uses a blind second-price auction called a Vickrey Auction. Users can buy and register top-level domains (TLDs) with Handshake coins (HNS).'}>
+              <div className="domains__bid-now__info__icon" />
+            </Tooltipable>
+            Winner pays 2nd highest bid price. 
+          </div>
         </div>
         {this.renderBidNowAction()}
       </div>
@@ -201,9 +269,10 @@ class BidActionPanel extends Component {
 
   renderReviewBid() {
     const {bidAmount, maskAmount, hasAccepted} = this.state;
+    const lockup = bidAmount + maskAmount;
     return (
       <div className="domains__bid-now">
-        <div className="domains__bid-now__title">Review Bid</div>
+        <div className="domains__bid-now__title">Review Your Bid</div>
         <div className="domains__bid-now__content">
           <div className="domains__bid-now__info">
             <div className="domains__bid-now__info__label">
@@ -212,6 +281,9 @@ class BidActionPanel extends Component {
             <div className="domains__bid-now__info__value">
               {`${bidAmount} HNS`}
             </div>
+            <div className="domains__bid-now__action__edit-icon" 
+              onClick={() => this.setState({ isReviewing: false }) } 
+            />
           </div>
           <div className="domains__bid-now__info">
             <div className="domains__bid-now__info__label">
@@ -220,8 +292,22 @@ class BidActionPanel extends Component {
             <div className="domains__bid-now__info__value">
               {maskAmount ? `${maskAmount} HNS` : ' - '}
             </div>
+            <div className="domains__bid-now__action__edit-icon" 
+              onClick={() => this.setState({ isReviewing: false }) } 
+            />
+          </div>
+          <div className="domains__bid-now__divider" />
+          <div className="domains__bid-now__info">
+            <div className="domains__bid-now__info__label">
+              Total Lockup
+            </div>
+            <div className="domains__bid-now__info__value">
+              {`${bidAmount + maskAmount} HNS`}
+            </div>
+            <div className="domains__bid-now__action__placeholder" />
           </div>
         </div>
+
         <div className="domains__bid-now__action">
           <div className="domains__bid-now__action__agreement">
             <Checkbox
@@ -234,11 +320,19 @@ class BidActionPanel extends Component {
           </div>
           <button
             className="domains__bid-now__action__cta"
-            onClick={() => this.handleCTA(
-              () => this.props.sendBid(this.props.domain.name, bidAmount, maskAmount),
-              'Bid successfully placed!',
-              'Failed to place bid. Please try again.'
-            )}
+            onClick={
+              () => this.handleCTA(
+                () => this.props.sendBid(this.props.domain.name, bidAmount, lockup),
+                null,
+                'Failed to place bid. Please try again.',
+                () => this.setState({ 
+                  isReviewing: false, 
+                  isPlacingBid: false, 
+                  successfullyBid: true, 
+                  showSuccessModal: true,
+                })
+              )
+          }
           >
             Submit Bid
           </button>
@@ -291,9 +385,11 @@ class BidActionPanel extends Component {
 
   renderBidNowAction() {
     const {isPlacingBid, bidAmount} = this.state;
+    const { confirmedBalance } = this.props;
 
     if (isPlacingBid) {
       return (
+        <React.Fragment>
         <div className="domains__bid-now__action domains__bid-now__action--placing-bid">
           <div className="domains__bid-now__form">
             <div className="domains__bid-now__form__row">
@@ -317,6 +413,12 @@ class BidActionPanel extends Component {
             Review Bid
           </button>
         </div>
+        <div className="domains__bid-now__action domains__bid-now__action--placing-bid">
+          <div className="domains__bid-now__HNS-status">
+            {`${displayBalance(confirmedBalance)} HNS Unlocked Balance Available`}
+          </div>
+        </div>
+        </React.Fragment>
       )
     }
 
@@ -381,6 +483,52 @@ class BidActionPanel extends Component {
     );
   }
 
+  async generateEvent() {
+    const name = this.props.match.params.name;
+    const { domain } = this.props;
+    const { info } = domain || {};
+    const { stats } = info || {};
+    const { bidPeriodEnd } = stats || {};
+
+    const startDatetime = await returnBlockTime(bidPeriodEnd, true);
+    const endDatetime = startDatetime.clone().add(8.33, 'hours');
+
+    const event = {
+      title: `Reveal of ${name}`,
+      description: `The Handshake domain ${name} will be revealed at block ${bidPeriodEnd}. Check back into the Allison x Bob app to reveal the winner of the auction.`,
+      location: 'The Decentralized Internet',
+      startTime: startDatetime.format(),
+      endTime: endDatetime.format(),
+    };
+    return event;
+  }
+
+  renderRevealPeriodBox() {
+    const { domain } = this.props;
+    const { info } = domain || {};
+    const { stats } = info || {};
+    const { bidPeriodEnd } = stats || {};
+
+    let items = [
+      { google: 'Google' },
+      { apple: 'iCal' },
+      { outlook: 'Outlook' },
+   ];
+    return (
+      <div className="domains__bid-now__reveal">
+        <div className="domains__bid-now__reveal__headline">
+          Reveal Period
+        </div>
+        <div className="domains__bid-now__reveal__date"><Blocktime height={bidPeriodEnd} fromNow /></div>
+        <div className="domains__bid-now__reveal__block">Block # {bidPeriodEnd}</div>
+        <AddToCalendar
+          event={this.state.event}
+          listItems={items}
+        />
+      </div>
+    )
+  }
+
   findHighestMaskBid() {
     let highest = 0;
     for (const {bid} of this.props.domain.bids) {
@@ -428,13 +576,19 @@ class BidActionPanel extends Component {
 
 export default withRouter(
   connect(
-    null,
+    (state) => ({
+      confirmedBalance: state.wallet.balance.confirmed,
+      watchList: state.watching.names,
+    }),
     dispatch => ({
       sendOpen: name => dispatch(nameActions.sendOpen(name)),
       sendBid: (name, amount, lockup) => dispatch(nameActions.sendBid(name, toBaseUnits(amount), toBaseUnits(lockup))),
       sendReveal: (name) => dispatch(nameActions.sendReveal(name)),
       showError: (message) => dispatch(showError(message)),
       showSuccess: (message) => dispatch(showSuccess(message)),
+      getWatching: () => dispatch(watchingActions.getWatching()),
+      watchDomain: name => dispatch(watchingActions.addName(name)),
+      unwatchDomain: name => dispatch(watchingActions.removeName(name)),
     }),
   )(BidActionPanel)
 );

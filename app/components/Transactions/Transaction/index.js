@@ -6,7 +6,7 @@ import createAMPMTimeStamp from '../../../utils/timeConverter';
 import '../index.scss';
 import { displayBalance } from '../../../utils/balances';
 import ellipsify from '../../../utils/ellipsify';
-// Dummy transactions state until we have ducks
+import Tooltipable from '../../Tooltipable';
 
 const RECEIVE = 'RECEIVE';
 const SEND = 'SEND';
@@ -42,12 +42,14 @@ class Transaction extends Component {
     });
 
   renderTimestamp = tx => {
-    const {year, month, day} = createAMPMTimeStamp(tx.date);
+    const {year, month, day, time} = createAMPMTimeStamp(tx.date);
 
     return (
       <div className="transaction__tx-timestamp">
         <div className={this.titleStyling(tx)}>
-          {month}/{day}/{year}
+          <Tooltipable tooltipContent={time} width={'4rem'} textAlign={'center'}>
+            {month}/{day}/{year}
+          </Tooltipable>
         </div>
       </div>
     );

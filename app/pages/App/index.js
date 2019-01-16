@@ -26,9 +26,11 @@ import AccountLogin from '../AcountLogin';
 import * as node from '../../ducks/node';
 import { NETWORKS } from '../../background/node';
 import Notification from '../../components/Notification';
+import SplashScreen from "../../components/SplashScreen";
 
 class App extends Component {
   static propTypes = {
+    error: PropTypes.string.isRequired,
     isLocked: PropTypes.bool.isRequired,
     initialized: PropTypes.bool.isRequired,
     fetchWallet: PropTypes.func.isRequired,
@@ -40,27 +42,28 @@ class App extends Component {
   };
 
   async componentDidMount() {
-    this.setState({
-      isLoading: true
-    });
+    this.setState({ isLoading: true });
     await this.props.startNode();
     await this.props.fetchWallet();
     await this.props.pollPendingTransactions();
     await this.props.pollLockState();
-    this.setState({
-      isLoading: false
-    });
+    setTimeout(() => this.setState({ isLoading: false }) , 1000)
   }
 
   render() {
+    // TODO: Confirm that error shows properly
+    if (this.props.error) {
+      return <SplashScreen error={this.props.error}/>
+    }
+
+    if (this.state.isLoading) {
+      return <SplashScreen />;
+    }
+
     return <div className="app">{this.renderContent()}</div>;
   }
 
   renderContent() {
-    if (this.state.isLoading) {
-      return null;
-    }
-
     const { isLocked, initialized } = this.props;
 
     if (isLocked || !initialized) {
@@ -173,6 +176,7 @@ class App extends Component {
 export default withRouter(
   connect(
     state => ({
+      error: state.node.error,
       isLocked: state.wallet.isLocked,
       initialized: state.wallet.initialized
     }),

@@ -56,23 +56,26 @@ class TLDInput extends Component {
 
   render() {
     const { showError } = this.state;
-    const { minimalErrorDisplay } = this.props;
+    const { minimalErrorDisplay, greyTheme } = this.props;
     return (
       <div>
         <div
           className={c('tld', {
-            'tld--error': showError
+            'tld--error': showError,
+            'tld--grey-theme': greyTheme,
           })}
         >
           <input
             className={c('tld__input', {
-              'tld__input--error': showError
+              'tld__input--error': showError,
+              'tld__input--grey-theme': greyTheme,
             })}
             type="text"
             value={this.state.inputValue}
             onChange={this.handleInputValueChange}
             onKeyDown={e => e.key === 'Enter' && this.handleSearchClick()}
-            placeholder="Search top-level domain"
+            placeholder="Search a top-level domain"
+            autoFocus
           />
           <div
             className={c('tld__icon', {
@@ -81,8 +84,8 @@ class TLDInput extends Component {
             onClick={this.handleSearchClick}
           />
         </div>
-        {showError && !minimalErrorDisplay && (
-          <div className="tld__error">Invalid domain name.</div>
+        {!minimalErrorDisplay && (
+          <div className="tld__error">{showError && 'Invalid domain name' }</div>
         )}
       </div>
     );

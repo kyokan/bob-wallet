@@ -51,76 +51,17 @@ export default class GetCoins extends Component {
     return (
       <div className="get-coins">
         <div className="get-coins__left">
-          <div className="get-coins__ascii-panel">
-            <pre>
-              <code>   ___    ______ ____   ____     __  __ _   __ _____ </code>
-              <code>  |__ \  / ____// __ \ / __ \   / / / // | / // ___/ </code>
-              <code>  __/ / /___ \ / / / // / / /  / /_/ //  |/ / \__ \  </code>
-              <code> / __/ ____/ // /_/ // /_/ /  / __  // /|  / ___/ /  </code>
-              <code>/____//_____/ \____/ \____/  /_/ /_//_/ |_/ /____/   </code>
-            </pre>
-            <pre>
-              <code>   ___    ______ ____   ____     __  __ _   __ _____ </code>
-              <code>  |__ \  / ____// __ \ / __ \   / / / // | / // ___/ </code>
-              <code>  __/ / /___ \ / / / // / / /  / /_/ //  |/ / \__ \  </code>
-              <code> / __/ ____/ // /_/ // /_/ /  / __  // /|  / ___/ /  </code>
-              <code>/____//_____/ \____/ \____/  /_/ /_//_/ |_/ /____/   </code>
-            </pre>
-            <pre>
-              <code>   ___    ______ ____   ____     __  __ _   __ _____ </code>
-              <code>  |__ \  / ____// __ \ / __ \   / / / // | / // ___/ </code>
-              <code>  __/ / /___ \ / / / // / / /  / /_/ //  |/ / \__ \  </code>
-              <code> / __/ ____/ // /_/ // /_/ /  / __  // /|  / ___/ /  </code>
-              <code>/____//_____/ \____/ \____/  /_/ /_//_/ |_/ /____/   </code>
-            </pre>
-          </div>
-          <h1>Get Handshake coins</h1>
+          <h1>GooSig: Handshake Airdrop to ~175,000 Open Source Developers with SSH or PGP Keys (Encrypted)</h1>
           <h2>How it works</h2>
           <p>
-            Handshake Network’s decentralized airdrop is gifting coins to the top ~175,000
-            developers on GitHub with valid SSH and/or PGP keys.
+            Handshake Network’s decentralized airdrop is gifting coins to the top ~175,000 developers on GitHub with valid SSH and/or PGP keys.
           </p>
           <p>
-            If you had 15 or more followers on GitHub during the week of 2018-08-27, your GitHub SSH
-            & PGP keys are included in the Handshake network’s merkle tree. Likewise, roughly 30,000
-            keys from the PGP WOT Strongset have also been included in the tree.
+            If you had 15 or more followers on GitHub during the week of 2018-08-27, your GitHub SSH & PGP keys are included in the Handshake network’s merkle tree. Likewise, roughly 30,000 keys from the PGP WOT Strongset have also been included in the tree. You’ll receive 2500 HNS for each proof.
           </p>
-          <p>You’ll receive 2500 HNS for each proof.</p>
           <p>
             <a href="https://github.com" target="_blank">
               See full details on GitHub
-            </a>
-          </p>
-          <h2>Redemption instructions</h2>
-          <p>
-            Check your SSH and/or PGP keys for 2500-5000 HNS coins. If you are uncomfortable having
-            third party software access your PGP and/or SSH keys, you are always able to generate
-            this proof on an air-gapped machine.
-          </p>
-          <Step
-            number={1}
-            title="Generate a Handshake Address"
-            paragraph="Bird bird bird bird bird bird human why take bird out i could have eaten that stretch. Damn that dog meow, and what a cat-ass-trophy! and play riveting piece on synthesizer keyboard or i show my fluffy belly but it's a trap!"
-          />
-          <Step
-            number={2}
-            title="Copy and Paste Your SSH Proof Here"
-            paragraph="Bring your owner a dead bird cuddle no cuddle cuddle love scratch scratch or stand with legs in litter box, but poop outside lounge in doorway."
-          />
-          <Step
-            number={3}
-            title="Generate a Handshake Address"
-            paragraph="Intently stare at the same spot hiding behind the couch until lured out by a feathery toy make meme, make cute face for play riveting piece on synthesizer keyboard dismember a mouse and then regurgitate parts of it on the family room floor so sleep on keyboard."
-          />
-          <p>
-            There are a few gotchas: Handshake does not allow standard PGP signatures on the
-            consensus layer. This is done for simplicity and safety. This means that a regular call
-            to $ gpg --sign will not work for Handshake airdrop proofs. As far as SSH keys go,
-            people typically do not sign arbitrary messages with them.
-          </p>
-          <p>
-            <a href="https://github.com" target="_blank">
-              See full instructions on GitHub
             </a>
           </p>
           <h2>Privacy (GooSig)</h2>

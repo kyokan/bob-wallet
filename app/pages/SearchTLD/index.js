@@ -9,7 +9,7 @@ class SearchTLD extends Component {
     return (
       <div className="search_tld">
         <div className="search_tld__headline">Search a top-level domain</div>
-        <TLDInput />
+        <TLDInput greyTheme />
       </div>
     );
   }

@@ -10,6 +10,14 @@
   transition: 200ms ease-in-out;
   margin: 0 0.5rem;
 
+  &--grey-theme {
+    background-color: $athens-gray;
+    border: none;
+    padding: 0.9rem 1rem 0.9rem 1.1rem;
+    border-radius: 3rem;
+    border: 1px solid rgba($athens-gray, 1);
+  }
+
   &__input {
     @extend %row-nowrap;
     flex: 1 1 auto;
@@ -25,17 +33,21 @@
 
     &::-webkit-input-placeholder {
       font-weight: 500;
-      color: rgba($black, 0.35);
+      color: rgba($black, 0.4);
     }
 
     &--error {
       color: $orange-red;
     }
+
+    &--grey-theme {
+      font-size: 1rem;
+    }
   }
 
   &:focus-within {
     border: 1px solid rgba($azure-blue, 0.6);
-    box-shadow: 0 2px 2px 0 rgba($azure-blue, 0.15);
+    // box-shadow: 0 2px 2px 0 rgba($azure-blue, 0.15);
   }
 
   &--error {
@@ -46,7 +58,7 @@
 
     &:focus-within {
       border-color: $orange-red;
-      box-shadow: 0 2px 2px 0 rgba($orange-red, 0.15);
+      // box-shadow: 0 2px 2px 0 rgba($orange-red, 0.15);
     }
   }
 
@@ -70,5 +82,7 @@
     @extend %h5;
     color: $orange-red;
     padding: 0.5rem 1rem;
+    height: 0.7rem;
   }
+
 }
