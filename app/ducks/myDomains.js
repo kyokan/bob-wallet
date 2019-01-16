@@ -21,13 +21,22 @@ export const getMyNames = () => async (dispatch, getState) => {
   try {
     const client = walletClient.forNetwork(getState().wallet.network);
     const result = await client.getNames();
+    const ret = [];
+
+    if (address) {
+      await Promise.all(result.map(async domain => {
+        const { owner } = domain;
+        const coin = await client.getCoin(owner.hash, owner.index);
+
+        if (coin) {
+          ret.push(domain);
+        }
+      }));
+    }
+
     dispatch({
       type: FETCH_MY_NAMES_STOP,
-      payload: address
-        ? result.filter(({ state, owner }) => {
-          return state === NAME_STATES.CLOSED && (owner && owner.hash !== EMPTY_OWNER_HASH);
-        })
-        : [],
+      payload: ret,
     });
   } catch (error) {
     dispatch({

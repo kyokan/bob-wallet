@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import * as nameActions from '../../ducks/names';
 import { isReveal, isBidding, isOpening, isClosed } from '../../utils/name-helpers';
 import { hoursToNow } from '../../utils/timeConverter';
+import { showError, showSuccess } from '../../ducks/notifications';
 
 class BidAction extends Component {
   static propTypes = {
@@ -25,9 +26,10 @@ class BidAction extends Component {
   isOpening = () => isOpening(this.props.domain);
 
   isOwned = () => {
-    const { address, domain } = this.props;
-    return isClosed(domain) && domain.info.owner.hash === address;
+    const { domain } = this.props;
+    return domain && domain.isOwner;
   };
+
   isSold = () => isClosed(this.props.domain);
 
   render() {
@@ -68,9 +70,28 @@ class BidAction extends Component {
       return (
         <div
           className="bid-action"
-          onClick={() => history.push(`/domain/${name}`)}
+          onClick={e => {
+            e.stopPropagation();
+            history.push(`/domain_manager/${name}`)
+          }}
         >
           <div className="bid-action__link">Manage</div>
+        </div>
+      );
+    }
+
+    if (this.isSold()) {
+      return (
+        <div
+          className="bid-action"
+          onClick={e => {
+            e.stopPropagation();
+            this.props.sendRedeem()
+              .then(() => this.props.showSuccess('Your redeem request is submitted! Please wait about 15 minutes for it to complete.'))
+              .catch(e => this.props.showError(e.message));
+          }}
+        >
+          <div className="bid-action__link">Redeem</div>
         </div>
       );
     }
@@ -93,6 +114,9 @@ export default withRouter(
     },
     (dispatch, ownProps) => ({
       getNameInfo: () => dispatch(nameActions.getNameInfo(ownProps.name)),
+      sendRedeem: () => dispatch(nameActions.sendRedeem(ownProps.name)),
+      showError: (message) => dispatch(showError(message)),
+      showSuccess: (message) => dispatch(showSuccess(message)),
     }),
   )(BidAction)
 );

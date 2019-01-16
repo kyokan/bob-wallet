@@ -34,6 +34,11 @@ export function forNetwork(net) {
       return wallet.getAccount('default');
     },
 
+    getCoin: async (hash, index) => {
+      await walletClient.execute('selectwallet', [WALLET_ID]);
+      return wallet.getCoin(hash, index);
+    },
+
     getNames: async () => {
       await walletClient.execute('selectwallet', [WALLET_ID]);
       return walletClient.execute('getnames');
@@ -155,6 +160,12 @@ export function forNetwork(net) {
       await walletClient.execute('selectwallet', [WALLET_ID]);
       await walletClient.execute('sendreveal', [name]);
     },
+
+    sendRedeem: async (name) => {
+      await walletClient.execute('selectwallet', [WALLET_ID]);
+      await walletClient.execute('sendredeem', [name]);
+    },
+
 
     lock: async () => {
       return wallet.lock();

@@ -28,8 +28,8 @@ class BidStatus extends Component {
   isSold = () => isClosed(this.props.domain);
   isReveal = () => isReveal(this.props.domain);
   isOwned = () => {
-    const { address, domain } = this.props;
-    return isClosed(domain) && domain.info.owner.hash === address;
+    const { domain } = this.props;
+    return domain && domain.isOwner;
   };
   isBidding = () => isBidding(this.props.domain);
   isOpening = () => isOpening(this.props.domain);
