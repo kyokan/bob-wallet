@@ -4,7 +4,6 @@ import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import c from 'classnames';
 import AddToCalendar from 'react-add-to-calendar';
-import moment from 'moment';
 import { isAvailable, isBidding, isOpening, isReveal, } from '../../utils/name-helpers';
 import Checkbox from '../../components/Checkbox';
 import * as nameActions from '../../ducks/names';
@@ -498,13 +497,9 @@ class BidActionPanel extends Component {
       title: `Reveal of ${name}`,
       description: `The Handshake domain ${name} will be revealed at block ${bidPeriodEnd}. Check back into the Allison x Bob app to reveal the winner of the auction.`,
       location: 'The Decentralized Internet',
-      startDatetime: startDatetime.format('YYYYMMDDTHHmmssZ'),
-      endDatetime: endDatetime.format('YYYYMMDDTHHmmssZ'),
+      startTime: startDatetime.format(),
+      endTime: endDatetime.format(),
     };
-
-    //TODO: GET THE RIGHT FORMAT 2016-09-16T20:15:00-04:00
-    console.log(event)
-
     return event;
   }
 
