@@ -26,10 +26,7 @@ import AccountLogin from '../AcountLogin';
 import * as node from '../../ducks/node';
 import { NETWORKS } from '../../background/node';
 import Notification from '../../components/Notification';
-
-import Alice from "../../assets/images/alice.png";
-import Bob from "../../assets/images/the-cat.png";
-import Spinner from "../../assets/images/brick-loader.svg";
+import SplashScreen from "../../components/SplashScreen";
 
 class App extends Component {
   static propTypes = {
@@ -56,108 +53,14 @@ class App extends Component {
   render() {
     // TODO: Figure out how to get error
     if (this.props.error) {
-      return this.renderSplash(this.props.error);
+      return <SplashScreen error={this.props.error}/>
     }
 
     if (this.state.isLoading) {
-      return this.renderSplash();
+      return <SplashScreen />;
     }
-
 
     return <div className="app">{this.renderContent()}</div>;
-  }
-
-  // renderSplash(error) {
-  //   return (
-  //     <div className="app__splash">
-  //       <div className="app__splash__title"> 
-  //         Allison x Bob
-  //       </div>
-  //       <div className="app__splash__logo__wrapper">
-  //         <div className="app__splash__logo__alice" />
-  //         <div className="app__splash__logo__bob" />
-  //       </div>
-  //       {error ? <div className="app__splash__text"> {error} </div> :  (
-  //         <React.Fragment>
-  //           <div className="app__splash__logo__spinner" />
-  //           <div className="app__splash__text">Loading node...</div>
-  //         </React.Fragment>
-  //         )
-  //       }
-  //     </div>
-  //     )
-  // }
-
-  renderSplash(error) {
-    const wrapperStyle = {
-      display: 'flex',
-      flexFlow: 'column nowrap',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: '100vh',
-    }
-    const titleStyle = {
-      fontSize: '2rem',
-      fontWeight: 600,
-      textTransform: 'capitalize',
-    }
-    const logoWrapperStyle = {
-      display: 'flex',
-      flexFlow: 'row nowrap',
-      justifyContent: 'center',
-      alignItems: 'baseline',
-      margin: '3rem 0',
-    }
-    const aliceLogoStyle = {
-      backgroundImage: `url(${Alice})`,
-      height: '219px',
-      width: '130px',
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      animation: '0.5s ease-in-out',
-    }
-    const bobLogoStyle = {
-      backgroundImage: `url(${Bob})`,
-      height: '109px',
-      width: '75px',
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      animation: '0.5s ease-in-out',
-    }
-    const spinnerStyle = {
-      backgroundImage: `url(${Spinner})`,
-      marginBottom: '15px',
-      height: '1.5rem',
-      width: '1.5rem',
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      animation: '0.5s ease-in-out',
-    }
-
-    const textStyles = {
-        fontSize: '1rem',
-        lineHeight: '1rem * 1.4',
-        color: '#909095',
-    }
-
-    return (
-      <div style={ wrapperStyle }>
-        <div style={ titleStyle }> 
-          Allison x Bob
-        </div>
-        <div style={ logoWrapperStyle }>
-          <div style={ aliceLogoStyle }/>
-          <div style={ bobLogoStyle } />
-        </div>
-        {error ? <div style={ textStyles }> {error} </div> :  (
-          <React.Fragment>
-            <div style={ spinnerStyle } />
-            <div style={ textStyles }>Loading node...</div>
-          </React.Fragment>
-          )
-        }
-      </div>
-      )
   }
 
   renderContent() {
