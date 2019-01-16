@@ -1,10 +1,11 @@
 import * as walletClient from '../utils/walletClient';
 import BigNumber from 'bignumber.js';
 import * as namesDb from '../db/names';
+import { getInitializationState, setInitializationState } from '../db/system';
 
 const SET_WALLET = 'app/wallet/setWallet';
 const UNLOCK_WALLET = 'app/wallet/unlockWallet';
-const LOCK_WALLET = 'app/wallet/lockWallet';
+export const LOCK_WALLET = 'app/wallet/lockWallet';
 const SET_TRANSACTIONS = 'app/wallet/setTransactions';
 export const SET_PENDING_TRANSACTIONS = 'app/wallet/setPendingTransactions';
 
@@ -18,7 +19,7 @@ const initialState = {
   type: NONE,
   isLocked: true,
   initialized: false,
-  network: 'simnet',
+  network: '',
   balance: {
     confirmed: '0',
     unconfirmed: '0'
@@ -26,7 +27,7 @@ const initialState = {
   transactions: []
 };
 
-export default function walletReducer(state = initialState, { type, payload }) {
+export default function walletReducer(state = initialState, {type, payload}) {
   switch (type) {
     case SET_WALLET:
       return {
@@ -88,8 +89,9 @@ export const setWallet = opts => {
   };
 };
 
-export const completeInitialization = () => async dispatch => {
-  localStorage.setItem('initialized', '1');
+export const completeInitialization = () => async (dispatch, getState) => {
+  const network = getState().node.network;
+  await setInitializationState(network, true);
   await dispatch(fetchWallet());
   dispatch({
     type: UNLOCK_WALLET
@@ -97,63 +99,56 @@ export const completeInitialization = () => async dispatch => {
 };
 
 export const fetchWallet = () => async (dispatch, getState) => {
-  const client = walletClient.forNetwork(getState().wallet.network);
-  const walletInfo = await client.getWalletInfo();
-  const accountInfo = await client.getAccountInfo();
-  const isLocked = await client.isLocked();
-  dispatch(
-    setWallet({
-      initialized:
-        !!walletInfo && !!accountInfo && !!localStorage.getItem('initialized'),
-      address: accountInfo && accountInfo.receiveAddress,
+  const network = getState().node.network;
+
+  // TODO: remove the below once we've all pulled master
+  const oldInitialized = localStorage.getItem('initialized');
+  if (oldInitialized) {
+    await setInitializationState(network, true);
+    localStorage.removeItem('initialized');
+  }
+
+  const isInitialized = await getInitializationState(network);
+
+  if (!isInitialized) {
+    return dispatch(setWallet({
+      initialized: false,
+      address: '',
       type: NONE,
-      isLocked,
-      balance: (accountInfo && accountInfo.balance) || {
+      isLocked: true,
+      balance: {
         ...initialState.balance
       }
-    })
-  );
-};
+    }))
+  }
 
-let lockStateTimeout;
-export const pollLockState = () => async (dispatch, getState) => {
-  const poller = async () => {
-    try {
-      const client = walletClient.forNetwork(getState().wallet.network);
-      const isLocked = await client.isLocked();
-
-      if (isLocked) {
-        dispatch({
-          type: LOCK_WALLET
-        });
-      }
-    } catch (e) {
-      console.error(e);
+  const client = walletClient.forNetwork(network);
+  const accountInfo = await client.getAccountInfo();
+  const isLocked = await client.isLocked();
+  dispatch(setWallet({
+    initialized: isInitialized,
+    address: accountInfo && accountInfo.receiveAddress,
+    type: NONE,
+    isLocked,
+    balance: (accountInfo && accountInfo.balance) || {
+      ...initialState.balance
     }
-
-    lockStateTimeout = setTimeout(poller, 5000);
-  };
-
-  poller();
-};
-
-export const stopPollingLockState = () => {
-  clearTimeout(lockStateTimeout);
+  }));
 };
 
 export const revealSeed = (passphrase) => async (dispatch, getState) => {
-  const client = walletClient.forNetwork(getState().wallet.network);
+  const client = walletClient.forNetwork(getState().node.network);
   return client.revealSeed(passphrase);
 };
 
 export const unlockWallet = passphrase => async (dispatch, getState) => {
-  const client = walletClient.forNetwork(getState().wallet.network);
+  const client = walletClient.forNetwork(getState().node.network);
   await client.unlock(passphrase);
   await dispatch(fetchWallet());
 };
 
 export const lockWallet = () => async (dispatch, getState) => {
-  const client = walletClient.forNetwork(getState().wallet.network);
+  const client = walletClient.forNetwork(getState().node.network);
   dispatch({
     type: LOCK_WALLET
   });
@@ -161,19 +156,21 @@ export const lockWallet = () => async (dispatch, getState) => {
 };
 
 export const removeWallet = () => async (dispatch, getState) => {
-  const client = walletClient.forNetwork(getState().wallet.network);
+  const network = getState().node.network;
+  const client = walletClient.forNetwork(network);
   await client.reset();
+  await setInitializationState(network, false);
   return dispatch(fetchWallet());
 };
 
 export const send = (to, amount, fee) => async (dispatch, getState) => {
-  const client = walletClient.forNetwork(getState().wallet.network);
+  const client = walletClient.forNetwork(getState().node.network);
   await client.send(to, amount, fee);
   await dispatch(fetchWallet());
 };
 
 export const fetchTransactions = () => async (dispatch, getState) => {
-  const client = walletClient.forNetwork(getState().wallet.network);
+  const client = walletClient.forNetwork(getState().node.network);
   const txs = await client.getTransactionHistory();
   let aggregate = new BigNumber(0);
   let payload = [];
@@ -204,22 +201,12 @@ export const fetchPendingTransactions = () => async (dispatch, getState) => {
     return;
   }
 
-  const client = walletClient.forNetwork(getState().wallet.network);
+  const client = walletClient.forNetwork(getState().node.network);
   const payload = await client.getPendingTransactions();
   dispatch({
     type: SET_PENDING_TRANSACTIONS,
     payload
   });
-};
-
-let isPolling = false;
-export const pollPendingTransactions = force => async dispatch => {
-  if (!force && isPolling) {
-    return;
-  }
-  isPolling = true;
-  await dispatch(fetchPendingTransactions());
-  setTimeout(() => dispatch(pollPendingTransactions(true)), 1000);
 };
 
 // TODO: Make this method smarter
@@ -244,7 +231,7 @@ async function parseInputsOutputs(tx) {
 
   for (const input of tx.inputs) {
     if (input.path) {
-      const correctOutput = tx.outputs.filter(({ path }) => !path || !path.change)[0];
+      const correctOutput = tx.outputs.filter(({path}) => !path || !path.change)[0];
 
       return {
         type: 'SEND',
@@ -280,11 +267,11 @@ async function parseInputsOutputs(tx) {
 async function parseCovenant(covenant) {
   switch (covenant.action) {
     case 'OPEN':
-      return { type: 'OPEN', meta: { domain: await nameByHash(covenant) } };
+      return {type: 'OPEN', meta: {domain: await nameByHash(covenant)}};
     case 'BID':
-      return { type: 'BID', meta: { domain: await nameByHash(covenant) } };
+      return {type: 'BID', meta: {domain: await nameByHash(covenant)}};
     case 'REVEAL':
-      return { type: 'REVEAL', meta: { domain: await nameByHash(covenant) } };
+      return {type: 'REVEAL', meta: {domain: await nameByHash(covenant)}};
     case 'UPDATE':
       return {
         type: 'UPDATE',
@@ -309,7 +296,7 @@ async function parseCovenant(covenant) {
         }
       };
     default:
-      return { type: 'UNKNOWN', meta: {} };
+      return {type: 'UNKNOWN', meta: {}};
   }
 }
 

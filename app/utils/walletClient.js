@@ -1,7 +1,7 @@
 import { WalletClient } from 'hs-client';
 import { clientStub } from '../background/node';
 import { displayBalance, toBaseUnits } from './balances';
-import { getUnlockReceiveAddress, setUnlockReceiveAddress } from '../db/system';
+import { delUnlockReceiveAddress, getUnlockReceiveAddress, setUnlockReceiveAddress } from '../db/system';
 import MasterKey from 'hsd/lib/wallet/masterkey';
 
 const client = clientStub(() => require('electron').ipcRenderer);
@@ -180,14 +180,15 @@ export function forNetwork(net) {
     },
 
     reset: async () => {
+      await delUnlockReceiveAddress(net);
       return client.reset();
     },
 
     isLocked: async () => {
-      let addr = await getUnlockReceiveAddress();
+      let addr = await getUnlockReceiveAddress(net);
       if (!addr) {
         addr = (await wallet.createAddress('default')).address;
-        await setUnlockReceiveAddress(addr);
+        await setUnlockReceiveAddress(net, addr);
       }
 
       try {

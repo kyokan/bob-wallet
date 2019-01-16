@@ -19,7 +19,7 @@ export const getMyNames = () => async (dispatch, getState) => {
   dispatch({ type: FETCH_MY_NAMES_START });
 
   try {
-    const client = walletClient.forNetwork(getState().wallet.network);
+    const client = walletClient.forNetwork(getState().node.network);
     const result = await client.getNames();
     const ret = [];
 

@@ -107,7 +107,7 @@ class CreateNewAccount extends Component {
 export default withRouter(
   connect(
     (state) => ({
-      network: state.wallet.network,
+      network: state.node.network,
     }),
     dispatch => ({
       completeInitialization: () =>

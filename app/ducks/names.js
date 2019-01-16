@@ -52,7 +52,7 @@ const ALLOWED_COVENANTS = new Set([
 const initialState = {};
 
 export const getNameInfo = name => async (dispatch, getState) => {
-  const net = getState().wallet.network;
+  const net = getState().node.network;
   const nClient = nodeClient.forNetwork(net);
   const wClient = walletClient.forNetwork(net);
 
@@ -127,7 +127,7 @@ async function inflateBids(nClient, wClient, bids) {
 }
 
 export const sendOpen = name => async (dispatch, getState) => {
-  const wClient = walletClient.forNetwork(getState().wallet.network);
+  const wClient = walletClient.forNetwork(getState().node.network);
   await wClient.sendOpen(name);
   await namesDb.storeName(name);
   await dispatch(fetchPendingTransactions());
@@ -138,7 +138,7 @@ export const sendBid = (name, amount, lockup) => async (dispatch, getState) => {
     return;
   }
 
-  const wClient = walletClient.forNetwork(getState().wallet.network);
+  const wClient = walletClient.forNetwork(getState().node.network);
   await wClient.sendBid(name, amount, lockup);
 };
 
@@ -147,7 +147,7 @@ export const sendReveal = (name) => async (dispatch, getState) => {
     return;
   }
 
-  const wClient = walletClient.forNetwork(getState().wallet.network);
+  const wClient = walletClient.forNetwork(getState().node.network);
   await wClient.sendReveal(name);
 };
 
@@ -156,7 +156,7 @@ export const sendRedeem = (name) => async (dispatch, getState) => {
     return;
   }
 
-  const wClient = walletClient.forNetwork(getState().wallet.network);
+  const wClient = walletClient.forNetwork(getState().node.network);
   await wClient.sendRedeem(name);
 };
 
@@ -170,7 +170,7 @@ export const sendRenewal = (name) => async (dispatch, getState) => {
 };
 
 export const sendUpdate = (name, json) => async (dispatch, getState) => {
-  const wClient = walletClient.forNetwork(getState().wallet.network);
+  const wClient = walletClient.forNetwork(getState().node.network);
   await wClient.sendUpdate(name, json);
   await dispatch(fetchPendingTransactions());
 };

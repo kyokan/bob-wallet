@@ -24,9 +24,9 @@ import * as walletActions from '../../ducks/wallet';
 import './app.scss';
 import AccountLogin from '../AcountLogin';
 import * as node from '../../ducks/node';
-import { NETWORKS } from '../../background/node';
 import Notification from '../../components/Notification';
 import SplashScreen from "../../components/SplashScreen";
+import NetworkPicker from '../NetworkPicker';
 
 class App extends Component {
   static propTypes = {
@@ -34,7 +34,8 @@ class App extends Component {
     isLocked: PropTypes.bool.isRequired,
     initialized: PropTypes.bool.isRequired,
     fetchWallet: PropTypes.func.isRequired,
-    startNode: PropTypes.func.isRequired
+    startNode: PropTypes.func.isRequired,
+    isChangingNetworks: PropTypes.bool.isRequired,
   };
 
   state = {
@@ -42,21 +43,19 @@ class App extends Component {
   };
 
   async componentDidMount() {
-    this.setState({ isLoading: true });
+    this.setState({isLoading: true});
     await this.props.startNode();
     await this.props.fetchWallet();
-    await this.props.pollPendingTransactions();
-    await this.props.pollLockState();
-    setTimeout(() => this.setState({ isLoading: false }) , 1000)
+    setTimeout(() => this.setState({isLoading: false}), 1000)
   }
 
   render() {
     // TODO: Confirm that error shows properly
     if (this.props.error) {
-      return <SplashScreen error={this.props.error}/>
+      return <SplashScreen error={this.props.error} />
     }
 
-    if (this.state.isLoading) {
+    if (this.state.isLoading || this.props.isChangingNetworks) {
       return <SplashScreen />;
     }
 
@@ -64,11 +63,14 @@ class App extends Component {
   }
 
   renderContent() {
-    const { isLocked, initialized } = this.props;
+    const {isLocked, initialized} = this.props;
 
     if (isLocked || !initialized) {
       return (
         <div className="app__uninitialized-wrapper">
+          <div className="app__network-picker-wrapper">
+            <NetworkPicker />
+          </div>
           <div className="app__uninitialized">
             <Switch>
               <Route
@@ -160,7 +162,7 @@ class App extends Component {
   }
 
   renderDefault = () => {
-    let { isLocked, initialized } = this.props;
+    let {isLocked, initialized} = this.props;
     if (!initialized) {
       return <Redirect to="/funding-options" />;
     }
@@ -178,13 +180,12 @@ export default withRouter(
     state => ({
       error: state.node.error,
       isLocked: state.wallet.isLocked,
+      isChangingNetworks: state.node.isChangingNetworks,
       initialized: state.wallet.initialized
     }),
     dispatch => ({
       fetchWallet: () => dispatch(walletActions.fetchWallet()),
-      startNode: () => dispatch(node.start(NETWORKS.SIMNET)),
-      pollPendingTransactions: () => dispatch(walletActions.pollPendingTransactions()),
-      pollLockState: () => dispatch(walletActions.pollLockState()),
+      startNode: () => dispatch(node.start()),
     })
   )(App)
 );

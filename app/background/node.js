@@ -14,7 +14,7 @@ export const NETWORKS = {
   MAINNET: 'mainnet'
 };
 
-const VALID_NETWORKS = {
+export const VALID_NETWORKS = {
   simnet: 'simnet',
   testnet: 'testnet',
   mainnet: 'mainnet'

@@ -38,7 +38,7 @@ async function getFirstBlockTime(net) {
 
 @connect(
   (state) => ({
-    network: state.wallet.network,
+    network: state.node.network,
   })
 )
 export default class Blocktime extends Component {
