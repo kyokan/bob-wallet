@@ -60,6 +60,7 @@ export const getNameInfo = name => async (dispatch, getState) => {
   let bids = [];
   let reveals = [];
   let winner = null;
+  let isOwner = false;
   if (!info) {
     dispatch({
       type: SET_NAME,
@@ -70,6 +71,7 @@ export const getNameInfo = name => async (dispatch, getState) => {
         bids,
         reveals,
         winner,
+        isOwner,
       }
     });
     return;
@@ -88,6 +90,7 @@ export const getNameInfo = name => async (dispatch, getState) => {
   if (info.state === NAME_STATES.CLOSED) {
     const buyTx = await nClient.getTx(info.owner.hash);
     const buyOutput = buyTx.outputs[info.owner.index];
+    isOwner = !!await wClient.getCoin(info.owner.hash, info.owner.index);
     winner = {
       address: buyOutput.address,
     };
@@ -95,7 +98,7 @@ export const getNameInfo = name => async (dispatch, getState) => {
 
   dispatch({
     type: SET_NAME,
-    payload: {name, start, info, bids, reveals, winner},
+    payload: {name, start, info, bids, reveals, winner, isOwner},
   });
 };
 
@@ -142,6 +145,15 @@ export const sendReveal = (name) => async (dispatch, getState) => {
 
   const wClient = walletClient.forNetwork(getState().wallet.network);
   await wClient.sendReveal(name);
+};
+
+export const sendRedeem = (name) => async (dispatch, getState) => {
+  if (!name) {
+    return;
+  }
+
+  const wClient = walletClient.forNetwork(getState().wallet.network);
+  await wClient.sendRedeem(name);
 };
 
 export const sendUpdate = (name, json) => async (dispatch, getState) => {
