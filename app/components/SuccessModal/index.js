@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import Blocktime from '../Blocktime';
-import './successmodal.scss';
+import './SuccessModal.scss';
 
 const modalRoot = document.querySelector('#modal-root');
 
