@@ -4,7 +4,7 @@ import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import c from 'classnames';
 import AddToCalendar from 'react-add-to-calendar';
-import { isAvailable, isBidding, isOpening, isReveal, } from '../../utils/name-helpers';
+import { isAvailable, isBidding, isClosed, isOpening, isReveal } from '../../utils/name-helpers';
 import Checkbox from '../../components/Checkbox';
 import * as nameActions from '../../ducks/names';
 import * as watchingActions from '../../ducks/watching';
@@ -50,20 +50,27 @@ class BidActionPanel extends Component {
 
   }
 
+  isOwned = () => {
+    const { domain } = this.props;
+    return domain && domain.isOwner;
+  };
+
+  isSold = () => isClosed(this.props.domain);
+
   render() {
     const name = this.props.match.params.name;
     const isWatching = this.state.isWatching;
     return (
       <React.Fragment>
         {this.renderActionPanel()}
-        <div className="domains__watch"> 
+        <div className="domains__watch">
           <div className={c("domains__watch__heart-icon", {
                 "domains__watch__heart-icon--active": this.state.isWatching
                 })} onClick={() => {
                   isWatching ? this.props.unwatchDomain(name) : this.props.watchDomain(name);
                   this.setState({ isWatching: !isWatching })
                 }}/>
-          <div className="domains__watch__text">{this.state.isWatching ? 'Added to Watchlist' : 'Add to Watchlist'}</div> 
+          <div className="domains__watch__text">{this.state.isWatching ? 'Added to Watchlist' : 'Add to Watchlist'}</div>
         </div>
       </React.Fragment>
     )
@@ -75,11 +82,11 @@ class BidActionPanel extends Component {
     if (this.state.isReviewing) {
       return this.renderReviewBid();
     }
-    
+
     if (isOpening(domain)) {
       return this.renderOpeningBid();
     }
-    
+
     const ownBid = this.findOwnBid();
     if (isBidding(domain) || this.state.successfullyBid) {
       if (this.state.successfullyBid || ownBid || domain.pendingOperation === 'BID') {
@@ -166,10 +173,10 @@ class BidActionPanel extends Component {
 
     return (
       <div className="domains__bid-now">
-        {showSuccessModal && 
-          <SuccessModal 
-            bidAmount={bidAmount} 
-            maskAmount={maskAmount} 
+        {showSuccessModal &&
+          <SuccessModal
+            bidAmount={bidAmount}
+            maskAmount={maskAmount}
             revealStartBlock={bidPeriodEnd}
             onClose={() => this.setState({ showSuccessModal: false })}
           />}
@@ -259,7 +266,7 @@ class BidActionPanel extends Component {
             <Tooltipable tooltipContent={'To prevent price sniping, Handshake uses a blind second-price auction called a Vickrey Auction. Users can buy and register top-level domains (TLDs) with Handshake coins (HNS).'}>
               <div className="domains__bid-now__info__icon" />
             </Tooltipable>
-            Winner pays 2nd highest bid price. 
+            Winner pays 2nd highest bid price.
           </div>
         </div>
         {this.renderBidNowAction()}
@@ -281,8 +288,8 @@ class BidActionPanel extends Component {
             <div className="domains__bid-now__info__value">
               {`${bidAmount} HNS`}
             </div>
-            <div className="domains__bid-now__action__edit-icon" 
-              onClick={() => this.setState({ isReviewing: false }) } 
+            <div className="domains__bid-now__action__edit-icon"
+              onClick={() => this.setState({ isReviewing: false }) }
             />
           </div>
           <div className="domains__bid-now__info">
@@ -292,8 +299,8 @@ class BidActionPanel extends Component {
             <div className="domains__bid-now__info__value">
               {maskAmount ? `${maskAmount} HNS` : ' - '}
             </div>
-            <div className="domains__bid-now__action__edit-icon" 
-              onClick={() => this.setState({ isReviewing: false }) } 
+            <div className="domains__bid-now__action__edit-icon"
+              onClick={() => this.setState({ isReviewing: false }) }
             />
           </div>
           <div className="domains__bid-now__divider" />
@@ -325,10 +332,10 @@ class BidActionPanel extends Component {
                 () => this.props.sendBid(this.props.domain.name, bidAmount, lockup),
                 null,
                 'Failed to place bid. Please try again.',
-                () => this.setState({ 
-                  isReviewing: false, 
-                  isPlacingBid: false, 
-                  successfullyBid: true, 
+                () => this.setState({
+                  isReviewing: false,
+                  isPlacingBid: false,
+                  successfullyBid: true,
                   showSuccessModal: true,
                 })
               )
