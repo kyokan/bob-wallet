@@ -51,7 +51,7 @@ class App extends Component {
   }
 
   render() {
-    // TODO: Figure out how to get error
+    // TODO: Confirm that error shows properly
     if (this.props.error) {
       return <SplashScreen error={this.props.error}/>
     }
