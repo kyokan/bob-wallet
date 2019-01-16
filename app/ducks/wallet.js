@@ -149,9 +149,7 @@ export const revealSeed = (passphrase) => async (dispatch, getState) => {
 export const unlockWallet = passphrase => async (dispatch, getState) => {
   const client = walletClient.forNetwork(getState().wallet.network);
   await client.unlock(passphrase);
-  dispatch({
-    type: UNLOCK_WALLET
-  });
+  await dispatch(fetchWallet());
 };
 
 export const lockWallet = () => async (dispatch, getState) => {
