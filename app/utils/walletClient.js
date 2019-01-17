@@ -187,8 +187,14 @@ export function forNetwork(net) {
     isLocked: async () => {
       let addr = await getUnlockReceiveAddress(net);
       if (!addr) {
+<<<<<<< HEAD
         addr = (await wallet.createAddress('default')).address;
         await setUnlockReceiveAddress(net, addr);
+=======
+        const newAddress = await wallet.createAddress('default')
+        addr = newAddress && newAddress.address;
+        addr ? await setUnlockReceiveAddress(addr) : true;
+>>>>>>> wip adding progress graph
       }
 
       try {

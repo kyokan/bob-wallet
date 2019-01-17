@@ -1,7 +1,7 @@
 @import '../../variables';
 
 .react-add-to-calendar {
-  margin: 1.5rem 0 0rem 0;
+  margin: 1rem 0 0rem 0;
   width: 100%;
 
   &__wrapper {
@@ -38,7 +38,6 @@
   &__dropdown {
     background-color: $azure-blue;
     margin-top: 1rem;
-    // padding: 0.4rem 0;
     border-bottom-left-radius: 0.5rem;
     border-bottom-right-radius: 0.5rem;
   }
