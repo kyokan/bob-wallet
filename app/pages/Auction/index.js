@@ -163,9 +163,22 @@ export default class Auction extends Component {
           <div className="domains__content__title">{`${domain}/`}</div>
           <div className="domains__content__info-panel">
             <div className="domains__content__info-panel__title">Auction Details</div>
-            <div className={this.getContentClassName()}>
-              {this.renderAuctionDetails()}
+            <div className="domains__graph__wrapper">
+              <div className="domains__graph__icon" />
+              <div className="domains__graph__line--dashed" />
+              <div className="domains__graph__line--dashed" />
+              <div className="domains__graph__line--dashed" />
+              <div className="domains__graph__line--dashed" />
+              <div className="domains__graph__icon domains__graph__icon--disabled" />
+              <div className="domains__graph__line domains__graph__line--blue" />
+              <div className="domains__graph__line domains__graph__line--blue" />
+              <div className="domains__graph__line" />
+              <div className="domains__graph__line" />
+              <div className="domains__graph__icon" />
             </div>
+            {/* <div className={this.getContentClassName()}>
+              {this.renderAuctionDetails()}
+            </div> */}
           </div>
           <Collapsible className="domains__content__info-panel" title="Bid History" defaultCollapsed>
             {
