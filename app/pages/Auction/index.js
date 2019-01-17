@@ -12,10 +12,11 @@ import BidActionPanel from './BidActionPanel';
 import BidReminder from './BidReminder';
 import Collapsible from '../../components/Collapsible';
 import Blocktime from '../../components/Blocktime';
-import './domains.scss';
+import AuctionGraph from '../../components/AuctionGraph';
 import { showError, showSuccess } from '../../ducks/notifications';
 import VickreyProcess from './VickreyProcess';
 import BidHistory from './BidHistory';
+import './domains.scss';
 
 @withRouter
 @connect(
@@ -162,19 +163,8 @@ export default class Auction extends Component {
         <div className="domains__content">
           <div className="domains__content__title">{`${domain}/`}</div>
           <div className="domains__content__info-panel">
-            <div className="domains__content__info-panel__title">Auction Details</div>
             <div className="domains__graph__wrapper">
-              <div className="domains__graph__icon" />
-              <div className="domains__graph__line--dashed" />
-              <div className="domains__graph__line--dashed" />
-              <div className="domains__graph__line--dashed" />
-              <div className="domains__graph__line--dashed" />
-              <div className="domains__graph__icon domains__graph__icon--disabled" />
-              <div className="domains__graph__line domains__graph__line--blue" />
-              <div className="domains__graph__line domains__graph__line--blue" />
-              <div className="domains__graph__line" />
-              <div className="domains__graph__line" />
-              <div className="domains__graph__icon" />
+              <AuctionGraph openProgress={100} biddingProgress={40} revealProgress={0} />
             </div>
             {/* <div className={this.getContentClassName()}>
               {this.renderAuctionDetails()}

@@ -1,0 +1,15 @@
+@import '../../variables.scss';
+
+.progress-bar {
+  position: relative;
+  height: 5px;
+  width: 100%;
+  background-color: rgba($black, .1);
+  margin: .3rem 0 .5rem 0;
+
+  &__filler {
+    height: 100%;
+    background-color: $azure-blue;
+    transition: width .2s ease-in;
+  }
+}
