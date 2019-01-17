@@ -295,6 +295,13 @@ async function parseCovenant(covenant) {
           domain: await nameByHash(covenant),
         }
       };
+    case 'REDEEM':
+      return {
+        type: 'REDEEM',
+        meta: {
+          domain: await nameByHash(covenant),
+        }
+      };
     default:
       return {type: 'UNKNOWN', meta: {}};
   }
