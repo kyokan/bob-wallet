@@ -156,6 +156,15 @@ export const sendRedeem = (name) => async (dispatch, getState) => {
   await wClient.sendRedeem(name);
 };
 
+export const sendRenewal = (name) => async (dispatch, getState) => {
+  if (!name) {
+    return;
+  }
+
+  const wClient = walletClient.forNetwork(getState().wallet.network);
+  await wClient.sendRenewal(name);
+};
+
 export const sendUpdate = (name, json) => async (dispatch, getState) => {
   const wClient = walletClient.forNetwork(getState().wallet.network);
   await wClient.sendUpdate(name, json);

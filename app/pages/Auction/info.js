@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types,no-use-before-define */
-import React from 'react';
+import React, { Component } from 'react';
 import Hash from '../../components/Hash';
 import { displayBalance } from '../../utils/balances';
 import ellipsify from '../../utils/ellipsify';
@@ -25,6 +25,28 @@ export const SoldInfo = ({ owner, highestBid }) => (
           {ellipsify(owner, 10)}
         </div>
       </div>
+    </div>
+  </div>
+);
+
+export const OwnedInfo = ({ onClick, onRenewalClick }) => (
+  <div className="domains__action-panel">
+    <div className="domains__bid-now__title">You are the owner of this domain!</div>
+    <div className="domains__bid-now__content">
+      { onRenewalClick && (
+        <button
+          className="domains__action-panel__renew-domain-btn"
+          onClick={onRenewalClick}
+        >
+          Renew my domain
+        </button>
+      )}
+      <button
+        className="domains__action-panel__manage-domain-btn"
+        onClick={onClick}
+      >
+        Manage my domain
+      </button>
     </div>
   </div>
 );

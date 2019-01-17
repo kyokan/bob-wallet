@@ -14,6 +14,7 @@ const OPEN = 'OPEN';
 const BID = 'BID';
 const REVEAL = 'REVEAL';
 const UPDATE = 'UPDATE';
+const RENEW = 'RENEW';
 
 class Transaction extends Component {
   static propTypes = {
@@ -75,7 +76,10 @@ class Transaction extends Component {
       content = this.formatDomain(tx.meta.domain);
     } else if (tx.type === UPDATE) {
       description = 'Updated Record';
-      content = this.formatDomain(tx.meta.domain)
+      content = this.formatDomain(tx.meta.domain);
+    } else if (tx.type === RENEW) {
+      description = 'Renew Domain';
+      content = this.formatDomain(tx.meta.domain);
     } else {
       description = 'Unknown Transaction';
     }

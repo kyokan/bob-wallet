@@ -278,6 +278,7 @@ async function parseInputsOutputs(tx) {
 }
 
 async function parseCovenant(covenant) {
+  console.log(covenant)
   switch (covenant.action) {
     case 'OPEN':
       return { type: 'OPEN', meta: { domain: await nameByHash(covenant) } };
@@ -300,6 +301,13 @@ async function parseCovenant(covenant) {
           domain: await nameByHash(covenant),
           data: covenant.items[2],
         },
+      };
+    case 'RENEW':
+      return {
+        type: 'RENEW',
+        meta: {
+          domain: await nameByHash(covenant),
+        }
       };
     default:
       return { type: 'UNKNOWN', meta: {} };
