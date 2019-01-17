@@ -47,7 +47,6 @@ const setNodeInfo = () => async (dispatch, getState) => {
     const client = nodeClient.forNetwork(getState().node.network);
     const info = await client.getInfo();
     const fees = await client.getFees();
-    console.log(fees);
     dispatch({
       type: SET_NODE_INFO,
       payload: {
