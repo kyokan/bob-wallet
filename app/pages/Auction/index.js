@@ -162,14 +162,12 @@ export default class Auction extends Component {
       <React.Fragment>
         <div className="domains__content">
           <div className="domains__content__title">{`${domain}/`}</div>
-          <div className="domains__content__info-panel">
             <div className="domains__graph__wrapper">
               <AuctionGraph openProgress={100} biddingProgress={40} revealProgress={0} />
             </div>
             {/* <div className={this.getContentClassName()}>
               {this.renderAuctionDetails()}
             </div> */}
-          </div>
           <Collapsible className="domains__content__info-panel" title="Bid History" defaultCollapsed>
             {
               this.props.domain
