@@ -1,14 +1,12 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
 import createAMPMTimeStamp from '../../utils/timeConverter';
 import { displayBalance } from '../../utils/balances';
 import ellipsify from '../../utils/ellipsify';
 import './bid-history.scss';
 
-class BidHistory extends Component {
+export default class BidHistory extends Component {
   static propTypes = {
-    chain: PropTypes.object.isRequired,
     bids: PropTypes.array.isRequired,
     reveals: PropTypes.array.isRequired,
   };
@@ -16,7 +14,6 @@ class BidHistory extends Component {
   render() {
     const bids = this.props.bids || [];
     const reveals = this.props.reveals || [];
-    const currentHeight = this.props.chain.height;
 
     if (!bids.length && !reveals.length) {
       return (
@@ -62,7 +59,7 @@ class BidHistory extends Component {
                 <tr key={bid.from}>
                   <td>{month}/{day}/{year}</td>
                   <td>{ellipsify(fromAddress, 10)}</td>
-                  <td>{bid.bid ? displayBalance(bid.bid, true) : 'Hidden Until Reveal'}</td>
+                  <td>{typeof bid.bid === 'number' ? displayBalance(bid.bid, true) : 'Hidden Until Reveal'}</td>
                   <td>{displayBalance(bid.mask, true)}</td>
                 </tr>
               )
@@ -73,9 +70,3 @@ class BidHistory extends Component {
     );
   }
 }
-
-export default connect(
-  state => ({
-    chain: state.node.chain,
-  }),
-)(BidHistory);
