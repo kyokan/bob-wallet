@@ -211,14 +211,6 @@ export const fetchPendingTransactions = () => async (dispatch, getState) => {
 
 // TODO: Make this method smarter
 async function parseInputsOutputs(tx) {
-  if (tx.outputs.length !== 2) {
-    return {
-      type: 'UNKNOWN',
-      meta: {},
-      value: '0'
-    };
-  }
-
   const covenant = tx.outputs[0].covenant;
   if (covenant && covenant.action !== 'NONE') {
     const covData = await parseCovenant(covenant);
@@ -226,6 +218,14 @@ async function parseInputsOutputs(tx) {
       ...covData,
       fee: tx.fee,
       value: getValueByConvenant(tx, covenant),
+    };
+  }
+
+  if (!tx.outputs.length) {
+    return {
+      type: 'UNKNOWN',
+      meta: {},
+      value: '0'
     };
   }
 
