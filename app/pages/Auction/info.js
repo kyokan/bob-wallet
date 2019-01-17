@@ -29,6 +29,26 @@ export const SoldInfo = ({ owner, highestBid }) => (
   </div>
 );
 
+export const PendingRenewInfo = ({ onManageDomain }) => (
+  <div className="domains__action-panel">
+    <div className="domains__bid-now__title">You are the owner of this domain!</div>
+    <div className="domains__bid-now__content">
+      <button
+        className="domains__action-panel__renew-domain-btn"
+        disabled
+      >
+        Renewing
+      </button>
+      <button
+        className="domains__action-panel__manage-domain-btn"
+        onClick={onManageDomain}
+      >
+        Manage my domain
+      </button>
+    </div>
+  </div>
+);
+
 export const OwnedInfo = ({ onClick, onRenewalClick }) => (
   <div className="domains__action-panel">
     <div className="domains__bid-now__title">You are the owner of this domain!</div>

@@ -46,6 +46,7 @@ const ALLOWED_COVENANTS = new Set([
   'REVEAL',
   'UPDATE',
   'REGISTER',
+  'RENEW',
 ]);
 
 const initialState = {};

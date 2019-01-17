@@ -7,7 +7,7 @@ import moment from 'moment';
 
 import * as names from '../../ducks/names';
 import { isAvailable, isBidding, isClosed, isOpening, isReserved, isReveal, } from '../../utils/name-helpers';
-import { OwnedInfo, ReserveInfo, SoldInfo } from './info';
+import { OwnedInfo, ReserveInfo, SoldInfo, PendingRenewInfo } from './info';
 import BidActionPanel from './BidActionPanel';
 import BidReminder from './BidReminder';
 import Collapsible from '../../components/Collapsible';
@@ -96,6 +96,13 @@ export default class Auction extends Component {
     if (this.isOwned()) {
       const renewStartBlock = domain.info.stats.renewalPeriodStart;
 
+      if (domain.pendingOperation === 'RENEW') {
+        return (
+          <PendingRenewInfo
+            onManageDomain={() => this.props.history.push(`/domain_manager/${this.getDomain()}`)}
+          />
+        )
+      }
 
       return chain && chain.height >= renewStartBlock
         ? (

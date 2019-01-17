@@ -278,7 +278,6 @@ async function parseInputsOutputs(tx) {
 }
 
 async function parseCovenant(covenant) {
-  console.log(covenant)
   switch (covenant.action) {
     case 'OPEN':
       return { type: 'OPEN', meta: { domain: await nameByHash(covenant) } };
