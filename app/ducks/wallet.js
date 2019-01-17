@@ -301,6 +301,13 @@ async function parseCovenant(covenant) {
           data: covenant.items[2],
         },
       };
+    case 'RENEW':
+      return {
+        type: 'RENEW',
+        meta: {
+          domain: await nameByHash(covenant),
+        }
+      };
     default:
       return { type: 'UNKNOWN', meta: {} };
   }

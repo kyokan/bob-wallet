@@ -107,6 +107,15 @@
 
       margin-top: 1rem;
     }
+
+    &__manage-domain-btn {
+      @extend %btn-secondary;
+    }
+
+    &__renew-domain-btn {
+      @extend %btn-primary;
+      margin-bottom: 1rem;
+    }
   }
 
   &__bid-now {
@@ -261,7 +270,7 @@
         margin-bottom: 1rem;
       }
     }
-    
+
     &__divider {
       height: 1px;
       background-color: rgba($black, 0.1);
@@ -321,7 +330,7 @@
         }
       }
     }
-    
+
     &__mask {
       margin-right: .2rem;
       border-bottom: 1px dashed $manatee-gray;
@@ -336,7 +345,7 @@
     &__mask-tooltip {
       font-size: .75rem;
     }
-    
+
   }
 
 

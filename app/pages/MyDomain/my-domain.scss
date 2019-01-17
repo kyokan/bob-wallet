@@ -39,6 +39,13 @@
 
       font-size: .8rem;
     }
+
+    &__renewing-link {
+      @extend %link;
+      opacity: .5;
+      font-size: .8rem;
+      cursor: default;
+    }
   }
 
   &__info-panel {

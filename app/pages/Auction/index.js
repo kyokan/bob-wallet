@@ -7,13 +7,13 @@ import moment from 'moment';
 
 import * as names from '../../ducks/names';
 import { isAvailable, isBidding, isClosed, isOpening, isReserved, isReveal, } from '../../utils/name-helpers';
-import { ReserveInfo, SoldInfo } from './info';
+import { OwnedInfo, ReserveInfo, SoldInfo, PendingRenewInfo } from './info';
 import BidActionPanel from './BidActionPanel';
 import BidReminder from './BidReminder';
 import Collapsible from '../../components/Collapsible';
 import Blocktime from '../../components/Blocktime';
 import './domains.scss';
-import { showError } from '../../ducks/notifications';
+import { showError, showSuccess } from '../../ducks/notifications';
 import VickreyProcess from './VickreyProcess';
 import BidHistory from './BidHistory';
 
@@ -28,7 +28,9 @@ import BidHistory from './BidHistory';
   },
   dispatch => ({
     getNameInfo: tld => dispatch(names.getNameInfo(tld)),
-    showError: (message) => dispatch(showError(message))
+    sendRenewal: tld => dispatch(names.sendRenewal(tld)),
+    showSuccess: (message) => dispatch(showSuccess(message)),
+    showError: (message) => dispatch(showError(message)),
   }),
 )
 export default class Auction extends Component {
@@ -62,6 +64,17 @@ export default class Auction extends Component {
 
   getDomain = () => this.props.match.params.name;
 
+  isOwned = () => {
+    const { domain } = this.props;
+    return domain && domain.isOwner;
+  };
+
+  handleRenew = () => {
+    this.props.sendRenewal(this.getDomain())
+      .then(() => this.props.showSuccess('Your renew request is submitted! Please wait around 15 minutes for it to be confirmed.'))
+      .catch(e => this.props.showError(e.message))
+  }
+
   render() {
     return (
       <div className="domains">
@@ -78,6 +91,31 @@ export default class Auction extends Component {
 
     if (isReserved(domain)) {
       return <ReserveInfo />;
+    }
+
+    if (this.isOwned()) {
+      const renewStartBlock = domain.info.stats.renewalPeriodStart;
+
+      if (domain.pendingOperation === 'RENEW') {
+        return (
+          <PendingRenewInfo
+            onManageDomain={() => this.props.history.push(`/domain_manager/${this.getDomain()}`)}
+          />
+        )
+      }
+
+      return chain && chain.height >= renewStartBlock
+        ? (
+          <OwnedInfo
+            onClick={() => this.props.history.push(`/domain_manager/${this.getDomain()}`)}
+            onRenewalClick={this.handleRenew}
+          />
+        )
+        : (
+          <OwnedInfo
+            onClick={() => this.props.history.push(`/domain_manager/${this.getDomain()}`)}
+          />
+        )
     }
 
     if (isClosed(domain)) {
@@ -144,6 +182,8 @@ export default class Auction extends Component {
         {this.maybeRenderDateBlock(() => isBidding(domain), 'Bidding Close', stats.bidPeriodEnd, stats.hoursUntilReveal)}
         {this.maybeRenderDateBlock(() => isReveal(domain), 'Reveal Open', stats.revealPeriodStart, stats.hoursUntilClose)}
         {this.maybeRenderDateBlock(() => isReveal(domain), 'Reveal Close', stats.revealPeriodEnd, stats.hoursUntilClose)}
+        {this.maybeRenderDateBlock(() => isClosed(domain), 'Renew Starts', stats.renewalPeriodStart, stats.daysUntilExpire)}
+        {this.maybeRenderDateBlock(() => isClosed(domain), 'Renew Close', stats.renewalPeriodEnd, stats.daysUntilExpire)}
       </React.Fragment>
     );
   }

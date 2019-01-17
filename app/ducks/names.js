@@ -46,6 +46,7 @@ const ALLOWED_COVENANTS = new Set([
   'REVEAL',
   'UPDATE',
   'REGISTER',
+  'RENEW',
 ]);
 
 const initialState = {};
@@ -154,6 +155,15 @@ export const sendRedeem = (name) => async (dispatch, getState) => {
 
   const wClient = walletClient.forNetwork(getState().wallet.network);
   await wClient.sendRedeem(name);
+};
+
+export const sendRenewal = (name) => async (dispatch, getState) => {
+  if (!name) {
+    return;
+  }
+
+  const wClient = walletClient.forNetwork(getState().wallet.network);
+  await wClient.sendRenewal(name);
 };
 
 export const sendUpdate = (name, json) => async (dispatch, getState) => {

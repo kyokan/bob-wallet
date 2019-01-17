@@ -166,6 +166,10 @@ export function forNetwork(net) {
       await walletClient.execute('sendredeem', [name]);
     },
 
+    sendRenewal: async (name) => {
+      await walletClient.execute('selectwallet', [WALLET_ID]);
+      await walletClient.execute('sendrenewal', [name]);
+    },
 
     lock: async () => {
       return wallet.lock();
