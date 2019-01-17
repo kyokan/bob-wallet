@@ -155,7 +155,11 @@ export default class Auction extends Component {
             </div>
           </div>
           <Collapsible className="domains__content__info-panel" title="Bid History" defaultCollapsed>
-            {this.props.domain ? <BidHistory bids={this.props.domain.bids} /> : 'Loading...'}
+            {
+              this.props.domain
+                ? <BidHistory bids={this.props.domain.bids} reveals={this.props.domain.reveals} />
+                : 'Loading...'
+            }
           </Collapsible>
           <Collapsible className="domains__content__info-panel" title="Vickrey Auction Process" defaultCollapsed>
             <VickreyProcess />

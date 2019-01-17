@@ -99,7 +99,7 @@ class BidActionPanel extends Component {
       return this.renderOpenBid();
     }
 
-    if (isReveal(domain)) {
+    if (isReveal(domain) || domain.pendingOperation === 'REVEAL') {
       return this.renderRevealing(ownBid);
     }
 

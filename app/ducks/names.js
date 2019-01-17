@@ -80,8 +80,8 @@ export const getNameInfo = name => async (dispatch, getState) => {
 
   try {
     const auctionInfo = await wClient.getAuctionInfo(name);
-    bids = await inflateBids(nClient, auctionInfo.bids);
-    reveals = auctionInfo.reveals;
+    bids = await inflateBids(nClient, wClient, auctionInfo.bids, info.height);
+    reveals = await inflateBids(nClient, wClient, auctionInfo.reveals, info.height);
   } catch (e) {
     if (!e.message.match(/auction not found/i)) {
       throw e;
@@ -92,6 +92,7 @@ export const getNameInfo = name => async (dispatch, getState) => {
     const buyTx = await nClient.getTx(info.owner.hash);
     const buyOutput = buyTx.outputs[info.owner.index];
     isOwner = !!await wClient.getCoin(info.owner.hash, info.owner.index);
+
     winner = {
       address: buyOutput.address,
     };
@@ -103,7 +104,7 @@ export const getNameInfo = name => async (dispatch, getState) => {
   });
 };
 
-async function inflateBids(nClient, bids) {
+async function inflateBids(nClient, wClient, bids) {
   if (!bids.length) {
     return [];
   }
@@ -112,11 +113,13 @@ async function inflateBids(nClient, bids) {
   for (const bid of bids) {
     const tx = await nClient.getTx(bid.prevout.hash);
     const out = tx.outputs[bid.prevout.index];
+
     ret.push({
       bid,
       from: out.address,
       date: tx.mtime,
-      value: out.value
+      value: out.value,
+      height: tx.height,
     });
   }
 
