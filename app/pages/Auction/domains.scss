@@ -397,46 +397,4 @@
       font-weight: 500;
     }
   }
-
-  &__graph {
-
-    &__wrapper {
-      @extend %row-nowrap;
-      justify-content: center;
-      align-items: center;
-      flex: 1 1 auto;
-    }
-
-    &__icon {
-      margin: 0 0.5rem;
-      background-image: url('../../assets/images/check-circle-blue.svg');
-      height: 1.5rem;
-      width: 1.5rem;
-      background-position: center;
-      background-size: cover;
-
-      &--disabled {
-        background-image: url('../../assets/images/unchecked-square-gray.svg');
-      }
-    }
-
-    &__line {
-      background-color: rgba($black, .2);
-      height: 3px;
-      width: 20px;
-      // border-radius: 1rem;
-      &--blue {
-        background-color: $azure-blue;
-      }
-    }
-
-    &__line--dashed {
-      margin: 0 0.2rem;
-      background-color: rgba($black, .2);
-      height: 3px;
-      width: 10px;
-      border-radius: 1rem;
-    }
-
-  }
 }

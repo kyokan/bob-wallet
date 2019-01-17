@@ -1,0 +1,38 @@
+@import '../../variables';
+
+.auction-graph {
+  @extend %row-nowrap;
+  justify-content: center;
+  align-items: center;
+  flex: 1 1 auto;
+  background-color: rgba($athens-gray, .6);
+  padding: 2rem 2.5rem;
+  margin-top: 2rem;
+  border-radius: 1.5rem;
+
+  &__column {
+    @extend %col-nowrap;
+    flex: 1 1 auto;
+    margin: 0 0.5rem;
+
+    &__headline {
+      @extend %h3;
+      font-weight: 600;
+    }
+
+    &__text {
+      @extend %h5;
+      font-weight: 500;
+      opacity: 0.5;
+
+      &__row {
+        @extend %row-nowrap;
+        justify-content: space-between;
+      }
+
+      &__col {
+        @extend %col-nowrap;
+      }
+    }
+  }
+}
