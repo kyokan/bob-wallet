@@ -59,8 +59,8 @@ class YourBids extends Component {
       return <EmptyResult />;
     }
 
-    return bids.map(bid => (
-      <TableRow key={bid.name} onClick={() => history.push(`/domain/${bid.name}`)}>
+    return bids.map((bid, i) => (
+      <TableRow key={`${bid.name}-${i}`} onClick={() => history.push(`/domain/${bid.name}`)}>
         <TableItem><BidStatus name={bid.name} /></TableItem>
         <TableItem>{`${bid.name}/`}</TableItem>
         <TableItem><BidTimeLeft name={bid.name} /></TableItem>

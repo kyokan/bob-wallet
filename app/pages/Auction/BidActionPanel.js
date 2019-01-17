@@ -99,7 +99,7 @@ class BidActionPanel extends Component {
       return this.renderOpenBid();
     }
 
-    if (isReveal(domain)) {
+    if (isReveal(domain) || domain.pendingOperation === 'REVEAL') {
       return this.renderRevealing(ownBid);
     }
 
@@ -471,7 +471,7 @@ class BidActionPanel extends Component {
           {this.renderInfoRow('Reveal Ends', <Blocktime height={stats.revealPeriodEnd} fromNow />)}
           {ownReveal ? this.renderInfoRow('Your Reveal', displayBalance(ownReveal.value, true)) : null}
           {highestReveal ? this.renderInfoRow('Highest Reveal', displayBalance(highestReveal.value, true)) : null}
-          {ownReveal ||!ownBid ? null : this.renderRevealAction()}
+          {ownReveal ||!this.hasRevealableBid() ? null : this.renderRevealAction()}
         </div>
       </div>
     );
@@ -560,9 +560,20 @@ class BidActionPanel extends Component {
     return highestReveal;
   }
 
-  findOwnBid() {
-    for (const {bid} of this.props.domain.bids) {
+  hasRevealableBid() {
+    for (const {bid, height} of this.props.domain.bids) {
       if (bid.own) {
+        return height >= this.props.domain.info.height;
+      }
+    }
+
+    return false;
+  }
+
+  findOwnBid() {
+    for (const {bid, height} of this.props.domain.bids) {
+      if (bid.own) {
+        console.log(height, this.props.domain.info.height)
         return bid;
       }
     }
@@ -572,7 +583,7 @@ class BidActionPanel extends Component {
 
   findOwnReveal() {
     for (const reveal of this.props.domain.reveals) {
-      if (reveal.own) {
+      if (reveal.bid.own) {
         return reveal;
       }
     }
