@@ -14,6 +14,9 @@
     }
 
     &__info-panel {
+
+      padding: 0 1rem;
+
       &__title {
         @extend %info-title;
         @extend %info-header;
@@ -22,9 +25,11 @@
       .collapsible {
         &__header {
           @extend %info-header;
+          font-weight: 600;
 
           &__title {
             @extend %info-title;
+            font-weight: 600;
           }
         }
       }
