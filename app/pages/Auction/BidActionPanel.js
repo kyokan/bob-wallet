@@ -276,7 +276,8 @@ class BidActionPanel extends Component {
 
   renderReviewBid() {
     const {bidAmount, maskAmount, hasAccepted} = this.state;
-    const lockup = bidAmount + maskAmount;
+    const lockup = maskAmount || bidAmount;
+
     return (
       <div className="domains__bid-now">
         <div className="domains__bid-now__title">Review Your Bid</div>
@@ -309,7 +310,7 @@ class BidActionPanel extends Component {
               Total Lockup
             </div>
             <div className="domains__bid-now__info__value">
-              {`${bidAmount + maskAmount} HNS`}
+              {`${lockup} HNS`}
             </div>
             <div className="domains__bid-now__action__placeholder" />
           </div>
@@ -391,7 +392,7 @@ class BidActionPanel extends Component {
   }
 
   renderBidNowAction() {
-    const {isPlacingBid, bidAmount} = this.state;
+    const {isPlacingBid, bidAmount, maskAmount} = this.state;
     const { confirmedBalance } = this.props;
 
     if (isPlacingBid) {
@@ -415,7 +416,7 @@ class BidActionPanel extends Component {
           <button
             className="domains__bid-now__action__cta"
             onClick={() => this.setState({isReviewing: true})}
-            disabled={!bidAmount}
+            disabled={!bidAmount || maskAmount && maskAmount < bidAmount}
           >
             Review Bid
           </button>
