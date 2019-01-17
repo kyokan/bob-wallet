@@ -1,4 +1,5 @@
 import { clientStub } from '../background/db';
+import * as namesDb from '../db/names';
 const dbClient = clientStub(() => require('electron').ipcRenderer);
 
 const SET_WATCHLIST = 'app/watching/setWatchlist';
@@ -20,6 +21,7 @@ export const addName = (name) => async dispatch => {
   const data = await dbClient.get('watchlist');
   const result = validateWatchlist(data);
   result.push(name);
+  namesDb.storeName(name);
   dbClient.put('watchlist', result);
   dispatch({
     type: SET_WATCHLIST,
