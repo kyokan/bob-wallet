@@ -10,6 +10,7 @@ import DomainDetails from './DomainDetails';
 import Records from './Records';
 import BidHistory from '../Auction/BidHistory';
 import { showError, showSuccess } from '../../ducks/notifications';
+import { fetchPendingTransactions } from '../../ducks/wallet';
 
 class MyDomain extends Component {
   static propTypes = {
@@ -24,8 +25,9 @@ class MyDomain extends Component {
     sendRenewal: PropTypes.func.isRequired,
   };
 
-  componentWillMount() {
-    this.props.getNameInfo();
+  async componentWillMount() {
+    await this.props.getNameInfo();
+    await this.props.fetchPendingTransactions();
   }
 
   handleRenew = () => {
@@ -129,6 +131,7 @@ export default withRouter(
       sendRenewal: tld => dispatch(names.sendRenewal(tld)),
       showSuccess: (message) => dispatch(showSuccess(message)),
       showError: (message) => dispatch(showError(message)),
+      fetchPendingTransactions: () => dispatch(fetchPendingTransactions()),
     })
   )(MyDomain)
 );
