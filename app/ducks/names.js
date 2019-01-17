@@ -47,6 +47,7 @@ const ALLOWED_COVENANTS = new Set([
   'UPDATE',
   'REGISTER',
   'RENEW',
+  'REDEEM',
 ]);
 
 const initialState = {};
@@ -81,7 +82,7 @@ export const getNameInfo = name => async (dispatch, getState) => {
   try {
     const auctionInfo = await wClient.getAuctionInfo(name);
     bids = await inflateBids(nClient, wClient, auctionInfo.bids, info.height);
-    reveals = await inflateBids(nClient, wClient, auctionInfo.reveals, info.height);
+    reveals = await inflateReveals(nClient, wClient, auctionInfo.reveals, info.height);
   } catch (e) {
     if (!e.message.match(/auction not found/i)) {
       throw e;
@@ -120,6 +121,30 @@ async function inflateBids(nClient, wClient, bids) {
       date: tx.mtime,
       value: out.value,
       height: tx.height,
+    });
+  }
+
+  return ret;
+}
+
+async function inflateReveals(nClient, wClient, bids) {
+  if (!bids.length) {
+    return [];
+  }
+
+  const ret = [];
+  for (const bid of bids) {
+    const tx = await nClient.getTx(bid.prevout.hash);
+    const out = tx.outputs[bid.prevout.index];
+    const coin = await wClient.getCoin(bid.prevout.hash, bid.prevout.index);
+
+    ret.push({
+      bid,
+      from: out.address,
+      date: tx.mtime,
+      value: out.value,
+      height: tx.height,
+      redeemable: !!coin,
     });
   }
 

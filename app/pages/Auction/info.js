@@ -6,6 +6,31 @@ import ellipsify from '../../utils/ellipsify';
 
 
 export const SoldInfo = ({ owner, highestBid, domain, onRedeem }) => {
+  let btn = null;
+
+  if (hasRedeemableReveals(domain)) {
+    btn = (
+      <button
+        className="domains__action-panel__redeem-btn"
+        onClick={onRedeem}
+      >
+        Redeem my bid
+      </button>
+    );
+  }
+
+  if (domain.pendingOperation === 'REDEEM') {
+    btn = (
+      <button
+        className="domains__action-panel__redeem-btn"
+        disabled
+      >
+        Redeeming
+      </button>
+    );
+  }
+
+
   return (
     <div className="domains__action-panel">
       <div className="domains__bid-now__title">Domain is no longer available</div>
@@ -26,14 +51,7 @@ export const SoldInfo = ({ owner, highestBid, domain, onRedeem }) => {
             {ellipsify(owner, 10)}
           </div>
         </div>
-        {hasRedeemableReveals(domain) && (
-          <button
-            className="domains__action-panel__redeem-btn"
-            onClick={onRedeem}
-          >
-            Redeem my bid
-          </button>
-        )}
+        { btn }
       </div>
     </div>
   );
@@ -45,7 +63,9 @@ function hasRedeemableReveals(domain) {
   for (let i = 0; i < reveals.length; i++) {
     const reveal = reveals[i];
     if (reveal.bid.own && reveal.height >= domain.info.height) {
-      return true;
+      if (reveal.redeemable) {
+        return true;
+      }
     }
   }
 
