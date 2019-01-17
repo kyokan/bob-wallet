@@ -47,7 +47,7 @@ export function createBackgroundMonitor() {
         type: SET_NODE_INFO,
         payload: {
           info: newInfo,
-          fes: newFees
+          fees: newFees
         }
       });
     }
