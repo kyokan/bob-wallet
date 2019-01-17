@@ -44,18 +44,20 @@
   }
 }
 
-ul {
-  text-align: center;
-  margin: 1rem 0 0 0;
-  padding: 0;
-  list-style-type: none;
-}
-
-ul li a {
-  color: $white;
-  text-decoration: none;
-  font-size: 0.9rem;
-  line-height: 1.5rem;
-  font-weight: 500;
-  margin: 0.2rem 0;
+.domains__bid-now__reveal {
+  ul {
+    text-align: center;
+    margin: 1rem 0 0 0;
+    padding: 0;
+    list-style-type: none;
+  }
+  
+  ul li a {
+    color: $white;
+    text-decoration: none;
+    font-size: 0.9rem;
+    line-height: 1.5rem;
+    font-weight: 500;
+    margin: 0.2rem 0;
+  }
 }
