@@ -27,8 +27,7 @@ export const getMyNames = () => async (dispatch, getState) => {
       await Promise.all(result.map(async domain => {
         const { owner } = domain;
         const coin = await client.getCoin(owner.hash, owner.index);
-
-        if (coin) {
+        if (coin && domain.state === 'CLOSED') {
           ret.push(domain);
         }
       }));
