@@ -83,22 +83,24 @@ class BidAction extends Component {
       const domain = this.props.domain || {};
       const reveals = domain.reveals || [];
 
-      const hasOwnReveal = reveals.reduce((acc, reveal) => acc || reveal.own, false);
-      return hasOwnReveal
-        ? (
-          <div
-            className="bid-action"
-            onClick={e => {
-              e.stopPropagation();
-              this.props.sendRedeem()
-                .then(() => this.props.showSuccess('Your redeem request is submitted! Please wait about 15 minutes for it to complete.'))
-                .catch(e => this.props.showError(e.message));
-            }}
-          >
-            <div className="bid-action__link">Redeem</div>
-          </div>
-        )
-        : <div className="bid-action" />;
+      for (let i = 0; i < reveals.length; i++) {
+        const reveal = reveals[i];
+        if (reveal.bid.own && reveal.height >= domain.info.height) {
+          return (
+            <div
+              className="bid-action"
+              onClick={e => {
+                e.stopPropagation();
+                this.props.sendRedeem()
+                  .then(() => this.props.showSuccess('Your redeem request is submitted! Please wait about 15 minutes for it to complete.'))
+                  .catch(e => this.props.showError(e.message));
+              }}
+            >
+              <div className="bid-action__link">Redeem</div>
+            </div>
+          )
+        }
+      }
     }
 
     return (

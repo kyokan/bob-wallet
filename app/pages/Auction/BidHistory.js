@@ -56,7 +56,7 @@ export default class BidHistory extends Component {
               const bid = map[fromAddress];
               const {month, day, year} = bid.date;
               return (
-                <tr key={bid.from}>
+                <tr key={fromAddress}>
                   <td>{month}/{day}/{year}</td>
                   <td>{ellipsify(fromAddress, 10)}</td>
                   <td>{typeof bid.bid === 'number' ? displayBalance(bid.bid, true) : 'Hidden Until Reveal'}</td>

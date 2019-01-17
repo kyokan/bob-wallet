@@ -31,6 +31,7 @@ import BidHistory from './BidHistory';
     sendRenewal: tld => dispatch(names.sendRenewal(tld)),
     showSuccess: (message) => dispatch(showSuccess(message)),
     showError: (message) => dispatch(showError(message)),
+    sendRedeem: tld => dispatch(names.sendRedeem(tld)),
   }),
 )
 export default class Auction extends Component {
@@ -47,6 +48,10 @@ export default class Auction extends Component {
       })
     }),
     getNameInfo: PropTypes.func.isRequired,
+    sendRenewal: PropTypes.func.isRequired,
+    sendRedeem: PropTypes.func.isRequired,
+    showSuccess: PropTypes.func.isRequired,
+    showError: PropTypes.func.isRequired,
     domain: PropTypes.object,
     chain: PropTypes.object,
   };
@@ -71,6 +76,12 @@ export default class Auction extends Component {
 
   handleRenew = () => {
     this.props.sendRenewal(this.getDomain())
+      .then(() => this.props.showSuccess('Your renew request is submitted! Please wait around 15 minutes for it to be confirmed.'))
+      .catch(e => this.props.showError(e.message))
+  };
+
+  handleRedeem = () => {
+    this.props.sendRedeem(this.getDomain())
       .then(() => this.props.showSuccess('Your renew request is submitted! Please wait around 15 minutes for it to be confirmed.'))
       .catch(e => this.props.showError(e.message))
   }
@@ -123,6 +134,8 @@ export default class Auction extends Component {
         <SoldInfo
           owner={domain.winner.address}
           highestBid={domain.info.highest}
+          domain={domain}
+          onRedeem={this.handleRedeem}
         />
       );
     }

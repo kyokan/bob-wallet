@@ -116,6 +116,11 @@
       @extend %btn-primary;
       margin-bottom: 1rem;
     }
+
+    &__redeem-btn {
+      @extend %btn-primary;
+      margin-top: 1rem;
+    }
   }
 
   &__bid-now {

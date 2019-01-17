@@ -5,29 +5,52 @@ import { displayBalance } from '../../utils/balances';
 import ellipsify from '../../utils/ellipsify';
 
 
-export const SoldInfo = ({ owner, highestBid }) => (
-  <div className="domains__action-panel">
-    <div className="domains__bid-now__title">Domain is no longer available</div>
-    <div className="domains__bid-now__content">
-      <div className="domains__bid-now__info">
-        <div className="domains__bid-now__info__label">
-          Highest bid:
+export const SoldInfo = ({ owner, highestBid, domain, onRedeem }) => {
+  return (
+    <div className="domains__action-panel">
+      <div className="domains__bid-now__title">Domain is no longer available</div>
+      <div className="domains__bid-now__content">
+        <div className="domains__bid-now__info">
+          <div className="domains__bid-now__info__label">
+            Highest bid:
+          </div>
+          <div className="domains__bid-now__info__value">
+            {displayBalance(highestBid, true)}
+          </div>
         </div>
-        <div className="domains__bid-now__info__value">
-          {displayBalance(highestBid, true)}
+        <div className="domains__bid-now__info">
+          <div className="domains__bid-now__info__label">
+            Winner:
+          </div>
+          <div className="domains__bid-now__info__value">
+            {ellipsify(owner, 10)}
+          </div>
         </div>
-      </div>
-      <div className="domains__bid-now__info">
-        <div className="domains__bid-now__info__label">
-          Winner:
-        </div>
-        <div className="domains__bid-now__info__value">
-          {ellipsify(owner, 10)}
-        </div>
+        {hasRedeemableReveals(domain) && (
+          <button
+            className="domains__action-panel__redeem-btn"
+            onClick={onRedeem}
+          >
+            Redeem my bid
+          </button>
+        )}
       </div>
     </div>
-  </div>
-);
+  );
+};
+
+function hasRedeemableReveals(domain) {
+  const reveals = domain.reveals || [];
+
+  for (let i = 0; i < reveals.length; i++) {
+    const reveal = reveals[i];
+    if (reveal.bid.own && reveal.height >= domain.info.height) {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 export const PendingRenewInfo = ({ onManageDomain }) => (
   <div className="domains__action-panel">
