@@ -168,7 +168,7 @@ export const sendRenewal = (name) => async (dispatch, getState) => {
     return;
   }
 
-  const wClient = walletClient.forNetwork(getState().wallet.network);
+  const wClient = walletClient.forNetwork(getState().node.network);
   await namesDb.storeName(name);
   await wClient.sendRenewal(name);
 };
