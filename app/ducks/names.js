@@ -140,6 +140,7 @@ export const sendBid = (name, amount, lockup) => async (dispatch, getState) => {
 
   const wClient = walletClient.forNetwork(getState().node.network);
   await wClient.sendBid(name, amount, lockup);
+  await namesDb.storeName(name);
 };
 
 export const sendReveal = (name) => async (dispatch, getState) => {
@@ -148,6 +149,7 @@ export const sendReveal = (name) => async (dispatch, getState) => {
   }
 
   const wClient = walletClient.forNetwork(getState().node.network);
+  await namesDb.storeName(name);
   await wClient.sendReveal(name);
 };
 
@@ -157,6 +159,7 @@ export const sendRedeem = (name) => async (dispatch, getState) => {
   }
 
   const wClient = walletClient.forNetwork(getState().node.network);
+  await namesDb.storeName(name);
   await wClient.sendRedeem(name);
 };
 
@@ -166,11 +169,13 @@ export const sendRenewal = (name) => async (dispatch, getState) => {
   }
 
   const wClient = walletClient.forNetwork(getState().wallet.network);
+  await namesDb.storeName(name);
   await wClient.sendRenewal(name);
 };
 
 export const sendUpdate = (name, json) => async (dispatch, getState) => {
   const wClient = walletClient.forNetwork(getState().node.network);
+  await namesDb.storeName(name);
   await wClient.sendUpdate(name, json);
   await dispatch(fetchPendingTransactions());
 };
