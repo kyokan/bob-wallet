@@ -7,6 +7,7 @@
     flex: 1 1 auto;
     width: 0;
     margin-right: 2rem;
+    padding: 0rem 1rem;
 
     &__title {
       font-weight: 500;
@@ -14,8 +15,6 @@
     }
 
     &__info-panel {
-
-      padding: 0 1rem;
 
       &__title {
         @extend %info-title;
@@ -401,5 +400,8 @@
       @extend %h3;
       font-weight: 500;
     }
+  }
+  &__graph {
+    margin-top: 2rem;
   }
 }

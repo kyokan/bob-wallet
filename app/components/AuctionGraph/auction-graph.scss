@@ -3,17 +3,15 @@
 .auction-graph {
   @extend %row-nowrap;
   justify-content: center;
-  align-items: center;
   flex: 1 1 auto;
   background-color: rgba($athens-gray, .6);
   padding: 2rem 2.5rem;
-  margin-top: 2rem;
   border-radius: 1.5rem;
 
   &__column {
     @extend %col-nowrap;
     flex: 1 1 auto;
-    margin: 0 0.5rem;
+    margin: 0 0.15rem;
 
     &__headline {
       @extend %h3;
@@ -32,6 +30,10 @@
 
       &__col {
         @extend %col-nowrap;
+
+        &--right {
+          text-align: right;
+        }
       }
     }
   }
