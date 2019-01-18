@@ -43,7 +43,7 @@ class BidActionPanel extends Component {
   };
 
   async componentWillMount() {
-    await this.props.getWatching();
+    await this.props.getWatching(this.props.network);
     const isWatching = this.props.watchList.includes(this.props.match.params.name)
     const event = await this.generateEvent();
     this.setState({ isWatching: isWatching, event: event || {} })
@@ -59,6 +59,7 @@ class BidActionPanel extends Component {
 
   render() {
     const name = this.props.match.params.name;
+    const network = this.props.network;
     const isWatching = this.state.isWatching;
     return (
       <React.Fragment>
@@ -67,7 +68,7 @@ class BidActionPanel extends Component {
           <div className={c("domains__watch__heart-icon", {
                 "domains__watch__heart-icon--active": this.state.isWatching
                 })} onClick={() => {
-                  isWatching ? this.props.unwatchDomain(name) : this.props.watchDomain(name);
+                  isWatching ? this.props.unwatchDomain(name, network) : this.props.watchDomain(name, network);
                   this.setState({ isWatching: !isWatching })
                 }}/>
           <div className="domains__watch__text">{this.state.isWatching ? 'Added to Watchlist' : 'Add to Watchlist'}</div>
@@ -598,6 +599,7 @@ export default withRouter(
     (state) => ({
       confirmedBalance: state.wallet.balance.confirmed,
       watchList: state.watching.names,
+      network: state.node.network,
     }),
     dispatch => ({
       sendOpen: name => dispatch(nameActions.sendOpen(name)),
@@ -605,9 +607,9 @@ export default withRouter(
       sendReveal: (name) => dispatch(nameActions.sendReveal(name)),
       showError: (message) => dispatch(showError(message)),
       showSuccess: (message) => dispatch(showSuccess(message)),
-      getWatching: () => dispatch(watchingActions.getWatching()),
-      watchDomain: name => dispatch(watchingActions.addName(name)),
-      unwatchDomain: name => dispatch(watchingActions.removeName(name)),
+      getWatching: (network) => dispatch(watchingActions.getWatching(network)),
+      watchDomain: (name, network) => dispatch(watchingActions.addName(name, network)),
+      unwatchDomain: (name, network) => dispatch(watchingActions.removeName(name, network)),
     }),
   )(BidActionPanel)
 );

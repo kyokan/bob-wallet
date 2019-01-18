@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import c from 'classnames';
 import './watching.scss';
 import { HeaderItem, HeaderRow, Table, TableItem, TableRow } from '../../components/Table';
 import BidStatus from '../YourBids/BidStatus';
@@ -9,6 +10,7 @@ import BidTimeLeft from '../YourBids/BidTimeLeft';
 import * as watchingActions from '../../ducks/watching';
 import BidSearchInput from '../../components/BidSearchInput';
 import Fuse from '../../vendor/fuse';
+import { verifyName } from '../../utils/nameChecker';
 
 class Watching extends Component {
 
@@ -16,11 +18,12 @@ class Watching extends Component {
     name: '',
     isAddingName: false,
     query: '',
+    showError: false,
 
   };
 
   componentWillMount() {
-    this.props.getWatching();
+    this.props.getWatching(this.props.network)
   }
 
   handleOnChange = e => this.setState({ query: e.target.value });
@@ -37,8 +40,12 @@ class Watching extends Component {
   };
 
   onAdd = () => {
-    this.props.addName(this.state.name);
-    this.onClose();
+    if (verifyName(this.state.name)) {
+      this.props.addName(this.state.name, this.props.network);
+      this.onClose();
+    } else {
+      return this.setState({ showError: true })
+    }
   };
 
   onClose = () => this.setState({ isAddingName: false, name: '' });
@@ -75,10 +82,12 @@ class Watching extends Component {
     return this.state.isAddingName
       ? (
         <div className="watching-table__create-row__form">
-          <div className="watching-table__create-row__form__input">
+          <div className={c("watching-table__create-row__form__input", {
+              "watching-table__create-row__form__input--error": this.state.showError,
+            })}>
             <input
               value={this.state.name}
-              onChange={e => this.setState({ name: e.target.value })}
+              onChange={e => this.setState({ showError: false, name: e.target.value })}
               onKeyDown={e => {
                 if (e.key === 'Enter') {
                   this.onAdd()
@@ -170,7 +179,7 @@ class Watching extends Component {
             className="watching-table__remove-icon"
             onClick={e => {
               e.stopPropagation();
-              this.props.removeName(name)
+              this.props.removeName(name, this.props.network)
             }}
           />
         </TableItem>
@@ -183,11 +192,12 @@ export default withRouter(
   connect(
     state => ({
       names: state.watching.names,
+      network: state.node.network,
     }),
     dispatch => ({
-      getWatching: () => dispatch(watchingActions.getWatching()),
-      addName: name => dispatch(watchingActions.addName(name)),
-      removeName: name => dispatch(watchingActions.removeName(name)),
+      getWatching: (network) => dispatch(watchingActions.getWatching(network)),
+      addName: (name, network) => dispatch(watchingActions.addName(name, network)),
+      removeName: (name, network) => dispatch(watchingActions.removeName(name, network)),
     })
   )(Watching),
 );
