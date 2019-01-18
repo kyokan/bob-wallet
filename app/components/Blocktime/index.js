@@ -97,8 +97,8 @@ export default class Blocktime extends Component {
   }
 }
 
-export const returnBlockTime = async (height, fromNow) => {
-    const block = await getFirstBlockTime('simnet');
+export const returnBlockTime = async (height, network) => {
+    const block = await getFirstBlockTime(network);
     const start = moment.unix(block.time);
     const delta = height * BLOCK_TIME;
     const end = start.add(delta);
