@@ -4,6 +4,7 @@ import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import c from 'classnames';
 import AddToCalendar from 'react-add-to-calendar';
+import { protocol } from 'hsd';
 import { isAvailable, isBidding, isClosed, isOpening, isReveal } from '../../utils/name-helpers';
 import Checkbox from '../../components/Checkbox';
 import * as nameActions from '../../ducks/names';
@@ -498,12 +499,16 @@ class BidActionPanel extends Component {
   async generateEvent() {
     const name = this.props.match.params.name;
     const { domain, network } = this.props;
+    const { networks } = protocol;
+    const biddingPeriod = networks && networks[network].names.revealPeriod;
+    const biddingPeriodInHours = biddingPeriod * 5 / 60;
+
     const { info } = domain || {};
     const { stats } = info || {};
     const { bidPeriodEnd } = stats || {};
 
     const startDatetime = await returnBlockTime(bidPeriodEnd, network);
-    const endDatetime = startDatetime.clone().add(8.33, 'hours');
+    const endDatetime = startDatetime.clone().add(biddingPeriodInHours, 'hours');
 
     const event = {
       title: `Reveal of ${name}`,
