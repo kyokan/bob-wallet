@@ -157,24 +157,26 @@ export default class Auction extends Component {
 
   renderContent() {
     const domainName = this.getDomain();
-    const domain = this.props.domain || {};
+
     return (
       <React.Fragment>
         <div className="domains__content">
           <div className="domains__content__title">{`${domainName}/`}</div>
-          <div className="domains__content__info-panel" style={{ marginTop: '2rem' }}>
-            {this.renderAuctionDetails()}
+          <div className="domains__content__info-wrapper">
+            <div className="domains__content__info-panel">
+              {this.renderAuctionDetails()}
+            </div>
+            <Collapsible className="domains__content__info-panel" title="Bid History" defaultCollapsed>
+              {
+                this.props.domain
+                  ? <BidHistory bids={this.props.domain.bids} reveals={this.props.domain.reveals} />
+                  : 'Loading...'
+              }
+            </Collapsible>
+            <Collapsible className="domains__content__info-panel" title="Vickrey Auction Process" defaultCollapsed>
+              <VickreyProcess />
+            </Collapsible>
           </div>
-          <Collapsible className="domains__content__info-panel" title="Bid History" defaultCollapsed>
-            {
-              this.props.domain
-                ? <BidHistory bids={this.props.domain.bids} reveals={this.props.domain.reveals} />
-                : 'Loading...'
-            }
-          </Collapsible>
-          <Collapsible className="domains__content__info-panel" title="Vickrey Auction Process" defaultCollapsed>
-            <VickreyProcess />
-          </Collapsible>
         </div>
       </React.Fragment>
     );
@@ -189,11 +191,7 @@ export default class Auction extends Component {
     const stats = domain.info && domain.info.stats || {};
 
      if (isOpening(domain) || isBidding(domain) || isReveal(domain)) {
-       return (
-        <div className="domains__graph">
-          <AuctionGraph />
-        </div>
-       )
+       return <AuctionGraph />
      }
 
     return (
