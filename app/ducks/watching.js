@@ -1,6 +1,5 @@
-import { clientStub } from '../background/db';
 import * as namesDb from '../db/names';
-const dbClient = clientStub(() => require('electron').ipcRenderer);
+import { getWatchlist, saveToWatchlist } from '../db/watching';
 
 const SET_WATCHLIST = 'app/watching/setWatchlist';
 
@@ -9,7 +8,7 @@ const initialState = {
 };
 
 export const getWatching = (network) => async dispatch => {
-  const data = await dbClient.get(`watchlist--${network}`);
+  const data = await getWatchlist(network);
 
   dispatch({
     type: SET_WATCHLIST,
@@ -18,11 +17,12 @@ export const getWatching = (network) => async dispatch => {
 };
 
 export const addName = (name, network) => async dispatch => {
-  const data = await dbClient.get(`watchlist--${network}`);
+  const data = await getWatchlist(network);
   const result = validateWatchlist(data);
   result.push(name);
   namesDb.storeName(name);
-  dbClient.put(`watchlist--${network}`, result);
+  saveToWatchlist(network, result);
+
   dispatch({
     type: SET_WATCHLIST,
     payload: result,
@@ -30,10 +30,11 @@ export const addName = (name, network) => async dispatch => {
 };
 
 export const removeName = (name, network) => async dispatch => {
-  const data = await dbClient.get(`watchlist--${network}`);
+  const data = await getWatchlist(network);
   let result = validateWatchlist(data);
   result = result.filter(n => n !== name);
-  dbClient.put(`watchlist--${network}`, result);
+  saveToWatchlist(network, result);
+  
   dispatch({
     type: SET_WATCHLIST,
     payload: result,
