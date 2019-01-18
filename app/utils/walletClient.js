@@ -176,7 +176,8 @@ export function forNetwork(net) {
     },
 
     unlock: async (passphrase) => {
-      return wallet.unlock(passphrase, Number.MAX_SAFE_INTEGER);
+      // timeout must be a uint32
+      return wallet.unlock(passphrase, 3600);
     },
 
     reset: async () => {
@@ -188,7 +189,7 @@ export function forNetwork(net) {
       let addr = await getUnlockReceiveAddress(net);
       if (!addr) {
         addr = (await wallet.createAddress('default')).address;
-        await setUnlockReceiveAddress(addr);
+        await setUnlockReceiveAddress(net, addr);
       }
 
       try {
