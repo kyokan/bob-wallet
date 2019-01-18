@@ -1,8 +1,8 @@
 {
   "name": "bob-electron",
-  "productName": "BobElectronApp",
+  "productName": "Bob",
   "version": "0.0.1",
-  "description": "Electron App for Wallet and Auction",
+  "description": "A Handshake wallet and auction manager.",
   "scripts": {
     "build": "concurrently \"yarn build-main\" \"yarn build-renderer\"",
     "build-dll": "cross-env NODE_ENV=development webpack --config ./configs/webpack.config.renderer.dev.dll.babel.js --colors",
@@ -34,10 +34,11 @@
   },
   "main": "./app/main.prod.js",
   "build": {
-    "productName": "ElectronReact",
-    "appId": "org.develar.ElectronReact",
+    "productName": "Bob",
+    "appId": "com.kyokan.Bob",
     "files": [
       "app/dist/",
+      "app/bindeps/",
       "app/app.html",
       "app/main.prod.js",
       "app/main.prod.js.map",
@@ -75,12 +76,6 @@
     "directories": {
       "buildResources": "resources",
       "output": "release"
-    },
-    "publish": {
-      "provider": "github",
-      "owner": "electron-react-boilerplate",
-      "repo": "electron-react-boilerplate",
-      "private": false
     }
   },
   "repository": {

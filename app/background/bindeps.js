@@ -3,16 +3,23 @@ import pify from '../utils/pify';
 import gunzip from 'gunzip-maybe';
 import tar from 'tar-fs';
 import { execFile, spawn } from 'child_process';
+import isDev from '../utils/isDev';
 
 const path = require('path');
 const fs = require('fs');
 
 export async function installBinDep(name, platform, arch) {
   const bindep = `${name}-${platform}-${arch}.tgz`;
-  const tarballPath = path.join(__dirname, '..', 'bindeps', bindep);
+  let tarballPath;
+
+  if (isDev()) {
+    tarballPath = path.join(__dirname, '..', 'bindeps', bindep);
+  } else {
+    tarballPath = path.join(app.getAppPath(), 'app', 'bindeps', bindep);
+  }
 
   if (!fs.existsSync(tarballPath)) {
-    throw new Error(`bindep ${bindep} does not exist`);
+    throw new Error(`bindep ${bindep} does not exist. tried path: ${tarballPath}`);
   }
 
   const udPath = app.getPath('userData');
@@ -37,5 +44,19 @@ export async function executeBinDep(mode, name, internalBinPath, args) {
     return execFile(binPath, args);
   }
 
-  return spawn(binPath, args);
+  if (isDev()) {
+    // this will use the local system's node interpreter,
+    // which is helpful in dev.
+    return spawn(binPath, args);
+  }
+
+  return spawn(process.execPath, [binPath, ...args], {
+    env: {
+      ELECTRON_RUN_AS_NODE: 1,
+      // below env var is used to tell bcrypto to use JS
+      // crypto implementations until we solve the native
+      // build problems.
+      NODE_BACKEND: 'js'
+    }
+  });
 }
