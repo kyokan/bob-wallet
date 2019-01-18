@@ -12,10 +12,11 @@ import BidActionPanel from './BidActionPanel';
 import BidReminder from './BidReminder';
 import Collapsible from '../../components/Collapsible';
 import Blocktime from '../../components/Blocktime';
-import './domains.scss';
+import AuctionGraph from '../../components/AuctionGraph';
 import { showError, showSuccess } from '../../ducks/notifications';
 import VickreyProcess from './VickreyProcess';
 import BidHistory from './BidHistory';
+import './domains.scss';
 
 @withRouter
 @connect(
@@ -155,28 +156,27 @@ export default class Auction extends Component {
   };
 
   renderContent() {
-    const domain = this.getDomain();
+    const domainName = this.getDomain();
 
     return (
       <React.Fragment>
         <div className="domains__content">
-          <div className="domains__content__title">{`${domain}/`}</div>
-          <div className="domains__content__info-panel">
-            <div className="domains__content__info-panel__title">Auction Details</div>
-            <div className={this.getContentClassName()}>
+          <div className="domains__content__title">{`${domainName}/`}</div>
+          <div className="domains__content__info-wrapper">
+            <div className="domains__content__info-panel">
               {this.renderAuctionDetails()}
             </div>
+            <Collapsible className="domains__content__info-panel" title="Bid History" defaultCollapsed>
+              {
+                this.props.domain
+                  ? <BidHistory bids={this.props.domain.bids} reveals={this.props.domain.reveals} />
+                  : 'Loading...'
+              }
+            </Collapsible>
+            <Collapsible className="domains__content__info-panel" title="Vickrey Auction Process" defaultCollapsed>
+              <VickreyProcess />
+            </Collapsible>
           </div>
-          <Collapsible className="domains__content__info-panel" title="Bid History" defaultCollapsed>
-            {
-              this.props.domain
-                ? <BidHistory bids={this.props.domain.bids} reveals={this.props.domain.reveals} />
-                : 'Loading...'
-            }
-          </Collapsible>
-          <Collapsible className="domains__content__info-panel" title="Vickrey Auction Process" defaultCollapsed>
-            <VickreyProcess />
-          </Collapsible>
         </div>
       </React.Fragment>
     );
@@ -190,18 +190,16 @@ export default class Auction extends Component {
     const domain = this.props.domain;
     const stats = domain.info && domain.info.stats || {};
 
+     if (isOpening(domain) || isBidding(domain) || isReveal(domain)) {
+       return <AuctionGraph />
+     }
+
     return (
-      <React.Fragment>
+      <div className={this.getContentClassName()}>
         {this.renderStatusInfo()}
-        {this.maybeRenderDateBlock(() => isOpening(domain), 'Opened At', stats.openPeriodStart, stats.hoursUntilBidding)}
-        {this.maybeRenderDateBlock(() => isOpening(domain), 'Bidding Starts', stats.openPeriodEnd, stats.hoursUntilBidding)}
-        {this.maybeRenderDateBlock(() => isBidding(domain), 'Bidding Open', stats.bidPeriodStart, stats.hoursUntilReveal)}
-        {this.maybeRenderDateBlock(() => isBidding(domain), 'Bidding Close', stats.bidPeriodEnd, stats.hoursUntilReveal)}
-        {this.maybeRenderDateBlock(() => isReveal(domain), 'Reveal Open', stats.revealPeriodStart, stats.hoursUntilClose)}
-        {this.maybeRenderDateBlock(() => isReveal(domain), 'Reveal Close', stats.revealPeriodEnd, stats.hoursUntilClose)}
         {this.maybeRenderDateBlock(() => isClosed(domain), 'Renew Starts', stats.renewalPeriodStart, stats.daysUntilExpire)}
         {this.maybeRenderDateBlock(() => isClosed(domain), 'Renew Close', stats.renewalPeriodEnd, stats.daysUntilExpire)}
-      </React.Fragment>
+      </div>
     );
   }
 
@@ -248,7 +246,6 @@ export default class Auction extends Component {
 
   renderStatusInfo() {
     const {domain} = this.props;
-
     let status = '';
     let description = '';
     if (isReserved(domain)) {

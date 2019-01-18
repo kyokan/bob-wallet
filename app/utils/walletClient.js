@@ -188,7 +188,7 @@ export function forNetwork(net) {
       let addr = await getUnlockReceiveAddress(net);
       if (!addr) {
         addr = (await wallet.createAddress('default')).address;
-        await setUnlockReceiveAddress(net, addr);
+        await setUnlockReceiveAddress(addr);
       }
 
       try {

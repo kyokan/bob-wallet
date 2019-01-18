@@ -7,13 +7,30 @@
     flex: 1 1 auto;
     width: 0;
     margin-right: 2rem;
+    padding: 0rem 1rem;
 
     &__title {
       font-weight: 500;
       font-size: 2.5rem;
     }
+    
+    &__loading-wrapper {
+      @extend %row-nowrap;
+      justify-content: center;
+      align-content: center;
+      flex: 1 1 auto;
+      height: 139px;
+      background-color: rgba($athens-gray, .6);
+      padding: 2rem 2.5rem;
+      border-radius: 1.5rem;
+    }
+
+    &__info-wrapper {
+      margin-top: 2rem;
+    }
 
     &__info-panel {
+
       &__title {
         @extend %info-title;
         @extend %info-header;
@@ -22,9 +39,11 @@
       .collapsible {
         &__header {
           @extend %info-header;
+          font-weight: 600;
 
           &__title {
             @extend %info-title;
+            font-weight: 600;
           }
         }
       }
@@ -294,14 +313,14 @@
       justify-content: center;
       align-items: center;
       margin-top: 1rem;
-      padding: 2rem;
+      padding: 1.5rem;
       border-radius: 1rem;
       background-color: $azure-blue;
       color: white;
 
       &__headline {
         @extend %h2;
-        opacity: 0.5;
+        opacity: 0.6;
       }
 
       &__date {
