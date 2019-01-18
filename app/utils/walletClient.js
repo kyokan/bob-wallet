@@ -176,7 +176,7 @@ export function forNetwork(net) {
     },
 
     unlock: async (passphrase) => {
-      return wallet.unlock(passphrase, 0);
+      return wallet.unlock(passphrase, Number.MAX_SAFE_INTEGER);
     },
 
     reset: async () => {
