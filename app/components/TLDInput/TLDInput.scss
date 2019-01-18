@@ -47,7 +47,6 @@
 
   &:focus-within {
     border: 1px solid rgba($azure-blue, 0.6);
-    // box-shadow: 0 2px 2px 0 rgba($azure-blue, 0.15);
   }
 
   &--error {
@@ -58,7 +57,6 @@
 
     &:focus-within {
       border-color: $orange-red;
-      // box-shadow: 0 2px 2px 0 rgba($orange-red, 0.15);
     }
   }
 
