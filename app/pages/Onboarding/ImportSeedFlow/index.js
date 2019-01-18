@@ -85,7 +85,7 @@ class ImportSeedFlow extends Component {
   finishFlow = async mnemonic => {
     try {
       await walletClient.forNetwork(this.props.network).importSeed(this.state.passphrase, mnemonic);
-      await this.props.completeInitialization();
+      await this.props.completeInitialization(this.state.passphrase);
     } catch (e) {
       console.error(e);
     }
@@ -98,8 +98,7 @@ export default withRouter(
       network: state.node.network,
     }),
     dispatch => ({
-      completeInitialization: () =>
-        dispatch(walletActions.completeInitialization())
+      completeInitialization: (passphrase) => dispatch(walletActions.completeInitialization(passphrase))
     })
   )(ImportSeedFlow)
 );
