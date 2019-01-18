@@ -2,7 +2,6 @@ import * as walletClient from '../utils/walletClient';
 import * as nodeClient from '../utils/nodeClient';
 import { store } from '../store/configureStore';
 import { LOCK_WALLET, SET_PENDING_TRANSACTIONS } from './wallet';
-import { getInitializationState} from '../db/system';
 import isEqual from 'lodash.isequal';
 import { SET_NODE_INFO } from './node';
 
@@ -15,12 +14,6 @@ export function createBackgroundMonitor() {
 
   const doPoll = async () => {
     const state = store.getState();
-    const isInitialized = await getInitializationState(state.node.network);
-    if (!isInitialized) {
-      return;
-    }
-
-
     const wClient = walletClient.forNetwork(state.node.network);
     const nClient = nodeClient.forNetwork(state.node.network);
 
@@ -91,12 +84,14 @@ export function createBackgroundMonitor() {
       poll();
     },
 
-    bump: doPoll,
+    async bump() {
+      await doPoll();
+    },
 
     stop() {
       clearTimeout(poll);
     }
-  };
+  }
 }
 
 export const monitor = createBackgroundMonitor();
