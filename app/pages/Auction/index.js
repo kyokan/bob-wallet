@@ -156,18 +156,15 @@ export default class Auction extends Component {
   };
 
   renderContent() {
-    const domain = this.getDomain();
-
+    const domainName = this.getDomain();
+    const domain = this.props.domain || {};
     return (
       <React.Fragment>
         <div className="domains__content">
-          <div className="domains__content__title">{`${domain}/`}</div>
-            <div className="domains__graph__wrapper">
-              <AuctionGraph openProgress={100} biddingProgress={40} revealProgress={0} />
-            </div>
-            {/* <div className={this.getContentClassName()}>
-              {this.renderAuctionDetails()}
-            </div> */}
+          <div className="domains__content__title">{`${domainName}/`}</div>
+          <div className="domains__content__info-panel" style={{ marginTop: '2rem' }}>
+            {this.renderAuctionDetails()}
+          </div>
           <Collapsible className="domains__content__info-panel" title="Bid History" defaultCollapsed>
             {
               this.props.domain
@@ -191,18 +188,20 @@ export default class Auction extends Component {
     const domain = this.props.domain;
     const stats = domain.info && domain.info.stats || {};
 
+     if (isOpening(domain) || isBidding(domain) || isReveal(domain)) {
+       return (
+        <div className="domains__graph">
+          <AuctionGraph />
+        </div>
+       )
+     }
+
     return (
-      <React.Fragment>
+      <div className={this.getContentClassName()}>
         {this.renderStatusInfo()}
-        {this.maybeRenderDateBlock(() => isOpening(domain), 'Opened At', stats.openPeriodStart, stats.hoursUntilBidding)}
-        {this.maybeRenderDateBlock(() => isOpening(domain), 'Bidding Starts', stats.openPeriodEnd, stats.hoursUntilBidding)}
-        {this.maybeRenderDateBlock(() => isBidding(domain), 'Bidding Open', stats.bidPeriodStart, stats.hoursUntilReveal)}
-        {this.maybeRenderDateBlock(() => isBidding(domain), 'Bidding Close', stats.bidPeriodEnd, stats.hoursUntilReveal)}
-        {this.maybeRenderDateBlock(() => isReveal(domain), 'Reveal Open', stats.revealPeriodStart, stats.hoursUntilClose)}
-        {this.maybeRenderDateBlock(() => isReveal(domain), 'Reveal Close', stats.revealPeriodEnd, stats.hoursUntilClose)}
         {this.maybeRenderDateBlock(() => isClosed(domain), 'Renew Starts', stats.renewalPeriodStart, stats.daysUntilExpire)}
         {this.maybeRenderDateBlock(() => isClosed(domain), 'Renew Close', stats.renewalPeriodEnd, stats.daysUntilExpire)}
-      </React.Fragment>
+      </div>
     );
   }
 
@@ -249,7 +248,6 @@ export default class Auction extends Component {
 
   renderStatusInfo() {
     const {domain} = this.props;
-
     let status = '';
     let description = '';
     if (isReserved(domain)) {
