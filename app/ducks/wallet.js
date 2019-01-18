@@ -8,6 +8,7 @@ const UNLOCK_WALLET = 'app/wallet/unlockWallet';
 export const LOCK_WALLET = 'app/wallet/lockWallet';
 const SET_TRANSACTIONS = 'app/wallet/setTransactions';
 export const SET_PENDING_TRANSACTIONS = 'app/wallet/setPendingTransactions';
+import { monitor } from './backgroundMonitor';
 
 export const NONE = 'NONE';
 export const LEDGER = 'LEDGER';
@@ -93,6 +94,7 @@ export const completeInitialization = () => async (dispatch, getState) => {
   const network = getState().node.network;
   await setInitializationState(network, true);
   await dispatch(fetchWallet());
+  await monitor.bump();
   dispatch({
     type: UNLOCK_WALLET
   });
