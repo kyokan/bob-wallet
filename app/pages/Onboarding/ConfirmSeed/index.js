@@ -91,6 +91,7 @@ export default class ConfirmSeed extends Component {
                 );
               }
             }}
+            disabled={!this.state.words}
           >
             Create New Wallet
           </button>

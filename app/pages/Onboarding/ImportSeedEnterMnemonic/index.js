@@ -40,13 +40,12 @@ export default class ImportSeedEnterMnemonic extends Component {
           onCancel={this.props.onCancel}
         />
         <div className="create-password__content">
-          <div className="header_text">Import your recovery phrase</div>
+          <div className="backup-warning__header_text">Import your recovery phrase</div>
 
           <div className="import_warning_text">
             Enter your 24 word seed phrase that was assigned to you when you
             created your previous wallet.
           </div>
-          <div className="import-learn-more-text">Learn more</div>
           <div className="import-enter__textarea-container">
             <textarea
               className="import_enter_textarea"

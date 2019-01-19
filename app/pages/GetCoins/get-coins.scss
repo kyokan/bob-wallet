@@ -78,6 +78,12 @@
     font-weight: 400;
   }
 
+  &__link {
+    color: $azure-blue;
+    &:hover {
+      cursor: pointer;
+    }
+  }
   &__panel {
     background-color: $white;
     width: 20rem;
