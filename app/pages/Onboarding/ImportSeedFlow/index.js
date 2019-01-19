@@ -26,7 +26,8 @@ class ImportSeedFlow extends Component {
 
   state = {
     currentStep: TERM_OF_USE,
-    passphrase: ''
+    passphrase: '',
+    isLoading: false,
   };
 
   render() {
@@ -71,6 +72,7 @@ class ImportSeedFlow extends Component {
             onBack={() => this.goTo(CREATE_PASSWORD)}
             onNext={this.finishFlow}
             onCancel={() => this.props.history.push('/funding-options')}
+            isLoading={this.state.isLoading}
           />
         );
     }
@@ -83,11 +85,14 @@ class ImportSeedFlow extends Component {
   }
 
   finishFlow = async mnemonic => {
+    this.setState({isLoading: true})
     try {
       await walletClient.forNetwork(this.props.network).importSeed(this.state.passphrase, mnemonic);
       await this.props.completeInitialization(this.state.passphrase);
     } catch (e) {
       console.error(e);
+    } finally {
+      this.setState({isLoading: false})
     }
   };
 }

@@ -48,6 +48,10 @@ export default class CreatePassword extends Component {
     this.props.onNext(this.state.password);
   };
 
+  isValidPassword = () => {
+    return !(this.state.password.length < 8) && (this.state.password == this.state.passwordConfirmation)
+  }
+
   onChange = name => e => {
     this.setState({
       [name]: e.target.value,
@@ -116,6 +120,7 @@ export default class CreatePassword extends Component {
           <button
             className="extension_cta_button create_cta"
             onClick={this.onSubmit}
+            disabled={!this.isValidPassword()}
           >
             Next
           </button>

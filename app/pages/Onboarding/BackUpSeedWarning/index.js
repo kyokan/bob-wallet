@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import c from 'classnames';
 import Checkbox from '../../../components/Checkbox/index';
-import './index.scss';
 import WizardHeader from '../../../components/WizardHeader';
+import './index.scss';
 
 @connect()
 export default class BackUpSeedWarning extends Component {
@@ -52,11 +53,11 @@ export default class BackUpSeedWarning extends Component {
         </div>
         <div className="create-password__footer">
           <button
-            className="extension_cta_button create_cta"
+            className='extension_cta_button'
             onClick={onNext}
-            disabled={!this.state.hasAccepted}
+            disabled={!this.state.hasAccepted || this.props.isLoading}
           >
-            I agree
+            { this.props.isLoading ? 'Loading...' : 'I agree' }
           </button>
         </div>
       </div>

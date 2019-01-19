@@ -29,6 +29,7 @@ class CreateNewAccount extends Component {
     currentStep: TERMS_OF_USE,
     seedphrase: '',
     pasphrase: '',
+    isLoading: false,
   };
 
   render() {
@@ -65,12 +66,14 @@ class CreateNewAccount extends Component {
             totalSteps={4}
             onBack={() => this.setState({currentStep: TERMS_OF_USE})}
             onNext={async () => {
+              this.setState({isLoading: true}) 
               await client.createNewWallet();
               const masterHDKey = await client.getMasterHDKey();
               await client.setPassphrase(this.state.passphrase);
-              this.setState({currentStep: COPY_SEEDPHRASE, seedphrase: masterHDKey.mnemonic.phrase})
+              this.setState({currentStep: COPY_SEEDPHRASE, seedphrase: masterHDKey.mnemonic.phrase, isLoading: false})
             }}
             onCancel={() => this.props.history.push('/funding-options')}
+            isLoading={this.state.isLoading}
           />
         );
       case COPY_SEEDPHRASE:

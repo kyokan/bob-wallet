@@ -66,9 +66,9 @@ export default class ImportSeedEnterMnemonic extends Component {
           <button
             className="extension_cta_button terms_cta"
             onClick={() => onNext(this.state.mnemonic)}
-            disabled={this.disableButton()}
+            disabled={this.disableButton() || this.props.isLoading}
           >
-            Unlock wallet
+            { this.props.isLoading ? 'Loading...' : 'Unlock Wallet' }
           </button>
         </div>
       </div>
