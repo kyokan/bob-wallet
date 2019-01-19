@@ -117,6 +117,16 @@ export default class MenuBuilder {
       label: 'View',
       submenu: [
         {
+          label: 'New Window',
+          accelerator: 'Command+N',
+          click: showMainWindow,
+        },
+        {
+          label: 'Reload',
+          accelerator: 'Command+R',
+          click: this.withMain((m) => m.webContents.reload())
+        },
+        {
           label: 'Toggle Full Screen',
           accelerator: 'Ctrl+Command+F',
           click: this.withMain((m) => m.setFullScreen(!m.isFullScreen()))
