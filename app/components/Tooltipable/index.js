@@ -23,7 +23,7 @@ export default class Tooltipable extends Component {
     return (
       <div className={`tooltipable ${className}`}>
         {children}
-        <div className='tooltipable__tooltip' style={{ width: width, textAlign: textAlign }}>   
+        <div className='tooltipable__tooltip' style={{ width, textAlign }}>   
           {tooltipContent}
         </div>
       </div>
