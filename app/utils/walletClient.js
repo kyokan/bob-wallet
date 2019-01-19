@@ -200,6 +200,11 @@ export function forNetwork(net) {
           return true;
         }
 
+        if (e.message.match(/address not found/i)) {
+          await setUnlockReceiveAddress(net, '');
+          return ret.isLocked();
+        }
+
         throw e;
       }
 

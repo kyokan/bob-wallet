@@ -1,10 +1,8 @@
 import { app, Menu, shell } from 'electron';
+import { getMainWindow } from './mainWindow';
+import showMainWindow from './mainWindow';
 
 export default class MenuBuilder {
-  constructor(mainWindow) {
-    this.mainWindow = mainWindow;
-  }
-
   buildMenu() {
     if (
       process.env.NODE_ENV === 'development' ||
@@ -25,22 +23,24 @@ export default class MenuBuilder {
   }
 
   setupDevelopmentEnvironment() {
-    this.mainWindow.openDevTools();
-    this.mainWindow.webContents.on('context-menu', (e, props) => {
-      const { x, y } = props;
-
+    const mainWin = getMainWindow();
+    mainWin.openDevTools();
+    mainWin.webContents.on('context-menu', (e, props) => {
+      const {x, y} = props;
       Menu.buildFromTemplate([
         {
           label: 'Inspect element',
           click: () => {
-            this.mainWindow.inspectElement(x, y);
+            mainWin.inspectElement(x, y);
           }
         }
-      ]).popup(this.mainWindow);
+      ]).popup(mainWin);
     });
   }
 
   buildDarwinTemplate() {
+    const mainWin = getMainWindow();
+
     const subMenuAbout = {
       label: 'Bob',
       submenu: [
@@ -48,9 +48,9 @@ export default class MenuBuilder {
           label: 'About Bob',
           selector: 'orderFrontStandardAboutPanel:'
         },
-        { type: 'separator' },
-        { label: 'Services', submenu: [] },
-        { type: 'separator' },
+        {type: 'separator'},
+        {label: 'Services', submenu: []},
+        {type: 'separator'},
         {
           label: 'Hide Bob',
           accelerator: 'Command+H',
@@ -61,8 +61,8 @@ export default class MenuBuilder {
           accelerator: 'Command+Shift+H',
           selector: 'hideOtherApplications:'
         },
-        { label: 'Show All', selector: 'unhideAllApplications:' },
-        { type: 'separator' },
+        {label: 'Show All', selector: 'unhideAllApplications:'},
+        {type: 'separator'},
         {
           label: 'Quit',
           accelerator: 'Command+Q',
@@ -75,12 +75,12 @@ export default class MenuBuilder {
     const subMenuEdit = {
       label: 'Edit',
       submenu: [
-        { label: 'Undo', accelerator: 'Command+Z', selector: 'undo:' },
-        { label: 'Redo', accelerator: 'Shift+Command+Z', selector: 'redo:' },
-        { type: 'separator' },
-        { label: 'Cut', accelerator: 'Command+X', selector: 'cut:' },
-        { label: 'Copy', accelerator: 'Command+C', selector: 'copy:' },
-        { label: 'Paste', accelerator: 'Command+V', selector: 'paste:' },
+        {label: 'Undo', accelerator: 'Command+Z', selector: 'undo:'},
+        {label: 'Redo', accelerator: 'Shift+Command+Z', selector: 'redo:'},
+        {type: 'separator'},
+        {label: 'Cut', accelerator: 'Command+X', selector: 'cut:'},
+        {label: 'Copy', accelerator: 'Command+C', selector: 'copy:'},
+        {label: 'Paste', accelerator: 'Command+V', selector: 'paste:'},
         {
           label: 'Select All',
           accelerator: 'Command+A',
@@ -92,25 +92,24 @@ export default class MenuBuilder {
       label: 'View',
       submenu: [
         {
+          label: 'New Window',
+          accelerator: 'Command+N',
+          click: showMainWindow,
+        },
+        {
           label: 'Reload',
           accelerator: 'Command+R',
-          click: () => {
-            this.mainWindow.webContents.reload();
-          }
+          click: this.withMain((m) => m.webContents.reload())
         },
         {
           label: 'Toggle Full Screen',
           accelerator: 'Ctrl+Command+F',
-          click: () => {
-            this.mainWindow.setFullScreen(!this.mainWindow.isFullScreen());
-          }
+          click: this.withMain((m) => m.setFullScreen(!mainWin.isFullScreen()))
         },
         {
           label: 'Toggle Developer Tools',
           accelerator: 'Alt+Command+I',
-          click: () => {
-            this.mainWindow.toggleDevTools();
-          }
+          click: this.withMain((m) => m.toggleDevTools()),
         }
       ]
     };
@@ -120,9 +119,7 @@ export default class MenuBuilder {
         {
           label: 'Toggle Full Screen',
           accelerator: 'Ctrl+Command+F',
-          click: () => {
-            this.mainWindow.setFullScreen(!this.mainWindow.isFullScreen());
-          }
+          click: this.withMain((m) => m.setFullScreen(!m.isFullScreen()))
         }
       ]
     };
@@ -134,38 +131,18 @@ export default class MenuBuilder {
           accelerator: 'Command+M',
           selector: 'performMiniaturize:'
         },
-        { label: 'Close', accelerator: 'Command+W', selector: 'performClose:' },
-        { type: 'separator' },
-        { label: 'Bring All to Front', selector: 'arrangeInFront:' }
+        {label: 'Close', accelerator: 'Command+W', selector: 'performClose:'},
+        {type: 'separator'},
+        {label: 'Bring All to Front', selector: 'arrangeInFront:'}
       ]
     };
     const subMenuHelp = {
       label: 'Help',
       submenu: [
         {
-          label: 'Learn More',
+          label: 'Report an Issue',
           click() {
-            shell.openExternal('http://electron.atom.io');
-          }
-        },
-        {
-          label: 'Documentation',
-          click() {
-            shell.openExternal(
-              'https://github.com/atom/electron/tree/master/docs#readme'
-            );
-          }
-        },
-        {
-          label: 'Community Discussions',
-          click() {
-            shell.openExternal('https://discuss.atom.io/c/electron');
-          }
-        },
-        {
-          label: 'Search Issues',
-          click() {
-            shell.openExternal('https://github.com/atom/electron/issues');
+            shell.openExternal('https://github.com/kyokan/onoma-electron/issues/new');
           }
         }
       ]
@@ -178,6 +155,8 @@ export default class MenuBuilder {
   }
 
   buildDefaultTemplate() {
+    const mainWin = getMainWindow();
+
     const templateDefault = [
       {
         label: '&File',
@@ -190,7 +169,7 @@ export default class MenuBuilder {
             label: '&Close',
             accelerator: 'Ctrl+W',
             click: () => {
-              this.mainWindow.close();
+              mainWin.close();
             }
           }
         ]
@@ -200,41 +179,41 @@ export default class MenuBuilder {
         submenu:
           process.env.NODE_ENV === 'development'
             ? [
-                {
-                  label: '&Reload',
-                  accelerator: 'Ctrl+R',
-                  click: () => {
-                    this.mainWindow.webContents.reload();
-                  }
-                },
-                {
-                  label: 'Toggle &Full Screen',
-                  accelerator: 'F11',
-                  click: () => {
-                    this.mainWindow.setFullScreen(
-                      !this.mainWindow.isFullScreen()
-                    );
-                  }
-                },
-                {
-                  label: 'Toggle &Developer Tools',
-                  accelerator: 'Alt+Ctrl+I',
-                  click: () => {
-                    this.mainWindow.toggleDevTools();
-                  }
+              {
+                label: '&Reload',
+                accelerator: 'Ctrl+R',
+                click: () => {
+                  mainWin.webContents.reload();
                 }
-              ]
+              },
+              {
+                label: 'Toggle &Full Screen',
+                accelerator: 'F11',
+                click: () => {
+                  mainWin.setFullScreen(
+                    !mainWin.isFullScreen()
+                  );
+                }
+              },
+              {
+                label: 'Toggle &Developer Tools',
+                accelerator: 'Alt+Ctrl+I',
+                click: () => {
+                  mainWin.toggleDevTools();
+                }
+              }
+            ]
             : [
-                {
-                  label: 'Toggle &Full Screen',
-                  accelerator: 'F11',
-                  click: () => {
-                    this.mainWindow.setFullScreen(
-                      !this.mainWindow.isFullScreen()
-                    );
-                  }
+              {
+                label: 'Toggle &Full Screen',
+                accelerator: 'F11',
+                click: () => {
+                  mainWin.setFullScreen(
+                    !mainWin.isFullScreen()
+                  );
                 }
-              ]
+              }
+            ]
       },
       {
         label: 'Help',
@@ -270,5 +249,16 @@ export default class MenuBuilder {
     ];
 
     return templateDefault;
+  }
+
+  withMain(cb) {
+    return () => {
+      const mainWin = getMainWindow();
+      if (!mainWin) {
+        return;
+      }
+
+      cb(mainWin);
+    }
   }
 }
