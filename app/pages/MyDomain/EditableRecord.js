@@ -9,17 +9,17 @@ class EditableRecord extends Component {
   static propTypes = {
     record: PropTypes.shape({
       type: PropTypes.string,
-      name: PropTypes.string,
-      data: PropTypes.object,
-      ttl: PropTypes.number,
+      value: PropTypes.string,
     }).isRequired,
+    ttl: PropTypes.number,
     onEdit: PropTypes.func.isRequired,
     onRemove: PropTypes.func.isRequired,
   };
 
   constructor(props) {
     super(props);
-    const { type, value, ttl } = props.record || {};
+    const { ttl } = props;
+    const { type, value } = props.record || {};
     const currentTypeIndex = DROPDOWN_TYPES.findIndex(d => d.label === type);
     this.state = {
       isEditing: false,
@@ -37,7 +37,8 @@ class EditableRecord extends Component {
   }
 
   cancel = () => {
-    const { type, value, ttl } = this.props.record || {};
+    const { ttl } = this.props;
+    const { type, value } = this.props.record || {};
     const currentTypeIndex = DROPDOWN_TYPES.findIndex(d => d.label === type);
     this.setState({
       isEditing: false,
@@ -56,7 +57,7 @@ class EditableRecord extends Component {
       return;
     }
 
-    const { value, ttl, currentTypeIndex } = this.state;
+    const { value, currentTypeIndex, ttl } = this.state;
     const {label: type} = DROPDOWN_TYPES[currentTypeIndex];
     this.props.onEdit({ type, value, ttl })
       .then(() => this.setState({
@@ -131,8 +132,8 @@ class EditableRecord extends Component {
   }
 
   renderRow() {
-    const { record } = this.props;
-    const { type, value, ttl } = record || {};
+    const { record, ttl } = this.props;
+    const { type, value } = record || {};
 
     return (
       <TableRow>
@@ -147,7 +148,7 @@ class EditableRecord extends Component {
             />
             <div
               className="records-table__actions__remove"
-              onClick={() => this.props.onRemove({ type, value, ttl })}
+              onClick={this.props.onRemove}
             />
           </div>
         </TableItem>
