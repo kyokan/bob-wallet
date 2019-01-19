@@ -45,19 +45,20 @@ export default class ConfirmSeed extends Component {
           onCancel={onCancel}
         />
         <div className="create-password__content">
-          <div className="copy-seed__header_text">
+          <div className="backup-warning__header_text">
             Confirm your recovery phrase
           </div>
           <div className="import_warning_text">
-            Pasting is disabled to ensure that you have securely backed up your
+            Type in your recovery words below. Pasting is disabled to ensure that you have securely backed up your
             wallet on paper.
           </div>
           <div
-            className={c('copy-seed__textarea', {
+            className={c('import-enter__textarea-container', {
               'copy-seed__textarea--shake': this.state.pasteAttempted
             })}
           >
             <textarea
+              className="import_enter_textarea"
               placeholder="Enter your seed phrase"
               onKeyDown={this.handleKeyDown}
               onChange={e => this.setState({ words: e.target.value })}

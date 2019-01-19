@@ -38,6 +38,7 @@
   @extend %row-nowrap;
   flex: 1 1 auto;
   width: 100%;
+  margin-top: .5rem;
 }
 
 .import_enter_textarea {
@@ -47,6 +48,9 @@
   white-space: normal;
   border: none;
   flex: 1 1 auto;
+  padding: .75rem 1rem;
+  line-height: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .import_enter_textarea::placeholder {
