@@ -44,12 +44,6 @@ export async function executeBinDep(mode, name, internalBinPath, args) {
     return execFile(binPath, args);
   }
 
-  if (isDev()) {
-    // this will use the local system's node interpreter,
-    // which is helpful in dev.
-    return spawn(binPath, args);
-  }
-
   return spawn(process.execPath, [binPath, ...args], {
     env: {
       ELECTRON_RUN_AS_NODE: 1,
