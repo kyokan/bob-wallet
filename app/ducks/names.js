@@ -13,6 +13,7 @@ export const RECORD_TYPE = {
   DS: 'DS',
   OPENPGPKEY: 'OPENPGPKEY',
   NS: 'NS',
+  SRV: 'SRV',
 };
 
 export const DROPDOWN_TYPES = [
@@ -24,6 +25,7 @@ export const DROPDOWN_TYPES = [
   { label: RECORD_TYPE.NS },
   { label: RECORD_TYPE.TXT },
   { label: RECORD_TYPE.OPENPGPKEY },
+  { label: RECORD_TYPE.SRV },
 ];
 
 // Action Types
