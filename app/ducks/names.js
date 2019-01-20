@@ -245,7 +245,7 @@ function reducePendingTransactions(state, action) {
     const pendingCovenant = pendingOpMetasByHash[hash];
     const pendingOperationMeta = {};
 
-    if (pendingOp === 'UPDATE') {
+    if (pendingOp === 'UPDATE' || pendingOp === 'REGISTER') {
       pendingOperationMeta.data = pendingCovenant.items[2];
     }
 

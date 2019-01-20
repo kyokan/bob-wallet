@@ -179,7 +179,7 @@ export const serializeResource = resource => {
   return ret;
 };
 
-export const deserializeResource = records => {
+export const deserializeResource = (records, ttl) => {
   if (!Array.isArray(records)) {
     console.error('Expect args[0] to be an array of records');
     return;
@@ -191,6 +191,10 @@ export const deserializeResource = records => {
     const deserialize = maybeFunc(deserializers[type]);
     deserialize(json, value);
   });
+
+  if (ttl != null && ttl) {
+    json.ttl = Number(ttl);
+  }
 
   return Resource.fromJSON(json);
 };

@@ -30,6 +30,19 @@ class EditableRecord extends Component {
     };
   }
 
+  componentWillReceiveProps(props) {
+    const { ttl } = props;
+    const { type, value } = props.record || {};
+    const currentTypeIndex = DROPDOWN_TYPES.findIndex(d => d.label === type);
+    this.state = {
+      isEditing: false,
+      value,
+      ttl,
+      errorMessage: '',
+      currentTypeIndex: Math.max(currentTypeIndex, 0),
+    };
+  }
+
   isValid() {
     const { value, ttl, currentTypeIndex } = this.state;
     const {label: type} = DROPDOWN_TYPES[currentTypeIndex];
