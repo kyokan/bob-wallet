@@ -120,7 +120,33 @@ export const validate = ({ type, value, ttl }) => {
       break;
     case RECORD_TYPE.SRV:
       try {
-        JSON.parse(value);
+        const json = JSON.parse(value);
+
+        if (typeof json.protocol !== 'string') {
+          errorMessage = 'protocol should not be empty';
+        }
+
+        if (typeof json.service !== 'string') {
+          errorMessage = 'service should not be empty';
+        }
+
+        if (json.priority != null) {
+          if ((json.priority & 0xff) !== json.priority) {
+            errorMessage = 'priority must be a natural number between 0 - 255';
+          }
+        }
+
+        if (json.weight != null) {
+          if ((json.weight & 0xff) !== json.weight) {
+            errorMessage = 'weight must be a natural number between 0 - 255';
+          }
+        }
+
+        if (json.port != null) {
+          if ((json.port & 0xffff) !== json.port) {
+            errorMessage = 'port must be a natural number between 0 - 65535';
+          }
+        }
       } catch (e) {
         errorMessage = 'Expect json string with following keys: "protocol", "service", "weight", "target", "port", "priority"';
       }
