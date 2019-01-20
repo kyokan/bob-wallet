@@ -118,6 +118,12 @@ export const validate = ({ type, value, ttl }) => {
         errorMessage = 'Expect json string with following keys: "hash", "publicKey"';
       }
       break;
+    case RECORD_TYPE.SRV:
+      try {
+        JSON.parse(value);
+      } catch (e) {
+        errorMessage = 'Expect json string with following keys: "protocol", "service", "weight", "target", "port", "priority"';
+      }
     default:
       break;
   }
@@ -147,7 +153,10 @@ const serializers = {
     .map(({ priority, target }) => makeRecord(RECORD_TYPE.MX, `${priority} ${target}`)),
   [RECORD_TYPE.CNAME]: json => json.canonical ? [makeRecord(RECORD_TYPE.CNAME, json.canonical)] : [],
   [RECORD_TYPE.OPENPGPKEY]: json => maybeArray(json.pgp)
-    .map(pgp => makeRecord(RECORD_TYPE.OPENPGPKEY, JSON.stringify(pgp)))
+    .map(pgp => makeRecord(RECORD_TYPE.OPENPGPKEY, JSON.stringify(pgp))),
+  [RECORD_TYPE.SRV]: json => maybeArray(json.service)
+    .filter(({ protocol, service }) => protocol !== 'tcp' || service !== 'smtp')
+    .map(srv => makeRecord(RECORD_TYPE.SRV, JSON.stringify(srv))),
 };
 
 const deserializers = {
@@ -194,6 +203,29 @@ const deserializers = {
       const { hash, publicKey } = JSON.parse(value);
       acc.pgp = maybeArray(acc.pgp);
       acc.pgp.push({ hash, publicKey });
+    } catch (e) {
+      console.error(e);
+    }
+  },
+  [RECORD_TYPE.SRV]: (acc, value) => {
+    try {
+      const {
+        protocol,
+        service,
+        weight,
+        target,
+        port,
+        priority,
+      } = JSON.parse(value);
+      acc.service = maybeArray(acc.service);
+      acc.service.push({
+        protocol,
+        service,
+        weight,
+        target,
+        port,
+        priority,
+      });
     } catch (e) {
       console.error(e);
     }
