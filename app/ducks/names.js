@@ -23,8 +23,7 @@ export const DROPDOWN_TYPES = [
   { label: RECORD_TYPE.MX },
   { label: RECORD_TYPE.NS },
   { label: RECORD_TYPE.TXT },
-
-  { label: RECORD_TYPE.OPENPGPKEY, disabled: true },
+  { label: RECORD_TYPE.OPENPGPKEY },
 ];
 
 // Action Types
