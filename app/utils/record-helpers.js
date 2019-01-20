@@ -6,6 +6,16 @@ var ipv6Regex = /^(::)?(((\d{1,3}\.){3}(\d{1,3}){1})?([0-9a-f]){0,4}:{0,2}){1,8}
 
 export const isV4Format = ip => ipv4Regex.test(ip);
 export const isV6Format = ip => ipv6Regex.test(ip) && !ipv4Regex.test(ip);
+export const isHex = str => {
+  if (typeof str !== 'string') {
+    return false;
+  }
+
+  if (str.length & 1)
+    return false;
+
+  return /^[A-Fa-f0-9]+$/.test(str);
+};
 
 export const validate = ({ type, value, ttl }) => {
   let errorMessage = '';
@@ -92,6 +102,22 @@ export const validate = ({ type, value, ttl }) => {
       }
 
       break;
+    case RECORD_TYPE.OPENPGPKEY:
+      try {
+        const json = JSON.parse(value);
+
+        if (!isHex(json.hash)) {
+          errorMessage = 'hash is not a valid hex string';
+        }
+
+        if (!isHex(json.publicKey)) {
+          errorMessage = 'publicKey is not a valid hex string';
+        }
+
+      } catch (e) {
+        errorMessage = 'Expect json string with following keys: "hash", "publicKey"';
+      }
+      break;
     default:
       break;
   }
@@ -120,6 +146,8 @@ const serializers = {
     .filter(({ protocol, service }) => protocol === 'tcp' && service === 'smtp')
     .map(({ priority, target }) => makeRecord(RECORD_TYPE.MX, `${priority} ${target}`)),
   [RECORD_TYPE.CNAME]: json => json.canonical ? [makeRecord(RECORD_TYPE.CNAME, json.canonical)] : [],
+  [RECORD_TYPE.OPENPGPKEY]: json => maybeArray(json.pgp)
+    .map(pgp => makeRecord(RECORD_TYPE.OPENPGPKEY, JSON.stringify(pgp)))
 };
 
 const deserializers = {
@@ -160,6 +188,15 @@ const deserializers = {
       protocol: 'tcp',
       service: 'smtp',
     })
+  },
+  [RECORD_TYPE.OPENPGPKEY]: (acc, value) => {
+    try {
+      const { hash, publicKey } = JSON.parse(value);
+      acc.pgp = maybeArray(acc.pgp);
+      acc.pgp.push({ hash, publicKey });
+    } catch (e) {
+      console.error(e);
+    }
   }
 };
 
