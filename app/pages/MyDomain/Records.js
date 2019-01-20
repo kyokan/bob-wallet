@@ -18,7 +18,6 @@ class Records extends Component {
   static propTypes = {
     name: PropTypes.string.isRequired,
     resource: PropTypes.object,
-    records: PropTypes.array,
     pendingData: PropTypes.string,
     showSuccess: PropTypes.func.isRequired,
     sendUpdate: PropTypes.func.isRequired,
@@ -40,41 +39,33 @@ class Records extends Component {
   state = {
     isUpdating: false,
     errorMessage: '',
-    records: [],
-    ttl: null,
+    updatedResource: null,
   };
 
-  componentWillReceiveProps(nextProps) {
-    this.setState({
-      records: nextProps.records,
-    });
-  }
-
   hasChanged = () => {
-    const oldRecords = this.props.records;
-    const newRecords = this.state.records;
+    const oldResource = this.props.resource;
+    const updatedResource = this.state.updatedResource;
 
-    if (!oldRecords && !newRecords) {
+    if (!oldResource && !updatedResource) {
       return false;
     }
 
-    if (!oldRecords && newRecords) {
+    if (!oldResource && updatedResource) {
       return true;
     }
 
-    if (oldRecords && !newRecords) {
+    if (oldResource && !updatedResource) {
       return false;
     }
 
-    return (this.state.ttl && this.props.resource.ttl !== this.state.ttl) ||
-      !deepEqual(deserializeResource(oldRecords).getJSON(), deserializeResource(newRecords).getJSON());
+    return !deepEqual(oldResource.getJSON(), updatedResource.getJSON());
   };
 
   sendUpdate = async () => {
     this.setState({ isUpdating: true });
     try {
-      const newResource = deserializeResource(this.state.records);
-      const json = newResource.toJSON();
+      const { updatedResource } = this.state;
+      const json = updatedResource.toJSON();
       await this.props.sendUpdate(this.props.name, json);
       this.setState({ isUpdating: false });
       // console.log({ json })
@@ -88,59 +79,118 @@ class Records extends Component {
   };
 
   onCreate = async ({ type, value, ttl }) => {
-    let { records } = this.state;
+    const { resource } = this.props;
+    const { updatedResource } = this.state;
+    let records = serializeResource(updatedResource || resource);
+    let newTTL;
 
-    // If record type of CNAME
-    if (type === RECORD_TYPE.CNAME) {
-      if (records.filter(record => record.type === type).length) {
-        records = records.map(record => record.type === type ? { type, value } : record);
-      }
+    if (resource) {
+      newTTL = resource.ttl;
+    }
+
+    if (updatedResource) {
+      newTTL = updatedResource.ttl;
+    }
+
+    if (ttl) {
+      newTTL = ttl;
+    }
+
+    if (type === RECORD_TYPE.CNAME && hasCNAME(records)) {
+      records = records
+        .map(record => (
+          record.type === type
+            ? { type, value }
+            : record
+        ));
     } else {
       records.push({ type, value });
     }
-    const newRecords = serializeResource(deserializeResource(records));
-    this.setState({ records: newRecords });
-    if (ttl != null) {
-      this.setState({ ttl });
-    }
+
+    this.setState({
+      updatedResource: deserializeResource(records, newTTL),
+    });
   };
 
   onRemove = i => {
-    let newRecords = this.state.records.filter((n, j) => i !== j);
-    newRecords = serializeResource(deserializeResource(newRecords));
-    this.setState({ records: newRecords });
+    const { resource } = this.props;
+    const { updatedResource } = this.state;
+
+    let ttl;
+
+    if (resource) {
+      ttl = resource.ttl;
+    }
+
+    if (updatedResource) {
+      ttl = updatedResource.ttl;
+    }
+
+    let records = serializeResource(updatedResource || resource);
+
+    records = records.filter((n, j) => i !== j);
+
+    this.setState({
+      updatedResource: deserializeResource(records, ttl),
+    });
   };
 
   makeOnEdit = i => async ({ type, value, ttl }) => {
-    let { records } = this.state;
+    const { resource } = this.props;
+    const { updatedResource } = this.state;
+    let records = serializeResource(updatedResource || resource);
+    let newTTL;
 
-    // If record type of CNAME
-    if (type === RECORD_TYPE.CNAME) {
-      if (records.filter(record => record.type === type).length) {
-        records = records.map(record => record.type === type ? { type, value } : record);
-      }
+    if (resource) {
+      newTTL = resource.ttl;
+    }
+
+    if (updatedResource) {
+      newTTL = updatedResource.ttl;
+    }
+
+    if (ttl) {
+      newTTL = ttl;
+    }
+
+    if (type === RECORD_TYPE.CNAME && hasCNAME(records)) {
+      records = records.filter((n, j) => i !== j);
+      records.push({ type, value });
     } else {
       records[i] = { type, value };
     }
-    const newRecords = serializeResource(deserializeResource(records));
-    this.setState({ records: newRecords });
-    if (ttl != null) {
-      this.setState({ ttl });
-    }
+
+    this.setState({
+      updatedResource: deserializeResource(records, newTTL),
+    });
   };
 
   renderRows() {
-    const { name, resource } = this.props;
-    const { records, ttl } = this.state;
+    const { name, resource, pendingData } = this.props;
+    const { updatedResource } = this.state;
+    const records = serializeResource(pendingData || updatedResource || resource);
 
-    return records.map((record, i) => {
-      const { type, value } = record;
-      return (type && value) && (
+    let ttl;
+
+    if (resource) {
+      ttl = resource.ttl;
+    }
+
+    if (updatedResource) {
+      ttl = updatedResource.ttl;
+    }
+
+    if (pendingData) {
+      ttl = pendingData.ttl;
+    }
+
+    return records.map(({ type, value }, i) => {
+      return (
         <EditableRecord
           key={`${name}-${type}-${value}-${i}`}
           name={name}
-          record={record}
-          ttl={ttl || resource.ttl}
+          record={{ type, value }}
+          ttl={ttl}
           onEdit={this.makeOnEdit(i)}
           onRemove={() => this.onRemove(i)}
         />
@@ -149,7 +199,7 @@ class Records extends Component {
   }
 
   renderCreateRecord() {
-    return <CreateRecord name={this.props.name} onCreate={this.onCreate}/>;
+    return <CreateRecord name={this.props.name} onCreate={this.onCreate} />;
   }
 
   renderActionRow() {
@@ -208,10 +258,9 @@ export default withRouter(
     (state, ownProps) => {
       const domain = state.names[ownProps.name];
       const resource = getDecodedResource(domain);
-      serializeResource(resource);
+
       return {
         resource,
-        records: serializeResource(resource),
         pendingData: getPendingData(domain),
       }
     },
@@ -243,9 +292,17 @@ function getPendingData(domain) {
     return '';
   }
 
-  if (domain.pendingOperation === 'UPDATE') {
-    return domain.pendingOperationMeta.data;
+  if (domain.pendingOperation === 'UPDATE' || domain.pendingOperation === "REGISTER") {
+    return getDecodedResource({
+      info: {
+        data: domain.pendingOperationMeta.data,
+      }
+    });
   }
 
   return '';
+}
+
+function hasCNAME(records) {
+  return !!records.filter(({ type }) => type === RECORD_TYPE.CNAME).length
 }
