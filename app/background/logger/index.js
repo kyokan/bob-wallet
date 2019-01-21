@@ -20,6 +20,9 @@ export async function log() {
 const sName = 'Logger';
 const methods = {
   info,
+  warn,
+  error,
+  log,
 };
 
 export const clientStub = (ipcRendererInjector) => makeClient(ipcRendererInjector, sName, Object.keys(methods));

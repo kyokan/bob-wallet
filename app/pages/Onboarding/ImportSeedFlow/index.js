@@ -9,6 +9,7 @@ import ImportSeedEnterMnemonic from '../ImportSeedEnterMnemonic/index';
 import Terms from '../Terms/index';
 import * as walletActions from '../../../ducks/wallet';
 import *as walletClient from '../../../utils/walletClient';
+import * as logger from '../../../utils/logClient';
 
 const TERM_OF_USE = 'TERM_OF_USE';
 const WARNING_STEP = 'WARNING';
@@ -88,6 +89,7 @@ class ImportSeedFlow extends Component {
       await this.props.completeInitialization(this.state.passphrase);
     } catch (e) {
       console.error(e);
+      logger.error(`Error received from ImportSeedFlow - finishFlow]\n\n${e.message}\n${e.stack}\n`);
     }
   };
 }

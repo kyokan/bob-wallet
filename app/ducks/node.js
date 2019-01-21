@@ -2,6 +2,7 @@ import * as nodeClient from '../utils/nodeClient';
 import { clientStub, VALID_NETWORKS } from '../background/node';
 import { getNetwork, setNetwork } from '../db/system';
 import { fetchWallet } from './wallet';
+import * as logger from '../utils/logClient';
 
 const hsdClient = clientStub(() => require('electron').ipcRenderer);
 
@@ -54,8 +55,8 @@ const setNodeInfo = () => async (dispatch, getState) => {
         fees,
       },
     });
-  } catch (error) {
-    console.error(error);
+  } catch (e) {
+    logger.error(`Error received from node.js - setNodeInfo\n\n${e.message}\n${e.stack}\n`);
     dispatch({type: STOP});
   }
 };
