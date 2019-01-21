@@ -67,7 +67,10 @@ app.on('ready', async () => {
   const node = require('./background/node');
   require('./background/ipc');
   node.setPaths();
+  const logger = require('./background/logger/logger');
+  logger.startLogger();
   require('./background/airdrop');
+  require('./background/logger/index');
   const db = require('./background/db');
   await db.open();
 

@@ -1,4 +1,5 @@
 import * as walletClient from '../utils/walletClient';
+import * as logger from '../utils/logClient';
 import BigNumber from 'bignumber.js';
 import * as namesDb from '../db/names';
 import { getInitializationState, setInitializationState } from '../db/system';

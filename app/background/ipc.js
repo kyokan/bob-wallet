@@ -1,3 +1,4 @@
+import * as logger from './logger/logger';
 export const SIGIL = '@@RPC@@';
 
 let lastId = 0;
@@ -14,7 +15,9 @@ function log() {
     return;
   }
 
-  console.log(...arguments);
+  if (!(/Logger/g).test(arguments[1].method)) {
+    logger.info(arguments);
+  }
 }
 
 // used to scrub sensitive info from RPC calls
