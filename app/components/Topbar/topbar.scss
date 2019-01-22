@@ -14,12 +14,11 @@
 
     flex: 1 0 auto;
     align-items: center;
-    padding: 0 1rem;
+    padding: 0 2rem;
   }
 
   &__title {
     @extend %h1;
-
     font-weight: 500;
     flex: 1 1 auto;
   }
