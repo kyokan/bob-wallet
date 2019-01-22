@@ -1,5 +1,6 @@
 import { RECORD_TYPE } from '../ducks/names';
 import Resource from '../../node_modules/hsd/lib/dns/resource'
+import * as logger from './logClient';
 
 var ipv4Regex = /^(\d{1,3}\.){3,3}\d{1,3}$/;
 var ipv6Regex = /^(::)?(((\d{1,3}\.){3}(\d{1,3}){1})?([0-9a-f]){0,4}:{0,2}){1,8}(::)?$/i;
@@ -208,6 +209,7 @@ const deserializers = {
       acc.ds = maybeArray(acc.ds);
       acc.ds.push({ keyTag, digest, digestType, algorithm });
     } catch (e) {
+      logger.error(`Error received from record-helpers - deserializers.DS]\n\n${e.message}\n${e.stack}\n`);
       console.error(e);
     }
   },
@@ -253,6 +255,7 @@ const deserializers = {
         priority,
       });
     } catch (e) {
+      logger.error(`Error received from record-helpers - deserializers.SRV]\n\n${e.message}\n${e.stack}\n`);
       console.error(e);
     }
   }

@@ -1,4 +1,5 @@
 import * as walletClient from '../utils/walletClient';
+import * as logger from '../utils/logClient';
 import BigNumber from 'bignumber.js';
 import throttle from 'lodash.throttle';
 import * as namesDb from '../db/names';

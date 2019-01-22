@@ -6,6 +6,7 @@ import './index.scss';
 import AccountIndexModal from './AccountIndexModal';
 import RevealSeedModal from './RevealSeedModal';
 import InterstitialWarningModal from './InterstitialWarningModal';
+import * as logger from '../../utils/logClient';
 import * as walletActions from '../../ducks/wallet';
 import NetworkPicker from '../NetworkPicker';
 
@@ -20,6 +21,19 @@ import NetworkPicker from '../NetworkPicker';
   })
 )
 export default class Settings extends Component {
+
+  onDownload = async () => {
+    const content = await logger.download();
+    const csvContent = `data:text/log;charset=utf-8,${content}\r\n`;
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "bob-debug.log");
+    document.body.appendChild(link); // Required for FF
+    link.click();
+    link.remove();
+  };
+
   render() {
     return (
       <ContentArea title="Settings" noPadding>
@@ -32,6 +46,11 @@ export default class Settings extends Component {
             <a href="#" onClick={this.props.lockWallet}>
               Log out
             </a>
+          </li>
+          <li>
+            <div className="settings__link" onClick={this.onDownload}>
+              Download logs
+            </div>
           </li>
         </ul>
         <div className="settings__section-head">Your recovery seed phrase</div>

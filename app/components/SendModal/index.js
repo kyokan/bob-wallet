@@ -8,6 +8,7 @@ import { displayUnlockedConfirmBalance } from '../../utils/balances';
 import * as walletActions from '../../ducks/wallet';
 import Alert from '../Alert';
 import isValidAddress from '../../utils/verifyAddress';
+import * as logger from '../../utils/logClient';
 
 const SLOW = 'Slow';
 const STANDARD = 'Standard';
@@ -88,7 +89,7 @@ class SendModal extends Component {
         errorMessage: ''
       });
     } catch (e) {
-      console.error(e);
+      logger.error(`Error received from SendModal - send\n\n${e.message}\n${e.stack}\n`);
       this.setState({
         errorMessage: 'Something went wrong, please try again.',
         isSending: false
