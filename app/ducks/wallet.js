@@ -249,7 +249,9 @@ export const watchActivity = () => dispatch => {
 
 // TODO: Make this method smarter
 async function parseInputsOutputs(tx) {
-  const covenant = tx.outputs[0].covenant;
+  const correctOutput = tx.outputs.filter(({path}) => !path || !path.change)[0];
+  const covenant = correctOutput.covenant;
+
   if (covenant && covenant.action !== 'NONE') {
     const covData = await parseCovenant(covenant);
     return {
@@ -269,8 +271,6 @@ async function parseInputsOutputs(tx) {
 
   for (const input of tx.inputs) {
     if (input.path) {
-      const correctOutput = tx.outputs.filter(({path}) => !path || !path.change)[0];
-
       return {
         type: 'SEND',
         meta: {
