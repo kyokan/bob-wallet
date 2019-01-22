@@ -8,6 +8,25 @@ import './index.scss';
 // Dummy transactions state until we have ducks
 import { fetchTransactions } from '../../ducks/wallet';
 import Dropdown from '../Dropdown';
+import BidSearchInput from '../BidSearchInput';
+import Fuse from '../../vendor/fuse';
+
+const SORT_BY_TYPES = {
+  DATE_DESCENDING: 'Date - Descending',
+  DATE_ASCENDING: 'Date - Ascending',
+};
+
+const SORT_BY_DROPDOWN = [
+  { label: SORT_BY_TYPES.DATE_DESCENDING },
+  { label: SORT_BY_TYPES.DATE_ASCENDING },
+];
+
+const ITEM_PER_DROPDOWN = [
+  { label: '5', value: 5 },
+  { label: '10', value: 10 },
+  { label: '20', value: 20 },
+  { label: '50', value: 50 },
+];
 
 @connect(
   (state) => ({
@@ -26,10 +45,42 @@ export default class Transactions extends Component {
     await this.props.fetchTransactions()
   }
 
+  componentWillReceiveProps(nextProps) {
+    if (this.props.transactions.length !== nextProps.transactions.length) {
+      this.fuse = null;
+    }
+  }
+
   state = {
     currentPageIndex: 0,
-    itemsPerPage: 10,
+    itemsPerPage: 5,
+    sortBy: 0,
+    query: '',
   };
+
+  handleOnChange = e => this.setState({ query: e.target.value, currentPageIndex: 0 });
+
+  getTransactions() {
+    const { sortBy, query } = this.state;
+    let transactions = this.props.transactions.slice();
+
+    if (!this.fuse) {
+      this.fuse = new Fuse(transactions, {
+        keys: ['id', 'meta.to', 'meta.from', 'type', 'meta.domain', 'value'],
+        shouldSort: false,
+      });
+    }
+
+    if (query) {
+      transactions = this.fuse.search(query);
+    }
+
+    transactions = sortBy === 1
+      ? transactions.reverse()
+      : transactions;
+
+    return transactions;
+  }
 
   render() {
     const { currentPageIndex, itemsPerPage } = this.state;
@@ -37,16 +88,18 @@ export default class Transactions extends Component {
     let result = [];
     const len = i + itemsPerPage;
 
-    if (!this.props.transactions.length) {
-      return (
-        <div className="account__empty-list">
+    const transactions = this.getTransactions();
+
+    if (!transactions.length) {
+      result.push(
+        <div key="empty" className="transactions__empty-list">
           You do not have any transactions
         </div>
       );
     }
 
     for (;i < len; i++) {
-      const tx = this.props.transactions[i];
+      const tx = transactions[i];
       if (tx) {
         result.push(
           <div className="transaction__container" key={tx.id}>
@@ -58,15 +111,62 @@ export default class Transactions extends Component {
 
     return (
       <div className="transactions">
-        {this.renderPageNumbers()}
+        <div className="transactions__header">
+          <BidSearchInput
+            className="transactions__search"
+            placeholder="Search your transaction history"
+            onChange={this.handleOnChange}
+            value={this.state.query}
+          />
+          <div className="transactions__go-to">
+            <div className="transactions__go-to__text">Sort By:</div>
+            <Dropdown
+              className="transactions__go-to__dropdown transactions__sort-by__dropdown"
+              items={SORT_BY_DROPDOWN}
+              onChange={sortBy => this.setState({ sortBy })}
+              currentIndex={this.state.sortBy}
+            />
+          </div>
+        </div>
         {result}
+        {this.renderPageNumbers(transactions)}
       </div>
     );
   }
 
-  renderPageNumbers() {
+  renderGoTo(transactions) {
     const { currentPageIndex, itemsPerPage } = this.state;
-    const { transactions } = this.props;
+    const totalPages = Math.ceil(transactions.length / itemsPerPage);
+    return (
+      <div className="transactions__page-control__dropdowns">
+        <div className="transactions__go-to">
+          <div className="transactions__go-to__text">Items per Page:</div>
+          <Dropdown
+            className="transactions__go-to__dropdown transactions__items-per__dropdown"
+            items={ITEM_PER_DROPDOWN}
+            onChange={itemsPerPage => this.setState({
+              itemsPerPage,
+              currentPageIndex: 0,
+            })}
+            currentIndex={ITEM_PER_DROPDOWN.findIndex(({ value }) => value === this.state.itemsPerPage)}
+          />
+        </div>
+        <div className="transactions__go-to">
+          <div className="transactions__go-to__text">Page</div>
+          <Dropdown
+            className="transactions__go-to__dropdown"
+            items={Array(totalPages).fill(0).map((_, i) => ({ label: `${i + 1}` }))}
+            onChange={currentPageIndex => this.setState({ currentPageIndex })}
+            currentIndex={currentPageIndex}
+          />
+          <div className="transactions__go-to__total">of {totalPages}</div>
+        </div>
+      </div>
+    )
+  }
+
+  renderPageNumbers(transactions) {
+    const { currentPageIndex, itemsPerPage } = this.state;
     const totalPages = Math.ceil(transactions.length / itemsPerPage);
     const pageIndices = getPageIndices(transactions, itemsPerPage, currentPageIndex);
 
@@ -82,7 +182,7 @@ export default class Transactions extends Component {
           {pageIndices.map((pageIndex, i) => {
             if (pageIndex === '...') {
               return (
-                <div key={pageIndex} className="transactions__page-control__ellipsis">...</div>
+                <div key={`${pageIndex}-${i}`} className="transactions__page-control__ellipsis">...</div>
               );
             }
 
@@ -105,16 +205,7 @@ export default class Transactions extends Component {
             })}
           />
         </div>
-        <div className="transactions__page-control__go-to">
-          <div className="transactions__page-control__go-to__text">Go To Page</div>
-          <Dropdown
-            className="transactions__page-control__go-to__dropdown"
-            items={Array(totalPages).fill(0).map((_, i) => ({ label: `${i + 1}` }))}
-            onChange={currentPageIndex => this.setState({ currentPageIndex })}
-            currentIndex={currentPageIndex}
-          />
-          <div className="transactions__page-control__go-to__total">of {totalPages}</div>
-        </div>
+        {this.renderGoTo(transactions)}
       </div>
     );
   }
@@ -134,7 +225,7 @@ function getPageIndices(transactions, itemsPerPage, currentPageIndex) {
 
   results.push(0);
 
-  for (let i = currentPageIndex - 2; i < currentPageIndex + 3; i++) {
+  for (let i = currentPageIndex - 1; i < currentPageIndex + 2; i++) {
     if (i >= 0 && i < totals) {
       results.push(i);
     }
@@ -144,7 +235,6 @@ function getPageIndices(transactions, itemsPerPage, currentPageIndex) {
   const pageIndices = [ ...new Set(results) ];
 
   const answer = [];
-
   pageIndices.forEach((pageIndex, index) => {
     if (index === 0) {
       answer.push(pageIndex);
@@ -152,11 +242,10 @@ function getPageIndices(transactions, itemsPerPage, currentPageIndex) {
     }
 
     if (pageIndices[index - 1] + 1 !== pageIndices[index]) {
-      answer.push('...')
+      answer.push('...');
     }
 
     answer.push(pageIndex);
   });
-
   return answer;
 }
