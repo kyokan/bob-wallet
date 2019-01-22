@@ -68,6 +68,7 @@ export default class Transactions extends Component {
       this.fuse = new Fuse(transactions, {
         keys: ['id', 'meta.to', 'meta.from', 'type', 'meta.domain', 'value'],
         shouldSort: false,
+        threshold: .3,
       });
     }
 
