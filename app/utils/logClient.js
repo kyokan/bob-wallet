@@ -17,6 +17,10 @@ export const log = () => {
   logClient.info(...arguments);
 };
 
+export const download = async () => {
+  return await logClient.download();
+};
+
 // export const info = msg => {
 //   return getClient()
 //     .then(client => {

@@ -17,12 +17,17 @@ export async function log() {
   logger.log(...arguments);
 }
 
+async function download() {
+  return logger.download();
+}
+
 const sName = 'Logger';
 const methods = {
   info,
   warn,
   error,
   log,
+  download,
 };
 
 export const clientStub = (ipcRendererInjector) => makeClient(ipcRendererInjector, sName, Object.keys(methods));

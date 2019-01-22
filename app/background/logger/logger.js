@@ -1,12 +1,11 @@
 import winston from 'winston';
 import { app } from 'electron';
-
-require('winston-daily-rotate-file');
+import fs from 'fs';
 
 const path = require('path');
 
 // Set up logger format
-const { combine, timestamp, printf } = winston.format;
+const { combine, timestamp, printf, colorize } = winston.format;
 
 const loggerFormat = printf(info => {
   let { timestamp, level, message } = info;
@@ -54,21 +53,31 @@ export async function log() {
   }
 }
 
+export async function download() {
+  const udPath = app.getPath('userData');
+  const outputDir = path.join(udPath, 'hsd_output');
+
+  const content1 = fs.readFileSync(`${outputDir}/combined1.log`, 'utf8');
+  const content = fs.readFileSync(`${outputDir}/combined.log`, 'utf8');
+
+  return content1 + '\n' + content;
+}
+
 export function startLogger() {
   const udPath = app.getPath('userData');
   const outputDir = path.join(udPath, 'hsd_output');
 
-  const transport = new (winston.transports.DailyRotateFile)({
-    filename: `${outputDir}/bob-%DATE%.log`,
-    datePattern: 'YYYY-MM-DD',
-    zippedArchive: true,
-    maxSize: '20m',
-    maxFiles: '14d'
+  const transport = new (winston.transports.File)({
+    filename: `${outputDir}/combined.log`,
+    maxsize: '10000',
+    maxFiles: '0',
+    tailable: true,
   });
 
   logger = winston.createLogger({
     format: combine(
       timestamp(),
+      colorize(),
       loggerFormat,
     ),
     transports: [

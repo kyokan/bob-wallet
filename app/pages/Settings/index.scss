@@ -50,3 +50,7 @@
     text-decoration: none;
   }
 }
+
+.settings__link {
+  @extend %link;
+}
