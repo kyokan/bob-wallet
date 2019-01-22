@@ -97,7 +97,7 @@ export async function start(net) {
     args.push(`--seeds=${SEEDS[network].join(',')}`);
   }
 
-  hsd = await executeBinDep('spawn', 'hsd', path.join('bin', 'node-pure-js'), args);
+  hsd = await executeBinDep('spawn', 'hsd', path.join('bin', 'node'), args);
   hsd.stdout.on('data', data => stdout.write(data));
   hsd.stderr.on('data', data => stderr.write(data));
 
