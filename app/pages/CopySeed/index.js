@@ -47,7 +47,6 @@ export default class CopySeed extends Component {
             Write down these 24 words on paper and keep it safe and secure. Do
             not email or screenshot your seed. <span className="import-learn-more-text" onClick={() => shell.openExternal('https://en.bitcoinwiki.org/wiki/Mnemonic_phrase')}>Learn more</span>
           </div>
-          
           <div className="import-enter__textarea-container">
             <textarea
               className="import_enter_textarea"
@@ -63,7 +62,7 @@ export default class CopySeed extends Component {
             'create-password__footer__removed-padding-top'
           ])}
         >
-          <button className="extension_cta_button terms_cta" onClick={onNext}>
+          <button className="extension_cta_button create_cta" onClick={onNext}>
             I've copied this somewhere safe
           </button>
         </div>

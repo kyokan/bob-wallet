@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Redirect, Route, Switch, withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import c from 'classnames';
 import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
 import SendModal from '../../components/SendModal';
@@ -70,7 +71,7 @@ class App extends Component {
         <Switch>
           <Route
             path="/login"
-            render={() => <AccountLogin className="app__login" />}
+            render={this.uninitializedWrapper(() => <AccountLogin className="app__login" />, true, true)}
           />
           <Route path="/funding-options" render={this.uninitializedWrapper(FundAccessOptions, true)} />
           <Route path="/existing-options" render={this.uninitializedWrapper(ExistingAccountOptions)} />
@@ -90,7 +91,7 @@ class App extends Component {
     );
   }
 
-  uninitializedWrapper(Component, isMainMenu = false) {
+  uninitializedWrapper(Component, isMainMenu = false, autoHeight = false) {
     const { history } = this.props;
     if (isMainMenu) {
       return () => (
@@ -105,7 +106,9 @@ class App extends Component {
               <NetworkPicker /> 
             </div>
           </div>
-          <div className="app__uninitialized"> 
+          <div className={c("app__uninitialized", {
+          "app__uninitialized--auto-height": autoHeight,
+          })}> 
             <Component />
           </div>
         </div>
@@ -126,7 +129,9 @@ class App extends Component {
             </div>
           </div>
         </div>
-        <div className="app__uninitialized"> 
+        <div className={c("app__uninitialized", {
+          "app__uninitialized--auto-height": autoHeight,
+        })}> 
           <Component />
         </div>
       </div>

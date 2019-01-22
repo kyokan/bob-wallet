@@ -3,6 +3,7 @@
 .login {
   @extend %col-nowrap;
   padding: 2rem;
+  flex: 1 1 auto;
 }
 
 .clickable {
@@ -53,10 +54,6 @@
     color: $azure-blue;
     cursor: pointer;
   }
-}
-
-.login_options_wrapper {
-  margin-bottom: 15px;
 }
 
 .login_cta {
