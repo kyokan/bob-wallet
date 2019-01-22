@@ -22,10 +22,10 @@ const SORT_BY_DROPDOWN = [
 ];
 
 const ITEM_PER_DROPDOWN = [
-  { label: 5, value: 5 },
-  { label: 10, value: 10 },
-  { label: 20, value: 20 },
-  { label: 50, value: 50 },
+  { label: '5', value: 5 },
+  { label: '10', value: 10 },
+  { label: '20', value: 20 },
+  { label: '50', value: 50 },
 ];
 
 @connect(
@@ -45,6 +45,12 @@ export default class Transactions extends Component {
     await this.props.fetchTransactions()
   }
 
+  componentWillReceiveProps(nextProps) {
+    if (this.props.transactions.length !== nextProps.transactions.length) {
+      this.fuse = null;
+    }
+  }
+
   state = {
     currentPageIndex: 0,
     itemsPerPage: 5,
@@ -55,13 +61,12 @@ export default class Transactions extends Component {
   handleOnChange = e => this.setState({ query: e.target.value, currentPageIndex: 0 });
 
   getTransactions() {
-    const { currentPageIndex, itemsPerPage, sortBy, query } = this.state;
-    let i = currentPageIndex * itemsPerPage;
-    let transactions = this.props.transactions;
+    const { sortBy, query } = this.state;
+    let transactions = this.props.transactions.slice();
 
     if (!this.fuse) {
       this.fuse = new Fuse(transactions, {
-        keys: ['id', 'meta.domain', 'meta.to', 'type', 'value'],
+        keys: ['id', 'meta.to', 'meta.from', 'type', 'meta.domain', 'value'],
         shouldSort: false,
       });
     }
@@ -71,7 +76,7 @@ export default class Transactions extends Component {
     }
 
     transactions = sortBy === 1
-      ? transactions.slice().reverse()
+      ? transactions.reverse()
       : transactions;
 
     return transactions;
@@ -87,7 +92,7 @@ export default class Transactions extends Component {
 
     if (!transactions.length) {
       result.push(
-        <div className="account__empty-list">
+        <div key="empty" className="transactions__empty-list">
           You do not have any transactions
         </div>
       );

@@ -117,6 +117,14 @@
 .transactions {
   @extend %col-nowrap;
 
+  &__empty-list {
+    text-align: center;
+    margin: 1rem auto;
+    color: rgba($black, 0.5);
+    font-size: 0.8rem;
+    font-style: italic;
+  }
+
   &__page-control {
     @extend %row-nowrap;
     align-items: center;
@@ -233,6 +241,7 @@
           padding: .25rem .5rem;
           font-size: .7rem;
           border-radius: .25rem;
+          height: .8rem;
 
           &::after {
             top: .3rem;
