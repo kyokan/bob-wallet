@@ -7,13 +7,25 @@
   width: 100vw;
   position: relative;
 
+  &__header {
+    @extend %row-nowrap;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 2px -2px rgba(0, 0, 0, 0.25);
+    height: 70px;
+    width: 100%;
+    padding: 0 2rem;
+    margin-bottom: 5rem;
+  }
+
   &__uninitialized-wrapper {
     width: 100vw;
     height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
   }
 
   &__uninitialized {
@@ -70,20 +82,14 @@
   }
 
   &__network-picker-wrapper {
-    position: absolute;
     @extend %row-nowrap;
     justify-content: center;
     align-items: center;
-    top: 1rem;
-    right: 1rem;
   }
 
   &__logo {
-    position: absolute;
     @extend %row-nowrap;
     align-items: baseline;
-    top: 1rem;
-    left: 1rem;
 
     &--alice {
       background-image: url('../../assets/images/alice.png');

@@ -79,34 +79,6 @@ class App extends Component {
           <Route path="/connect-ledger" render={this.uninitializedWrapper(ConnectLedgerFlow)} />
           {this.renderDefault()}
         </Switch>
-
-        // <div className="app__uninitialized-wrapper">
-        //   <div className="app__logo">
-        //     <div className="app__logo--text">
-        //       Allison x Bob
-        //     </div>
-        //   </div>
-        //   <div className="app__network-picker-wrapper">
-        //     <div className="app__cancel" onClick={() => history.push('/')}>
-        //       Back to Menu
-        //     </div>
-        //     <NetworkPicker /> 
-        //   </div>
-        //   <div className="app__uninitialized">
-        //     <Switch>
-        //       <Route
-        //         path="/login"
-        //         render={() => <AccountLogin className="app__login" />}
-        //       />
-        //       <Route path="/funding-options" render={FundAccessOptions} />
-        //       <Route path="/existing-options" render={ExistingAccountOptions} />
-        //       <Route path="/new-wallet" render={CreateNewAccount} />
-        //       <Route path="/import-seed" render={ImportSeedFlow} />
-        //       <Route path="/connect-ledger" render={ConnectLedgerFlow} />
-        //       {this.renderDefault()}
-        //     </Switch>
-        //   </div>
-        // </div>
       );
     }
 
@@ -123,13 +95,15 @@ class App extends Component {
     if (isMainMenu) {
       return () => (
         <div className="app__uninitialized-wrapper">
-          <div className="app__logo">
-            <div className="app__logo--text">
-              Allison x Bob
+          <div className="app__header">
+            <div className="app__logo">
+              <div className="app__logo--text">
+                Allison x Bob
+              </div>
             </div>
-          </div>
-          <div className="app__network-picker-wrapper">
-            <NetworkPicker /> 
+            <div className="app__network-picker-wrapper">
+              <NetworkPicker /> 
+            </div>
           </div>
           <div className="app__uninitialized"> 
             <Component />
@@ -140,14 +114,16 @@ class App extends Component {
     
     return () => (
       <div className="app__uninitialized-wrapper">
-        <div className="app__logo">
-          <div className="app__logo--text">
-            Allison x Bob
+        <div className="app__header">
+          <div className="app__logo">
+            <div className="app__logo--text">
+              Allison x Bob
+            </div>
           </div>
-        </div>
-        <div className="app__network-picker-wrapper">
-          <div className="app__cancel" onClick={() => history.push('/')}>
-            Return to Menu
+          <div className="app__network-picker-wrapper">
+            <div className="app__cancel" onClick={() => history.push('/')}>
+              Return to Menu
+            </div>
           </div>
         </div>
         <div className="app__uninitialized"> 
