@@ -69,7 +69,7 @@ export function startLogger() {
 
   const transport = new (winston.transports.File)({
     filename: `${outputDir}/combined.log`,
-    maxsize: '10000',
+    maxsize: '10000000',
     maxFiles: '0',
     tailable: true,
   });
