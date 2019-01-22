@@ -32,6 +32,7 @@ export default class BidHistory extends Component {
         date: createAMPMTimeStamp(bid.date),
         bid: bid.bid.value,
         mask: bid.bid.lockup,
+        own: bid.bid.own,
       }
     });
 
@@ -58,7 +59,7 @@ export default class BidHistory extends Component {
               return (
                 <tr key={fromAddress}>
                   <td>{month}/{day}/{year}</td>
-                  <td>{ellipsify(fromAddress, 10)}</td>
+                  <td>{bid.own ? 'You' : ellipsify(fromAddress, 10)}</td>
                   <td>{typeof bid.bid === 'number' ? displayBalance(bid.bid, true) : 'Hidden Until Reveal'}</td>
                   <td>{displayBalance(bid.mask, true)}</td>
                 </tr>

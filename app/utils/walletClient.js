@@ -6,6 +6,7 @@ import MasterKey from 'hsd/lib/wallet/masterkey';
 
 const client = clientStub(() => require('electron').ipcRenderer);
 const Network = require('hsd/lib/protocol/network');
+const Mnemonic = require('hsd/lib/hd/mnemonic');
 
 const WALLET_ID = 'allison';
 
@@ -46,10 +47,12 @@ export function forNetwork(net) {
 
     createNewWallet: async (passphrase) => {
       await ret.reset();
+      const mnemonic = new Mnemonic({ bits: 256 });
       const options = {
         passphrase,
         witness: false,
-        watchOnly: false
+        watchOnly: false,
+        mnemonic: mnemonic.getPhrase(),
       };
       const res = await walletClient.createWallet(WALLET_ID, options);
       wallet = walletClient.wallet(WALLET_ID);
@@ -198,6 +201,11 @@ export function forNetwork(net) {
       } catch (e) {
         if (e.message.match(/wallet is locked/i)) {
           return true;
+        }
+
+        if (e.message.match(/address not found/i)) {
+          await setUnlockReceiveAddress(net, '');
+          return ret.isLocked();
         }
 
         throw e;

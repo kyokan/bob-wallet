@@ -75,6 +75,6 @@ export default class ImportSeedEnterMnemonic extends Component {
   }
 
   disableButton() {
-    return this.state.mnemonic.trim().split(' ').length !== 12;
+    return this.state.mnemonic.trim().split(' ').length !== 24;
   }
 }

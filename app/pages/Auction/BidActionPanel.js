@@ -16,6 +16,7 @@ import { showError, showSuccess } from '../../ducks/notifications';
 import Blocktime, { returnBlockTime } from '../../components/Blocktime';
 import SuccessModal from "../../components/SuccessModal";
 import Tooltipable from '../../components/Tooltipable';
+import * as logger from '../../utils/logClient';
 
 @connect(
   (state) => ({
@@ -125,6 +126,7 @@ class BidActionPanel extends Component {
       }
     } catch (e) {
       console.error(e);
+      logger.error(`Error received from BidActionPanel - handleCTA]\n\n${e.message}\n${e.stack}\n`);
       this.props.showError(errorMessage);
       return;
     } finally {

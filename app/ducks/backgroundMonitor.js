@@ -1,5 +1,6 @@
 import * as walletClient from '../utils/walletClient';
 import * as nodeClient from '../utils/nodeClient';
+import * as logger from '../utils/logClient';
 import { store } from '../store/configureStore';
 import { LOCK_WALLET, SET_PENDING_TRANSACTIONS } from './wallet';
 import { getInitializationState } from '../db/system';
@@ -81,6 +82,7 @@ export function createBackgroundMonitor() {
       await doPoll();
     } catch (e) {
       console.error('failed to poll', e);
+      logger.error(`[Error received from backgroundMoniotr.js - poll\n\n${e.message}\n${e.stack}\n`);
     }
 
     timeout = setTimeout(poll, 1000);

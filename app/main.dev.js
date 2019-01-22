@@ -9,10 +9,11 @@
  * `./app/main.prod.js` using webpack. This gives us some performance wins.
  *
  */
-import { app, BrowserWindow } from 'electron';
+import { app } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
+import showMainWindow from './mainWindow';
 
 export default class AppUpdater {
   constructor() {
@@ -21,8 +22,6 @@ export default class AppUpdater {
     autoUpdater.checkForUpdatesAndNotify();
   }
 }
-
-let mainWindow = null;
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -46,6 +45,7 @@ const installExtensions = async () => {
   ).catch(console.log);
 };
 
+
 app.on('ready', async () => {
   if (
     process.env.NODE_ENV === 'development' ||
@@ -54,33 +54,9 @@ app.on('ready', async () => {
     await installExtensions();
   }
 
-  mainWindow = new BrowserWindow({
-    show: false,
-    width: 1024,
-    height: 728
-  });
+  showMainWindow();
 
-  mainWindow.loadURL(`file://${__dirname}/app.html`);
-
-  // @TODO: Use 'ready-to-show' event
-  //        https://github.com/electron/electron/blob/master/docs/api/browser-window.md#using-ready-to-show-event
-  mainWindow.webContents.on('did-finish-load', () => {
-    if (!mainWindow) {
-      throw new Error('"mainWindow" is not defined');
-    }
-    if (process.env.START_MINIMIZED) {
-      mainWindow.minimize();
-    } else {
-      mainWindow.show();
-      mainWindow.focus();
-    }
-  });
-
-  mainWindow.on('closed', () => {
-    mainWindow = null;
-  });
-
-  const menuBuilder = new MenuBuilder(mainWindow);
+  const menuBuilder = new MenuBuilder();
   menuBuilder.buildMenu();
 
   // Remove this if your app does not use auto updates
@@ -91,7 +67,10 @@ app.on('ready', async () => {
   const node = require('./background/node');
   require('./background/ipc');
   node.setPaths();
+  const logger = require('./background/logger/logger');
+  logger.startLogger();
   require('./background/airdrop');
+  require('./background/logger/index');
   const db = require('./background/db');
   await db.open();
 

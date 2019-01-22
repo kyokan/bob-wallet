@@ -13,6 +13,7 @@ export const RECORD_TYPE = {
   DS: 'DS',
   OPENPGPKEY: 'OPENPGPKEY',
   NS: 'NS',
+  SRV: 'SRV',
 };
 
 export const DROPDOWN_TYPES = [
@@ -23,8 +24,8 @@ export const DROPDOWN_TYPES = [
   { label: RECORD_TYPE.MX },
   { label: RECORD_TYPE.NS },
   { label: RECORD_TYPE.TXT },
-
-  { label: RECORD_TYPE.OPENPGPKEY, disabled: true },
+  { label: RECORD_TYPE.OPENPGPKEY },
+  { label: RECORD_TYPE.SRV },
 ];
 
 // Action Types
@@ -245,7 +246,7 @@ function reducePendingTransactions(state, action) {
     const pendingCovenant = pendingOpMetasByHash[hash];
     const pendingOperationMeta = {};
 
-    if (pendingOp === 'UPDATE') {
+    if (pendingOp === 'UPDATE' || pendingOp === 'REGISTER') {
       pendingOperationMeta.data = pendingCovenant.items[2];
     }
 
