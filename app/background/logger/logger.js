@@ -60,7 +60,7 @@ export function startLogger() {
 
   const transport = new (winston.transports.DailyRotateFile)({
     filename: `${outputDir}/bob-%DATE%.log`,
-    datePattern: 'YYYY-MM-DD-HH',
+    datePattern: 'YYYY-MM-DD',
     zippedArchive: true,
     maxSize: '20m',
     maxFiles: '14d'
