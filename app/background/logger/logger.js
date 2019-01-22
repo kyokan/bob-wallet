@@ -77,7 +77,6 @@ export function startLogger() {
   logger = winston.createLogger({
     format: combine(
       timestamp(),
-      colorize(),
       loggerFormat,
     ),
     transports: [
