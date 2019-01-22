@@ -1,5 +1,6 @@
 import * as walletClient from '../utils/walletClient';
 import BigNumber from 'bignumber.js';
+import throttle from 'lodash.throttle';
 import * as namesDb from '../db/names';
 import { getInitializationState, setInitializationState } from '../db/system';
 
@@ -7,12 +8,16 @@ const SET_WALLET = 'app/wallet/setWallet';
 const UNLOCK_WALLET = 'app/wallet/unlockWallet';
 export const LOCK_WALLET = 'app/wallet/lockWallet';
 const SET_TRANSACTIONS = 'app/wallet/setTransactions';
+const INCREMENT_IDLE = 'app/wallet/incrementIdle';
+const RESET_IDLE = 'app/wallet/resetIdle';
 export const SET_PENDING_TRANSACTIONS = 'app/wallet/setPendingTransactions';
 
 export const NONE = 'NONE';
 export const LEDGER = 'LEDGER';
 export const IMPORTED = 'IMPORTED';
 export const ELECTRON = 'ELECTRON';
+
+let idleInterval;
 
 const initialState = {
   address: '',
@@ -24,7 +29,8 @@ const initialState = {
     confirmed: '0',
     unconfirmed: '0'
   },
-  transactions: []
+  transactions: [],
+  idle: 0,
 };
 
 export default function walletReducer(state = initialState, {type, payload}) {
@@ -62,6 +68,16 @@ export default function walletReducer(state = initialState, {type, payload}) {
       return {
         ...state,
         transactions: payload
+      };
+    case INCREMENT_IDLE:
+      return {
+        ...state,
+        idle: state.idle + 1,
+      };
+    case RESET_IDLE:
+      return {
+        ...state,
+        idle: 0,
       };
     default:
       return state;
@@ -209,6 +225,26 @@ export const fetchPendingTransactions = () => async (dispatch, getState) => {
     type: SET_PENDING_TRANSACTIONS,
     payload
   });
+};
+
+const incrementIdle = () => ({
+  type: INCREMENT_IDLE,
+});
+
+export const resetIdle = () => ({
+  type: RESET_IDLE,
+});
+
+export const watchActivity = () => dispatch => {
+  if (!idleInterval) {
+    // Increment idle once a minute
+    setInterval(() => dispatch(incrementIdle()), 60000);
+
+    // Reset idle time to zero on any activity, throttled by 5 seconds
+    const handler = throttle(() => dispatch(resetIdle()), 5000, { leading: true });
+    document.addEventListener('mousemove', handler);
+    document.addEventListener('keypress', handler);
+  }
 };
 
 // TODO: Make this method smarter

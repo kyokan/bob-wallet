@@ -1,0 +1,44 @@
+@import "../../variables";
+
+.idle-modal {
+  &__wrapper {
+    width: 15rem;
+    padding: 2rem 3rem;
+  }
+
+  &__title {
+    font-weight: 500;
+    font-size: 1.2rem;
+    text-align: center;
+  }
+
+  &__time {
+    padding: 1.5rem 2rem;
+    margin: 1rem 0;
+    background-color: rgba($black, .1);
+    color: $manatee-gray;
+    font-weight: 500;
+    font-size: 2rem;
+    text-align: center;
+    border-radius: 1rem;
+  }
+
+  &__actions {
+    @extend %row-nowrap;
+
+    &__extend {
+      @extend %btn-secondary;
+
+      flex: 1 0 auto;
+      margin-right: .25rem;
+    }
+
+    &__logout {
+      @extend %btn-primary;
+
+      flex: 1 0 auto;
+      margin-left: .25rem;
+    }
+
+  }
+}

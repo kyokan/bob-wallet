@@ -27,6 +27,7 @@ import * as node from '../../ducks/node';
 import Notification from '../../components/Notification';
 import SplashScreen from "../../components/SplashScreen";
 import NetworkPicker from '../NetworkPicker';
+import IdleModal from '../../components/IdleModal';
 
 class App extends Component {
   static propTypes = {
@@ -35,6 +36,7 @@ class App extends Component {
     initialized: PropTypes.bool.isRequired,
     fetchWallet: PropTypes.func.isRequired,
     startNode: PropTypes.func.isRequired,
+    watchActivity: PropTypes.func.isRequired,
     isChangingNetworks: PropTypes.bool.isRequired,
   };
 
@@ -46,6 +48,7 @@ class App extends Component {
     this.setState({isLoading: true});
     await this.props.startNode();
     await this.props.fetchWallet();
+    this.props.watchActivity();
     setTimeout(() => this.setState({isLoading: false}), 1000)
   }
 
@@ -59,7 +62,12 @@ class App extends Component {
       return <SplashScreen />;
     }
 
-    return <div className="app">{this.renderContent()}</div>;
+    return (
+      <div className="app">
+        <IdleModal />
+        {this.renderContent()}
+      </div>
+    );
   }
 
   renderContent() {
@@ -185,6 +193,7 @@ export default withRouter(
     }),
     dispatch => ({
       fetchWallet: () => dispatch(walletActions.fetchWallet()),
+      watchActivity: () => dispatch(walletActions.watchActivity()),
       startNode: () => dispatch(node.start()),
     })
   )(App)
