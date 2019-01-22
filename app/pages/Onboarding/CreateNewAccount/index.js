@@ -66,7 +66,7 @@ class CreateNewAccount extends Component {
           <BackUpSeedWarning
             currentStep={2}
             totalSteps={5}
-            onBack={() => this.setState({currentStep: TERMS_OF_USE})}
+            onBack={() => this.setState({currentStep: CREATE_PASSWORD})}
             onNext={async () => {
               this.setState({isLoading: true}) 
               await client.createNewWallet();
