@@ -189,7 +189,6 @@
     "hsd": "git://github.com/handshake-org/hsd.git#master",
     "level": "4.0.0",
     "levelup": "4.0.0",
-    "lodash.debounce": "^4.0.8",
     "lodash.isequal": "4.5.0",
     "lodash.throttle": "^4.1.1",
     "moment": "2.23.0",
