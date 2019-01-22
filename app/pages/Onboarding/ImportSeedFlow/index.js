@@ -35,7 +35,7 @@ class ImportSeedFlow extends Component {
       case TERM_OF_USE:
         return (
           <Terms
-            currentStep={1}
+            currentStep={0}
             totalSteps={4}
             onAccept={() => this.setState({currentStep: WARNING_STEP})}
             onBack={() => this.props.history.push('/existing-options')}
@@ -44,7 +44,7 @@ class ImportSeedFlow extends Component {
       case WARNING_STEP:
         return (
           <ImportSeedWarning
-            currentStep={2}
+            currentStep={1}
             totalSteps={4}
             onBack={() => this.goTo(TERM_OF_USE)}
             onNext={() => this.goTo(CREATE_PASSWORD)}
@@ -54,7 +54,7 @@ class ImportSeedFlow extends Component {
       case CREATE_PASSWORD:
         return (
           <CreatePassword
-            currentStep={3}
+            currentStep={2}
             totalSteps={4}
             onBack={() => this.setState({currentStep: WARNING_STEP})}
             onNext={passphrase => {
@@ -69,7 +69,7 @@ class ImportSeedFlow extends Component {
       case ENTRY_STEP:
         return (
           <ImportSeedEnterMnemonic
-            currentStep={4}
+            currentStep={3}
             totalSteps={4}
             onBack={() => this.goTo(CREATE_PASSWORD)}
             onNext={this.finishFlow}
