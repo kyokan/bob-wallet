@@ -51,13 +51,13 @@ export default class Dropdown extends Component {
           </div>
         </div>
         <div className="dropdown__options">
-          {items.map(({ label, disabled }, i) => (
+          {items.map(({ label, disabled, value }, i) => (
             <div
               key={i}
               className={c('dropdown__option', {
                 'dropdown__option--disabled': disabled,
               })}
-              onClick={() => !disabled && this.select(i)}
+              onClick={() => !disabled && this.select(value || i)}
             >
               {label}
             </div>

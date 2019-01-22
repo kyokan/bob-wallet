@@ -129,6 +129,11 @@
       align-items: center;
     }
 
+    &__dropdowns {
+      @extend %row-nowrap;
+      align-items: center;
+    }
+
     &__start,
     &__end,
     &__page {
@@ -202,13 +207,23 @@
     }
   }
 
+  &__items-per {
+    &__dropdown {
+      margin-right: 1rem !important;
+
+      .dropdown__current-item {
+        width: 2rem !important;
+      }
+    }
+  }
+
   &__go-to {
     @extend %row-nowrap;
     align-items: center;
     font-size: .65rem;
 
     &__dropdown {
-      margin: 0 .5rem;
+      margin-left: .5rem;
 
       .dropdown {
         align-self: center;
@@ -248,6 +263,10 @@
           }
         }
       }
+    }
+
+    &__total {
+      margin-left: .5rem;
     }
   }
 }
