@@ -39,6 +39,8 @@ class CreateNewAccount extends Component {
       case TERMS_OF_USE:
         return (
           <Terms
+            currentStep={1}
+            totalSteps={5}
             onAccept={async () => {
               this.setState({
                 currentStep: CREATE_PASSWORD
@@ -50,8 +52,8 @@ class CreateNewAccount extends Component {
       case CREATE_PASSWORD:
         return (
           <CreatePassword
-            currentStep={1}
-            totalSteps={4}
+            currentStep={2}
+            totalSteps={5}
             onBack={() => this.setState({currentStep: TERMS_OF_USE})}
             onNext={async passphrase => {
               this.setState({currentStep: BACK_UP_SEED_WARNING, passphrase});
@@ -62,8 +64,8 @@ class CreateNewAccount extends Component {
       case BACK_UP_SEED_WARNING:
         return (
           <BackUpSeedWarning
-            currentStep={2}
-            totalSteps={4}
+            currentStep={3}
+            totalSteps={5}
             onBack={() => this.setState({currentStep: TERMS_OF_USE})}
             onNext={async () => {
               this.setState({isLoading: true}) 
@@ -79,8 +81,8 @@ class CreateNewAccount extends Component {
       case COPY_SEEDPHRASE:
         return (
           <CopySeed
-            currentStep={3}
-            totalSteps={4}
+            currentStep={4}
+            totalSteps={5}
             seedphrase={this.state.seedphrase}
             onBack={() => this.setState({currentStep: BACK_UP_SEED_WARNING})}
             onNext={() => this.setState({currentStep: CONFIRM_SEEDPHRASE})}
@@ -90,8 +92,8 @@ class CreateNewAccount extends Component {
       case CONFIRM_SEEDPHRASE:
         return (
           <ConfirmSeed
-            currentStep={4}
-            totalSteps={4}
+            currentStep={5}
+            totalSteps={5}
             seedphrase={this.state.seedphrase}
             onBack={() => this.setState({currentStep: COPY_SEEDPHRASE})}
             onNext={async () => {

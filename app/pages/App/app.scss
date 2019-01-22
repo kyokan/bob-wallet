@@ -71,7 +71,51 @@
 
   &__network-picker-wrapper {
     position: absolute;
+    @extend %row-nowrap;
+    justify-content: center;
+    align-items: center;
     top: 1rem;
     right: 1rem;
+  }
+
+  &__logo {
+    position: absolute;
+    @extend %row-nowrap;
+    align-items: baseline;
+    top: 1rem;
+    left: 1rem;
+
+    &--alice {
+      background-image: url('../../assets/images/alice.png');
+      height: 219px * 0.3;
+      width: 130px * 0.3;
+      background-position: center;
+      background-size: cover;
+    }
+
+    &--bob {
+      background-image: url('../../assets/images/the-cat.png');
+      height: 109px * 0.3;
+      width: 75px * 0.3;
+      background-position: center;
+      background-size: cover;
+    }
+
+    &--text {
+      @extend %h1;
+      text-align: center;
+      font-weight: 800;
+      font-style: italic;
+      line-height: 1.5rem;
+    }
+  }
+
+  &__cancel {
+    margin-right: 1rem;
+    font-size: 0.8rem;
+    color: $azure-blue;
+    font-weight: 500;
+    transition: color 200ms ease-in-out;
+    cursor: pointer;
   }
 }
