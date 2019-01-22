@@ -40,8 +40,6 @@ class SendModal extends Component {
   };
 
   state = {
-    step1: true,
-    step2: false,
     selectedGasOption: STANDARD,
     isConfirming: false,
     transactionSent: false,
@@ -113,6 +111,19 @@ class SendModal extends Component {
     return amount;
   }
 
+  resetState() {
+    this.setState({     
+      selectedGasOption: STANDARD,
+      isConfirming: false,
+      transactionSent: false,
+      isSending: false,
+      to: '',
+      amount: '',
+      errorMessage: '',
+      addressError: false,
+    })
+  }
+
   renderSend() {
     const { selectedGasOption, amount, to } = this.state;
     const { isValid } = this.validate();
@@ -120,13 +131,10 @@ class SendModal extends Component {
 
     return (
       <div className="send__container">
-        <div className="send__progress-bar">
-          <div className="send__progress-bar__dot" />
-          <div className={c("send__progress-bar__dot", {
-            "send__progress-bar__dot--empty": !this.state.isConfirming
-          })}/>
-        </div>
         <div className="send__content">
+          <div className="send__header">
+            <div className="send__title">Send Funds</div>
+          </div>
           <Alert type="error" message={this.state.errorMessage} />
           <div className="send__to">
             <div className="send__label">Sending to</div>
@@ -199,6 +207,12 @@ class SendModal extends Component {
             Continue
           </button>
         </div>
+        <div className="send__progress-bar">
+          <div className="send__progress-bar__dot" />
+          <div className={c("send__progress-bar__dot", {
+            "send__progress-bar__dot--empty": !this.state.isConfirming
+          })}/>
+        </div>
       </div>
     );
   }
@@ -216,13 +230,10 @@ class SendModal extends Component {
 
     return (
       <div className="send__container">
-        <div className="send__progress-bar">
-          <div className="send__progress-bar__dot" />
-          <div className={c("send__progress-bar__dot", {
-            "send__progress-bar__dot--empty": !this.state.isConfirming
-          })}/>
-        </div>
         <div className="send__content">
+          <div className="send__header">
+            <div className="send__title">Confirm Transaction</div>
+          </div>
           <Alert type="error" message={this.state.errorMessage} />
           <div className="send__confirm__to">
             <div className="send__confirm__label">Sending to</div>
@@ -278,6 +289,12 @@ class SendModal extends Component {
             {isSending ? <div className="send__confirm__spinner" /> : 'Confirm'}
           </button>
         </div>
+        <div className="send__progress-bar">
+          <div className="send__progress-bar__dot" />
+          <div className={c("send__progress-bar__dot", {
+            "send__progress-bar__dot--empty": !this.state.isConfirming
+          })}/>
+        </div>
       </div>
     );
   }
@@ -298,7 +315,7 @@ class SendModal extends Component {
             Your balance will update as soon as the blockchain has confirmed
             your transaction.
           </div>
-          <div className="send__sent__details">See Details</div>
+          <div className="send__sent__details" onClick={() => this.resetState()}>Create New Transaction</div>
         </div>
       </div>
     );

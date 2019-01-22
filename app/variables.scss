@@ -73,9 +73,9 @@ $school-bus-yellow: #ffe000;
   }
 
   &:disabled {
-    border-color: $grey;
-    background-color: $grey;
-    color: $manatee-gray;
+    border: 1px solid rgba($azure-blue, .0);
+    background-color: rgba($azure-blue, .25);
+    color: $white;
     cursor: default;
   }
 }
@@ -127,7 +127,7 @@ $school-bus-yellow: #ffe000;
 
 %box-input {
   box-shadow: 0 0 0 1.25px $athens-gray;
-  // background-color: $athens-gray;
+  background-color: $athens-gray;
   padding: 0.6rem 0.75rem;
   border-radius: 0.25rem;
   font-size: 0.85rem;
@@ -150,7 +150,7 @@ $school-bus-yellow: #ffe000;
     width: 0;
     font-size: 0.85rem;
     border: none;
-    // background-color: $athens-gray;
+    background-color: $athens-gray;
 
     &::-webkit-input-placeholder {
       font-weight: 400;

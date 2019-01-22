@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import Transactions from '../../components/Transactions';
 import './account.scss';
 import { displayBalance } from '../../utils/balances';
+import Tooltipable from '../../components/Tooltipable';
 
 @connect(
   (state) => ({
@@ -34,7 +35,9 @@ export default class Account extends Component {
           <div className="account__header-section">
             <div className="account__address">
               <div>Unlocked Balance</div>
-              <div className="account__info-icon" />
+              <Tooltipable tooltipContent="Unlocked balance equals your current balance that's written on the HNS blockchain. It does not reflect pending transactions." >
+                <div className="account__info-icon" />
+              </Tooltipable>
             </div>
             <div className="account__balance-wrapper">
               <div className="account__balance-wrapper__amount">{`HNS ${displayBalance(confirmedBalance)}`}</div>

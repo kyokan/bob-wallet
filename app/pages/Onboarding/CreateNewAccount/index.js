@@ -29,6 +29,7 @@ class CreateNewAccount extends Component {
     currentStep: TERMS_OF_USE,
     seedphrase: '',
     pasphrase: '',
+    isLoading: false,
   };
 
   render() {
@@ -38,6 +39,8 @@ class CreateNewAccount extends Component {
       case TERMS_OF_USE:
         return (
           <Terms
+            currentStep={0}
+            totalSteps={5}
             onAccept={async () => {
               this.setState({
                 currentStep: CREATE_PASSWORD
@@ -50,7 +53,7 @@ class CreateNewAccount extends Component {
         return (
           <CreatePassword
             currentStep={1}
-            totalSteps={4}
+            totalSteps={5}
             onBack={() => this.setState({currentStep: TERMS_OF_USE})}
             onNext={async passphrase => {
               this.setState({currentStep: BACK_UP_SEED_WARNING, passphrase});
@@ -62,22 +65,24 @@ class CreateNewAccount extends Component {
         return (
           <BackUpSeedWarning
             currentStep={2}
-            totalSteps={4}
-            onBack={() => this.setState({currentStep: TERMS_OF_USE})}
+            totalSteps={5}
+            onBack={() => this.setState({currentStep: CREATE_PASSWORD})}
             onNext={async () => {
+              this.setState({isLoading: true}) 
               await client.createNewWallet();
               const masterHDKey = await client.getMasterHDKey();
               await client.setPassphrase(this.state.passphrase);
-              this.setState({currentStep: COPY_SEEDPHRASE, seedphrase: masterHDKey.mnemonic.phrase})
+              this.setState({currentStep: COPY_SEEDPHRASE, seedphrase: masterHDKey.mnemonic.phrase, isLoading: false})
             }}
             onCancel={() => this.props.history.push('/funding-options')}
+            isLoading={this.state.isLoading}
           />
         );
       case COPY_SEEDPHRASE:
         return (
           <CopySeed
             currentStep={3}
-            totalSteps={4}
+            totalSteps={5}
             seedphrase={this.state.seedphrase}
             onBack={() => this.setState({currentStep: BACK_UP_SEED_WARNING})}
             onNext={() => this.setState({currentStep: CONFIRM_SEEDPHRASE})}
@@ -88,7 +93,7 @@ class CreateNewAccount extends Component {
         return (
           <ConfirmSeed
             currentStep={4}
-            totalSteps={4}
+            totalSteps={5}
             seedphrase={this.state.seedphrase}
             onBack={() => this.setState({currentStep: COPY_SEEDPHRASE})}
             onNext={async () => {

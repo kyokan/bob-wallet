@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Redirect, Route, Switch, withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import c from 'classnames';
 import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
 import SendModal from '../../components/SendModal';
@@ -71,29 +72,22 @@ class App extends Component {
   }
 
   renderContent() {
-    const {isLocked, initialized} = this.props;
+    const { isLocked, initialized } = this.props;
 
     if (isLocked || !initialized) {
       return (
-        <div className="app__uninitialized-wrapper">
-          <div className="app__network-picker-wrapper">
-            <NetworkPicker />
-          </div>
-          <div className="app__uninitialized">
-            <Switch>
-              <Route
-                path="/login"
-                render={() => <AccountLogin className="app__login" />}
-              />
-              <Route path="/funding-options" render={FundAccessOptions} />
-              <Route path="/existing-options" render={ExistingAccountOptions} />
-              <Route path="/new-wallet" render={CreateNewAccount} />
-              <Route path="/import-seed" render={ImportSeedFlow} />
-              <Route path="/connect-ledger" render={ConnectLedgerFlow} />
-              {this.renderDefault()}
-            </Switch>
-          </div>
-        </div>
+        <Switch>
+          <Route
+            path="/login"
+            render={this.uninitializedWrapper(() => <AccountLogin className="app__login" />, true, true)}
+          />
+          <Route path="/funding-options" render={this.uninitializedWrapper(FundAccessOptions, true)} />
+          <Route path="/existing-options" render={this.uninitializedWrapper(ExistingAccountOptions)} />
+          <Route path="/new-wallet" render={this.uninitializedWrapper(CreateNewAccount)} />
+          <Route path="/import-seed" render={this.uninitializedWrapper(ImportSeedFlow)} />
+          <Route path="/connect-ledger" render={this.uninitializedWrapper(ConnectLedgerFlow)} />
+          {this.renderDefault()}
+        </Switch>
       );
     }
 
@@ -103,6 +97,53 @@ class App extends Component {
         {this.renderRoutes()}
       </React.Fragment>
     );
+  }
+
+  uninitializedWrapper(Component, isMainMenu = false, autoHeight = false) {
+    const { history } = this.props;
+    if (isMainMenu) {
+      return () => (
+        <div className="app__uninitialized-wrapper">
+          <div className="app__header">
+            <div className="app__logo">
+              <div className="app__logo--text">
+                Allison x Bob
+              </div>
+            </div>
+            <div className="app__network-picker-wrapper">
+              <NetworkPicker /> 
+            </div>
+          </div>
+          <div className={c("app__uninitialized", {
+          "app__uninitialized--auto-height": autoHeight,
+          })}> 
+            <Component />
+          </div>
+        </div>
+      ) 
+    } 
+    
+    return () => (
+      <div className="app__uninitialized-wrapper">
+        <div className="app__header">
+          <div className="app__logo">
+            <div className="app__logo--text">
+              Allison x Bob
+            </div>
+          </div>
+          <div className="app__network-picker-wrapper">
+            <div className="app__cancel" onClick={() => history.push('/')}>
+              Return to Menu
+            </div>
+          </div>
+        </div>
+        <div className={c("app__uninitialized", {
+          "app__uninitialized--auto-height": autoHeight,
+        })}> 
+          <Component />
+        </div>
+      </div>
+      )
   }
 
   renderRoutes() {

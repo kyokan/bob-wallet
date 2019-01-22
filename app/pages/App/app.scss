@@ -7,21 +7,37 @@
   width: 100vw;
   position: relative;
 
+  &__header {
+    @extend %row-nowrap;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 2px -2px rgba(0, 0, 0, 0.25);
+    height: 70px;
+    width: 100%;
+    padding: 0 2rem;
+    margin-bottom: 5rem;
+  }
+
   &__uninitialized-wrapper {
     width: 100vw;
     height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
   }
 
   &__uninitialized {
     width: 400px;
-    height: 500px;
+    height: 480px;
     background: white;
     box-shadow: 0 1px 8px rgba(0, 0, 0, 0.25);
     border-radius: 0.5rem;
+
+    &--auto-height {
+      height: auto;
+    }
   }
 
   &__sidebar-wrapper {
@@ -70,8 +86,46 @@
   }
 
   &__network-picker-wrapper {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
+    @extend %row-nowrap;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__logo {
+    @extend %row-nowrap;
+    align-items: baseline;
+
+    &--alice {
+      background-image: url('../../assets/images/alice.png');
+      height: 219px * 0.3;
+      width: 130px * 0.3;
+      background-position: center;
+      background-size: cover;
+    }
+
+    &--bob {
+      background-image: url('../../assets/images/the-cat.png');
+      height: 109px * 0.3;
+      width: 75px * 0.3;
+      background-position: center;
+      background-size: cover;
+    }
+
+    &--text {
+      @extend %h1;
+      text-align: center;
+      font-weight: 800;
+      font-style: italic;
+      line-height: 1.5rem;
+    }
+  }
+
+  &__cancel {
+    margin-right: 1rem;
+    font-size: 0.8rem;
+    color: $azure-blue;
+    font-weight: 500;
+    transition: color 200ms ease-in-out;
+    cursor: pointer;
   }
 }

@@ -4,11 +4,14 @@ import c from 'classnames';
 import { connect } from 'react-redux';
 // import * as auctions.js from '../../../ducks/extension';
 import './terms.scss';
+import WizardHeader from '../../../components/WizardHeader';
 
 export default class Terms extends Component {
   static propTypes = {
     onAccept: PropTypes.func.isRequired,
-    onBack: PropTypes.func.isRequired
+    onBack: PropTypes.func.isRequired,
+    currentStep: PropTypes.number.isRequired,
+    totalSteps: PropTypes.number.isRequired,
   };
 
   state = {
@@ -18,14 +21,12 @@ export default class Terms extends Component {
   toggleTerms = () => this.setState({ hasAccepted: !this.state.hasAccepted });
 
   render() {
-    const { onAccept } = this.props;
+    const { onAccept, currentStep, totalSteps, onBack } = this.props;
     const { hasAccepted } = this.state;
 
     return (
       <div className="terms">
-        <div className="terms__header">
-          <i className="arrow left clickable" onClick={this.props.onBack} />
-        </div>
+        <WizardHeader currentStep={currentStep} totalSteps={totalSteps} onBack={onBack}/>
         <div className="terms__content">
           <div className="terms__header_text">Terms of Use</div>
           <div className="terms_subheader">

@@ -46,7 +46,7 @@ export default class ConnectLedger extends Component {
             {barSegments}
           </span>
           <span className="status__step-number">
-            {`${currentStep}/${totalSteps}`}
+            {`${currentStep + 1}/${totalSteps}`}
           </span>
         </div>
     );

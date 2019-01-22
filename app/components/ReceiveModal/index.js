@@ -32,14 +32,17 @@ export default class ReceiveModal extends Component {
 
     return isShowingAddress ? (
       <div className="receive__content">
-        <div className="receive__qr-code">
-          <QRCode value={address} />
+        <div className="receive__header">
+          <div className="receive__title">Your Address:</div>
         </div>
-        <div className="receive__disclaimer">Your Address:</div>
         <div className="receive__address-display">
           <div className="receive__address">{address}</div>
           <CopyButton content={address} />
         </div>
+        <div className="receive__qr-code">
+          <QRCode value={address} />
+        </div>
+        {/* <div className="receive__disclaimer">Your Address:</div> */}
         <div className="receive__disclaimer">
           This QR code can be scanned by the person who is sending you HNS
           coins.

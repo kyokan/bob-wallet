@@ -66,15 +66,13 @@ export default class AccountLogin extends Component {
         >
           Unlock Wallet
         </button>
-        <div className="login_options_wrapper">
-          <div className="login_subheader_text">Forgot your password?</div>
-          <Link
-            to="/import-seed"
-            className="login_subheader_text login_subheader_text__accent"
-          >
-            Restore with your seed phrase
-          </Link>
-        </div>
+        <div className="login_subheader_text">Forgot your password?</div>
+        <Link
+          to="/import-seed"
+          className="login_subheader_text login_subheader_text__accent"
+        >
+          Restore with your seed phrase
+        </Link>
       </div>
     );
   }

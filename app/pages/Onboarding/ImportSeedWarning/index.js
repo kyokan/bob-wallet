@@ -53,7 +53,7 @@ class ImportSeedWarning extends Component {
           onCancel={this.props.onCancel}
         />
         <div className="create-password__content">
-          <div className="header_text">Import your recovery seed phrase</div>
+          <div className="backup-warning__header_text">Import your recovery seed phrase</div>
 
           <div className="import_warning_text">
             <span>

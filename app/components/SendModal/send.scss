@@ -4,9 +4,9 @@
 
   &__container {
     max-width: 30rem;
-    // border: 1px solid rgba(0, 0, 0, 0.15);
-    // border-radius: 0.6rem;
-    padding: 1rem;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 0.6rem;
+    padding: 2rem;
     margin: 0 auto;
   }
 
@@ -364,7 +364,7 @@
 
   &__progress-bar {
     @extend %row-nowrap;
-    margin-bottom: 2rem;
+    margin-top: 2rem;
     flex: 1 1 auto;
     justify-content: center;
     align-items: center;

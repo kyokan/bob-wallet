@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { shell } from 'electron'
 import ProofModal from '../../components/ProofModal/index';
 import './get-coins.scss';
 
@@ -60,9 +61,10 @@ export default class GetCoins extends Component {
             If you had 15 or more followers on GitHub during the week of 2018-08-27, your GitHub SSH & PGP keys are included in the Handshake network’s merkle tree. Likewise, roughly 30,000 keys from the PGP WOT Strongset have also been included in the tree. You’ll receive 2500 HNS for each proof.
           </p>
           <p>
-            <a href="https://github.com" target="_blank">
+            <div className="get-coins__link" onClick={() => shell.openExternal('https://github.com')}>
               See full details on GitHub
-            </a>
+            </div>
+            
           </p>
           <h2>Privacy (GooSig)</h2>
           <p>
@@ -87,9 +89,9 @@ export default class GetCoins extends Component {
             javascript, but has since been implemented in C as well.
           </p>
           <p>
-            <a href="https://github.com" target="_blank">
+            <div className="get-coins__link" onClick={() => shell.openExternal('https://github.com')}>  
               See full details on GitHub
-            </a>
+            </div>
           </p>
         </div>
         <div className="get-coins__right">

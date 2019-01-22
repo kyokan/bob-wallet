@@ -30,11 +30,6 @@ export default class WizardHeader extends Component {
               onClick={onBack}
             />
           ))}
-          {this.maybeRender(onCancel, () => (
-            <span className="wizard-header__cancel" onClick={onCancel}>
-              Cancel
-            </span>
-          ))}
         </div>
         {showStatusbar && (
           <div className="wizard-header__status-bar">
