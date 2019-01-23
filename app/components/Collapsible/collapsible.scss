@@ -8,12 +8,26 @@
     align-items: center;
 
     &__title {
+      @extend %row-nowrap;
       flex: 1 1 auto;
       width: 0;
     }
 
     &__toggle {
       @extend %link;
+      font-size: .8rem;
+      font-weight: 400;
+    }
+
+    &__pill {
+      font-size: 0.7rem;
+      padding: 0.25rem 0.75rem;
+      background-color: rgba($azure-blue, 0.15);
+      color: $azure-blue;
+      font-weight: 700;
+      border-radius: 0.5rem;
+      transition: background-color 200ms ease-in-out;
+      margin-left: 0.5rem;
     }
 
   }
@@ -33,5 +47,4 @@
       transition: 0.5s ease-out;
     }
   }
-
 }

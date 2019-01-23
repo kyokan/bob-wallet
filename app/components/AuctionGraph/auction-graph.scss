@@ -2,11 +2,25 @@
 
 .auction-graph {
   @extend %row-nowrap;
+  position: relative;
   justify-content: center;
   flex: 1 1 auto;
   background-color: rgba($athens-gray, .6);
-  padding: 2rem 2.5rem;
+  padding: 3.5rem 3rem 2rem 3rem;
   border-radius: 1.5rem;
+
+  &__current-block {
+    @extend %h7;
+    position: absolute;
+    top: 1.5rem;
+    left: 3rem;
+    padding: 0.25rem 0.75rem;
+    background-color: rgba($azure-blue, 0.15);
+    color: $azure-blue;
+    font-weight: 700;
+    border-radius: 0.5rem;
+    transition: background-color 200ms ease-in-out;
+  }
 
   &__column {
     @extend %col-nowrap;
