@@ -63,6 +63,14 @@ export async function download() {
   return content1 + '\n' + content;
 }
 
+// function readfile(path) {
+//   return new Promise((resolve, reject) => {
+//     fs.readFile(path, 'utf8', (e, data) => {
+//       console
+//     })
+//   })
+// }
+
 export function startLogger() {
   const udPath = app.getPath('userData');
   const outputDir = path.join(udPath, 'hsd_output');

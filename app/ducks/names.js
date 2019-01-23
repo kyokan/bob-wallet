@@ -226,12 +226,14 @@ function reduceSetName(state, action) {
 function reducePendingTransactions(state, action) {
   const pendingOperationsByHash = {};
   const pendingOpMetasByHash = {};
+  const pendingOutputByHash = {};
 
   for (const tx of action.payload) {
     for (const output of tx.outputs) {
       if (ALLOWED_COVENANTS.has(output.covenant.action)) {
         pendingOperationsByHash[output.covenant.items[0]] = output.covenant.action;
         pendingOpMetasByHash[output.covenant.items[0]] = output.covenant;
+        pendingOutputByHash[output.covenant.items[0]] = output;
         break;
       }
     }
@@ -244,10 +246,15 @@ function reducePendingTransactions(state, action) {
     const hash = data.hash;
     const pendingOp = pendingOperationsByHash[hash];
     const pendingCovenant = pendingOpMetasByHash[hash];
+    const pendingOutput = pendingOutputByHash[hash];
     const pendingOperationMeta = {};
 
     if (pendingOp === 'UPDATE' || pendingOp === 'REGISTER') {
       pendingOperationMeta.data = pendingCovenant.items[2];
+    }
+
+    if (pendingOp === 'REVEAL') {
+      pendingOperationMeta.output = pendingOutput;
     }
 
     newNames[name] = {

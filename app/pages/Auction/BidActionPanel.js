@@ -106,7 +106,7 @@ class BidActionPanel extends Component {
       return this.renderOpenBid();
     }
 
-    if (isReveal(domain) || domain.pendingOperation === 'REVEAL') {
+    if (isReveal(domain)) {
       return this.renderRevealing(ownBid);
     }
 
@@ -586,7 +586,6 @@ class BidActionPanel extends Component {
   findOwnBid() {
     for (const {bid, height} of this.props.domain.bids) {
       if (bid.own) {
-        console.log(height, this.props.domain.info.height)
         return bid;
       }
     }
@@ -595,6 +594,10 @@ class BidActionPanel extends Component {
   }
 
   findOwnReveal() {
+    if (this.props.domain.pendingOperation === 'REVEAL') {
+      return this.props.domain.pendingOperationMeta.output;
+    }
+
     for (const reveal of this.props.domain.reveals) {
       if (reveal.bid.own) {
         return reveal;

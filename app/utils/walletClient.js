@@ -69,6 +69,7 @@ export function forNetwork(net) {
       };
       const res = await walletClient.createWallet(WALLET_ID, options);
       wallet = walletClient.wallet(WALLET_ID);
+      await walletClient.rescan(0);
       return res;
     },
 

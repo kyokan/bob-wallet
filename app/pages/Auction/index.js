@@ -6,6 +6,7 @@ import cn from 'classnames';
 import moment from 'moment';
 
 import * as names from '../../ducks/names';
+import * as walletActions from '../../ducks/wallet';
 import { isAvailable, isBidding, isClosed, isOpening, isReserved, isReveal, } from '../../utils/name-helpers';
 import { OwnedInfo, ReserveInfo, SoldInfo, PendingRenewInfo } from './info';
 import BidActionPanel from './BidActionPanel';
@@ -33,6 +34,7 @@ import './domains.scss';
     showSuccess: (message) => dispatch(showSuccess(message)),
     showError: (message) => dispatch(showError(message)),
     sendRedeem: tld => dispatch(names.sendRedeem(tld)),
+    fetchPendingTransactions: () => dispatch(walletActions.fetchPendingTransactions()),
   }),
 )
 export default class Auction extends Component {
@@ -53,6 +55,7 @@ export default class Auction extends Component {
     sendRedeem: PropTypes.func.isRequired,
     showSuccess: PropTypes.func.isRequired,
     showError: PropTypes.func.isRequired,
+    fetchPendingTransactions: PropTypes.func.isRequired,
     domain: PropTypes.object,
     chain: PropTypes.object,
   };
@@ -60,7 +63,8 @@ export default class Auction extends Component {
   async componentWillMount() {
     try {
       this.setState({ isLoading: true });
-      await this.props.getNameInfo(this.getDomain())
+      await this.props.getNameInfo(this.getDomain());
+      await this.props.fetchPendingTransactions();
     } catch (e) {
       this.showError('Something went wrong fetching this name. Please try again.');
     } finally {
