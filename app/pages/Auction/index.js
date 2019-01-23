@@ -195,12 +195,14 @@ export default class Auction extends Component {
   }
 
   maybeRenderCollapsibles() {
-    const domain = this.props.domain;
+    const domain = this.props.domain || {};
+    const bids = domain.bids || domain.reveals || [];
+    const pillContent = bids.length === 1 ? `${bids.length} bid` : `${bids.length} bids`
 
     if (isAvailable(domain) || isOpening(domain) || isBidding(domain) || isReveal(domain)) {
       return (
         <React.Fragment>
-          <Collapsible className="domains__content__info-panel" title="Bid History" defaultCollapsed>
+          <Collapsible className="domains__content__info-panel" title="Bid History" pillContent={pillContent} defaultCollapsed>
           { this.props.domain ? 
             <BidHistory bids={this.props.domain.bids} reveals={this.props.domain.reveals} /> : 
             'Loading...'

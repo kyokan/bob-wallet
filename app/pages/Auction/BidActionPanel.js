@@ -72,11 +72,11 @@ class BidActionPanel extends Component {
         {this.renderActionPanel()}
         <div className="domains__watch">
           <div className={c("domains__watch__heart-icon", {
-                "domains__watch__heart-icon--active": this.state.isWatching
-                })} onClick={() => {
-                  isWatching ? this.props.unwatchDomain(name, network) : this.props.watchDomain(name, network);
-                  this.setState({ isWatching: !isWatching })
-                }}/>
+            "domains__watch__heart-icon--active": this.state.isWatching
+            })} onClick={() => {
+              isWatching ? this.props.unwatchDomain(name, network) : this.props.watchDomain(name, network);
+              this.setState({ isWatching: !isWatching })
+            }}/>
           <div className="domains__watch__text">{this.state.isWatching ? 'Added to Watchlist' : 'Add to Watchlist'}</div>
         </div>
       </React.Fragment>
@@ -209,7 +209,7 @@ class BidActionPanel extends Component {
           {this.renderInfoRow('Highest Mask', displayBalance(this.findHighestMaskBid(), true))}
           <div className="domains__bid-now-divider" />
           {this.renderInfoRow('Bid Amount', displayBalance(ownBid.value, true))}
-          {this.renderInfoRow('Mask Amount', displayBalance(ownBid.lockup, true))}
+          {this.renderInfoRow('Disguise Amount', displayBalance(ownBid.lockup, true))}
           {this.renderRevealPeriodBox()}
         </React.Fragment>
       );
@@ -303,19 +303,19 @@ class BidActionPanel extends Component {
           </div>
           <div className="domains__bid-now__info">
             <div className="domains__bid-now__info__label">
-              Mask Amount:
+              Disguise Amount:
             </div>
             <div className="domains__bid-now__info__value">
               {maskAmount ? `${maskAmount} HNS` : ' - '}
             </div>
             <div className="domains__bid-now__action__edit-icon"
-              onClick={() => this.setState({ isReviewing: false }) }
+              onClick={() => this.setState({ shouldAddMask: true, isReviewing: false }) }
             />
           </div>
           <div className="domains__bid-now__divider" />
           <div className="domains__bid-now__info">
             <div className="domains__bid-now__info__label">
-              Total Lockup
+              Total Mask
             </div>
             <div className="domains__bid-now__info__value">
               {`${lockup} HNS`}
@@ -348,7 +348,8 @@ class BidActionPanel extends Component {
                   showSuccessModal: true,
                 })
               )
-          }
+            }
+            disabled={!hasAccepted}
           >
             Submit Bid
           </button>
@@ -368,12 +369,12 @@ class BidActionPanel extends Component {
               className="domains__bid-now__mask"
               tooltipContent={(
                 <span className="domains__bid-now__mask-tooltip">
-                  <span>Masks help disguise your actual bid amount. Other bidders can only tell that the value included in the transaction is greater than or equal to your actual bid</span>
+                  <span>You can disguise your actual bid amount to cover up your actual bid. Disguise needs to be higher than your actual bid. If you choose to set a disguise, your mask amount will show the disguise amount, not your actual bid amount. </span>
                   <span>All masks will be returned after the reveal period, regardless of outcome.</span>
                 </span>
               )}
             >
-              Mask
+              Disguise
             </Tooltipable>
             <span> Amount:</span>
           </div>
@@ -394,7 +395,7 @@ class BidActionPanel extends Component {
         className="domains__bid-now__form__link"
         onClick={() => this.setState({shouldAddMask: true})}
       >
-        Add Mask
+        Add Disguise
       </div>
     )
   }

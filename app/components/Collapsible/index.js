@@ -29,7 +29,7 @@ export default class Collapsible extends Component {
   };
 
   render() {
-    const { title, className } = this.props;
+    const { title, className, pillContent } = this.props;
     const { isCollapsed } = this.state;
 
     return (
@@ -39,7 +39,14 @@ export default class Collapsible extends Component {
         })}
       >
         <div className="collapsible__header">
-          <div className="collapsible__header__title">{title}</div>
+          <div className="collapsible__header__title">
+            {title}
+            {!!pillContent && 
+              <div className="collapsible__header__pill">
+                {pillContent}
+              </div>
+            }
+          </div>
           <div
             className="collapsible__header__toggle"
             onClick={this.toggle}
