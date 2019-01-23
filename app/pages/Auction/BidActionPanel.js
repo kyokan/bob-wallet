@@ -40,7 +40,7 @@ class BidActionPanel extends Component {
     isReviewing: false,
     hasAccepted: false,
     bidAmount: '',
-    maskAmount: '',
+    disguiseAmount: '',
     isLoading: false,
     successfullyBid: false,
     showSuccessModal: false,
@@ -172,7 +172,7 @@ class BidActionPanel extends Component {
   }
 
   renderPlacedBid(ownBid) {
-    const { showSuccessModal, bidAmount, maskAmount } = this.state;
+    const { showSuccessModal, bidAmount, disguiseAmount } = this.state;
     const { domain } = this.props;
     const { info } = domain || {};
     const { stats } = info || {};
@@ -184,7 +184,7 @@ class BidActionPanel extends Component {
         {showSuccessModal &&
           <SuccessModal
             bidAmount={bidAmount}
-            maskAmount={maskAmount}
+            maskAmount={Number(bidAmount) + Number(disguiseAmount)}
             revealStartBlock={bidPeriodEnd}
             onClose={() => this.setState({ showSuccessModal: false })}
           />}
@@ -283,8 +283,8 @@ class BidActionPanel extends Component {
   }
 
   renderReviewBid() {
-    const {bidAmount, maskAmount, hasAccepted} = this.state;
-    const lockup = maskAmount || bidAmount;
+    const {bidAmount, disguiseAmount, hasAccepted} = this.state;
+    const lockup = Number(disguiseAmount) + Number(bidAmount);
 
     return (
       <div className="domains__bid-now">
@@ -306,7 +306,7 @@ class BidActionPanel extends Component {
               Disguise Amount:
             </div>
             <div className="domains__bid-now__info__value">
-              {maskAmount ? `${maskAmount} HNS` : ' - '}
+              {disguiseAmount ? `${disguiseAmount} HNS` : ' - '}
             </div>
             <div className="domains__bid-now__action__edit-icon"
               onClick={() => this.setState({ shouldAddMask: true, isReviewing: false }) }
@@ -359,7 +359,7 @@ class BidActionPanel extends Component {
   }
 
   renderMask() {
-    const {shouldAddMask, maskAmount} = this.state;
+    const {shouldAddMask, disguiseAmount} = this.state;
 
     if (shouldAddMask) {
       return (
@@ -369,8 +369,8 @@ class BidActionPanel extends Component {
               className="domains__bid-now__mask"
               tooltipContent={(
                 <span className="domains__bid-now__mask-tooltip">
-                  <span>You can disguise your actual bid amount to cover up your actual bid. Disguise needs to be higher than your actual bid. If you choose to set a disguise, your mask amount will show the disguise amount, not your actual bid amount. </span>
-                  <span>All masks will be returned after the reveal period, regardless of outcome.</span>
+                  <span>You can disguise your bid amount to cover up your actual bid. Disguise gets added on top of your bid amount, resulting in your mask. The entire mask amount will be frozen during the bidding period. </span>
+                  <span>The disguise amount will be returned after the reveal period, regardless of outcome.</span>
                 </span>
               )}
             >
@@ -382,8 +382,8 @@ class BidActionPanel extends Component {
             <input
               type="number"
               placeholder="Optional"
-              onChange={e => this.setState({maskAmount: e.target.value})}
-              value={maskAmount}
+              onChange={e => this.setState({disguiseAmount: e.target.value})}
+              value={disguiseAmount}
             />
           </div>
         </div>
@@ -401,7 +401,7 @@ class BidActionPanel extends Component {
   }
 
   renderBidNowAction() {
-    const {isPlacingBid, bidAmount, maskAmount} = this.state;
+    const {isPlacingBid, bidAmount, disguiseAmount} = this.state;
     const { confirmedBalance } = this.props;
 
     if (isPlacingBid) {
@@ -425,7 +425,7 @@ class BidActionPanel extends Component {
           <button
             className="domains__bid-now__action__cta"
             onClick={() => this.setState({isReviewing: true})}
-            disabled={!bidAmount || maskAmount && maskAmount < bidAmount}
+            disabled={!(bidAmount > 0)}
           >
             Review Bid
           </button>
@@ -557,7 +557,6 @@ class BidActionPanel extends Component {
         highest = bid.lockup;
       }
     }
-
     return highest;
   }
 
