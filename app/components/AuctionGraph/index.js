@@ -114,13 +114,16 @@ export default class AuctionGraph extends Component {
     const domain = this.props.domain;
     const stats = domain.info && domain.info.stats || {};
     const { openProgress, biddingProgress, revealProgress, currentStep } = this.state;
-
+    const chain = this.props.chain || {};
+    const currentBlock = chain.height;
+    
     if (!this.props.domain) {
       return null;
     }
-
+  
     return (
       <div className="auction-graph">
+        <div className="auction-graph__current-block">Current Block: #{currentBlock}</div>
         <div className="auction-graph__column" style={{maxWidth: '10%'}}>
           <div className="auction-graph__column__headline">Open</div>
           <ProgressBar percentage={openProgress} />
