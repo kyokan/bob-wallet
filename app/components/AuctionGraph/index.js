@@ -3,11 +3,14 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import c from 'classnames';
-import { protocol } from 'hsd';
 import ProgressBar from '../ProgressBar';
 import Blocktime from '../Blocktime';
 import { isBidding, isOpening, isReveal, } from '../../utils/name-helpers';
 import './auction-graph.scss';
+
+const OPENING = 0;
+const ISBIDDING = 1;
+const REVEALING = 2;
 
 @withRouter
 @connect(
@@ -16,7 +19,6 @@ import './auction-graph.scss';
     return {
       domain: state.names[name],
       chain: state.node.chain,
-      network: state.node.network,
     };
   })
 export default class AuctionGraph extends Component {
@@ -29,88 +31,32 @@ export default class AuctionGraph extends Component {
   }
 
   state = {
-    progress: {
-      open: 0,
-      bidding: 0,
-      reveal: 0,
-    },
-    settings: {
-      auctionStart: 0,
-      biddingPeriod: 0,
-      revealPeriod: 0,
-    },
-    openPeriodStart: 0,
-    openPeriodEnd: 0,
-    bidPeriodEnd: 0,
-    revealPeriodEnd: 0,
+    openProgress: 0,
+    biddingProgress: 0,
+    revealProgress: 0,
   }
 
   async componentDidMount() {
-    // get network settings to calculate blocktimes
-    const network = protocol && protocol.networks && protocol.networks[this.props.network];
-    await this.setState({
-      settings: { 
-        auctionStart: 5,
-        biddingPeriod: network.names.biddingPeriod,
-        revealPeriod: network.names.revealPeriod,
-      },
-    })
     await this.getStatusInfo(this.props.domain);
   }
 
   getStatusInfo(domain) {
     const stats = domain.info && domain.info.stats || {};
-    const { auctionStart, biddingPeriod, revealPeriod } = this.state.settings;
 
     if (isOpening(domain)) {
-      const openPeriodStart = stats.openPeriodStart;
-      const openPeriodEnd = stats.openPeriodEnd;
-      const bidPeriodEnd = stats.openPeriodEnd + biddingPeriod;
-      const revealPeriodEnd = bidPeriodEnd + revealPeriod;
-
       this.setState({ 
-        progress: {
-          open: (1 - (stats.openPeriodEnd - this.props.chain.height) / (stats.openPeriodEnd - stats.openPeriodStart)) * 100,
-          bidding: 0,
-          reveal: 0,
-        },
-        openPeriodStart,
-        openPeriodEnd,
-        bidPeriodEnd,
-        revealPeriodEnd,
+        openProgress: (1 - (stats.openPeriodEnd - this.props.chain.height) / (stats.openPeriodEnd - stats.openPeriodStart)) * 100,
       }); 
     } else if (isBidding(domain)) {
-      const openPeriodStart = stats.bidPeriodStart - auctionStart;
-      const openPeriodEnd = stats.bidPeriodStart;
-      const bidPeriodEnd = stats.bidPeriodEnd;
-      const revealPeriodEnd = stats.bidPeriodEnd + revealPeriod;
-
       this.setState({ 
-        progress: {
-          open: 100,
-          bidding: (1 - (stats.bidPeriodEnd - this.props.chain.height) / (stats.bidPeriodEnd - stats.bidPeriodStart)) * 100,
-          reveal: 0,
-        },
-        openPeriodStart,
-        openPeriodEnd,
-        bidPeriodEnd,
-        revealPeriodEnd,
+        openProgress: 100,
+        biddingProgress: (1 - (stats.bidPeriodEnd - this.props.chain.height) / (stats.bidPeriodEnd - stats.bidPeriodStart)) * 100,
       }); 
     } else if (isReveal(domain)) {
-      const openPeriodStart = stats.revealPeriodStart - biddingPeriod - auctionStart;
-      const openPeriodEnd = stats.revealPeriodStart - biddingPeriod;
-      const bidPeriodEnd = stats.revealPeriodStart;
-      const revealPeriodEnd = stats.revealPeriodEnd;
       this.setState({ 
-        progress: {
-          open: 100,
-          bidding: 100,
-          reveal: (1 - (stats.revealPeriodEnd - this.props.chain.height) / (stats.revealPeriodEnd - stats.revealPeriodStart)) * 100,
-        },
-        openPeriodStart,
-        openPeriodEnd,
-        bidPeriodEnd,
-        revealPeriodEnd,
+        openProgress: 100,  
+        biddingProgress: 100,
+        revealProgress: (1 - (stats.revealPeriodEnd - this.props.chain.height) / (stats.revealPeriodEnd - stats.revealPeriodStart)) * 100,
       });
     } 
     return;
@@ -142,7 +88,13 @@ export default class AuctionGraph extends Component {
     );
   }
 
-  maybeRenderDateBlock(height, adjust, alignRight) {
+  maybeRenderDateBlock(condition, height, adjust, alignRight) {
+    if (!condition()) {
+      return (
+        null
+      )
+    }
+
     return this.renderDateBlock(height, adjust, alignRight);
   }
 
@@ -152,7 +104,7 @@ export default class AuctionGraph extends Component {
         "auction-graph__column__text__col--right": alignRight,
       })} >
         <div className="auction-graph__column__text">
-          {isDone ? 'Done' : 'TBA'}
+          {isDone ? '' : 'TBA'}
         </div>
       </div>
     )
@@ -161,34 +113,30 @@ export default class AuctionGraph extends Component {
   render() {
     const domain = this.props.domain;
     const stats = domain.info && domain.info.stats || {};
-    const { open, bidding, reveal } = this.state.progress;
-    const chain = this.props.chain || {};
-    const currentBlock = chain.height;
-    const { openPeriodStart, openPeriodEnd, bidPeriodEnd, revealPeriodEnd } = this.state;
-    
+    const { openProgress, biddingProgress, revealProgress, currentStep } = this.state;
+
     if (!this.props.domain) {
       return null;
     }
 
     return (
       <div className="auction-graph">
-        <div className="auction-graph__current-block">Current Block: #{currentBlock}</div>
         <div className="auction-graph__column" style={{maxWidth: '10%'}}>
           <div className="auction-graph__column__headline">Open</div>
-          <ProgressBar percentage={open} />
-          { this.maybeRenderDateBlock(openPeriodStart) }
+          <ProgressBar percentage={openProgress} />
+          { this.maybeRenderDateBlock(() => isOpening(domain), stats.openPeriodStart, stats.hoursUntilBidding) || this.renderPlaceholder(OPENING < currentStep)}
         </div>
         <div className="auction-graph__column" style={{maxWidth: '30%'}}>
           <div className="auction-graph__column__headline">Bidding Period</div>
-          <ProgressBar percentage={bidding} />
-            { this.maybeRenderDateBlock(openPeriodEnd) }
+          <ProgressBar percentage={biddingProgress} />
+            { this.maybeRenderDateBlock(() => isOpening(domain), stats.openPeriodEnd, stats.hoursUntilBidding) || this.maybeRenderDateBlock(() => isBidding(domain), stats.bidPeriodStart, stats.hoursUntilReveal)|| this.renderPlaceholder(ISBIDDING < currentStep)}
         </div>
         <div className="auction-graph__column" style={{maxWidth: '60%'}}>
           <div className="auction-graph__column__headline">Reveal Period</div>
-          <ProgressBar percentage={reveal}/>
+          <ProgressBar percentage={revealProgress}/>
           <div className="auction-graph__column__text__row">
-            { this.maybeRenderDateBlock(bidPeriodEnd) }
-            { this.maybeRenderDateBlock(revealPeriodEnd, true) }
+            { this.maybeRenderDateBlock(() => isBidding(domain), stats.bidPeriodEnd, stats.hoursUntilReveal) || this.maybeRenderDateBlock(() => isReveal(domain), stats.revealPeriodStart, stats.hoursUntilClose) || this.renderPlaceholder(REVEALING < currentStep)}
+            { this.maybeRenderDateBlock(() => isReveal(domain), stats.revealPeriodEnd, stats.hoursUntilClose, true) || this.renderPlaceholder(REVEALING < currentStep, true)}
           </div>
         </div>
       </div>
