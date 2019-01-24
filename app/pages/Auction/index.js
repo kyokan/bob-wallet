@@ -6,7 +6,7 @@ import cn from 'classnames';
 import moment from 'moment';
 
 import * as names from '../../ducks/names';
-import * as walletActions from '../../ducks/wallet';
+import * as walletActions from '../../ducks/walletActions';
 import { isAvailable, isBidding, isClosed, isOpening, isReserved, isReveal, } from '../../utils/name-helpers';
 import { OwnedInfo, ReserveInfo, SoldInfo, PendingRenewInfo } from './info';
 import BidActionPanel from './BidActionPanel';

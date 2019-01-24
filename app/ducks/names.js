@@ -1,8 +1,8 @@
 import * as nodeClient from '../utils/nodeClient';
 import * as walletClient from '../utils/walletClient';
 import * as namesDb from '../db/names';
-import { fetchPendingTransactions, SET_PENDING_TRANSACTIONS } from './wallet';
-import { hashName } from '../utils/nameChecker';
+import { fetchPendingTransactions, SET_PENDING_TRANSACTIONS } from './walletActions';
+import { SET_NAME } from './namesReducer';
 
 export const RECORD_TYPE = {
   A: 'A',
@@ -17,19 +17,16 @@ export const RECORD_TYPE = {
 };
 
 export const DROPDOWN_TYPES = [
-  { label: RECORD_TYPE.A },
-  { label: RECORD_TYPE.AAAA },
-  { label: RECORD_TYPE.CNAME },
-  { label: RECORD_TYPE.DS },
-  { label: RECORD_TYPE.MX },
-  { label: RECORD_TYPE.NS },
-  { label: RECORD_TYPE.TXT },
-  { label: RECORD_TYPE.OPENPGPKEY },
-  { label: RECORD_TYPE.SRV },
+  {label: RECORD_TYPE.A},
+  {label: RECORD_TYPE.AAAA},
+  {label: RECORD_TYPE.CNAME},
+  {label: RECORD_TYPE.DS},
+  {label: RECORD_TYPE.MX},
+  {label: RECORD_TYPE.NS},
+  {label: RECORD_TYPE.TXT},
+  {label: RECORD_TYPE.OPENPGPKEY},
+  {label: RECORD_TYPE.SRV},
 ];
-
-// Action Types
-const SET_NAME = 'app/names/setName';
 
 // Other Constants
 export const NAME_STATES = {
@@ -40,18 +37,6 @@ export const NAME_STATES = {
   REVOKED: 'REVOKED',
   TRANSFER: 'TRANSFER',
 };
-
-const ALLOWED_COVENANTS = new Set([
-  'OPEN',
-  'BID',
-  'REVEAL',
-  'UPDATE',
-  'REGISTER',
-  'RENEW',
-  'REDEEM',
-]);
-
-const initialState = {};
 
 export const getNameInfo = name => async (dispatch, getState) => {
   const net = getState().node.network;
@@ -204,79 +189,4 @@ export const sendUpdate = (name, json) => async (dispatch, getState) => {
   await namesDb.storeName(name);
   await wClient.sendUpdate(name, json);
   await dispatch(fetchPendingTransactions());
-};
-
-function reduceSetName(state, action) {
-  const {payload} = action;
-  const {name} = payload;
-  const hash = (name.info && name.info.hash) || hashName(name).toString('hex');
-
-  return {
-    ...state,
-    [name]: {
-      ...state[name] || {},
-      ...state[name],
-      ...payload,
-      hash,
-      // pendingOperation: null,
-    }
-  };
-}
-
-function reducePendingTransactions(state, action) {
-  const pendingOperationsByHash = {};
-  const pendingOpMetasByHash = {};
-  const pendingOutputByHash = {};
-
-  for (const tx of action.payload) {
-    for (const output of tx.outputs) {
-      if (ALLOWED_COVENANTS.has(output.covenant.action)) {
-        pendingOperationsByHash[output.covenant.items[0]] = output.covenant.action;
-        pendingOpMetasByHash[output.covenant.items[0]] = output.covenant;
-        pendingOutputByHash[output.covenant.items[0]] = output;
-        break;
-      }
-    }
-  }
-
-  const names = Object.keys(state);
-  const newNames = {};
-  for (const name of names) {
-    const data = state[name];
-    const hash = data.hash;
-    const pendingOp = pendingOperationsByHash[hash];
-    const pendingCovenant = pendingOpMetasByHash[hash];
-    const pendingOutput = pendingOutputByHash[hash];
-    const pendingOperationMeta = {};
-
-    if (pendingOp === 'UPDATE' || pendingOp === 'REGISTER') {
-      pendingOperationMeta.data = pendingCovenant.items[2];
-    }
-
-    if (pendingOp === 'REVEAL') {
-      pendingOperationMeta.output = pendingOutput;
-    }
-
-    newNames[name] = {
-      ...data,
-      pendingOperation: pendingOp || null,
-      pendingOperationMeta: pendingOperationMeta,
-    };
-  }
-
-  return {
-    ...state,
-    ...newNames
-  };
-}
-
-export default function namesReducer(state = initialState, action) {
-  switch (action.type) {
-    case SET_NAME:
-      return reduceSetName(state, action);
-    case SET_PENDING_TRANSACTIONS:
-      return reducePendingTransactions(state, action);
-    default:
-      return state;
-  }
 };

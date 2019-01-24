@@ -15,7 +15,7 @@ function log() {
     return;
   }
 
-  if (!(/Logger/g).test(arguments[1].method)) {
+  if (arguments[1] && !(/Logger/g).test(arguments[1].method)) {
     logger.info(arguments);
   }
 }
@@ -63,7 +63,7 @@ export function makeServer(ipcMain) {
     const cb = (err, res) => {
       if (err) {
         log('Sending IPC method error.', sanitizeData(data, method), err);
-        return event.sender.send(SIGIL, makeError(err.code || -1, err.message, data.id));
+        return event.sender.send(SIGIL, makeError(err.code || -1, `${err.message}${err.stack ? '\n' + err.stack : ''}`, data.id));
       }
 
       log('Sending IPC method response.', sanitizeData(data, method), res);

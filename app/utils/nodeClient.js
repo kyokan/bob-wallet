@@ -55,6 +55,10 @@ export function forNetwork(net) {
       return nodeClient.getTX(hash);
     },
 
+    broadcastRawTx: async (tx) => {
+      return nodeClient.execute('sendrawtransaction', [ tx ]);
+    },
+
     stop: async () => {
       return nodeClient.execute('stop');
     }

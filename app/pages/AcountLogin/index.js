@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import c from 'classnames';
-import * as walletActions from '../../ducks/wallet';
+import * as walletActions from '../../ducks/walletActions';
 import './login.scss';
 import Submittable from '../../components/Submittable';
 import { Link } from 'react-router-dom';

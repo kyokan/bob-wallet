@@ -7,7 +7,7 @@ import ImportSeedWarning from '../ImportSeedWarning/index';
 import CreatePassword from '../CreatePassword/index';
 import ImportSeedEnterMnemonic from '../ImportSeedEnterMnemonic/index';
 import Terms from '../Terms/index';
-import * as walletActions from '../../../ducks/wallet';
+import * as walletActions from '../../../ducks/walletActions';
 import *as walletClient from '../../../utils/walletClient';
 import * as logger from '../../../utils/logClient';
 

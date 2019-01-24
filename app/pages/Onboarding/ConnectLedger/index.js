@@ -2,41 +2,76 @@ import React from 'react';
 import classNames from 'classnames';
 import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
-
-import ConnectLedgerStep from './ConnectLedgerStep/index';
+import ConnectLedgerStep from '../../../components/ConnectLedgerStep';
+import { clientStub as lClientStub } from '../../../background/ledger';
+import * as walletClient from '../../../utils/walletClient';
+import { connect } from 'react-redux';
+import * as walletActions from '../../../ducks/walletActions';
 import './connect.scss';
+import DefaultConnectLedgerSteps from '../../../components/ConnectLedgerStep/defaultSteps';
+
+const ledgerClient = lClientStub(() => require('electron').ipcRenderer);
 
 // wizard header
 
 @withRouter
+@connect((state) => ({
+  network: state.node.network,
+}), (dispatch) => ({
+  completeInitialization: (xpub) => dispatch(walletActions.completeInitialization(xpub, true))
+}))
 class ConnectLedger extends React.Component {
   static propTypes = {
     onBack: PropTypes.func.isRequired,
-    onCancel: PropTypes.func.isRequired
+    onCancel: PropTypes.func.isRequired,
+    completeInitialization: PropTypes.func.isRequired,
+    network: PropTypes.string.isRequired,
   };
 
   state = {
-    isLedgerConnected: true,
-    secretEntered: true,
-    handshakeSelected: true
+    isLoading: false,
+    isCreating: false,
   };
 
   allStepsComplete() {
-    const { isLedgerConnected, secretEntered, handshakeSelected } = this.state;
+    const {isLedgerConnected, secretEntered, handshakeSelected} = this.state;
     return isLedgerConnected && secretEntered && handshakeSelected;
   }
 
-  finishFlow() {
-    if (this.allStepsComplete()) {
-      return console.log('DONEEEEZO');
+  connect = async () => {
+    this.setState({
+      isLoading: true,
+    });
+
+    let xpub;
+
+    try {
+      xpub = await ledgerClient.getXPub();
+    } catch (e) {
+      console.error(e);
+      this.setState({
+        isLoading: false,
+        isCreating: false
+      });
+      return;
     }
-    return console.log('Not donezo :(');
-  }
+
+    this.setState({
+      isCreating: true,
+    });
+
+    // set a small timeout to clearly show that this is
+    // a two-phase process.
+    setTimeout(async () => {
+      await walletClient.forNetwork(this.props.network).createNewWallet(xpub.xpubkey, true);
+      await this.props.completeInitialization('');
+    }, 2000);
+  };
 
   render() {
-    const { isLedgerConnected, secretEntered, handshakeSelected } = this.state;
+    const {isCreating} = this.state;
 
-    const { onBack, onCancel } = this.props;
+    const {onBack, onCancel} = this.props;
     return (
       <div className="create-password">
         <div className="terms__header">
@@ -50,21 +85,7 @@ class ConnectLedger extends React.Component {
         </div>
         <div className="create-password__content">
           <div className="header_text">Connect your Ledger</div>
-          <ConnectLedgerStep
-            stepNumber={1}
-            stepDescription="Connect your Ledger directly to your computer"
-            stepCompleted={isLedgerConnected}
-          />
-          <ConnectLedgerStep
-            stepNumber={2}
-            stepDescription="Enter your secret pin on your Ledger device"
-            stepCompleted={secretEntered}
-          />
-          <ConnectLedgerStep
-            stepNumber={3}
-            stepDescription="Select the Handshake app on your Ledger"
-            stepCompleted={handshakeSelected}
-          />
+          <DefaultConnectLedgerSteps completedSteps={[isCreating, isCreating, isCreating]}/>
         </div>
         <div
           className={classNames([
@@ -78,10 +99,10 @@ class ConnectLedger extends React.Component {
           <button
             type="button"
             className="extension_cta_button terms_cta"
-            onClick={this.finishFlow()}
-            disabled={!this.allStepsComplete()}
+            onClick={this.connect}
+            disabled={this.state.isLoading}
           >
-            Unlock Ledger
+            {this.state.isLoading ? (this.state.isCreating ? 'Creating wallet...' : 'Connecting...') : 'Connect to Ledger'}
           </button>
         </div>
       </div>

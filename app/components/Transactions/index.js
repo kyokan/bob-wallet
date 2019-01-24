@@ -6,7 +6,7 @@ import c from 'classnames';
 import Transaction from './Transaction';
 import './index.scss';
 // Dummy transactions state until we have ducks
-import { fetchTransactions } from '../../ducks/wallet';
+import { fetchTransactions } from '../../ducks/walletActions';
 import Dropdown from '../Dropdown';
 import BidSearchInput from '../BidSearchInput';
 import Fuse from '../../vendor/fuse';

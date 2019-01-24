@@ -70,6 +70,7 @@ app.on('ready', async () => {
   const logger = require('./background/logger/logger');
   logger.startLogger();
   require('./background/airdrop');
+  require('./background/ledger');
   require('./background/logger/index');
   const db = require('./background/db');
   await db.open();

@@ -1,0 +1,36 @@
+@import "../../variables";
+
+.ledger-modal {
+  &__wrapper {
+    width: 20rem;
+    padding: 2rem;
+  }
+
+  &__cta-wrapper {
+    display: flex;
+    margin-top: 1rem;
+
+    button {
+      flex: 1 1 50%;
+    }
+  }
+
+  &__connect {
+    @extend %btn-primary;
+    margin-left: 0.25rem;
+  }
+
+  &__cancel {
+    @extend %btn-secondary;
+    margin-right: 0.25rem;
+  }
+
+  &__error {
+    border: 1px solid $orange-red;
+    color: $orange-red;
+    padding: 1rem;
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+    border-radius: 1rem;
+  }
+}

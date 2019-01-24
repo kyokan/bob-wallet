@@ -19,12 +19,14 @@ export CPPFLAGS="-I/usr/local/opt/openssl@1.1/include"
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 git clone git@github.com:kyokan/hsd.git $DIR/hsd
 cd $DIR/hsd
+# temporary to support ledger
 git checkout kyokan-updates
 
 # Install all dependencies, and store cache to ~/.electron-gyp.
 HOME=~/.electron-gyp npm install
 # nuke unbound since it requires a dynamic lib and isn't required
 rm -rf ./node_modules/unbound
+# remove code requiring native dependencies
 cp -f ../hsd-node-replacement.js ./bin/node
 
 cd ../

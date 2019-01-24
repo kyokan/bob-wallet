@@ -8,7 +8,7 @@ import TLDInput from '../TLDInput';
 import { Logo } from '../Logo';
 import './topbar.scss';
 import { displayBalance } from '../../utils/balances';
-import * as walletActions from '../../ducks/wallet';
+import * as walletActions from '../../ducks/walletActions';
 
 @withRouter
 @connect(

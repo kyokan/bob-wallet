@@ -7,7 +7,7 @@ import AccountIndexModal from './AccountIndexModal';
 import RevealSeedModal from './RevealSeedModal';
 import InterstitialWarningModal from './InterstitialWarningModal';
 import * as logger from '../../utils/logClient';
-import * as walletActions from '../../ducks/wallet';
+import * as walletActions from '../../ducks/walletActions';
 import NetworkPicker from '../NetworkPicker';
 
 @withRouter

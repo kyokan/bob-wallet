@@ -11,17 +11,19 @@ const fs = require('fs');
 export const NETWORKS = {
   SIMNET: 'simnet',
   TESTNET: 'testnet',
-  MAINNET: 'mainnet'
+  MAINNET: 'mainnet',
+  REGTEST: 'regtest'
 };
 
 export const VALID_NETWORKS = {
   simnet: 'simnet',
   testnet: 'testnet',
-  mainnet: 'mainnet'
+  mainnet: 'mainnet',
+  regtest: 'regtest'
 };
 
 export const SEEDS = {
-  [NETWORKS.SIMNET]: [
+  [NETWORKS.REGTEST]: [
     'aorsxa4ylaacshipyjkfbvzfkh3jhh4yowtoqdt64nzemqtiw2whk@45.55.108.48'
   ]
 };

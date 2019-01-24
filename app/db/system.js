@@ -15,7 +15,7 @@ export async function delUnlockReceiveAddress(network) {
 }
 
 export async function getNetwork() {
-  return (await dbClient.get(networkKey())) || NETWORKS.SIMNET;
+  return (await dbClient.get(networkKey())) || NETWORKS.REGTEST;
 }
 
 export async function setNetwork(network) {

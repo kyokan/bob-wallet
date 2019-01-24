@@ -2,10 +2,10 @@ import * as walletClient from '../utils/walletClient';
 import * as nodeClient from '../utils/nodeClient';
 import * as logger from '../utils/logClient';
 import { store } from '../store/configureStore';
-import { LOCK_WALLET, SET_PENDING_TRANSACTIONS } from './wallet';
+import { LOCK_WALLET, SET_PENDING_TRANSACTIONS } from './walletReducer';
 import { getInitializationState } from '../db/system';
 import isEqual from 'lodash.isequal';
-import { SET_NODE_INFO } from './node';
+import { SET_NODE_INFO } from './nodeReducer';
 
 export function createBackgroundMonitor() {
   let isLocked;

@@ -7,7 +7,7 @@ import CreatePassword from '../CreatePassword/index';
 import BackUpSeedWarning from '../BackUpSeedWarning/index';
 import CopySeed from '../../CopySeed/index';
 import ConfirmSeed from '../ConfirmSeed/index';
-import * as walletActions from '../../../ducks/wallet';
+import * as walletActions from '../../../ducks/walletActions';
 //TEMP SOLUTION UNTIL IMPORT WARNING IS IMPLEMENTED
 import '../ImportSeedEnterMnemonic/importenter.scss';
 import '../ImportSeedWarning/importwarning.scss';

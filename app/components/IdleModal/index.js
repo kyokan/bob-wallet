@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Modal from '../Modal';
-import * as walletAction from '../../ducks/wallet';
+import * as walletAction from '../../ducks/walletActions';
 import './idle-modal.scss';
 
 const MAX_IDLE = process.env.NODE_ENV === 'production' ? 5 : 20;
@@ -68,7 +68,7 @@ class IdleModal extends Component {
     return (
       <Modal className="idle-modal__wrapper">
         <div className="idle-modal">
-          <div className="idle-modal__title">You will be automatically logout in:</div>
+          <div className="idle-modal__title">You will be automatically logged out in:</div>
           <div className="idle-modal__time">{this.state.timeRemaining}s</div>
           <div className="idle-modal__actions">
             <button

@@ -21,7 +21,7 @@ import MyDomain from '../MyDomain';
 import YourBids from '../YourBids';
 import Watching from '../Watching';
 import SearchTLD from '../SearchTLD';
-import * as walletActions from '../../ducks/wallet';
+import * as walletActions from '../../ducks/walletActions';
 import './app.scss';
 import AccountLogin from '../AcountLogin';
 import * as node from '../../ducks/node';
@@ -29,6 +29,7 @@ import Notification from '../../components/Notification';
 import SplashScreen from "../../components/SplashScreen";
 import NetworkPicker from '../NetworkPicker';
 import IdleModal from '../../components/IdleModal';
+import { LedgerModal } from '../../components/LedgerModal';
 
 class App extends Component {
   static propTypes = {
@@ -93,6 +94,7 @@ class App extends Component {
 
     return (
       <React.Fragment>
+        <LedgerModal/>
         <Notification />
         {this.renderRoutes()}
       </React.Fragment>

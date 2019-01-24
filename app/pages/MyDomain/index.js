@@ -10,7 +10,7 @@ import DomainDetails from './DomainDetails';
 import Records from './Records';
 import BidHistory from '../Auction/BidHistory';
 import { showError, showSuccess } from '../../ducks/notifications';
-import { fetchPendingTransactions } from '../../ducks/wallet';
+import { fetchPendingTransactions } from '../../ducks/walletActions';
 
 class MyDomain extends Component {
   static propTypes = {

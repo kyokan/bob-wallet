@@ -3,7 +3,7 @@ import './reveal-seed-modal.scss';
 import { connect } from 'react-redux';
 import MiniModal from '../../components/Modal/MiniModal';
 import Submittable from '../../components/Submittable';
-import * as walletActions from '../../ducks/wallet';
+import * as walletActions from '../../ducks/walletActions';
 
 @connect(
   () => ({}),

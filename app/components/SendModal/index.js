@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import c from 'classnames';
 import './send.scss';
 import { displayUnlockedConfirmBalance } from '../../utils/balances';
-import * as walletActions from '../../ducks/wallet';
+import * as walletActions from '../../ducks/walletActions';
 import Alert from '../Alert';
 import isValidAddress from '../../utils/verifyAddress';
 import * as logger from '../../utils/logClient';
@@ -27,6 +27,7 @@ const GAS_TO_ESTIMATES = {
     address: state.wallet.address,
     fees: state.node.fees,
     totalBalance: displayUnlockedConfirmBalance(state.wallet.balance),
+    network: state.node.network,
   }),
   dispatch => ({
     send: (to, amount, fee) => dispatch(walletActions.send(to, amount, fee))
@@ -36,7 +37,8 @@ class SendModal extends Component {
   static propTypes = {
     send: PropTypes.func.isRequired,
     address: PropTypes.string.isRequired,
-    totalBalance: PropTypes.string.isRequired
+    totalBalance: PropTypes.string.isRequired,
+    network: PropTypes.string.isRequired,
   };
 
   state = {
@@ -52,7 +54,7 @@ class SendModal extends Component {
 
   updateToAddress = e => {
     this.setState({ to: e.target.value, errorMessage: '' });
-    if (e.target.value.length > 2 && !isValidAddress(e.target.value, SIMNET)) {
+    if (e.target.value.length > 2 && !isValidAddress(e.target.value, this.props.network)) {
       this.setState({ errorMessage: 'Invalid Address Prefix' });
     };
   }
@@ -86,8 +88,8 @@ class SendModal extends Component {
         transactionSent: true,
         errorMessage: ''
       });
-    } catch (e) {
-      logger.error(`Error received from SendModal - send\n\n${e.message}\n${e.stack}\n`);
+    } catch (err) {
+      logger.error('failed to send transaction', { err });
       this.setState({
         errorMessage: 'Something went wrong, please try again.',
         isSending: false
