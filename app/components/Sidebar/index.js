@@ -85,7 +85,7 @@ class Sidebar extends Component {
             to="/get_coins"
             activeClassName="sidebar__action--selected"
           >
-            GooSig Airdrop
+            Add Funds
           </NavLink>
         </div>
         <div className="sidebar__section">Top-Level Domains</div>
@@ -97,7 +97,6 @@ class Sidebar extends Component {
           >
             Browse Domains
           </NavLink>
-
           <NavLink
             className="sidebar__action"
             to="/bids"

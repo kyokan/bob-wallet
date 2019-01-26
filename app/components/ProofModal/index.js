@@ -33,7 +33,8 @@ export default class ProofModal extends Component {
     chosenKey: '',
     passphrase: '',
     keyId: '',
-    errorMessage: ''
+    errorMessage: '',
+    isUploading: false,
   };
 
   onClickChooseKey(title, defaultPath) {
@@ -68,6 +69,8 @@ export default class ProofModal extends Component {
     const { chosenKey, passphrase, keyId } = this.state;
     const { address } = this.props;
 
+    this.setState({ isUploading: true })
+
     try {
       await airdropClient.proveFaucet(chosenKey, keyId, address, '0.5', passphrase);
     } catch (e) {
@@ -75,6 +78,8 @@ export default class ProofModal extends Component {
         errorMessage: this.parseError(e)
       });
       return;
+    } finally {
+      this.setState({ isUploading: false })
     }
 
     this.props.onClose();
@@ -83,6 +88,7 @@ export default class ProofModal extends Component {
 
   parseError(e) {
     const defaultMessage = 'Something went wrong.';
+    
     if (!e.message) {
       return defaultMessage;
     }
@@ -200,8 +206,8 @@ export default class ProofModal extends Component {
           >
             See full details
           </button>
-          <button className="proof__submit-btn" onClick={this.onSubmit} disabled={this.isDisabled()}>
-            Claim Coins
+          <button className="proof__submit-btn" onClick={this.onSubmit} disabled={this.isDisabled() || this.state.isUploading}>
+            {this.state.isUploading ? 'Uploading...' : "Claim Coins"}
           </button>
         </div>
       </React.Fragment>
@@ -253,8 +259,8 @@ export default class ProofModal extends Component {
           >
             See full details
           </button>
-          <button className="proof__submit-btn" onClick={this.onSubmit} disabled={this.isDisabled()}>
-            Claim Coins
+          <button className="proof__submit-btn" onClick={this.onSubmit} disabled={this.isDisabled() || this.state.isUploading}>
+            {this.state.isUploading ? 'Uploading...' : "Claim Coins"}
           </button>
         </div>
       </React.Fragment>

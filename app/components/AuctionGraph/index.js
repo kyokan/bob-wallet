@@ -108,7 +108,7 @@ export default class AuctionGraph extends Component {
         "auction-graph__column__text__col--right": alignRight,
       })} >
         <div className="auction-graph__column__text">
-          {isDone ? 'Done' : 'TBA'}
+          {isDone ? '' : 'TBA'}
         </div>
       </div>
     )
@@ -118,14 +118,17 @@ export default class AuctionGraph extends Component {
     const domain = this.props.domain;
     const stats = domain.info && domain.info.stats || {};
     const { openProgress, biddingProgress, revealProgress, currentStep } = this.state;
-
+    const chain = this.props.chain || {};
+    const currentBlock = chain.height;
+    
     if (!this.props.domain) {
       return null;
     }
-
+  
     return (
       <div className="auction-graph">
-        <div className="auction-graph__column" style={{maxWidth: '10%'}}>
+        <div className="auction-graph__current-block">Current Block: #{currentBlock}</div>
+        <div className="auction-graph__column" style={{maxWidth: '15%'}}>
           <div className="auction-graph__column__headline">Open</div>
           <ProgressBar percentage={openProgress} />
           { this.maybeRenderDateBlock(() => isOpening(domain), stats.openPeriodStart, stats.hoursUntilBidding) || this.renderPlaceholder(OPENING < currentStep)}
@@ -135,7 +138,7 @@ export default class AuctionGraph extends Component {
           <ProgressBar percentage={biddingProgress} />
             { this.maybeRenderDateBlock(() => isOpening(domain), stats.openPeriodEnd, stats.hoursUntilBidding) || this.maybeRenderDateBlock(() => isBidding(domain), stats.bidPeriodStart, stats.hoursUntilReveal)|| this.renderPlaceholder(ISBIDDING < currentStep)}
         </div>
-        <div className="auction-graph__column" style={{maxWidth: '60%'}}>
+        <div className="auction-graph__column" style={{maxWidth: '55%'}}>
           <div className="auction-graph__column__headline">Reveal Period</div>
           <ProgressBar percentage={revealProgress}/>
           <div className="auction-graph__column__text__row">

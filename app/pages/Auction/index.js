@@ -170,16 +170,7 @@ export default class Auction extends Component {
             <div className="domains__content__info-panel">
               {this.renderAuctionDetails()}
             </div>
-            <Collapsible className="domains__content__info-panel" title="Bid History" defaultCollapsed>
-              {
-                this.props.domain
-                  ? <BidHistory bids={this.props.domain.bids} reveals={this.props.domain.reveals} />
-                  : 'Loading...'
-              }
-            </Collapsible>
-            <Collapsible className="domains__content__info-panel" title="Vickrey Auction Process" defaultCollapsed>
-              <VickreyProcess />
-            </Collapsible>
+            {this.maybeRenderCollapsibles()}
           </div>
         </div>
       </React.Fragment>
@@ -205,6 +196,31 @@ export default class Auction extends Component {
         {this.maybeRenderDateBlock(() => isClosed(domain), 'Renew Close', stats.renewalPeriodEnd, stats.daysUntilExpire)}
       </div>
     );
+  }
+
+  maybeRenderCollapsibles() {
+    const domain = this.props.domain || {};
+    const bids = domain.bids || domain.reveals || [];
+    const pillContent = bids.length === 1 ? `${bids.length} bid` : `${bids.length} bids`
+
+    if (isAvailable(domain) || isOpening(domain) || isBidding(domain) || isReveal(domain)) {
+      return (
+        <React.Fragment>
+          <Collapsible className="domains__content__info-panel" title="Bid History" pillContent={pillContent} defaultCollapsed>
+          { this.props.domain ? 
+            <BidHistory bids={this.props.domain.bids} reveals={this.props.domain.reveals} /> : 
+            'Loading...'
+          }
+          </Collapsible>
+          <Collapsible className="domains__content__info-panel" title="Vickrey Auction Process" defaultCollapsed>
+            <VickreyProcess />
+          </Collapsible>
+        </React.Fragment>
+      )
+    } else {
+      return <noscript />
+    }
+    
   }
 
   getContentClassName() {
@@ -254,6 +270,7 @@ export default class Auction extends Component {
     let description = '';
     if (isReserved(domain)) {
       status = 'Reserved';
+      // this.setState({ showCollapsibles: false })
     } else if (isOpening(domain)) {
       status = 'Opening';
       description = 'Bidding Soon';
@@ -266,6 +283,7 @@ export default class Auction extends Component {
       description = 'No Bids';
     } else if (isClosed(domain)) {
       status = 'Sold';
+      // this.setState({ showCollapsibles: false })
     } else if (isReveal(domain)) {
       status = 'Revealing';
     } else {

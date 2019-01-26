@@ -35,7 +35,7 @@
   &__left {
     @extend %col-nowrap;
     flex: 0 1 auto;
-    margin-right: 2rem;
+    margin-right: 3rem;
   }
 
   &__right {
@@ -79,6 +79,7 @@
   }
 
   &__link {
+    margin: 1rem 0 1.5rem 0;
     color: $azure-blue;
     &:hover {
       cursor: pointer;
@@ -86,9 +87,9 @@
   }
   &__panel {
     background-color: $white;
-    width: 20rem;
+    width: 16rem;
     box-sizing: border-box;
-    padding: 1rem 1.5rem;
+    padding: 1.75rem;
     border: 1px solid $grey;
     border-radius: 0.5rem;
     box-shadow: 0 2px 4px 0 rgba($black, 0.35);
@@ -96,39 +97,37 @@
     &__title {
       font-size: 1.25rem;
       font-weight: 600;
-      margin-bottom: 1rem;
     }
 
     &__offer {
       div {
         // Offer Amount
         &:nth-of-type(1) {
+          font-size: 1rem;
+          font-weight: 600;
+          margin: 1.25rem 0 .5rem 0;
+        }
+        // Offer Role
+        &:nth-of-type(2) {
           color: $turquioise-blue;
-          font-size: 0.9rem;
+          font-size: .8rem;
           font-weight: 500;
           margin-bottom: 0.4rem;
         }
-
-        // Offer Role
-        &:nth-of-type(2) {
-          font-size: 0.9rem;
-          font-weight: 600;
-          margin-bottom: 0.4rem;
-        }
-
         // Offer Details
         &:nth-of-type(3),
         &:nth-of-type(4) {
           position: relative;
           font-size: 0.8rem;
           font-weight: 400;
-          line-height: 1.4rem;
+          line-height: 1.2rem;
           padding-left: 1.25rem;
+          margin-top: 0.25rem;
 
           &:before {
             position: absolute;
             content: ' ';
-            top: 0.2rem;
+            top: 0.1rem;
             left: 0;
             height: 1rem;
             width: 1rem;
@@ -143,8 +142,60 @@
         padding: 0.5rem;
         width: 100%;
         border-radius: 0.5rem;
-        margin: 1rem 0 1.75rem;
+        margin-top: 1rem;
       }
+    }
+  }
+  &__illustration {
+    @extend %row-nowrap;
+    flex: 1 1 100%;
+    vertical-align: center;
+    justify-content: space-between;
+    margin: 2.5rem 0 1rem 0;
+
+    &__col {
+      @extend %col-nowrap;
+    }
+
+    &__title {
+      @extend %h2;
+      font-weight: 500;
+      margin: .75rem 0 .1rem 0;
+    }
+
+    &__subtitle {
+      @extend %h5;
+      font-weight: 500;
+    }
+
+    &__description {
+      @extend %h5;
+      color: $manatee-gray;	
+      font-weight: 500;
+    }
+
+    &__image-one {
+      background-image: url('../../assets/images/goosig-1.svg');
+      background-position: center;
+      background-size: cover;
+      height: 65px;
+      width: 65px;
+    }
+
+    &__image-two {
+      background-image: url('../../assets/images/goosig-2.svg');
+      background-position: center;
+      background-size: cover;
+      height: 65px;
+      width: 75px;
+    }
+
+    &__image-three {
+      background-image: url('../../assets/images/goosig-3.svg');
+      background-position: center;
+      background-size: cover;
+      height: 65px;
+      width: 65px;
     }
   }
 }

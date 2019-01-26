@@ -40,7 +40,7 @@ class BidActionPanel extends Component {
     isReviewing: false,
     hasAccepted: false,
     bidAmount: '',
-    maskAmount: '',
+    disguiseAmount: '',
     isLoading: false,
     successfullyBid: false,
     showSuccessModal: false,
@@ -72,11 +72,11 @@ class BidActionPanel extends Component {
         {this.renderActionPanel()}
         <div className="domains__watch">
           <div className={c("domains__watch__heart-icon", {
-                "domains__watch__heart-icon--active": this.state.isWatching
-                })} onClick={() => {
-                  isWatching ? this.props.unwatchDomain(name, network) : this.props.watchDomain(name, network);
-                  this.setState({ isWatching: !isWatching })
-                }}/>
+            "domains__watch__heart-icon--active": this.state.isWatching
+            })} onClick={() => {
+              isWatching ? this.props.unwatchDomain(name, network) : this.props.watchDomain(name, network);
+              this.setState({ isWatching: !isWatching })
+            }}/>
           <div className="domains__watch__text">{this.state.isWatching ? 'Added to Watchlist' : 'Add to Watchlist'}</div>
         </div>
       </React.Fragment>
@@ -172,7 +172,7 @@ class BidActionPanel extends Component {
   }
 
   renderPlacedBid(ownBid) {
-    const { showSuccessModal, bidAmount, maskAmount } = this.state;
+    const { showSuccessModal, bidAmount, disguiseAmount } = this.state;
     const { domain } = this.props;
     const { info } = domain || {};
     const { stats } = info || {};
@@ -184,7 +184,7 @@ class BidActionPanel extends Component {
         {showSuccessModal &&
           <SuccessModal
             bidAmount={bidAmount}
-            maskAmount={maskAmount}
+            maskAmount={Number(bidAmount) + Number(disguiseAmount)}
             revealStartBlock={bidPeriodEnd}
             onClose={() => this.setState({ showSuccessModal: false })}
           />}
@@ -209,7 +209,7 @@ class BidActionPanel extends Component {
           {this.renderInfoRow('Highest Mask', displayBalance(this.findHighestMaskBid(), true))}
           <div className="domains__bid-now-divider" />
           {this.renderInfoRow('Bid Amount', displayBalance(ownBid.value, true))}
-          {this.renderInfoRow('Mask Amount', displayBalance(ownBid.lockup, true))}
+          {this.renderInfoRow('Disguise Amount', displayBalance(ownBid.lockup, true))}
           {this.renderRevealPeriodBox()}
         </React.Fragment>
       );
@@ -283,8 +283,8 @@ class BidActionPanel extends Component {
   }
 
   renderReviewBid() {
-    const {bidAmount, maskAmount, hasAccepted} = this.state;
-    const lockup = maskAmount || bidAmount;
+    const {bidAmount, disguiseAmount, hasAccepted} = this.state;
+    const lockup = Number(disguiseAmount) + Number(bidAmount);
 
     return (
       <div className="domains__bid-now">
@@ -303,19 +303,19 @@ class BidActionPanel extends Component {
           </div>
           <div className="domains__bid-now__info">
             <div className="domains__bid-now__info__label">
-              Mask Amount:
+              Disguise Amount:
             </div>
             <div className="domains__bid-now__info__value">
-              {maskAmount ? `${maskAmount} HNS` : ' - '}
+              {disguiseAmount ? `${disguiseAmount} HNS` : ' - '}
             </div>
             <div className="domains__bid-now__action__edit-icon"
-              onClick={() => this.setState({ isReviewing: false }) }
+              onClick={() => this.setState({ shouldAddMask: true, isReviewing: false }) }
             />
           </div>
           <div className="domains__bid-now__divider" />
           <div className="domains__bid-now__info">
             <div className="domains__bid-now__info__label">
-              Total Lockup
+              Total Mask
             </div>
             <div className="domains__bid-now__info__value">
               {`${lockup} HNS`}
@@ -348,7 +348,8 @@ class BidActionPanel extends Component {
                   showSuccessModal: true,
                 })
               )
-          }
+            }
+            disabled={!hasAccepted}
           >
             Submit Bid
           </button>
@@ -358,7 +359,7 @@ class BidActionPanel extends Component {
   }
 
   renderMask() {
-    const {shouldAddMask, maskAmount} = this.state;
+    const {shouldAddMask, disguiseAmount} = this.state;
 
     if (shouldAddMask) {
       return (
@@ -368,12 +369,12 @@ class BidActionPanel extends Component {
               className="domains__bid-now__mask"
               tooltipContent={(
                 <span className="domains__bid-now__mask-tooltip">
-                  <span>Masks help disguise your actual bid amount. Other bidders can only tell that the value included in the transaction is greater than or equal to your actual bid</span>
-                  <span>All masks will be returned after the reveal period, regardless of outcome.</span>
+                  <span>You can disguise your bid amount to cover up your actual bid. Disguise gets added on top of your bid amount, resulting in your mask. The entire mask amount will be frozen during the bidding period. </span>
+                  <span>The disguise amount will be returned after the reveal period, regardless of outcome.</span>
                 </span>
               )}
             >
-              Mask
+              Disguise
             </Tooltipable>
             <span> Amount:</span>
           </div>
@@ -381,8 +382,8 @@ class BidActionPanel extends Component {
             <input
               type="number"
               placeholder="Optional"
-              onChange={e => this.setState({maskAmount: e.target.value})}
-              value={maskAmount}
+              onChange={e => this.setState({disguiseAmount: e.target.value})}
+              value={disguiseAmount}
             />
           </div>
         </div>
@@ -394,13 +395,13 @@ class BidActionPanel extends Component {
         className="domains__bid-now__form__link"
         onClick={() => this.setState({shouldAddMask: true})}
       >
-        Add Mask
+        Add Disguise
       </div>
     )
   }
 
   renderBidNowAction() {
-    const {isPlacingBid, bidAmount, maskAmount} = this.state;
+    const {isPlacingBid, bidAmount, disguiseAmount} = this.state;
     const { confirmedBalance } = this.props;
 
     if (isPlacingBid) {
@@ -424,7 +425,7 @@ class BidActionPanel extends Component {
           <button
             className="domains__bid-now__action__cta"
             onClick={() => this.setState({isReviewing: true})}
-            disabled={!bidAmount || maskAmount && maskAmount < bidAmount}
+            disabled={!(bidAmount > 0)}
           >
             Review Bid
           </button>
@@ -556,7 +557,6 @@ class BidActionPanel extends Component {
         highest = bid.lockup;
       }
     }
-
     return highest;
   }
 
