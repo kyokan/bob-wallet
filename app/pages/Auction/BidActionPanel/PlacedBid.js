@@ -2,7 +2,7 @@ import React from 'react';
 import SuccessModal from '../../../components/SuccessModal';
 
 const PlacedBid = (props) => {
-  const {children} = props
+  const {children, showSuccessModal, bidAmount, bidPeriodEnd, disguiseAmount, onClose} = props
   return (
     <div className="domains__bid-now">
     {showSuccessModal &&
