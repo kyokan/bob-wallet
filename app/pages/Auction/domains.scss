@@ -171,6 +171,9 @@
         flex: 1 0 auto;
         text-align: right;
         padding: .25rem 0;
+        &--green {
+          color: $caribbean-green;
+        }
       }
 
       &__time-remaining {

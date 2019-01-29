@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import { connect } from 'react-redux';
 import * as nodeClient from '../../utils/nodeClient';
-import state from '../../ducks/index'
 
 // 5 minute blocks
 const BLOCK_TIME = 5 * 60 * 1000;

@@ -11,16 +11,14 @@ import * as watchingActions from '../../../ducks/watching';
 import { displayBalance, toBaseUnits } from '../../../utils/balances';
 import { showError, showSuccess } from '../../../ducks/notifications';
 import Blocktime, { returnBlockTime } from '../../../components/Blocktime';
-import Tooltipable from '../../../components/Tooltipable';
 import * as logger from '../../../utils/logClient';
-import '../domains.scss';
-import '../add-to-calendar.scss';
-import OpeningBid from './OpeningBid';
 import OpenBid from './OpenBid';
 import ReviewBid from './ReviewBid';
 import PlacedBid from './PlacedBid';
 import BidNow from './BidNow';
-import Reveal from './Revealing';
+import Reveal from './Reveal';
+import '../domains.scss';
+import '../add-to-calendar.scss';
 
 @connect(
   (state) => ({
@@ -38,10 +36,9 @@ class BidActionPanel extends Component {
     }),
   };
 
-  // use ENUM instead of state and set state at next onclick -> maybe create a next step function with set state, and callback
   state = {
     isPlacingBid: false,
-    shouldAddMask: false,
+    shouldAddDisguise: false,
     isReviewing: false,
     hasAccepted: false,
     bidAmount: '',
@@ -89,11 +86,11 @@ class BidActionPanel extends Component {
   }
 
   renderActionPanel() {
-    const {bidAmount, disguiseAmount, hasAccepted} = this.state;
-    const { domain, sendOpen} = this.props;
+    const { bidAmount, disguiseAmount, hasAccepted, showSuccessModal, isPlacingBid, shouldAddDisguise } = this.state;
+    const { domain, sendOpen, confirmedBalance, currentBlock, network} = this.props;
 
     const { info } = domain || {};
-    const {stats, bids = [], highest = 0} = info || {};
+    const { stats, bids = [], highest = 0 } = info || {};
     const { bidPeriodEnd, hoursUntilReveal, revealPeriodEnd } = stats || {};
 
     if (this.state.isReviewing) {
@@ -105,7 +102,7 @@ class BidActionPanel extends Component {
         disguiseAmount={disguiseAmount}
         hasAccepted={hasAccepted}
         editBid={() => this.setState({ isReviewing: false })}
-        editDisguise={() => this.setState({ shouldAddMask: true, isReviewing: false })}
+        editDisguise={() => this.setState({ shouldAddDisguise: true, isReviewing: false })}
         onChange={e => this.setState({hasAccepted: e.target.checked})}
         onClick={
           () => this.handleCTA(
@@ -123,27 +120,51 @@ class BidActionPanel extends Component {
       )
     }
 
-    if (isOpening(domain)) {
-      return <OpeningBid/>;
-    }
-
     const ownBid = this.findOwnBid();
     if (isBidding(domain) || this.state.successfullyBid) {
       if (this.state.successfullyBid || ownBid || domain.pendingOperation === 'BID') {
         return (
-          <PlacedBid onClose={() => this.setState({ showSuccessModal: false })}>
-            {this.renderPlacedBidContent(ownBid)}
+          <PlacedBid 
+            onClose={() => this.setState({ showSuccessModal: false })} 
+            showSuccessModal={showSuccessModal}
+            bidAmount={bidAmount}
+            bidPeriodEnd={bidPeriodEnd}
+            disguiseAmount={disguiseAmount}
+          >
+            {ownBid ? 
+            <React.Fragment>
+              {this.renderInfoRow('Reveal', <Blocktime height={stats.bidPeriodEnd} fromNow />)}
+              {/*{this.renderInfoRow('Reveal', this.getTimeRemaining(this.props.domain.info.stats.hoursUntilReveal))}*/}
+              {this.renderInfoRow('Total Bids', this.props.domain.bids.length)}
+              {this.renderInfoRow('Highest Mask', displayBalance(this.findHighestMaskBid(), true))}
+              <div className="domains__bid-now-divider" />
+              {this.renderInfoRow('Bid Amount', displayBalance(ownBid.value, true))}
+              {this.renderInfoRow('Disguise Amount', displayBalance(ownBid.lockup, true))}
+              {this.renderRevealPeriodBox()}
+            </React.Fragment> : 
+              'Your bid has been placed. Please wait a few minutes while the transaction confirms.'
+            }
           </PlacedBid>
-          )
+        )
       }
       return (
         <BidNow 
           timeRemaining={() => this.getTimeRemaining(hoursUntilReveal)}
+          confirmedBalance={confirmedBalance}
           bids={bids}
+          ownBid={ownBid}
           highest={highest}
-        >
-          {this.renderBidNowAction()}
-        </BidNow>
+          isPlacingBid={isPlacingBid}
+          disguiseAmount={disguiseAmount}
+          bidAmount={bidAmount}
+          shouldAddDisguise={shouldAddDisguise}
+          displayBalance={`${displayBalance(confirmedBalance)} HNS Unlocked Balance Available`}
+          onChangeBidAmount={e => this.setState({bidAmount: e.target.value})}
+          onChangeDisguiseAmount={e => this.setState({disguiseAmount: e.target.value})}
+          onClickAddDisguise={() => this.setState({shouldAddDisguise: true})}
+          onClickPlaceBid={() => this.setState({isPlacingBid: true})}
+          onClickReview={() => this.setState({isReviewing: true})}
+         />
         )
     }
 
@@ -154,26 +175,37 @@ class BidActionPanel extends Component {
       return (
         <Reveal ownReveal={ownReveal}>
           {this.renderInfoRow('Reveal Ends', <Blocktime height={revealPeriodEnd} fromNow />)}
-          {ownReveal ? this.renderInfoRow('Your Reveal', displayBalance(ownReveal.value, true)) : null}
-          {highestReveal ? this.renderInfoRow('Highest Reveal', displayBalance(highestReveal.value, true)) : null}
+          {ownReveal ? this.renderInfoRow('Your Mask', displayBalance(ownReveal.value, true)) : null}
+          {highestReveal ? this.renderInfoRow('Highest Mask', displayBalance(highestReveal.value, true)) : null}
           {ownReveal ||!this.hasRevealableBid() ? null : this.renderRevealAction()}
         </Reveal>
       )
     }
+    
+    if (isAvailable(domain) || isOpening(domain)) {
+      const { start } = domain || {};
+      const isDomainOpening = isOpening(domain);
 
-    if (isAvailable(domain)) {
-      return <OpenBid onClick={
-        () => this.handleCTA(
-          () => sendOpen(domain.name),
-          'Successfully opened bid! Check back in a few minutes to start bidding.',
-          'Failed to open bid. Please try again.',
-        )
-      }/>
+      return (
+        <OpenBid
+          isDomainOpening={isDomainOpening}
+          startBlock={start.start}
+          currentBlock={currentBlock}
+          network={network}
+          onClick={
+            () => this.handleCTA(
+              () => sendOpen(domain.name),
+              'Successfully opened bid! Check back in a few minutes to start bidding.',
+              'Failed to open bid. Please try again.',
+            )
+          }/>
+      )
     }
 
     return <noscript />;
   }
 
+  // Helper Functions
   async handleCTA(handler, successMessage, errorMessage, callback) {
     try {
       this.setState({ isLoading: true });
@@ -195,28 +227,6 @@ class BidActionPanel extends Component {
     }
   }
 
-  renderPlacedBidContent(ownBid) {
-    const domain = this.props.domain;
-    const stats = domain.info && domain.info.stats || {};
-
-    if (ownBid) {
-      return (
-        <React.Fragment>
-          {this.renderInfoRow('Reveal', <Blocktime height={stats.bidPeriodEnd} fromNow />)}
-          {/*{this.renderInfoRow('Reveal', this.getTimeRemaining(this.props.domain.info.stats.hoursUntilReveal))}*/}
-          {this.renderInfoRow('Total Bids', this.props.domain.bids.length)}
-          {this.renderInfoRow('Highest Mask', displayBalance(this.findHighestMaskBid(), true))}
-          <div className="domains__bid-now-divider" />
-          {this.renderInfoRow('Bid Amount', displayBalance(ownBid.value, true))}
-          {this.renderInfoRow('Disguise Amount', displayBalance(ownBid.lockup, true))}
-          {this.renderRevealPeriodBox()}
-        </React.Fragment>
-      );
-    }
-
-    return 'Your bid has been placed. Please wait a few minutes while the transaction confirms.';
-  }
-
   getTimeRemaining(hoursUntilReveal) {
     if (!hoursUntilReveal) {
       return 'Revealing now!';
@@ -234,97 +244,28 @@ class BidActionPanel extends Component {
     return `~${days}d ${hours}h ${mins}m`
   }
 
-  renderMask() {
-    const {shouldAddMask, disguiseAmount} = this.state;
+  async generateEvent() {
+    const name = this.props.match.params.name;
+    const { domain, network } = this.props;
+    const { networks } = protocol;
+    const biddingPeriod = networks && networks[network].names.revealPeriod;
+    const biddingPeriodInHours = biddingPeriod * 5 / 60;
 
-    if (shouldAddMask) {
-      return (
-        <div className="domains__bid-now__form__row">
-          <div className="domains__bid-now__form__row__label">
-            <Tooltipable
-              className="domains__bid-now__mask"
-              tooltipContent={(
-                <span className="domains__bid-now__mask-tooltip">
-                  <span>You can disguise your bid amount to cover up your actual bid. Disguise gets added on top of your bid amount, resulting in your mask. The entire mask amount will be frozen during the bidding period. </span>
-                  <span>The disguise amount will be returned after the reveal period, regardless of outcome.</span>
-                </span>
-              )}
-            >
-              Disguise
-            </Tooltipable>
-            <span> Amount:</span>
-          </div>
-          <div className="domains__bid-now__form__row__input">
-            <input
-              type="number"
-              placeholder="Optional"
-              onChange={e => this.setState({disguiseAmount: e.target.value})}
-              value={disguiseAmount}
-            />
-          </div>
-        </div>
-      );
-    }
+    const { info } = domain || {};
+    const { stats } = info || {};
+    const { bidPeriodEnd } = stats || {};
 
-    return (
-      <div
-        className="domains__bid-now__form__link"
-        onClick={() => this.setState({shouldAddMask: true})}
-      >
-        Add Disguise
-      </div>
-    )
-  }
+    const startDatetime = await returnBlockTime(bidPeriodEnd, network);
+    const endDatetime = startDatetime.clone().add(biddingPeriodInHours, 'hours');
 
-  renderBidNowAction() {
-    const {isPlacingBid, bidAmount, disguiseAmount} = this.state;
-    const { confirmedBalance } = this.props;
-
-    if (isPlacingBid) {
-      return (
-        <React.Fragment>
-        <div className="domains__bid-now__action domains__bid-now__action--placing-bid">
-          <div className="domains__bid-now__form">
-            <div className="domains__bid-now__form__row">
-              <div className="domains__bid-now__form__row__label">Bid Amount:</div>
-              <div className="domains__bid-now__form__row__input">
-                <input
-                  type="number"
-                  placeholder="0.00"
-                  onChange={e => this.setState({bidAmount: e.target.value})}
-                  value={bidAmount}
-                />
-              </div>
-            </div>
-            {this.renderMask()}
-          </div>
-          <button
-            className="domains__bid-now__action__cta"
-            onClick={() => this.setState({isReviewing: true})}
-            disabled={!(bidAmount > 0)}
-          >
-            Review Bid
-          </button>
-        </div>
-        <div className="domains__bid-now__action domains__bid-now__action--placing-bid">
-          <div className="domains__bid-now__HNS-status">
-            {`${displayBalance(confirmedBalance)} HNS Unlocked Balance Available`}
-          </div>
-        </div>
-        </React.Fragment>
-      )
-    }
-
-    return (
-      <div className="domains__bid-now__action">
-        <button
-          className="domains__bid-now__action__cta"
-          onClick={() => this.setState({isPlacingBid: true})}
-        >
-          Place Bid
-        </button>
-      </div>
-    );
+    const event = {
+      title: `Reveal of ${name}`,
+      description: `The Handshake domain ${name} will be revealed at block ${bidPeriodEnd}. Check back into the Allison x Bob app to reveal the winner of the auction.`,
+      location: 'The Decentralized Internet',
+      startTime: startDatetime.format(),
+      endTime: endDatetime.format(),
+    };
+    return event;
   }
 
   renderRevealAction() {
@@ -357,29 +298,6 @@ class BidActionPanel extends Component {
     );
   }
 
-  async generateEvent() {
-    const name = this.props.match.params.name;
-    const { domain, network } = this.props;
-    const { networks } = protocol;
-    const biddingPeriod = networks && networks[network].names.revealPeriod;
-    const biddingPeriodInHours = biddingPeriod * 5 / 60;
-
-    const { info } = domain || {};
-    const { stats } = info || {};
-    const { bidPeriodEnd } = stats || {};
-
-    const startDatetime = await returnBlockTime(bidPeriodEnd, network);
-    const endDatetime = startDatetime.clone().add(biddingPeriodInHours, 'hours');
-
-    const event = {
-      title: `Reveal of ${name}`,
-      description: `The Handshake domain ${name} will be revealed at block ${bidPeriodEnd}. Check back into the Allison x Bob app to reveal the winner of the auction.`,
-      location: 'The Decentralized Internet',
-      startTime: startDatetime.format(),
-      endTime: endDatetime.format(),
-    };
-    return event;
-  }
 
   renderRevealPeriodBox() {
     const { domain } = this.props;
@@ -470,6 +388,7 @@ export default withRouter(
     (state) => ({
       confirmedBalance: state.wallet.balance.confirmed,
       watchList: state.watching.names,
+      currentBlock: state.node.chain.height,
       network: state.node.network,
     }),
     dispatch => ({

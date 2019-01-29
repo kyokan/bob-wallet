@@ -4,7 +4,6 @@ import Checkbox from '../../../components/Checkbox';
 const ReviewBid = (props) => {
     const { bidAmount, disguiseAmount, hasAccepted, editBid, editDisguise, onChange, onClick, lockup } = props;
     
-
     return (
       <div className="domains__bid-now">
         <div className="domains__bid-now__title">Review Your Bid</div>
