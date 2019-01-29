@@ -5,18 +5,22 @@ import { connect } from 'react-redux';
 import c from 'classnames';
 import AddToCalendar from 'react-add-to-calendar';
 import { protocol } from 'hsd';
-import { isAvailable, isBidding, isClosed, isOpening, isReveal } from '../../utils/name-helpers';
-import Checkbox from '../../components/Checkbox';
-import * as nameActions from '../../ducks/names';
-import * as watchingActions from '../../ducks/watching';
-import './domains.scss';
-import './add-to-calendar.scss';
-import { displayBalance, toBaseUnits } from '../../utils/balances';
-import { showError, showSuccess } from '../../ducks/notifications';
-import Blocktime, { returnBlockTime } from '../../components/Blocktime';
-import SuccessModal from "../../components/SuccessModal";
-import Tooltipable from '../../components/Tooltipable';
-import * as logger from '../../utils/logClient';
+import { isAvailable, isBidding, isClosed, isOpening, isReveal } from '../../../utils/name-helpers';
+import * as nameActions from '../../../ducks/names';
+import * as watchingActions from '../../../ducks/watching';
+import { displayBalance, toBaseUnits } from '../../../utils/balances';
+import { showError, showSuccess } from '../../../ducks/notifications';
+import Blocktime, { returnBlockTime } from '../../../components/Blocktime';
+import Tooltipable from '../../../components/Tooltipable';
+import * as logger from '../../../utils/logClient';
+import '../domains.scss';
+import '../add-to-calendar.scss';
+import OpeningBid from './OpeningBid';
+import OpenBid from './OpenBid';
+import ReviewBid from './ReviewBid';
+import PlacedBid from './PlacedBid';
+import BidNow from './BidNow';
+import Reveal from './Revealing';
 
 @connect(
   (state) => ({
@@ -34,6 +38,7 @@ class BidActionPanel extends Component {
     }),
   };
 
+  // use ENUM instead of state and set state at next onclick -> maybe create a next step function with set state, and callback
   state = {
     isPlacingBid: false,
     shouldAddMask: false,
@@ -84,30 +89,86 @@ class BidActionPanel extends Component {
   }
 
   renderActionPanel() {
-    const { domain } = this.props;
+    const {bidAmount, disguiseAmount, hasAccepted} = this.state;
+    const { domain, sendOpen} = this.props;
+
+    const { info } = domain || {};
+    const {stats, bids = [], highest = 0} = info || {};
+    const { bidPeriodEnd, hoursUntilReveal, revealPeriodEnd } = stats || {};
 
     if (this.state.isReviewing) {
-      return this.renderReviewBid();
+      const lockup = Number(disguiseAmount) + Number(bidAmount);
+      return (
+      <ReviewBid
+        lockup={lockup}
+        bidAmount={bidAmount}
+        disguiseAmount={disguiseAmount}
+        hasAccepted={hasAccepted}
+        editBid={() => this.setState({ isReviewing: false })}
+        editDisguise={() => this.setState({ shouldAddMask: true, isReviewing: false })}
+        onChange={e => this.setState({hasAccepted: e.target.checked})}
+        onClick={
+          () => this.handleCTA(
+            () => this.props.sendBid(this.props.domain.name, bidAmount, lockup),
+            null,
+            'Failed to place bid. Please try again.',
+            () => this.setState({
+              isReviewing: false,
+              isPlacingBid: false,
+              successfullyBid: true,
+              showSuccessModal: true,
+            })
+          )}
+        />
+      )
     }
 
     if (isOpening(domain)) {
-      return this.renderOpeningBid();
+      return <OpeningBid/>;
     }
 
     const ownBid = this.findOwnBid();
     if (isBidding(domain) || this.state.successfullyBid) {
       if (this.state.successfullyBid || ownBid || domain.pendingOperation === 'BID') {
-        return this.renderPlacedBid(ownBid)
+        return (
+          <PlacedBid onClose={() => this.setState({ showSuccessModal: false })}>
+            {this.renderPlacedBidContent(ownBid)}
+          </PlacedBid>
+          )
       }
-      return this.renderBidNow();
-    }
-
-    if (isAvailable(domain)) {
-      return this.renderOpenBid();
+      return (
+        <BidNow 
+          timeRemaining={() => this.getTimeRemaining(hoursUntilReveal)}
+          bids={bids}
+          highest={highest}
+        >
+          {this.renderBidNowAction()}
+        </BidNow>
+        )
     }
 
     if (isReveal(domain)) {
-      return this.renderRevealing(ownBid);
+      const ownReveal = this.findOwnReveal();
+      const highestReveal = this.findHighestReveal;
+
+      return (
+        <Reveal ownReveal={ownReveal}>
+          {this.renderInfoRow('Reveal Ends', <Blocktime height={revealPeriodEnd} fromNow />)}
+          {ownReveal ? this.renderInfoRow('Your Reveal', displayBalance(ownReveal.value, true)) : null}
+          {highestReveal ? this.renderInfoRow('Highest Reveal', displayBalance(highestReveal.value, true)) : null}
+          {ownReveal ||!this.hasRevealableBid() ? null : this.renderRevealAction()}
+        </Reveal>
+      )
+    }
+
+    if (isAvailable(domain)) {
+      return <OpenBid onClick={
+        () => this.handleCTA(
+          () => sendOpen(domain.name),
+          'Successfully opened bid! Check back in a few minutes to start bidding.',
+          'Failed to open bid. Please try again.',
+        )
+      }/>
     }
 
     return <noscript />;
@@ -132,68 +193,6 @@ class BidActionPanel extends Component {
     } finally {
       this.setState({isLoading: false});
     }
-  }
-
-  renderOpenBid() {
-    const {domain, sendOpen} = this.props;
-    return (
-      <div className="domains__bid-now">
-        <div className="domains__bid-now__title">Open Bid</div>
-        <div className="domains__bid-now__content">
-          Start the auction process by making an open bid.
-        </div>
-        <div className="domains__bid-now__action">
-          <button
-            className="domains__bid-now__action__cta"
-            onClick={
-              () => this.handleCTA(
-                () => sendOpen(domain.name),
-                'Successfully opened bid! Check back in a few minutes to start bidding.',
-                'Failed to open bid. Please try again.',
-              )
-            }
-          >
-            Open Bid
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  renderOpeningBid() {
-    return (
-      <div className="domains__bid-now">
-        <div className="domains__bid-now__title">Bid is opening!</div>
-        <div className="domains__bid-now__content">
-          The auction will start soon. Please check back shortly to place your bid.
-        </div>
-      </div>
-    );
-  }
-
-  renderPlacedBid(ownBid) {
-    const { showSuccessModal, bidAmount, disguiseAmount } = this.state;
-    const { domain } = this.props;
-    const { info } = domain || {};
-    const { stats } = info || {};
-
-    const { bidPeriodEnd } = stats || {};
-
-    return (
-      <div className="domains__bid-now">
-        {showSuccessModal &&
-          <SuccessModal
-            bidAmount={bidAmount}
-            maskAmount={Number(bidAmount) + Number(disguiseAmount)}
-            revealStartBlock={bidPeriodEnd}
-            onClose={() => this.setState({ showSuccessModal: false })}
-          />}
-        <div className="domains__bid-now__title">Bid placed!</div>
-        <div className="domains__bid-now__content">
-          {this.renderPlacedBidContent(ownBid)}
-        </div>
-      </div>
-    );
   }
 
   renderPlacedBidContent(ownBid) {
@@ -233,129 +232,6 @@ class BidActionPanel extends Component {
     const hours = Math.floor(hoursUntilReveal % 24);
     const mins = Math.floor((hoursUntilReveal % 1) * 60);
     return `~${days}d ${hours}h ${mins}m`
-  }
-
-  renderBidNow() {
-    const {domain} = this.props;
-    const {info} = domain || {};
-    const {stats, bids = [], highest = 0} = info || {};
-
-    const {hoursUntilReveal} = stats || {};
-
-    return (
-      <div className="domains__bid-now">
-        <div className="domains__bid-now__title">Bid Now!</div>
-        <div className="domains__bid-now__content">
-          <div className="domains__bid-now__info">
-            <div className="domains__bid-now__info__label">
-              Time Remaining:
-            </div>
-            <div className="domains__bid-now__info__time-remaining">
-              {this.getTimeRemaining(hoursUntilReveal)}
-            </div>
-          </div>
-          <div className="domains__bid-now__info">
-            <div className="domains__bid-now__info__label">
-              Total Bids:
-            </div>
-            <div className="domains__bid-now__info__value">
-              {bids.length}
-            </div>
-          </div>
-          <div className="domains__bid-now__info">
-            <div className="domains__bid-now__info__label">
-              Highest <span>Mask</span>:
-            </div>
-            <div className="domains__bid-now__info__value">
-              {highest}
-            </div>
-          </div>
-          <div className="domains__bid-now__info__disclaimer">
-            <Tooltipable tooltipContent={'To prevent price sniping, Handshake uses a blind second-price auction called a Vickrey Auction. Users can buy and register top-level domains (TLDs) with Handshake coins (HNS).'}>
-              <div className="domains__bid-now__info__icon" />
-            </Tooltipable>
-            Winner pays 2nd highest bid price.
-          </div>
-        </div>
-        {this.renderBidNowAction()}
-      </div>
-    );
-  }
-
-  renderReviewBid() {
-    const {bidAmount, disguiseAmount, hasAccepted} = this.state;
-    const lockup = Number(disguiseAmount) + Number(bidAmount);
-
-    return (
-      <div className="domains__bid-now">
-        <div className="domains__bid-now__title">Review Your Bid</div>
-        <div className="domains__bid-now__content">
-          <div className="domains__bid-now__info">
-            <div className="domains__bid-now__info__label">
-              Bid Amount:
-            </div>
-            <div className="domains__bid-now__info__value">
-              {`${bidAmount} HNS`}
-            </div>
-            <div className="domains__bid-now__action__edit-icon"
-              onClick={() => this.setState({ isReviewing: false }) }
-            />
-          </div>
-          <div className="domains__bid-now__info">
-            <div className="domains__bid-now__info__label">
-              Disguise Amount:
-            </div>
-            <div className="domains__bid-now__info__value">
-              {disguiseAmount ? `${disguiseAmount} HNS` : ' - '}
-            </div>
-            <div className="domains__bid-now__action__edit-icon"
-              onClick={() => this.setState({ shouldAddMask: true, isReviewing: false }) }
-            />
-          </div>
-          <div className="domains__bid-now__divider" />
-          <div className="domains__bid-now__info">
-            <div className="domains__bid-now__info__label">
-              Total Mask
-            </div>
-            <div className="domains__bid-now__info__value">
-              {`${lockup} HNS`}
-            </div>
-            <div className="domains__bid-now__action__placeholder" />
-          </div>
-        </div>
-
-        <div className="domains__bid-now__action">
-          <div className="domains__bid-now__action__agreement">
-            <Checkbox
-              onChange={e => this.setState({hasAccepted: e.target.checked})}
-              checked={hasAccepted}
-            />
-            <div className="domains__bid-now__action__agreement-text">
-              I understand my bid cannot be changed after I submit it.
-            </div>
-          </div>
-          <button
-            className="domains__bid-now__action__cta"
-            onClick={
-              () => this.handleCTA(
-                () => this.props.sendBid(this.props.domain.name, bidAmount, lockup),
-                null,
-                'Failed to place bid. Please try again.',
-                () => this.setState({
-                  isReviewing: false,
-                  isPlacingBid: false,
-                  successfullyBid: true,
-                  showSuccessModal: true,
-                })
-              )
-            }
-            disabled={!hasAccepted}
-          >
-            Submit Bid
-          </button>
-        </div>
-      </div>
-    );
   }
 
   renderMask() {
@@ -466,25 +342,6 @@ class BidActionPanel extends Component {
         </button>
       </div>
     )
-  }
-
-  renderRevealing(ownBid) {
-    const ownReveal = this.findOwnReveal();
-    const highestReveal = this.findHighestReveal();
-    const domain = this.props.domain;
-    const stats = domain.info && domain.info.stats || {};
-
-    return (
-      <div className="domains__bid-now">
-        <div className="domains__bid-now__title">{ownReveal ? 'Bid revealed.' : 'Revealing'}</div>
-        <div className="domains__bid-now__content">
-          {this.renderInfoRow('Reveal Ends', <Blocktime height={stats.revealPeriodEnd} fromNow />)}
-          {ownReveal ? this.renderInfoRow('Your Reveal', displayBalance(ownReveal.value, true)) : null}
-          {highestReveal ? this.renderInfoRow('Highest Reveal', displayBalance(highestReveal.value, true)) : null}
-          {ownReveal ||!this.hasRevealableBid() ? null : this.renderRevealAction()}
-        </div>
-      </div>
-    );
   }
 
   renderInfoRow(label, value) {
