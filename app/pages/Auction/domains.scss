@@ -197,6 +197,14 @@
         background-position: center;
         margin-right: 0.3rem;
       }
+
+      &__warning {
+        @extend %h6;
+        margin-top: .5rem;
+        text-align: center;
+        font-weight: 400;
+        color: $orange-red;
+      }
     }
 
     &__action {
