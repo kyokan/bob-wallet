@@ -13,8 +13,6 @@ import { showError, showSuccess } from '../../../ducks/notifications';
 import Blocktime, { returnBlockTime } from '../../../components/Blocktime';
 import * as logger from '../../../utils/logClient';
 import OpenBid from './OpenBid';
-import ReviewBid from './ReviewBid';
-import PlacedBid from './PlacedBid';
 import BidNow from './BidNow';
 import Reveal from './Reveal';
 import '../domains.scss';
@@ -45,7 +43,7 @@ class BidActionPanel extends Component {
     disguiseAmount: '',
     isLoading: false,
     successfullyBid: false,
-    showSuccessModal: false,
+    showSuccessModal: true,
     isWatching: false,
     event: {},
   };
@@ -86,67 +84,17 @@ class BidActionPanel extends Component {
   }
 
   renderActionPanel() {
-    const { bidAmount, disguiseAmount, hasAccepted, showSuccessModal, isPlacingBid, shouldAddDisguise } = this.state;
+    const { bidAmount, disguiseAmount, hasAccepted, showSuccessModal, isPlacingBid, shouldAddDisguise, isReviewing } = this.state;
     const { domain, sendOpen, confirmedBalance, currentBlock, network} = this.props;
 
     const { info } = domain || {};
     const { stats, bids = [], highest = 0 } = info || {};
     const { bidPeriodEnd, hoursUntilReveal, revealPeriodEnd } = stats || {};
 
-    if (this.state.isReviewing) {
-      const lockup = Number(disguiseAmount) + Number(bidAmount);
-      return (
-      <ReviewBid
-        lockup={lockup}
-        bidAmount={bidAmount}
-        disguiseAmount={disguiseAmount}
-        hasAccepted={hasAccepted}
-        editBid={() => this.setState({ isReviewing: false })}
-        editDisguise={() => this.setState({ shouldAddDisguise: true, isReviewing: false })}
-        onChange={e => this.setState({hasAccepted: e.target.checked})}
-        onClick={
-          () => this.handleCTA(
-            () => this.props.sendBid(this.props.domain.name, bidAmount, lockup),
-            null,
-            'Failed to place bid. Please try again.',
-            () => this.setState({
-              isReviewing: false,
-              isPlacingBid: false,
-              successfullyBid: true,
-              showSuccessModal: true,
-            })
-          )}
-        />
-      )
-    }
-
     const ownBid = this.findOwnBid();
     if (isBidding(domain) || this.state.successfullyBid) {
-      if (this.state.successfullyBid || ownBid || domain.pendingOperation === 'BID') {
-        return (
-          <PlacedBid 
-            onClose={() => this.setState({ showSuccessModal: false })} 
-            showSuccessModal={showSuccessModal}
-            bidAmount={bidAmount}
-            bidPeriodEnd={bidPeriodEnd}
-            disguiseAmount={disguiseAmount}
-          >
-            {ownBid ? 
-            <React.Fragment>
-              {this.renderInfoRow('Reveal', <Blocktime height={stats.bidPeriodEnd} fromNow />)}
-              {/*{this.renderInfoRow('Reveal', this.getTimeRemaining(this.props.domain.info.stats.hoursUntilReveal))}*/}
-              {this.renderInfoRow('Total Bids', this.props.domain.bids.length)}
-              {this.renderInfoRow('Highest Mask', displayBalance(this.findHighestMaskBid(), true))}
-              <div className="domains__bid-now-divider" />
-              {this.renderInfoRow('Bid Amount', displayBalance(ownBid.value, true))}
-              {this.renderInfoRow('Disguise Amount', displayBalance(ownBid.lockup, true))}
-              {this.renderRevealPeriodBox()}
-            </React.Fragment> : 
-              'Your bid has been placed. Please wait a few minutes while the transaction confirms.'
-            }
-          </PlacedBid>
-        )
-      }
+      const lockup = Number(disguiseAmount) + Number(bidAmount);
+
       return (
         <BidNow 
           timeRemaining={() => this.getTimeRemaining(hoursUntilReveal)}
@@ -157,13 +105,36 @@ class BidActionPanel extends Component {
           isPlacingBid={isPlacingBid}
           disguiseAmount={disguiseAmount}
           bidAmount={bidAmount}
+          isReviewing={isReviewing}
           shouldAddDisguise={shouldAddDisguise}
+          successfullyBid={this.state.successfullyBid}
+          showSuccessModal={showSuccessModal}
+          bidPeriodEnd={bidPeriodEnd}
+          hasAccepted={hasAccepted}
+          lockup={lockup}
+          isPending={domain.pendingOperation === 'BID'}
+          editBid={() => this.setState({ isReviewing: false })}
+          editDisguise={() => this.setState({ shouldAddDisguise: true, isReviewing: false })}
           displayBalance={`${displayBalance(confirmedBalance)} HNS Unlocked Balance Available`}
+          onCloseModal={() => this.setState({ showSuccessModal: false })} 
+          onChangeChecked={e => this.setState({hasAccepted: e.target.checked})}
           onChangeBidAmount={e => this.setState({bidAmount: e.target.value})}
           onChangeDisguiseAmount={e => this.setState({disguiseAmount: e.target.value})}
           onClickAddDisguise={() => this.setState({shouldAddDisguise: true})}
           onClickPlaceBid={() => this.setState({isPlacingBid: true})}
           onClickReview={() => this.setState({isReviewing: true})}
+          onClickSendBid={
+            () => this.handleCTA(
+              () => this.props.sendBid(this.props.domain.name, bidAmount, lockup),
+              null,
+              'Failed to place bid. Please try again.',
+              () => this.setState({
+                isReviewing: false,
+                isPlacingBid: false,
+                successfullyBid: true,
+                showSuccessModal: true,
+              })
+            )}
          />
         )
     }
