@@ -43,7 +43,7 @@ class BidActionPanel extends Component {
     disguiseAmount: '',
     isLoading: false,
     successfullyBid: false,
-    showSuccessModal: true,
+    showSuccessModal: false,
     isWatching: false,
     event: {},
   };
@@ -139,13 +139,20 @@ class BidActionPanel extends Component {
         )
     }
 
-    if (isReveal(domain)) {
+    if (isReveal(domain) || true) {
       const ownReveal = this.findOwnReveal();
       const highestReveal = this.findHighestReveal;
 
       return (
-        <Reveal ownReveal={ownReveal}>
-          {this.renderInfoRow('Reveal Ends', <Blocktime height={revealPeriodEnd} fromNow />)}
+        <Reveal 
+          isRevealing={isReveal(domain) || true}
+          ownReveal={ownReveal}
+          timeRemaining={() => this.getTimeRemaining(revealPeriodEnd)}
+          bids={bids}
+          highest={highest}
+          onClickRevealBids={() => console.log('add reveal function')}
+        >
+          {/* {this.renderInfoRow('Reveal Ends', <Blocktime height={revealPeriodEnd} fromNow />)} */}
           {ownReveal ? this.renderInfoRow('Your Mask', displayBalance(ownReveal.value, true)) : null}
           {highestReveal ? this.renderInfoRow('Highest Mask', displayBalance(highestReveal.value, true)) : null}
           {ownReveal ||!this.hasRevealableBid() ? null : this.renderRevealAction()}
@@ -268,7 +275,6 @@ class BidActionPanel extends Component {
       </div>
     );
   }
-
 
   renderRevealPeriodBox() {
     const { domain } = this.props;

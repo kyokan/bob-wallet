@@ -2,11 +2,12 @@ import React, {Component} from 'react';
 import Tooltipable from '../../../components/Tooltipable';
 import SuccessModal from '../../../components/SuccessModal';
 import Checkbox from '../../../components/Checkbox';
+import Header from './Header';
 
 export default class BidNow extends Component {
 
   render () {
-    let { timeRemaining, bids, highest, isPlacingBid, showSuccessModal, bidAmount, disguiseAmount, bidPeriodEnd, onCloseModal, isReviewing } = this.props;
+    let { timeRemaining, bids, highest, isPlacingBid, showSuccessModal, bidAmount, disguiseAmount, bidPeriodEnd, onCloseModal } = this.props;
 
     return (
       <div className="domains__bid-now">
@@ -17,45 +18,17 @@ export default class BidNow extends Component {
               revealStartBlock={bidPeriodEnd}
               onClose={onCloseModal}
             />}
-        <div className="domains__bid-now__title">Auction Details</div>
-        <div className="domains__bid-now__content">
-          <div className="domains__bid-now__info">
-            <div className="domains__bid-now__info__label">
-              Reveal:
-            </div>
-            <div className="domains__bid-now__info__time-remaining">
-              {timeRemaining()}
-            </div>
-          </div>
-          <div className="domains__bid-now__info">
-            <div className="domains__bid-now__info__label">
-              Total Bids:
-            </div>
-            <div className="domains__bid-now__info__value">
-              {bids.length}
-            </div>
-          </div>
-          <div className="domains__bid-now__info">
-            <div className="domains__bid-now__info__label">
-              Highest <span>Mask</span>:
-            </div>
-            <div className="domains__bid-now__info__value">
-              {highest}
-            </div>
-          </div>
-          <div className="domains__bid-now__info__disclaimer">
-            <Tooltipable tooltipContent={'To prevent price sniping, Handshake uses a blind second-price auction called a Vickrey Auction. Users can buy and register top-level domains (TLDs) with Handshake coins (HNS).'}>
-              <div className="domains__bid-now__info__icon" />
-            </Tooltipable>
-            Winner pays 2nd highest bid price.
-          </div>
-        </div>
-        {isPlacingBid ? (isReviewing ? this.renderReviewing() : this.renderBidNowAction()) : this.renderOwnBidAction()}
+          <Header 
+            bids={bids}
+            highest={highest}
+            timeRemaining={timeRemaining}
+          />
+        {isPlacingBid ? this.renderBidNow() : this.renderOwnBidAction()}
       </div>
     );
   }
 
-  renderBidNowAction() {
+  renderBiddingView() {
     const { bidAmount, displayBalance, onChangeBidAmount, onClickReview} = this.props;
     return (
       <React.Fragment>
@@ -251,5 +224,10 @@ export default class BidNow extends Component {
   isBidPending() {
     const { successfullyBid, isPending } = this.props
     return successfullyBid || isPending;
+  }
+
+  renderBidNow() {
+    const { isReviewing } = this.props
+    return isReviewing ? this.renderReviewing() : this.renderBiddingView();
   }
 }
