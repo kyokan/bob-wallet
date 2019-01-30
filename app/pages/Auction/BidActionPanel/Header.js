@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+import AddToCalendar from 'react-add-to-calendar';
 import Tooltipable from '../../../components/Tooltipable';
 
 
@@ -9,11 +10,13 @@ export default class Header extends Component {
     bids: PropTypes.array.isRequired,
     highest: PropTypes.number.isRequired,
     timeRemaining: PropTypes.func.isRequired,
+    items: PropTypes.array.isRequired,
+    event: PropTypes.object.isRequired,
     isRevealing: PropTypes.bool,
   }
 
   render () {
-    const { isRevealing, timeRemaining, bids, highest } = this.props;
+    const { isRevealing, timeRemaining, bids, highest, event, items } = this.props;
     return (
       <React.Fragment>
         <div className="domains__bid-now__title">Auction Details</div>
@@ -23,7 +26,13 @@ export default class Header extends Component {
               {isRevealing ? "Reveal Ends": "Reveal:"}
             </div>
             <div className="domains__bid-now__info__time-remaining">
-              {timeRemaining()}
+              <div>
+                <AddToCalendar
+                  event={event}
+                  listItems={items}
+                />
+                {timeRemaining()}
+                </div>
             </div>
           </div>
           <div className="domains__bid-now__info">
