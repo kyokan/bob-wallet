@@ -149,7 +149,7 @@ class BidActionPanel extends Component {
         )
     }
 
-    if (isReveal(domain) || true) {
+    if (isReveal(domain)) {
       const ownReveal = this.findOwnReveal();
       const highestReveal = this.findHighestReveal;
 
