@@ -139,24 +139,24 @@ class BidActionPanel extends Component {
         )
     }
 
-    if (isReveal(domain) || true) {
+    if (isReveal(domain)) {
       const ownReveal = this.findOwnReveal();
       const highestReveal = this.findHighestReveal;
 
       return (
         <Reveal 
-          isRevealing={isReveal(domain) || true}
+          isRevealing={isReveal(domain)}
           ownReveal={ownReveal}
           timeRemaining={() => this.getTimeRemaining(revealPeriodEnd)}
           bids={bids}
           highest={highest}
-          onClickRevealBids={() => console.log('add reveal function')}
-        >
-          {/* {this.renderInfoRow('Reveal Ends', <Blocktime height={revealPeriodEnd} fromNow />)} */}
-          {ownReveal ? this.renderInfoRow('Your Mask', displayBalance(ownReveal.value, true)) : null}
-          {highestReveal ? this.renderInfoRow('Highest Mask', displayBalance(highestReveal.value, true)) : null}
-          {ownReveal ||!this.hasRevealableBid() ? null : this.renderRevealAction()}
-        </Reveal>
+          hasRevealableBid={this.hasRevealableBid()}
+          onClickRevealBids={() => this.handleCTA(
+            () => this.props.sendReveal(this.props.domain.name),
+            'Successfully revealed bid!',
+            'Failed to reveal bid. Please try again.'
+          )}
+        />
       )
     }
     
