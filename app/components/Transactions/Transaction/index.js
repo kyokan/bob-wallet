@@ -16,6 +16,7 @@ const REVEAL = 'REVEAL';
 const UPDATE = 'UPDATE';
 const RENEW = 'RENEW';
 const REDEEM = 'REDEEM';
+const COINBASE = 'COINBASE';
 
 class Transaction extends Component {
   static propTypes = {
@@ -27,7 +28,7 @@ class Transaction extends Component {
   iconStyling = tx =>
     classnames('transaction__tx-icon ', {
       'transaction__tx-icon--pending': tx.pending,
-      'transaction__tx-icon--received': tx.type === RECEIVE && !tx.pending,
+      'transaction__tx-icon--received': (tx.type === RECEIVE || tx.type === COINBASE) && !tx.pending,
       'transaction__tx-icon--sent': tx.type === SEND && !tx.pending
     });
 
@@ -39,8 +40,8 @@ class Transaction extends Component {
   numberStyling = tx =>
     classnames('transaction__number', {
       'transaction__number--pending': tx.pending,
-      'transaction__number--positive': tx.type === RECEIVE && !tx.pending,
-      'transaction__number--negative': tx.type !== RECEIVE && !tx.pending
+      'transaction__number--positive': (tx.type === RECEIVE || tx.type === COINBASE) && !tx.pending,
+      'transaction__number--negative': (tx.type !== RECEIVE && tx.type !== COINBASE) && !tx.pending
     });
 
   renderTimestamp = tx => {
@@ -84,9 +85,13 @@ class Transaction extends Component {
     } else if (tx.type === REDEEM) {
       description = 'Redeemed bid';
       content = this.formatDomain(tx.meta.domain);
+    } else if (tx.type === COINBASE) {
+      description = 'Mining reward'
     } else {
       description = 'Unknown Transaction';
     }
+
+    console.log((tx.type === RECEIVE || tx.type === COINBASE) && !tx.pending);
 
     return (
       <div className="transaction__tx-description">
@@ -103,7 +108,7 @@ class Transaction extends Component {
       <div className={this.numberStyling(tx)}>
         {tx.pending ? <em>(pending)</em> : null}
         {' '}
-        {tx.type === RECEIVE ? '+' : '-'}
+        {tx.type === RECEIVE || tx.type === COINBASE ? '+' : '-'}
         {displayBalance(tx.value)} HNS
       </div>
     </div>

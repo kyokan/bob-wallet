@@ -38,7 +38,7 @@ export async function withLedger(action) {
 
 export async function getXPub() {
   return withLedger(async (ledger) => {
-    return (await ledger.getAccountXpub(0)).xpubkey('simnet');
+    return (await ledger.getAccountXpub(0)).xpubkey('regtest');
   });
 }
 

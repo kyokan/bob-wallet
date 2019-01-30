@@ -215,11 +215,13 @@ async function parseInputsOutputs(tx) {
   }
 
   for (const output of tx.outputs) {
+    const isCoinbase = tx.inputs.length === 1 && !tx.inputs[0].address;
+
     if (output.path) {
       return {
-        type: 'RECEIVE',
+        type: isCoinbase ? 'COINBASE' : 'RECEIVE',
         meta: {
-          from: tx.inputs[0].address
+          from: isCoinbase ? '' : tx.inputs[0].address
         },
         value: output.value,
         fee: tx.fee

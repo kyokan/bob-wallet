@@ -23,6 +23,9 @@ const networks = [
   },
   {
     label: 'Simnet'
+  },
+  {
+    label: 'Regtest'
   }
 ];
 
