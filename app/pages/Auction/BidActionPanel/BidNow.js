@@ -1,14 +1,22 @@
 import React, {Component} from 'react';
 import Tooltipable from '../../../components/Tooltipable';
+import SuccessModal from '../../../components/SuccessModal';
+import Checkbox from '../../../components/Checkbox';
 
 export default class BidNow extends Component {
 
-
   render () {
-    let { timeRemaining, bids, highest, isPlacingBid } = this.props;
+    let { timeRemaining, bids, highest, isPlacingBid, showSuccessModal, bidAmount, disguiseAmount, bidPeriodEnd, onCloseModal, isReviewing } = this.props;
 
     return (
       <div className="domains__bid-now">
+          {showSuccessModal &&
+            <SuccessModal
+              bidAmount={bidAmount}
+              maskAmount={Number(bidAmount) + Number(disguiseAmount)}
+              revealStartBlock={bidPeriodEnd}
+              onClose={onCloseModal}
+            />}
         <div className="domains__bid-now__title">Auction Details</div>
         <div className="domains__bid-now__content">
           <div className="domains__bid-now__info">
@@ -42,7 +50,7 @@ export default class BidNow extends Component {
             Winner pays 2nd highest bid price.
           </div>
         </div>
-        {isPlacingBid ? this.renderBidNowAction() : this.renderOwnBidAction()}
+        {isPlacingBid ? (isReviewing ? this.renderReviewing() : this.renderBidNowAction()) : this.renderOwnBidAction()}
       </div>
     );
   }
@@ -154,8 +162,9 @@ export default class BidNow extends Component {
                 <button
                   className="domains__bid-now__action__cta"
                   onClick={onClickPlaceBid}
+                  disabled={this.isBidPending()}
                 >
-                  Place Another Bid
+                  {this.isBidPending() ? 'Bid Pending...' : 'Place Another Bid' }
                 </button>
               </div>
             </div>
@@ -167,10 +176,80 @@ export default class BidNow extends Component {
           <button
             className="domains__bid-now__action__cta"
             onClick={onClickPlaceBid}
+            disabled={this.isBidPending()}
           >
-            Place Bid
+             {this.isBidPending() ? 'Bid Pending...' : 'Place Bid' }
           </button>
         </div>
       );
+  }
+
+  renderReviewing() {
+    const { bidAmount, disguiseAmount, hasAccepted, editBid, editDisguise, onChangeChecked, onClickSendBid, lockup } = this.props;
+    
+    return (
+      <div className="domains__bid-now__action--placing-bid" >
+        <div className="domains__bid-now__title" style={{marginTop: '1rem'}}>Review Your Bid</div>
+        <div className="domains__bid-now__content">
+          <div className="domains__bid-now__info">
+            <div className="domains__bid-now__info__label">
+              Bid Amount:
+            </div>
+            <div className="domains__bid-now__info__value">
+              {`${bidAmount} HNS`}
+            </div>
+            <div className="domains__bid-now__action__edit-icon"
+              onClick={editBid}
+            />
+          </div>
+          <div className="domains__bid-now__info">
+            <div className="domains__bid-now__info__label">
+              Disguise Amount:
+            </div>
+            <div className="domains__bid-now__info__value">
+              {disguiseAmount ? `${disguiseAmount} HNS` : ' - '}
+            </div>
+            <div className="domains__bid-now__action__edit-icon"
+              onClick={editDisguise}
+            />
+          </div>
+          <div className="domains__bid-now__divider" />
+          <div className="domains__bid-now__info">
+            <div className="domains__bid-now__info__label">
+              Total Mask
+            </div>
+            <div className="domains__bid-now__info__value">
+              {`${lockup} HNS`}
+            </div>
+            <div className="domains__bid-now__action__placeholder" />
+          </div>
+        </div>
+
+        <div className="domains__bid-now__action">
+          <div className="domains__bid-now__action__agreement">
+            <Checkbox
+              onChange={onChangeChecked}
+              checked={hasAccepted}
+            />
+            <div className="domains__bid-now__action__agreement-text">
+              I understand my bid cannot be changed after I submit it.
+            </div>
+          </div>
+          <button
+            className="domains__bid-now__action__cta"
+            onClick={onClickSendBid}
+            disabled={!hasAccepted}
+          >
+            Submit Bid
+          </button>
+        </div>
+
+      </div>
+    )
+  }
+
+  isBidPending() {
+    const { successfullyBid, isPending } = this.props
+    return successfullyBid || isPending;
   }
 }
