@@ -19,7 +19,7 @@ export async function withLedger(action) {
       timeout: ONE_MINUTE
     });
     await device.open();
-    ledger = new LedgerHSD({ device, network: 'simnet' });
+    ledger = new LedgerHSD({device, network: 'regtest'});
   } catch (e) {
     logger.error('failed to open ledger', e);
     throw e;

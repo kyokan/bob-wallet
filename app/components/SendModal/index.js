@@ -63,7 +63,7 @@ class SendModal extends Component {
   validate() {
     const { to, amount } = this.state;
 
-    if (!to || !amount || !isValidAddress(to, SIMNET)) {
+    if (!to || !amount || !isValidAddress(to, this.props.network)) {
       return { isValid: false };
     }
 
