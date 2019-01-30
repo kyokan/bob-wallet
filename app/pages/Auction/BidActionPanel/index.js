@@ -51,8 +51,8 @@ class BidActionPanel extends Component {
   async componentWillMount() {
     await this.props.getWatching(this.props.network);
     const isWatching = this.props.watchList.includes(this.props.match.params.name)
-    const event = await this.generateEvent();
-    this.setState({ isWatching: isWatching, event: event || {} })
+    // const event = await this.generateEvent();
+    this.setState({ isWatching: isWatching || {} })
 
   }
 
