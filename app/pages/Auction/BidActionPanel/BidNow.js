@@ -3,11 +3,21 @@ import Tooltipable from '../../../components/Tooltipable';
 import SuccessModal from '../../../components/SuccessModal';
 import Checkbox from '../../../components/Checkbox';
 import Header from './Header';
+import { returnBlockTime } from '../../../components/Blocktime';
 
 export default class BidNow extends Component {
 
+  state = {
+    event: {},
+  }
+
+  async componentDidMount() {
+    const event = await this.generateEvent();
+    this.setState({event})
+  }
+
   render () {
-    let { timeRemaining, bids, highest, isPlacingBid, showSuccessModal, bidAmount, disguiseAmount, bidPeriodEnd, onCloseModal } = this.props;
+    let { timeRemaining, bids, highest, isPlacingBid, showSuccessModal, bidAmount, disguiseAmount, bidPeriodEnd, onCloseModal, items, event } = this.props;
 
     return (
       <div className="domains__bid-now">
@@ -19,6 +29,8 @@ export default class BidNow extends Component {
               onClose={onCloseModal}
             />}
           <Header 
+            items={items}
+            event={this.state.event}
             bids={bids}
             highest={highest}
             timeRemaining={timeRemaining}
@@ -229,5 +241,21 @@ export default class BidNow extends Component {
   renderBidNow() {
     const { isReviewing } = this.props
     return isReviewing ? this.renderReviewing() : this.renderBiddingView();
+  }
+
+  async generateEvent() {
+    const { bidPeriodEnd, network, name} = this.props;
+    const startDatetime = await returnBlockTime(bidPeriodEnd, network);
+    const endDatetime = startDatetime.clone().add(1, 'hours');
+
+    const event = {
+      title: `Reveal of ${name}`,
+      description: `The Handshake domain ${name} will be ready to reveal at block ${bidPeriodEnd}. Check back to Allison and Bob to reveal your bids.`,
+      location: 'The Decentralized Internet',
+      startTime: startDatetime.format(),
+      endTime: endDatetime.format(),
+    };
+    
+    return event;
   }
 }

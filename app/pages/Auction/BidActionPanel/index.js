@@ -86,18 +86,25 @@ class BidActionPanel extends Component {
   renderActionPanel() {
     const { bidAmount, disguiseAmount, hasAccepted, showSuccessModal, isPlacingBid, shouldAddDisguise, isReviewing } = this.state;
     const { domain, sendOpen, confirmedBalance, currentBlock, network} = this.props;
-
+    
+    const name = this.props.match.params.name;
     const { info } = domain || {};
     const { stats, bids = [], highest = 0 } = info || {};
     const { bidPeriodEnd, hoursUntilReveal, revealPeriodEnd } = stats || {};
 
+    const items = [
+      { google: 'Google' },
+      { apple: 'iCal' },
+      { outlook: 'Outlook' },
+    ];
+
     const ownBid = this.findOwnBid();
     if (isBidding(domain) || this.state.successfullyBid) {
       const lockup = Number(disguiseAmount) + Number(bidAmount);
-
       return (
         <BidNow 
           timeRemaining={() => this.getTimeRemaining(hoursUntilReveal)}
+          hoursRemaining={hoursUntilReveal}
           confirmedBalance={confirmedBalance}
           bids={bids}
           ownBid={ownBid}
@@ -112,6 +119,9 @@ class BidActionPanel extends Component {
           bidPeriodEnd={bidPeriodEnd}
           hasAccepted={hasAccepted}
           lockup={lockup}
+          items={items}
+          name={name}
+          network={network}
           isPending={domain.pendingOperation === 'BID'}
           editBid={() => this.setState({ isReviewing: false })}
           editDisguise={() => this.setState({ shouldAddDisguise: true, isReviewing: false })}
@@ -139,7 +149,7 @@ class BidActionPanel extends Component {
         )
     }
 
-    if (isReveal(domain)) {
+    if (isReveal(domain) || true) {
       const ownReveal = this.findOwnReveal();
       const highestReveal = this.findHighestReveal;
 
@@ -148,8 +158,12 @@ class BidActionPanel extends Component {
           isRevealing={isReveal(domain)}
           ownReveal={ownReveal}
           timeRemaining={() => this.getTimeRemaining(revealPeriodEnd)}
+          hoursRemaining={revealPeriodEnd}
           bids={bids}
           highest={highest}
+          event={this.state.event}
+          items={items}
+          name={name}
           hasRevealableBid={this.hasRevealableBid()}
           onClickRevealBids={() => this.handleCTA(
             () => this.props.sendReveal(this.props.domain.name),
@@ -170,6 +184,9 @@ class BidActionPanel extends Component {
           startBlock={start.start}
           currentBlock={currentBlock}
           network={network}
+          event={this.state.event}
+          items={items}
+          name={name}
           onClick={
             () => this.handleCTA(
               () => sendOpen(domain.name),
@@ -286,7 +303,8 @@ class BidActionPanel extends Component {
       { google: 'Google' },
       { apple: 'iCal' },
       { outlook: 'Outlook' },
-   ];
+    ];
+
     return (
       <div className="domains__bid-now__reveal">
         <div className="domains__bid-now__reveal__headline">

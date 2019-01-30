@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="18px" height="20px" viewBox="0 0 18 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.6 (67491) - http://www.bohemiancoding.com/sketch -->
+    <title>calendar-outline</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="calendar-outline" transform="translate(-3.000000, -2.000000)" fill="#2480FD">
+            <rect id="Rectangle" opacity="0" x="0" y="0" width="24" height="24"></rect>
+            <path d="M18,4 L17,4 L17,3 C17,2.44771525 16.5522847,2 16,2 C15.4477153,2 15,2.44771525 15,3 L15,4 L9,4 L9,3 C9,2.44771525 8.55228475,2 8,2 C7.44771525,2 7,2.44771525 7,3 L7,4 L6,4 C4.34314575,4 3,5.34314575 3,7 L3,19 C3,20.6568542 4.34314575,22 6,22 L18,22 C19.6568542,22 21,20.6568542 21,19 L21,7 C21,5.34314575 19.6568542,4 18,4 Z M6,6 L7,6 L7,7 C7,7.55228475 7.44771525,8 8,8 C8.55228475,8 9,7.55228475 9,7 L9,6 L15,6 L15,7 C15,7.55228475 15.4477153,8 16,8 C16.5522847,8 17,7.55228475 17,7 L17,6 L18,6 C18.5522847,6 19,6.44771525 19,7 L19,11 L5,11 L5,7 C5,6.44771525 5.44771525,6 6,6 Z M18,20 L6,20 C5.44771525,20 5,19.5522847 5,19 L5,13 L19,13 L19,19 C19,19.5522847 18.5522847,20 18,20 Z" id="Shape" fill-rule="nonzero"></path>
+            <circle id="Oval" cx="8" cy="16" r="1"></circle>
+            <path d="M16,15 L12,15 C11.4477153,15 11,15.4477153 11,16 C11,16.5522847 11.4477153,17 12,17 L16,17 C16.5522847,17 17,16.5522847 17,16 C17,15.4477153 16.5522847,15 16,15 Z" id="Path"></path>
+        </g>
+    </g>
+</svg>
