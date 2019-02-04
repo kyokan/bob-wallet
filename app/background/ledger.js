@@ -3,8 +3,7 @@ import * as logger from './logger/logger';
 import { defaultServer, makeClient } from './ipc';
 
 const MTX = require('hsd/lib/primitives/mtx');
-const Coin = require('hsd/lib/primitives/coin');
-const {LedgerHSD, LedgerInput} = hnsLedger;
+const {LedgerHSD} = hnsLedger;
 const {Device} = hnsLedger.HID;
 const ONE_MINUTE = 60000;
 

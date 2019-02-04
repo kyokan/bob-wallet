@@ -55,7 +55,6 @@ export function forNetwork(net) {
 
       if (isLedger) {
         const res = await walletClient.createWallet(WALLET_ID, {
-          witness: false,
           watchOnly: true,
           accountKey: passphraseOrXPub
         });
@@ -206,7 +205,7 @@ export function forNetwork(net) {
   async function sendLedger(to, amount, fee) {
     await walletClient.execute('selectwallet', [WALLET_ID]);
     // TODO: fee
-    const ret = await walletClient.execute('createsendtoaddress', [to, Number(amount), true]);
+    const ret = await walletClient.execute('createsendtoaddress', [to, Number(amount), '', '', false, 'default']);
     return awaitLedger(async () => {
       const tx = await ledger.signTransaction(ret);
       return await nClient.broadcastRawTx(tx.hex);

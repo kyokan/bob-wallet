@@ -20,7 +20,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 git clone git@github.com:kyokan/hsd.git $DIR/hsd
 cd $DIR/hsd
 # temporary to support ledger
-git checkout kyokan-updates
+git checkout mirror-rpc
 
 # Install all dependencies, and store cache to ~/.electron-gyp.
 HOME=~/.electron-gyp npm install

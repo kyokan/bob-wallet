@@ -6272,9 +6272,9 @@ hmac-drbg@^1.0.0:
     minimalistic-assert "^1.0.0"
     minimalistic-crypto-utils "^1.0.1"
 
-"hns-ledger@https://github.com/boymanjor/hns-ledger.git#69172315740acb2f4788ea9db7edd7e585ec2d4f":
+"hns-ledger@https://github.com/boymanjor/hns-ledger.git#c5b7b72db86a653d496fe25ce4f5991343a6d7b4":
   version "0.1.0"
-  resolved "https://github.com/boymanjor/hns-ledger.git#69172315740acb2f4788ea9db7edd7e585ec2d4f"
+  resolved "https://github.com/boymanjor/hns-ledger.git#c5b7b72db86a653d496fe25ce4f5991343a6d7b4"
   dependencies:
     bcrypto "1.1.0"
     blgr "^0.1.1"
@@ -6365,9 +6365,9 @@ hs-client@~0.0.5:
     bcurl "~0.1.5"
     bsert "~0.0.8"
 
-"hsd@git://github.com/kyokan/hsd.git#f85082f0f27d8fcebddaa15b9dc57cbd906478e4":
+"hsd@git://github.com/kyokan/hsd.git#58a39d629636b1a594af6267225bebaf8e1ce7e8":
   version "0.0.0"
-  resolved "git://github.com/kyokan/hsd.git#f85082f0f27d8fcebddaa15b9dc57cbd906478e4"
+  resolved "git://github.com/kyokan/hsd.git#58a39d629636b1a594af6267225bebaf8e1ce7e8"
   dependencies:
     bcfg "~0.1.5"
     bcrypto "~3.0.2"
