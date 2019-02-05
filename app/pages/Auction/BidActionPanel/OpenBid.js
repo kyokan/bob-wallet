@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import c from 'classnames';
 import AddToCalendar from 'react-add-to-calendar';
 import {
@@ -8,8 +10,25 @@ import {
   AuctionPanelHeaderRow
 } from '../../../components/AuctionPanel';
 import { returnBlockTime } from '../../../components/Blocktime';
+import * as nameActions from '../../../ducks/names';
+import { showError, showSuccess } from '../../../ducks/notifications';
+import { isOpening } from '../../../utils/name-helpers';
+import * as logger from '../../../utils/logClient';
 
-export default class OpenBid extends Component {
+const CAL_ITEMS = [
+  { google: 'Google' },
+  { apple: 'iCal' },
+  { outlook: 'Outlook' },
+];
+
+class OpenBid extends Component {
+  static propTypes = {
+    domain: PropTypes.object.isRequired,
+    sendOpen: PropTypes.func.isRequired,
+    showError: PropTypes.func.isRequired,
+    showSuccess: PropTypes.func.isRequired,
+    currentBlock: PropTypes.number.isRequired,
+  };
 
   state = {
     startTime: '',
@@ -45,9 +64,23 @@ export default class OpenBid extends Component {
     return event;
   }
 
+  sendOpen = async () => {
+    const { sendOpen } = this.props;
+
+    try {
+      await sendOpen();
+      this.props.showSuccess('Successfully opened bid! Check back in a few minutes to start bidding.');
+    } catch (e) {
+      console.error(e);
+      logger.error(`Error received from BidActionPanel - handleCTA]\n\n${e.message}\n${e.stack}\n`);
+      this.props.showError('Failed to open bid. Please try again.');
+    }
+  };
 
   render() {
-    const { startBlock, currentBlock, items } = this.props;
+    const { currentBlock, domain } = this.props;
+    const { start } = domain || {};
+    const startBlock = start.start;
 
     return (
       <AuctionPanel>
@@ -65,7 +98,7 @@ export default class OpenBid extends Component {
                     <div>
                       <AddToCalendar
                         event={this.state.event}
-                        listItems={items}
+                        listItems={CAL_ITEMS}
                       />
                       {this.state.startTime}
                     </div>
@@ -84,9 +117,11 @@ export default class OpenBid extends Component {
   }
 
   renderBottom() {
-    const { onClick, isDomainOpening, startBlock, currentBlock } = this.props;
+    const { domain, currentBlock } = this.props;
+    const { start } = domain || {};
+    const startBlock = start.start;
 
-    if (isDomainOpening) {
+    if (isOpening(domain)) {
       return (
         <div className="domains__bid-now__action--placing-bid">
           <div className="domains__bid-now__content">
@@ -116,7 +151,7 @@ export default class OpenBid extends Component {
         <div className="domains__bid-now__action">
           <button
             className="domains__bid-now__action__cta"
-            onClick={onClick}
+            onClick={this.sendOpen}
             disabled={!(startBlock <= currentBlock)}
           >
             Start Auction
@@ -126,3 +161,15 @@ export default class OpenBid extends Component {
     )
   }
 }
+
+export default connect(
+  (state) => ({
+    currentBlock: state.node.chain.height,
+    network: state.node.network,
+  }),
+  (dispatch, { name }) => ({
+    sendOpen: () => dispatch(nameActions.sendOpen(name)),
+    showError: (message) => dispatch(showError(message)),
+    showSuccess: (message) => dispatch(showSuccess(message)),
+  }),
+)(OpenBid);

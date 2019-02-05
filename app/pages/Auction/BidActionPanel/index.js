@@ -86,23 +86,17 @@ class BidActionPanel extends Component {
   renderActionPanel() {
     const { bidAmount, disguiseAmount, hasAccepted, showSuccessModal, isPlacingBid, shouldAddDisguise, isReviewing } = this.state;
     const { domain, sendOpen, confirmedBalance, currentBlock, network} = this.props;
-    
+
     const name = this.props.match.params.name;
     const { info } = domain || {};
     const { stats, bids = [], highest = 0 } = info || {};
     const { bidPeriodEnd, hoursUntilReveal, revealPeriodEnd } = stats || {};
 
-    const items = [
-      { google: 'Google' },
-      { apple: 'iCal' },
-      { outlook: 'Outlook' },
-    ];
-
     const ownBid = this.findOwnBid();
     if (isBidding(domain) || this.state.successfullyBid) {
       const lockup = Number(disguiseAmount) + Number(bidAmount);
       return (
-        <BidNow 
+        <BidNow
           timeRemaining={() => this.getTimeRemaining(hoursUntilReveal)}
           hoursRemaining={hoursUntilReveal}
           confirmedBalance={confirmedBalance}
@@ -119,14 +113,13 @@ class BidActionPanel extends Component {
           bidPeriodEnd={bidPeriodEnd}
           hasAccepted={hasAccepted}
           lockup={lockup}
-          items={items}
           name={name}
           network={network}
           isPending={domain.pendingOperation === 'BID'}
           editBid={() => this.setState({ isReviewing: false })}
           editDisguise={() => this.setState({ shouldAddDisguise: true, isReviewing: false })}
           displayBalance={`${displayBalance(confirmedBalance)} HNS Unlocked Balance Available`}
-          onCloseModal={() => this.setState({ showSuccessModal: false })} 
+          onCloseModal={() => this.setState({ showSuccessModal: false })}
           onChangeChecked={e => this.setState({hasAccepted: e.target.checked})}
           onChangeBidAmount={e => this.setState({bidAmount: e.target.value})}
           onChangeDisguiseAmount={e => this.setState({disguiseAmount: e.target.value})}
@@ -154,7 +147,7 @@ class BidActionPanel extends Component {
       const highestReveal = this.findHighestReveal;
 
       return (
-        <Reveal 
+        <Reveal
           isRevealing={isReveal(domain)}
           ownReveal={ownReveal}
           timeRemaining={() => this.getTimeRemaining(revealPeriodEnd)}
@@ -162,7 +155,6 @@ class BidActionPanel extends Component {
           bids={bids}
           highest={highest}
           event={this.state.event}
-          items={items}
           name={name}
           hasRevealableBid={this.hasRevealableBid()}
           onClickRevealBids={() => this.handleCTA(
@@ -173,27 +165,13 @@ class BidActionPanel extends Component {
         />
       )
     }
-    
-    if (isAvailable(domain) || isOpening(domain)) {
-      const { start } = domain || {};
-      const isDomainOpening = isOpening(domain);
 
+    if (isAvailable(domain) || isOpening(domain)) {
       return (
         <OpenBid
-          isDomainOpening={isDomainOpening}
-          startBlock={start.start}
-          currentBlock={currentBlock}
-          network={network}
-          event={this.state.event}
-          items={items}
+          domain={domain}
           name={name}
-          onClick={
-            () => this.handleCTA(
-              () => sendOpen(domain.name),
-              'Successfully opened bid! Check back in a few minutes to start bidding.',
-              'Failed to open bid. Please try again.',
-            )
-          }/>
+        />
       )
     }
 
