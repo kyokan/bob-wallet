@@ -28,7 +28,7 @@ export default class BidNow extends Component {
               revealStartBlock={bidPeriodEnd}
               onClose={onCloseModal}
             />}
-          <Header 
+          <Header
             items={items}
             event={this.state.event}
             bids={bids}
@@ -126,7 +126,7 @@ export default class BidNow extends Component {
         return (
           <div className="domains__bid-now__action--placing-bid">
             <div className="domains__bid-now__title" style={{marginTop: '1rem'}}>Your Highest Bid</div>
-            <div className="domains__bid-now__content"> 
+            <div className="domains__bid-now__content">
               <div className="domains__bid-now__info">
                 <div className="domains__bid-now__info__label">
                   Bid Amount
@@ -171,7 +171,7 @@ export default class BidNow extends Component {
 
   renderReviewing() {
     const { bidAmount, disguiseAmount, hasAccepted, editBid, editDisguise, onChangeChecked, onClickSendBid, lockup } = this.props;
-    
+
     return (
       <div className="domains__bid-now__action--placing-bid" >
         <div className="domains__bid-now__title" style={{marginTop: '1rem'}}>Review Your Bid</div>
@@ -255,7 +255,7 @@ export default class BidNow extends Component {
       startTime: startDatetime.format(),
       endTime: endDatetime.format(),
     };
-    
+
     return event;
   }
 }

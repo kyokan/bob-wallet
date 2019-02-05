@@ -1,6 +1,12 @@
 import React, { Component } from 'react';
 import c from 'classnames';
 import AddToCalendar from 'react-add-to-calendar';
+import {
+  AuctionPanel,
+  AuctionPanelHeader,
+  AuctionPanelFooter,
+  AuctionPanelHeaderRow
+} from '../../../components/AuctionPanel';
 import { returnBlockTime } from '../../../components/Blocktime';
 
 export default class OpenBid extends Component {
@@ -8,7 +14,7 @@ export default class OpenBid extends Component {
   state = {
     startTime: '',
     event: {},
-  }
+  };
 
   async componentDidMount() {
     await this.getBlockTime();
@@ -35,54 +41,45 @@ export default class OpenBid extends Component {
       startTime: startDatetime.format(),
       endTime: endDatetime.format(),
     };
-    
+
     return event;
   }
 
-  render() {
-  let { startBlock, currentBlock, items } = this.props;
 
-  return (
-    <div className="domains__bid-now">
-      <div className="domains__bid-now__title">Auction Details</div>
-      <div className="domains__bid-now__content">
-        <div className="domains__bid-now__info">
-          <div className="domains__bid-now__info__label">
-            Available:
-          </div>
-          <div className={c("domains__bid-now__info__value", {
-            "domains__bid-now__info__value--green": startBlock <= currentBlock,
-          })}>
-            {startBlock <= currentBlock ? 
-            'Now' : 
-            <div>
-              <AddToCalendar
-                event={this.state.event}
-                listItems={items}
-                />
-              {this.state.startTime} 
-            </div>}
-          </div>
-        </div>
-        <div className="domains__bid-now__info">
-          <div className="domains__bid-now__info__label">
-            Block Number:
-          </div>
-          <div className="domains__bid-now__info__value">
-            {startBlock}
-          </div>
-        </div>
-        <div className="domains__bid-now__info">
-          <div className="domains__bid-now__info__label">
-            Current Block:
-          </div>
-          <div className="domains__bid-now__info__value">
-            {currentBlock}
-          </div>
-        </div>
-      </div>
-        {this.renderBottom()}
-    </div>
+  render() {
+    const { startBlock, currentBlock, items } = this.props;
+
+    return (
+      <AuctionPanel>
+        <AuctionPanelHeader title="Auction Details">
+          <AuctionPanelHeaderRow label="Available:">
+            <div
+              className={c("domains__bid-now__info__value", {
+                "domains__bid-now__info__value--green": startBlock <= currentBlock,
+              })}
+            >
+              {
+                startBlock <= currentBlock
+                  ? 'Now'
+                  : (
+                    <div>
+                      <AddToCalendar
+                        event={this.state.event}
+                        listItems={items}
+                      />
+                      {this.state.startTime}
+                    </div>
+                  )
+              }
+            </div>
+          </AuctionPanelHeaderRow>
+          <AuctionPanelHeaderRow label="Block Number:">{startBlock}</AuctionPanelHeaderRow>
+          <AuctionPanelHeaderRow label="Current Block:">{currentBlock}</AuctionPanelHeaderRow>
+        </AuctionPanelHeader>
+        <AuctionPanelFooter>
+          { this.renderBottom() }
+        </AuctionPanelFooter>
+      </AuctionPanel>
     );
   }
 
@@ -92,7 +89,6 @@ export default class OpenBid extends Component {
     if (isDomainOpening) {
       return (
         <div className="domains__bid-now__action--placing-bid">
-          <div className="domains__bid-now__title" />
           <div className="domains__bid-now__content">
             Your open auction request is pending and will be mined within the next block.
           </div>
@@ -107,11 +103,15 @@ export default class OpenBid extends Component {
         </div>
       )
     }
+
     return (
       <div className="domains__bid-now__action--placing-bid">
-        <div className="domains__bid-now__title" />
         <div className="domains__bid-now__content">
-          {startBlock <= currentBlock ? 'Start the auction process by making an open bid.' : `Come back on ${this.state.startTime} to open the auction. You can add the domain to your watchlist or set a calendar invite to not miss it.`}
+          {
+            startBlock <= currentBlock
+              ? 'Start the auction process by making an open bid.'
+              : `Come back on ${this.state.startTime} to open the auction. You can add the domain to your watchlist or set a calendar invite to not miss it.`
+          }
         </div>
         <div className="domains__bid-now__action">
           <button
