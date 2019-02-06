@@ -216,7 +216,7 @@ export function forNetwork(net) {
     await walletClient.execute('selectwallet', [WALLET_ID]);
     await walletClient.execute('sendredeem', [name]);
   });
-  ret.sendRenewal = ledgerFacade(async () => {
+  ret.sendRenewal = ledgerFacade(async (name) => {
     await walletClient.execute('selectwallet', [WALLET_ID]);
     return walletClient.execute('createrenewal', [name]);
   }, async (name) => {
