@@ -151,6 +151,14 @@
   }
 
   &__bid-now {
+    &__own-highest-bid {
+      &__title {
+        @extend %h2;
+
+        font-weight: 600;
+        padding: 1rem 1.5rem;
+      }
+    }
     &__title {
       @extend %h2;
 

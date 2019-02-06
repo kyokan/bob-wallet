@@ -14,6 +14,7 @@ import { returnBlockTime } from '../../../components/Blocktime';
 import AddToCalendar from 'react-add-to-calendar';
 import * as nameActions from '../../../ducks/names';
 import { showError, showSuccess } from '../../../ducks/notifications';
+import { displayBalance } from '../../../utils/balances';
 
 const CAL_ITEMS = [
   { google: 'Google' },
@@ -28,6 +29,7 @@ class BidNow extends Component {
     showSuccess: PropTypes.func.isRequired,
     totalBids: PropTypes.number.isRequired,
     totalMasks: PropTypes.number.isRequired,
+    ownHighestBid: PropTypes.object.isRequired,
   };
 
   state = {
@@ -83,11 +85,10 @@ class BidNow extends Component {
     const hours = Math.floor(hoursUntilReveal % 24);
     const mins = Math.floor((hoursUntilReveal % 1) * 60);
     return `~${days}d ${hours}h ${mins}m`
-  }
+  };
 
   render () {
     const {
-      bidPeriodEnd,
       onCloseModal,
       domain,
     } = this.props;
@@ -100,7 +101,8 @@ class BidNow extends Component {
     } = this.state;
 
     const { bids = [], info } = domain || {};
-    const { highest = 0 } = info || {};
+    const { highest = 0, stats } = info || {};
+    const { bidPeriodEnd } = stats || {};
 
     return (
       <AuctionPanel>
@@ -233,58 +235,42 @@ class BidNow extends Component {
     )
   }
 
-  renderOwnBidAction() {
-    let { ownBid, onClickPlaceBid} = this.props;
-    ownBid = false;
+  renderOwnHighestBid() {
+    const { ownHighestBid, totalBids, totalMasks } = this.props;
 
-      if (ownBid) {
-        return (
-          <div className="domains__bid-now__action--placing-bid">
-            <div className="domains__bid-now__title" style={{marginTop: '1rem'}}>Your Highest Bid</div>
-            <div className="domains__bid-now__content">
-              <div className="domains__bid-now__info">
-                <div className="domains__bid-now__info__label">
-                  Bid Amount
-                </div>
-                <div className="domains__bid-now__info__value">
-                  0.01 HNS
-                </div>
-              </div>
-              <div className="domains__bid-now__info">
-                <div className="domains__bid-now__info__label">
-                  Mask Amount
-                </div>
-                <div className="domains__bid-now__info__value">
-                  0.02 HNS
-                </div>
-              </div>
-              <div className="domains__bid-now__action">
-                <button
-                  className="domains__bid-now__action__cta"
-                  onClick={onClickPlaceBid}
-                  disabled={this.isBidPending()}
-                >
-                  {this.isBidPending() ? 'Bid Pending...' : 'Place Another Bid' }
-                </button>
-              </div>
-            </div>
-          </div>
-        )
-      }
-
+    if (ownHighestBid) {
       return (
-        <AuctionPanelFooter>
-          <div className="domains__bid-now__action">
-            <button
-              className="domains__bid-now__action__cta"
-              onClick={onClickPlaceBid}
-              disabled={this.isBidPending()}
-            >
-               {this.isBidPending() ? 'Bid Pending...' : 'Place Bid' }
-            </button>
+        <div className="domains__bid-now__own-highest-bid">
+          <div className="domains__bid-now__own-highest-bid__title">Your Highest Bid</div>
+
+          <div className="domains__bid-now__content">
+            <AuctionPanelHeaderRow label="Total Bids:">
+              {displayBalance(totalBids, true)}
+            </AuctionPanelHeaderRow>
+            <AuctionPanelHeaderRow label="Total Masks:">
+              {displayBalance(totalMasks, true)}
+            </AuctionPanelHeaderRow>
           </div>
-        </AuctionPanelFooter>
-      );
+        </div>
+      )
+    }
+  }
+
+  renderOwnBidAction() {
+    return (
+      <AuctionPanelFooter>
+        {this.renderOwnHighestBid()}
+        <div className="domains__bid-now__action">
+          <button
+            className="domains__bid-now__action__cta"
+            onClick={() => this.setState({ isPlacingBid: true })}
+            disabled={this.isBidPending()}
+          >
+             {this.isBidPending() ? 'Bid Pending...' : 'Place Bid' }
+          </button>
+        </div>
+      </AuctionPanelFooter>
+    );
   }
 
   renderReviewing() {
@@ -365,6 +351,7 @@ class BidNow extends Component {
 export default connect(
   (state, { domain }) => ({
     confirmedBalance: state.wallet.balance.confirmed,
+    ownHighestBid: _ownHighestBid(domain),
     totalBids: getTotalBids(domain),
     totalMasks: getTotalMasks(domain),
     network: state.node.network,
@@ -397,4 +384,20 @@ function getTotalMasks(domain) {
   }
 
   return total;
+}
+
+function _ownHighestBid(domain) {
+  let highestBid = null;
+
+  for (const {bid} of domain.bids) {
+    if (bid.own) {
+      if (!highestBid) {
+        highestBid = bid
+      } else {
+        highestBid = bid.value > highestBid.value ? bid : highestBid;
+      }
+    }
+  }
+
+  return highestBid;
 }
