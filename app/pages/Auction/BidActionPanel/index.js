@@ -33,15 +33,7 @@ class BidActionPanel extends Component {
   };
 
   state = {
-    isPlacingBid: false,
-    shouldAddDisguise: false,
-    isReviewing: false,
-    hasAccepted: false,
-    bidAmount: '',
-    disguiseAmount: '',
     isLoading: false,
-    successfullyBid: false,
-    showSuccessModal: false,
     isWatching: false,
     event: {},
   };
@@ -80,36 +72,28 @@ class BidActionPanel extends Component {
   }
 
   renderActionPanel() {
-    const { bidAmount, disguiseAmount, hasAccepted, showSuccessModal, isPlacingBid, shouldAddDisguise, isReviewing } = this.state;
+    const {
+      bidAmount,
+      disguiseAmount,
+    } = this.state;
     const { domain, confirmedBalance, network} = this.props;
 
     const name = this.props.match.params.name;
     const { info } = domain || {};
-    const { stats, bids = [], highest = 0 } = info || {};
-    const { bidPeriodEnd, hoursUntilReveal } = stats || {};
+    const { stats } = info || {};
+    const { bidPeriodEnd } = stats || {};
 
     const ownBid = this.findOwnBid();
     if (isBidding(domain) || this.state.successfullyBid) {
       const lockup = Number(disguiseAmount) + Number(bidAmount);
       return (
         <BidNow
-          timeRemaining={() => this.getTimeRemaining(hoursUntilReveal)}
-          hoursRemaining={hoursUntilReveal}
-          confirmedBalance={confirmedBalance}
-          bids={bids}
-          ownBid={ownBid}
-          highest={highest}
-          isPlacingBid={isPlacingBid}
-          disguiseAmount={disguiseAmount}
-          bidAmount={bidAmount}
-          isReviewing={isReviewing}
-          shouldAddDisguise={shouldAddDisguise}
-          successfullyBid={this.state.successfullyBid}
-          showSuccessModal={showSuccessModal}
-          bidPeriodEnd={bidPeriodEnd}
-          hasAccepted={hasAccepted}
-          lockup={lockup}
+          domain={domain}
           name={name}
+
+          ownBid={ownBid}
+          bidPeriodEnd={bidPeriodEnd}
+          lockup={lockup}
           network={network}
           isPending={domain.pendingOperation === 'BID'}
           editBid={() => this.setState({ isReviewing: false })}

@@ -1,14 +1,45 @@
 import React, {Component} from 'react';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import {
+  AuctionPanel,
+  AuctionPanelHeader,
+  AuctionPanelFooter,
+  AuctionPanelHeaderRow
+} from '../../../components/AuctionPanel';
 import Tooltipable from '../../../components/Tooltipable';
 import SuccessModal from '../../../components/SuccessModal';
 import Checkbox from '../../../components/Checkbox';
-import Header from './Header';
 import { returnBlockTime } from '../../../components/Blocktime';
+import AddToCalendar from 'react-add-to-calendar';
+import * as nameActions from '../../../ducks/names';
+import { showError, showSuccess } from '../../../ducks/notifications';
 
-export default class BidNow extends Component {
+const CAL_ITEMS = [
+  { google: 'Google' },
+  { apple: 'iCal' },
+  { outlook: 'Outlook' },
+];
+
+class BidNow extends Component {
+  static propTypes = {
+    domain: PropTypes.object.isRequired,
+    showError: PropTypes.func.isRequired,
+    showSuccess: PropTypes.func.isRequired,
+    totalBids: PropTypes.number.isRequired,
+    totalMasks: PropTypes.number.isRequired,
+  };
 
   state = {
     event: {},
+    isPlacingBid: false,
+    shouldAddDisguise: false,
+    isReviewing: false,
+    hasAccepted: false,
+    bidAmount: '',
+    disguiseAmount: '',
+    successfullyBid: false,
+    showSuccessModal: false,
   }
 
   async componentDidMount() {
@@ -16,68 +47,152 @@ export default class BidNow extends Component {
     this.setState({event})
   }
 
+  async generateEvent() {
+    const { domain, network, name } = this.props;
+    const { info } = domain || {};
+    const { stats } = info || {};
+    const { revealPeriodEnd } = stats || {};
+
+    const startDatetime = await returnBlockTime(revealPeriodEnd, network);
+
+    const endDatetime = startDatetime.clone().add(1, 'hours');
+
+    const event = {
+      title: `Reveal End of ${name}`,
+      description: `The Handshake domain ${name} will to revealable until block ${revealPeriodEnd}. Make sure to reveal your bids before the reveal period ends.`,
+      location: 'The Decentralized Internet',
+      startTime: startDatetime.format(),
+      endTime: endDatetime.format(),
+    };
+
+    return event;
+  }
+
+  getTimeRemaining = () => {
+    const { info } = this.props.domain || {};
+    const { stats } = info || {};
+    const { hoursUntilReveal } = stats || {};
+
+    if (hoursUntilReveal < 24) {
+      const hours = Math.floor(hoursUntilReveal % 24);
+      const mins = Math.floor((hoursUntilReveal % 1) * 60);
+      return `~${hours}h ${mins}m`
+    }
+
+    const days = Math.floor(hoursUntilReveal / 24);
+    const hours = Math.floor(hoursUntilReveal % 24);
+    const mins = Math.floor((hoursUntilReveal % 1) * 60);
+    return `~${days}d ${hours}h ${mins}m`
+  }
+
   render () {
-    let { timeRemaining, bids, highest, isPlacingBid, showSuccessModal, bidAmount, disguiseAmount, bidPeriodEnd, onCloseModal, items, event } = this.props;
+    const {
+      bidPeriodEnd,
+      onCloseModal,
+      domain,
+    } = this.props;
+
+    const {
+      bidAmount,
+      disguiseAmount,
+      showSuccessModal,
+      isPlacingBid,
+    } = this.state;
+
+    const { bids = [], info } = domain || {};
+    const { highest = 0 } = info || {};
 
     return (
-      <div className="domains__bid-now">
-          {showSuccessModal &&
+      <AuctionPanel>
+        {
+          showSuccessModal && (
             <SuccessModal
               bidAmount={bidAmount}
               maskAmount={Number(bidAmount) + Number(disguiseAmount)}
               revealStartBlock={bidPeriodEnd}
               onClose={onCloseModal}
-            />}
-          <Header
-            items={items}
-            event={this.state.event}
-            bids={bids}
-            highest={highest}
-            timeRemaining={timeRemaining}
-          />
+            />
+          )
+        }
+        <AuctionPanelHeader title="Auction Details">
+          <AuctionPanelHeaderRow label="Reveal Ends:">
+            <div className="domains__bid-now__info__time-remaining">
+              <div>
+                <AddToCalendar
+                  event={this.state.event}
+                  listItems={CAL_ITEMS}
+                />
+                {this.getTimeRemaining()}
+              </div>
+            </div>
+          </AuctionPanelHeaderRow>
+          <AuctionPanelHeaderRow label="Total Bids:">
+            {bids.length}
+          </AuctionPanelHeaderRow>
+          <AuctionPanelHeaderRow label="Highest Mask:">
+            {highest}
+          </AuctionPanelHeaderRow>
+          <div className="domains__bid-now__info__disclaimer">
+            <Tooltipable tooltipContent={'To prevent price sniping, Handshake uses a blind second-price auction called a Vickrey Auction. Users can buy and register top-level domains (TLDs) with Handshake coins (HNS).'}>
+              <div className="domains__bid-now__info__icon" />
+            </Tooltipable>
+            Winner pays 2nd highest bid price.
+          </div>
+        </AuctionPanelHeader>
         {isPlacingBid ? this.renderBidNow() : this.renderOwnBidAction()}
-      </div>
+      </AuctionPanel>
     );
   }
 
   renderBiddingView() {
-    const { bidAmount, displayBalance, onChangeBidAmount, onClickReview} = this.props;
+    const {
+      bidAmount,
+      displayBalance,
+      onChangeBidAmount,
+      onClickReview,
+    } = this.props;
+
     return (
-      <React.Fragment>
-      <div className="domains__bid-now__action domains__bid-now__action--placing-bid">
-        <div className="domains__bid-now__form">
-          <div className="domains__bid-now__form__row">
-            <div className="domains__bid-now__form__row__label">Bid Amount:</div>
-            <div className="domains__bid-now__form__row__input">
-              <input
-                type="number"
-                placeholder="0.00"
-                onChange={onChangeBidAmount}
-                value={bidAmount}
-              />
+      <AuctionPanelFooter>
+        <div className="domains__bid-now__action domains__bid-now__action--placing-bid">
+          <div className="domains__bid-now__form">
+            <div className="domains__bid-now__form__row">
+              <div className="domains__bid-now__form__row__label">Bid Amount:</div>
+              <div className="domains__bid-now__form__row__input">
+                <input
+                  type="number"
+                  placeholder="0.00"
+                  onChange={onChangeBidAmount}
+                  value={bidAmount}
+                />
+              </div>
             </div>
+            {this.renderMask()}
           </div>
-          {this.renderMask()}
+          <button
+            className="domains__bid-now__action__cta"
+            onClick={onClickReview}
+            disabled={!(bidAmount > 0)}
+          >
+            Review Bid
+          </button>
         </div>
-        <button
-          className="domains__bid-now__action__cta"
-          onClick={onClickReview}
-          disabled={!(bidAmount > 0)}
-        >
-          Review Bid
-        </button>
-      </div>
-      <div className="domains__bid-now__action domains__bid-now__action--placing-bid">
-        <div className="domains__bid-now__HNS-status">
-          {displayBalance}
+        <div className="domains__bid-now__action domains__bid-now__action--placing-bid">
+          <div className="domains__bid-now__HNS-status">
+            {displayBalance}
+          </div>
         </div>
-      </div>
-      </React.Fragment>
+      </AuctionPanelFooter>
     )
   }
 
   renderMask() {
-    const {shouldAddDisguise, disguiseAmount, onChangeDisguiseAmount, onClickAddDisguise} = this.props;
+    const {
+      shouldAddDisguise,
+      disguiseAmount,
+      onChangeDisguiseAmount,
+      onClickAddDisguise,
+    } = this.props;
 
     if (shouldAddDisguise) {
       return (
@@ -120,7 +235,7 @@ export default class BidNow extends Component {
 
   renderOwnBidAction() {
     let { ownBid, onClickPlaceBid} = this.props;
-    ownBid = true;
+    ownBid = false;
 
       if (ownBid) {
         return (
@@ -156,16 +271,19 @@ export default class BidNow extends Component {
           </div>
         )
       }
+
       return (
-        <div className="domains__bid-now__action">
-          <button
-            className="domains__bid-now__action__cta"
-            onClick={onClickPlaceBid}
-            disabled={this.isBidPending()}
-          >
-             {this.isBidPending() ? 'Bid Pending...' : 'Place Bid' }
-          </button>
-        </div>
+        <AuctionPanelFooter>
+          <div className="domains__bid-now__action">
+            <button
+              className="domains__bid-now__action__cta"
+              onClick={onClickPlaceBid}
+              disabled={this.isBidPending()}
+            >
+               {this.isBidPending() ? 'Bid Pending...' : 'Place Bid' }
+            </button>
+          </div>
+        </AuctionPanelFooter>
       );
   }
 
@@ -234,28 +352,49 @@ export default class BidNow extends Component {
   }
 
   isBidPending() {
-    const { successfullyBid, isPending } = this.props
+    const { successfullyBid, isPending } = this.state;
     return successfullyBid || isPending;
   }
 
   renderBidNow() {
-    const { isReviewing } = this.props
+    const { isReviewing } = this.state;
     return isReviewing ? this.renderReviewing() : this.renderBiddingView();
   }
+}
 
-  async generateEvent() {
-    const { bidPeriodEnd, network, name} = this.props;
-    const startDatetime = await returnBlockTime(bidPeriodEnd, network);
-    const endDatetime = startDatetime.clone().add(1, 'hours');
+export default connect(
+  (state, { domain }) => ({
+    confirmedBalance: state.wallet.balance.confirmed,
+    totalBids: getTotalBids(domain),
+    totalMasks: getTotalMasks(domain),
+    network: state.node.network,
+  }),
+  (dispatch, { name }) => ({
+    showError: (message) => dispatch(showError(message)),
+    showSuccess: (message) => dispatch(showSuccess(message)),
+  }),
+)(BidNow);
 
-    const event = {
-      title: `Reveal of ${name}`,
-      description: `The Handshake domain ${name} will be ready to reveal at block ${bidPeriodEnd}. Check back to Allison and Bob to reveal your bids.`,
-      location: 'The Decentralized Internet',
-      startTime: startDatetime.format(),
-      endTime: endDatetime.format(),
-    };
+function getTotalBids(domain) {
+  let total = 0;
 
-    return event;
+  for (const {bid} of domain.bids) {
+    if (bid.own) {
+      total += bid.value;
+    }
   }
+
+  return total;
+}
+
+function getTotalMasks(domain) {
+  let total = 0;
+
+  for (const {bid} of domain.bids) {
+    if (bid.own) {
+      total += bid.lockup;
+    }
+  }
+
+  return total;
 }

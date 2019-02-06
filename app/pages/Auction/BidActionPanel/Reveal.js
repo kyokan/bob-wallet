@@ -32,7 +32,7 @@ class Reveal extends Component {
     hasRevealed: PropTypes.bool.isRequired,
     totalBids: PropTypes.number.isRequired,
     totalMasks: PropTypes.number.isRequired,
-  }
+  };
 
   state = {
     event: {},
