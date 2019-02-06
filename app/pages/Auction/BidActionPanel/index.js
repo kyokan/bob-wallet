@@ -3,14 +3,12 @@ import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import c from 'classnames';
-import AddToCalendar from 'react-add-to-calendar';
 import { protocol } from 'hsd';
 import { isAvailable, isBidding, isClosed, isOpening, isReveal } from '../../../utils/name-helpers';
 import * as nameActions from '../../../ducks/names';
 import * as watchingActions from '../../../ducks/watching';
 import { displayBalance, toBaseUnits } from '../../../utils/balances';
 import { showError, showSuccess } from '../../../ducks/notifications';
-import Blocktime, { returnBlockTime } from '../../../components/Blocktime';
 import * as logger from '../../../utils/logClient';
 import OpenBid from './OpenBid';
 import BidNow from './BidNow';
@@ -51,9 +49,7 @@ class BidActionPanel extends Component {
   async componentWillMount() {
     await this.props.getWatching(this.props.network);
     const isWatching = this.props.watchList.includes(this.props.match.params.name)
-    // const event = await this.generateEvent();
     this.setState({ isWatching: isWatching || {} })
-
   }
 
   isOwned = () => {
@@ -85,7 +81,7 @@ class BidActionPanel extends Component {
 
   renderActionPanel() {
     const { bidAmount, disguiseAmount, hasAccepted, showSuccessModal, isPlacingBid, shouldAddDisguise, isReviewing } = this.state;
-    const { domain, sendOpen, confirmedBalance, currentBlock, network} = this.props;
+    const { domain, confirmedBalance, network} = this.props;
 
     const name = this.props.match.params.name;
     const { info } = domain || {};
@@ -143,25 +139,10 @@ class BidActionPanel extends Component {
     }
 
     if (isReveal(domain)) {
-      const ownReveal = this.findOwnReveal();
-      const highestReveal = this.findHighestReveal;
-
       return (
         <Reveal
-          isRevealing={isReveal(domain)}
-          ownReveal={ownReveal}
-          timeRemaining={() => this.getTimeRemaining(revealPeriodEnd)}
-          hoursRemaining={revealPeriodEnd}
-          bids={bids}
-          highest={highest}
-          event={this.state.event}
+          domain={domain}
           name={name}
-          hasRevealableBid={this.hasRevealableBid()}
-          onClickRevealBids={() => this.handleCTA(
-            () => this.props.sendReveal(this.props.domain.name),
-            'Successfully revealed bid!',
-            'Failed to reveal bid. Please try again.'
-          )}
         />
       )
     }
@@ -217,97 +198,6 @@ class BidActionPanel extends Component {
     return `~${days}d ${hours}h ${mins}m`
   }
 
-  async generateEvent() {
-    const name = this.props.match.params.name;
-    const { domain, network } = this.props;
-    const { networks } = protocol;
-    const biddingPeriod = networks && networks[network].names.revealPeriod;
-    const biddingPeriodInHours = biddingPeriod * 5 / 60;
-
-    const { info } = domain || {};
-    const { stats } = info || {};
-    const { bidPeriodEnd } = stats || {};
-
-    const startDatetime = await returnBlockTime(bidPeriodEnd, network);
-    const endDatetime = startDatetime.clone().add(biddingPeriodInHours, 'hours');
-
-    const event = {
-      title: `Reveal of ${name}`,
-      description: `The Handshake domain ${name} will be revealed at block ${bidPeriodEnd}. Check back into the Allison x Bob app to reveal the winner of the auction.`,
-      location: 'The Decentralized Internet',
-      startTime: startDatetime.format(),
-      endTime: endDatetime.format(),
-    };
-    return event;
-  }
-
-  renderRevealAction() {
-    return (
-      <div className="domains__bid-now__action">
-        <button
-          className="domains__bid-now__action__cta"
-          onClick={() => this.handleCTA(
-            () => this.props.sendReveal(this.props.domain.name),
-            'Successfully revealed bid!',
-            'Failed to reveal bid. Please try again.'
-          )}
-        >
-          Reveal Your Bid
-        </button>
-      </div>
-    )
-  }
-
-  renderInfoRow(label, value) {
-    return (
-      <div className="domains__bid-now__info">
-        <div className="domains__bid-now__info__label">
-          {label}:
-        </div>
-        <div className="domains__bid-now__info__value">
-          {value}
-        </div>
-      </div>
-    );
-  }
-
-  renderRevealPeriodBox() {
-    const { domain } = this.props;
-    const { info } = domain || {};
-    const { stats } = info || {};
-    const { bidPeriodEnd } = stats || {};
-
-    let items = [
-      { google: 'Google' },
-      { apple: 'iCal' },
-      { outlook: 'Outlook' },
-    ];
-
-    return (
-      <div className="domains__bid-now__reveal">
-        <div className="domains__bid-now__reveal__headline">
-          Reveal Period
-        </div>
-        <div className="domains__bid-now__reveal__date"><Blocktime height={bidPeriodEnd} fromNow /></div>
-        <div className="domains__bid-now__reveal__block">Block # {bidPeriodEnd}</div>
-        <AddToCalendar
-          event={this.state.event}
-          listItems={items}
-        />
-      </div>
-    )
-  }
-
-  findHighestMaskBid() {
-    let highest = 0;
-    for (const {bid} of this.props.domain.bids) {
-      if (bid.lockup > highest) {
-        highest = bid.lockup;
-      }
-    }
-    return highest;
-  }
-
   findHighestReveal() {
     let highest = 0;
     let highestReveal;
@@ -319,16 +209,6 @@ class BidActionPanel extends Component {
     }
 
     return highestReveal;
-  }
-
-  hasRevealableBid() {
-    for (const {bid, height} of this.props.domain.bids) {
-      if (bid.own) {
-        return height >= this.props.domain.info.height;
-      }
-    }
-
-    return false;
   }
 
   findOwnBid() {

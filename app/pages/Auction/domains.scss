@@ -147,15 +147,15 @@
       @extend %h2;
 
       font-weight: 600;
-      margin-bottom: 1rem;
+      //margin-bottom: 1rem;
       padding: 0 1.5rem;
     }
 
     &__content {
       @extend %col-nowrap;
-
-      padding: 0 1.5rem;
-      line-height: 1.3rem;
+      margin-top: .5rem;
+      //padding: 0 1.5rem;
+      //line-height: 1.3rem;
     }
 
     &__info {
@@ -202,8 +202,9 @@
       }
 
       &__warning {
-        @extend %h6;
-        margin-top: .5rem;
+        @extend %h4;
+
+        padding: .5rem 1.5rem;
         text-align: center;
         font-weight: 400;
         color: $orange-red;
@@ -216,7 +217,6 @@
 
       &--placing-bid {
         padding-top: 1rem;
-        border-top: 1px solid rgba($black, .1);
       }
 
       &__cta {

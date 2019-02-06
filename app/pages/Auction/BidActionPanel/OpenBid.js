@@ -72,7 +72,7 @@ class OpenBid extends Component {
       this.props.showSuccess('Successfully opened bid! Check back in a few minutes to start bidding.');
     } catch (e) {
       console.error(e);
-      logger.error(`Error received from BidActionPanel - handleCTA]\n\n${e.message}\n${e.stack}\n`);
+      logger.error(`Error received from OpenBid - sendOpen]\n\n${e.message}\n${e.stack}\n`);
       this.props.showError('Failed to open bid. Please try again.');
     }
   };

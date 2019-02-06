@@ -32,7 +32,7 @@ export default class Header extends Component {
                   listItems={items}
                 />
                 {timeRemaining()}
-                </div>
+              </div>
             </div>
           </div>
           <div className="domains__bid-now__info">
@@ -58,7 +58,7 @@ export default class Header extends Component {
   }
 
   RenderVickreyTooltip() {
-    return ( 
+    return (
       <div className="domains__bid-now__info__disclaimer">
         <Tooltipable tooltipContent={'To prevent price sniping, Handshake uses a blind second-price auction called a Vickrey Auction. Users can buy and register top-level domains (TLDs) with Handshake coins (HNS).'}>
           <div className="domains__bid-now__info__icon" />
