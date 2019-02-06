@@ -86,7 +86,7 @@ class BidActionPanel extends Component {
     const name = this.props.match.params.name;
     const { info } = domain || {};
     const { stats, bids = [], highest = 0 } = info || {};
-    const { bidPeriodEnd, hoursUntilReveal, revealPeriodEnd } = stats || {};
+    const { bidPeriodEnd, hoursUntilReveal } = stats || {};
 
     const ownBid = this.findOwnBid();
     if (isBidding(domain) || this.state.successfullyBid) {
@@ -198,37 +198,10 @@ class BidActionPanel extends Component {
     return `~${days}d ${hours}h ${mins}m`
   }
 
-  findHighestReveal() {
-    let highest = 0;
-    let highestReveal;
-    for (const reveal of this.props.domain.reveals) {
-      if (reveal.value > highest) {
-        highest = reveal.value;
-        highestReveal = reveal;
-      }
-    }
-
-    return highestReveal;
-  }
-
   findOwnBid() {
     for (const {bid, height} of this.props.domain.bids) {
       if (bid.own) {
         return bid;
-      }
-    }
-
-    return null;
-  }
-
-  findOwnReveal() {
-    if (this.props.domain.pendingOperation === 'REVEAL') {
-      return this.props.domain.pendingOperationMeta.output;
-    }
-
-    for (const reveal of this.props.domain.reveals) {
-      if (reveal.bid.own) {
-        return reveal;
       }
     }
 

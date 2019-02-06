@@ -141,7 +141,7 @@ class OpenBid extends Component {
 
     return (
       <div className="domains__bid-now__action--placing-bid">
-        <div className="domains__bid-now__content">
+        <div className="domains__bid-now__content domains__open-bid__content">
           {
             startBlock <= currentBlock
               ? 'Start the auction process by making an open bid.'

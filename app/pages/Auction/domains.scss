@@ -133,12 +133,20 @@
 
     &__renew-domain-btn {
       @extend %btn-primary;
+
       margin-bottom: 1rem;
     }
 
     &__redeem-btn {
       @extend %btn-primary;
+
       margin-top: 1rem;
+    }
+  }
+
+  &__open-bid {
+    &__content {
+      padding: 0 1.5rem;
     }
   }
 
