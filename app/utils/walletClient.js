@@ -11,6 +11,7 @@ const ledger = ledgerClientStub(() => require('electron').ipcRenderer);
 const MasterKey = require('hsd/lib/wallet/masterkey');
 const Network = require('hsd/lib/protocol/network');
 const Mnemonic = require('hsd/lib/hd/mnemonic');
+const MTX = require('hsd/lib/primitives/mtx');
 
 const WALLET_ID = 'allison';
 
@@ -118,36 +119,6 @@ export function forNetwork(net) {
       return walletClient.execute('getbids');
     },
 
-    sendOpen: async (name) => {
-      await walletClient.execute('selectwallet', [WALLET_ID]);
-      return walletClient.execute('sendopen', [name]);
-    },
-
-    sendBid: async (name, amount, lockup) => {
-      await walletClient.execute('selectwallet', [WALLET_ID]);
-      await walletClient.execute('sendbid', [name, Number(displayBalance(amount)), Number(displayBalance(lockup))]);
-    },
-
-    sendUpdate: async (name, json) => {
-      await walletClient.execute('selectwallet', [WALLET_ID]);
-      await walletClient.execute('sendupdate', [name, json]);
-    },
-
-    sendReveal: async (name) => {
-      await walletClient.execute('selectwallet', [WALLET_ID]);
-      await walletClient.execute('sendreveal', [name]);
-    },
-
-    sendRedeem: async (name) => {
-      await walletClient.execute('selectwallet', [WALLET_ID]);
-      await walletClient.execute('sendredeem', [name]);
-    },
-
-    sendRenewal: async (name) => {
-      await walletClient.execute('selectwallet', [WALLET_ID]);
-      await walletClient.execute('sendrenewal', [name]);
-    },
-
     reset: async () => {
       await delUnlockReceiveAddress(net);
       return node.reset();
@@ -156,12 +127,21 @@ export function forNetwork(net) {
 
   // switches between implementations depending on whether
   // or not the current wallet requires a ledger.
-  function ledgerFacade(onLedger, onNonLedger) {
+  function ledgerFacade(onLedger, onNonLedger, shouldConfirmLedger = true) {
     return async (...args) => {
       const info = await ret.getWalletInfo();
 
       if (info.watchOnly) {
-        return onLedger(...args);
+        const res = await onLedger(...args);
+        if (shouldConfirmLedger) {
+          const mtx = MTX.fromJSON(res);
+          return awaitLedger(mtx.txid(), async () => {
+            const tx = await ledger.signTransaction(res);
+            return await nClient.broadcastRawTx(tx.hex);
+          });
+        }
+
+        return res;
       }
 
       return onNonLedger(...args);
@@ -171,7 +151,7 @@ export function forNetwork(net) {
   // convenience method that throws an error for
   // implementations that ledger doesn't support.
   function disabledForLedger(message, onNonLedger) {
-    return ledgerFacade(() => {
+    return ledgerFacade(false, () => {
       throw new Error(message);
     }, onNonLedger);
   }
@@ -201,15 +181,53 @@ export function forNetwork(net) {
     await mk.unlock(passphrase, 100);
     return mk.mnemonic.getPhrase();
   });
+  ret.sendOpen = ledgerFacade(async (name) => {
+    await walletClient.execute('selectwallet', [WALLET_ID]);
+    return walletClient.execute('createopen', [name]);
+  }, async (name) => {
+    await walletClient.execute('selectwallet', [WALLET_ID]);
+    return walletClient.execute('sendopen', [name]);
+  });
+  ret.sendBid = ledgerFacade(async (name, amount, lockup) => {
+    await walletClient.execute('selectwallet', [WALLET_ID]);
+    return walletClient.execute('createbid', [name, Number(displayBalance(amount)), Number(displayBalance(lockup))]);
+  }, async (name, amount, lockup) => {
+    await walletClient.execute('selectwallet', [WALLET_ID]);
+    await walletClient.execute('sendbid', [name, Number(displayBalance(amount)), Number(displayBalance(lockup))]);
+  });
+  ret.sendUpdate = ledgerFacade(async (name, json) => {
+    await walletClient.execute('selectwallet', [WALLET_ID]);
+    return walletClient.execute('createupdate', [name, json]);
+  }, async (name, json) => {
+    await walletClient.execute('selectwallet', [WALLET_ID]);
+    await walletClient.execute('sendupdate', [name, json]);
+  });
+  ret.sendReveal = ledgerFacade(async (name) => {
+    await walletClient.execute('selectwallet', [WALLET_ID]);
+    return walletClient.execute('createreveal', [name]);
+  }, async (name) => {
+    await walletClient.execute('selectwallet', [WALLET_ID]);
+    await walletClient.execute('sendreveal', [name]);
+  });
+  ret.sendRedeem = ledgerFacade(async (name) => {
+    await walletClient.execute('selectwallet', [WALLET_ID]);
+    return walletClient.execute('createredeem', [name]);
+  }, async (name) => {
+    await walletClient.execute('selectwallet', [WALLET_ID]);
+    await walletClient.execute('sendredeem', [name]);
+  });
+  ret.sendRenewal = ledgerFacade(async () => {
+    await walletClient.execute('selectwallet', [WALLET_ID]);
+    return walletClient.execute('createrenewal', [name]);
+  }, async (name) => {
+    await walletClient.execute('selectwallet', [WALLET_ID]);
+    await walletClient.execute('sendrenewal', [name]);
+  });
 
   async function sendLedger(to, amount, fee) {
     await walletClient.execute('selectwallet', [WALLET_ID]);
     // TODO: fee
-    const ret = await walletClient.execute('createsendtoaddress', [to, Number(amount), '', '', false, 'default']);
-    return awaitLedger(async () => {
-      const tx = await ledger.signTransaction(ret);
-      return await nClient.broadcastRawTx(tx.hex);
-    });
+    return walletClient.execute('createsendtoaddress', [to, Number(amount), '', '', false, 'default']);
   }
 
   ret.send = ledgerFacade(sendLedger, async (to, amount, fee) => {
@@ -247,7 +265,7 @@ export function forNetwork(net) {
     }
 
     return false;
-  });
+  }, false);
 
   clientPool[net] = ret;
   window.beep = ret;

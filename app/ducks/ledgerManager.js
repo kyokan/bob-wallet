@@ -4,11 +4,11 @@ import { hideLedgerModal, showLedgerModal } from './ledger';
 let cancellables = {};
 let topId = 0;
 
-export function awaitLedger(cb) {
+export function awaitLedger(txId, cb) {
   return new Promise((resolve, reject) => {
     const id = topId++;
     cancellables[id] = reject;
-    store.dispatch(showLedgerModal(async () => {
+    store.dispatch(showLedgerModal(txId, async () => {
       try {
         await cb();
         resolve();

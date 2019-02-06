@@ -1,10 +1,11 @@
 export const TOGGLE_MODAL = 'ledger/TOGGLE_MODAL';
 
-export function showLedgerModal(cb) {
+export function showLedgerModal(txId, cb) {
   return {
     type: TOGGLE_MODAL,
     payload: {
       cb,
+      txId,
       isShowingLedgerModal: true
     }
   };
@@ -34,6 +35,7 @@ export default function reducer(state = getInitialState(), action) {
       return {
         ...state,
         isShowingLedgerModal: payload.isShowingLedgerModal,
+        txId: payload.txId,
         cb: payload.isShowingLedgerModal ? payload.cb : () => Promise.resolve(),
       };
     default:

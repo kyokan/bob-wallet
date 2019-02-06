@@ -5,10 +5,12 @@ import { cancelLedger } from '../../ducks/ledgerManager';
 import * as logger from '../../utils/logClient';
 import './ledger-modal.scss';
 import DefaultConnectLedgerSteps from '../ConnectLedgerStep/defaultSteps';
+import ConnectLedgerStep from '../ConnectLedgerStep';
 
 @connect(
   (state) => ({
     isShowingLedgerModal: state.ledger.isShowingLedgerModal,
+    txId: state.ledger.txId,
     connect: state.ledger.cb,
   })
 )
@@ -61,6 +63,16 @@ export class LedgerModal extends Component {
         <div className="ledger-modal">
           {this.renderError()}
           <DefaultConnectLedgerSteps completedSteps={[false, false, false]} />
+          <div className="ledger-modal__last-step">
+            <ConnectLedgerStep
+              stepNumber={4}
+              stepDescription="Match the ID displayed on your Ledger to the one below."
+              stepCompleted={false}
+            />
+          </div>
+          <div className="ledger-modal__hash">
+            {this.props.txId}
+          </div>
           <div className="ledger-modal__cta-wrapper">
             <button
               className="ledger-modal__cancel"
