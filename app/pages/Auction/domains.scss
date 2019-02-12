@@ -156,6 +156,10 @@
   }
 
   &__bid-now {
+    &__opening-text {
+      padding: 0 1.5rem;
+    }
+
     &__review-info {
       @extend %row-nowrap;
     }

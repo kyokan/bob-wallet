@@ -124,7 +124,7 @@ class OpenBid extends Component {
     if (isOpening(domain)) {
       return (
         <div className="domains__bid-now__action--placing-bid">
-          <div className="domains__bid-now__content">
+          <div className="domains__bid-now__content domains__bid-now__opening-text">
             Your open auction request is pending and will be mined within the next block.
           </div>
           <div className="domains__bid-now__action">
