@@ -151,6 +151,14 @@
   }
 
   &__bid-now {
+    &__review-info {
+      @extend %row-nowrap;
+    }
+
+    &__review-total {
+      font-weight: 600;
+    }
+
     &__own-highest-bid {
       &__title {
         @extend %h2;

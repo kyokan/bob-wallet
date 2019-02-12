@@ -11,8 +11,8 @@ class SuccessModal extends Component {
     onClose: PropTypes.func.isRequired,
     className: PropTypes.string,
     bidAmount: PropTypes.string,
-    maskAmount: PropTypes.string,
-    revealStartBlock: PropTypes.string,
+    maskAmount: PropTypes.number,
+    revealStartBlock: PropTypes.number,
   };
 
   static defaultProps = {

@@ -14,7 +14,8 @@ import { returnBlockTime } from '../../../components/Blocktime';
 import AddToCalendar from 'react-add-to-calendar';
 import * as nameActions from '../../../ducks/names';
 import { showError, showSuccess } from '../../../ducks/notifications';
-import { displayBalance } from '../../../utils/balances';
+import { displayBalance, toBaseUnits } from '../../../utils/balances';
+import * as logger from '../../../utils/logClient';
 
 const CAL_ITEMS = [
   { google: 'Google' },
@@ -30,6 +31,8 @@ class BidNow extends Component {
     totalBids: PropTypes.number.isRequired,
     totalMasks: PropTypes.number.isRequired,
     ownHighestBid: PropTypes.object.isRequired,
+    isPending: PropTypes.bool.isRequired,
+    confirmedBalance: PropTypes.number.isRequired,
   };
 
   state = {
@@ -42,7 +45,7 @@ class BidNow extends Component {
     disguiseAmount: '',
     successfullyBid: false,
     showSuccessModal: false,
-  }
+  };
 
   async componentDidMount() {
     const event = await this.generateEvent();
@@ -87,11 +90,28 @@ class BidNow extends Component {
     return `~${days}d ${hours}h ${mins}m`
   };
 
+  sendBid = async () => {
+    const { sendBid } = this.props;
+    const { bidAmount, disguiseAmount } = this.state;
+    const lockup = Number(disguiseAmount) + Number(bidAmount);
+
+    try {
+      await sendBid(bidAmount, lockup);
+      this.setState({
+        isReviewing: false,
+        isPlacingBid: false,
+        successfullyBid: true,
+        showSuccessModal: true,
+      })
+    } catch (e) {
+      console.error(e);
+      logger.error(`Error received from BidNow - sendBid]\n\n${e.message}\n${e.stack}\n`);
+      this.props.showError('Failed to place bid. Please try again.');
+    }
+  };
+
   render () {
-    const {
-      onCloseModal,
-      domain,
-    } = this.props;
+    const { domain } = this.props;
 
     const {
       bidAmount,
@@ -112,7 +132,7 @@ class BidNow extends Component {
               bidAmount={bidAmount}
               maskAmount={Number(bidAmount) + Number(disguiseAmount)}
               revealStartBlock={bidPeriodEnd}
-              onClose={onCloseModal}
+              onClose={() => this.setState({ showSuccessModal: false })}
             />
           )
         }
@@ -149,10 +169,9 @@ class BidNow extends Component {
   renderBiddingView() {
     const {
       bidAmount,
-      displayBalance,
-      onChangeBidAmount,
-      onClickReview,
-    } = this.props;
+    } = this.state;
+
+    const { confirmedBalance } = this.props;
 
     return (
       <AuctionPanelFooter>
@@ -164,7 +183,7 @@ class BidNow extends Component {
                 <input
                   type="number"
                   placeholder="0.00"
-                  onChange={onChangeBidAmount}
+                  onChange={e => this.setState({ bidAmount: e.target.value })}
                   value={bidAmount}
                 />
               </div>
@@ -173,7 +192,7 @@ class BidNow extends Component {
           </div>
           <button
             className="domains__bid-now__action__cta"
-            onClick={onClickReview}
+            onClick={() => this.setState({ isReviewing: true })}
             disabled={!(bidAmount > 0)}
           >
             Review Bid
@@ -181,7 +200,7 @@ class BidNow extends Component {
         </div>
         <div className="domains__bid-now__action domains__bid-now__action--placing-bid">
           <div className="domains__bid-now__HNS-status">
-            {displayBalance}
+            {`${displayBalance(confirmedBalance)} HNS Unlocked Balance Available`}
           </div>
         </div>
       </AuctionPanelFooter>
@@ -192,9 +211,7 @@ class BidNow extends Component {
     const {
       shouldAddDisguise,
       disguiseAmount,
-      onChangeDisguiseAmount,
-      onClickAddDisguise,
-    } = this.props;
+    } = this.state;
 
     if (shouldAddDisguise) {
       return (
@@ -217,7 +234,7 @@ class BidNow extends Component {
             <input
               type="number"
               placeholder="Optional"
-              onChange={onChangeDisguiseAmount}
+              onChange={e => this.setState({ disguiseAmount: e.target.value })}
               value={disguiseAmount}
             />
           </div>
@@ -228,7 +245,7 @@ class BidNow extends Component {
     return (
       <div
         className="domains__bid-now__form__link"
-        onClick={onClickAddDisguise}
+        onClick={() => this.setState({ shouldAddDisguise: true })}
       >
         Add Disguise
       </div>
@@ -242,7 +259,6 @@ class BidNow extends Component {
       return (
         <div className="domains__bid-now__own-highest-bid">
           <div className="domains__bid-now__own-highest-bid__title">Your Highest Bid</div>
-
           <div className="domains__bid-now__content">
             <AuctionPanelHeaderRow label="Total Bids:">
               {displayBalance(totalBids, true)}
@@ -274,72 +290,78 @@ class BidNow extends Component {
   }
 
   renderReviewing() {
-    const { bidAmount, disguiseAmount, hasAccepted, editBid, editDisguise, onChangeChecked, onClickSendBid, lockup } = this.props;
+    const {
+      bidAmount,
+      disguiseAmount,
+      hasAccepted,
+    } = this.state;
 
     return (
-      <div className="domains__bid-now__action--placing-bid" >
-        <div className="domains__bid-now__title" style={{marginTop: '1rem'}}>Review Your Bid</div>
-        <div className="domains__bid-now__content">
-          <div className="domains__bid-now__info">
-            <div className="domains__bid-now__info__label">
-              Bid Amount:
-            </div>
-            <div className="domains__bid-now__info__value">
-              {`${bidAmount} HNS`}
-            </div>
-            <div className="domains__bid-now__action__edit-icon"
-              onClick={editBid}
-            />
+      <AuctionPanelFooter>
+        <div className="domains__bid-now__action--placing-bid" >
+          <div className="domains__bid-now__title">Review Your Bid</div>
+          <div className="domains__bid-now__content">
+            <AuctionPanelHeaderRow label="Bid Amount:">
+              <div className="domains__bid-now__review-info">
+                <div className="domains__bid-now__info__value">
+                  {`${bidAmount} HNS`}
+                </div>
+                <div
+                  className="domains__bid-now__action__edit-icon"
+                  onClick={() => this.setState({ isReviewing: false })}
+                />
+              </div>
+            </AuctionPanelHeaderRow>
+            <AuctionPanelHeaderRow label="Disguise Amount:">
+              <div className="domains__bid-now__review-info">
+                <div className="domains__bid-now__info__value">
+                  {disguiseAmount ? `${disguiseAmount} HNS` : ' - '}
+                </div>
+                <div
+                  className="domains__bid-now__action__edit-icon"
+                  onClick={() => this.setState({
+                    isReviewing: false,
+                    shouldAddDisguise: true,
+                  })}
+                />
+              </div>
+            </AuctionPanelHeaderRow>
+            <div className="domains__bid-now__divider" />
+            <AuctionPanelHeaderRow
+              label="Total Mask:"
+              className="domains__bid-now__review-total"
+            >
+              <div className="domains__bid-now__info__value">
+                {`${Number(disguiseAmount) + Number(bidAmount)} HNS`}
+              </div>
+            </AuctionPanelHeaderRow>
           </div>
-          <div className="domains__bid-now__info">
-            <div className="domains__bid-now__info__label">
-              Disguise Amount:
+          <div className="domains__bid-now__action">
+            <div className="domains__bid-now__action__agreement">
+              <Checkbox
+                onChange={e => this.setState({ hasAccepted: e.target.checked })}
+                checked={hasAccepted}
+              />
+              <div className="domains__bid-now__action__agreement-text">
+                I understand my bid cannot be changed after I submit it.
+              </div>
             </div>
-            <div className="domains__bid-now__info__value">
-              {disguiseAmount ? `${disguiseAmount} HNS` : ' - '}
-            </div>
-            <div className="domains__bid-now__action__edit-icon"
-              onClick={editDisguise}
-            />
-          </div>
-          <div className="domains__bid-now__divider" />
-          <div className="domains__bid-now__info">
-            <div className="domains__bid-now__info__label">
-              Total Mask
-            </div>
-            <div className="domains__bid-now__info__value">
-              {`${lockup} HNS`}
-            </div>
-            <div className="domains__bid-now__action__placeholder" />
+            <button
+              className="domains__bid-now__action__cta"
+              onClick={this.sendBid}
+              disabled={!hasAccepted}
+            >
+              Submit Bid
+            </button>
           </div>
         </div>
-
-        <div className="domains__bid-now__action">
-          <div className="domains__bid-now__action__agreement">
-            <Checkbox
-              onChange={onChangeChecked}
-              checked={hasAccepted}
-            />
-            <div className="domains__bid-now__action__agreement-text">
-              I understand my bid cannot be changed after I submit it.
-            </div>
-          </div>
-          <button
-            className="domains__bid-now__action__cta"
-            onClick={onClickSendBid}
-            disabled={!hasAccepted}
-          >
-            Submit Bid
-          </button>
-        </div>
-
-      </div>
+      </AuctionPanelFooter>
     )
   }
 
   isBidPending() {
-    const { successfullyBid, isPending } = this.state;
-    return successfullyBid || isPending;
+    const { successfullyBid } = this.state;
+    return successfullyBid || this.props.isPending;
   }
 
   renderBidNow() {
@@ -355,8 +377,10 @@ export default connect(
     totalBids: getTotalBids(domain),
     totalMasks: getTotalMasks(domain),
     network: state.node.network,
+    isPending: domain.pendingOperation === 'BID',
   }),
   (dispatch, { name }) => ({
+    sendBid: (amount, lockup) => dispatch(nameActions.sendBid(name, toBaseUnits(amount), toBaseUnits(lockup))),
     showError: (message) => dispatch(showError(message)),
     showSuccess: (message) => dispatch(showSuccess(message)),
   }),

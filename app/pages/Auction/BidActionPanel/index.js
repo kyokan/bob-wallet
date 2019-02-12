@@ -5,11 +5,7 @@ import { connect } from 'react-redux';
 import c from 'classnames';
 import { protocol } from 'hsd';
 import { isAvailable, isBidding, isClosed, isOpening, isReveal } from '../../../utils/name-helpers';
-import * as nameActions from '../../../ducks/names';
 import * as watchingActions from '../../../ducks/watching';
-import { displayBalance, toBaseUnits } from '../../../utils/balances';
-import { showError, showSuccess } from '../../../ducks/notifications';
-import * as logger from '../../../utils/logClient';
 import OpenBid from './OpenBid';
 import BidNow from './BidNow';
 import Reveal from './Reveal';
@@ -44,13 +40,6 @@ class BidActionPanel extends Component {
     this.setState({ isWatching: isWatching || {} })
   }
 
-  isOwned = () => {
-    const { domain } = this.props;
-    return domain && domain.isOwner;
-  };
-
-  isSold = () => isClosed(this.props.domain);
-
   render() {
     const name = this.props.match.params.name;
     const network = this.props.network;
@@ -72,52 +61,14 @@ class BidActionPanel extends Component {
   }
 
   renderActionPanel() {
-    const {
-      bidAmount,
-      disguiseAmount,
-    } = this.state;
-    const { domain, confirmedBalance, network} = this.props;
-
+    const { domain } = this.props;
     const name = this.props.match.params.name;
-    const { info } = domain || {};
-    const { stats } = info || {};
-    const { bidPeriodEnd } = stats || {};
 
-    const ownBid = this.findOwnBid();
-    if (isBidding(domain) || this.state.successfullyBid) {
-      const lockup = Number(disguiseAmount) + Number(bidAmount);
+    if (isBidding(domain)) {
       return (
         <BidNow
           domain={domain}
           name={name}
-
-          ownBid={ownBid}
-          bidPeriodEnd={bidPeriodEnd}
-          lockup={lockup}
-          network={network}
-          isPending={domain.pendingOperation === 'BID'}
-          editBid={() => this.setState({ isReviewing: false })}
-          editDisguise={() => this.setState({ shouldAddDisguise: true, isReviewing: false })}
-          displayBalance={`${displayBalance(confirmedBalance)} HNS Unlocked Balance Available`}
-          onCloseModal={() => this.setState({ showSuccessModal: false })}
-          onChangeChecked={e => this.setState({hasAccepted: e.target.checked})}
-          onChangeBidAmount={e => this.setState({bidAmount: e.target.value})}
-          onChangeDisguiseAmount={e => this.setState({disguiseAmount: e.target.value})}
-          onClickAddDisguise={() => this.setState({shouldAddDisguise: true})}
-          onClickPlaceBid={() => this.setState({isPlacingBid: true})}
-          onClickReview={() => this.setState({isReviewing: true})}
-          onClickSendBid={
-            () => this.handleCTA(
-              () => this.props.sendBid(this.props.domain.name, bidAmount, lockup),
-              null,
-              'Failed to place bid. Please try again.',
-              () => this.setState({
-                isReviewing: false,
-                isPlacingBid: false,
-                successfullyBid: true,
-                showSuccessModal: true,
-              })
-            )}
          />
         )
     }
@@ -142,55 +93,6 @@ class BidActionPanel extends Component {
 
     return <noscript />;
   }
-
-  // Helper Functions
-  async handleCTA(handler, successMessage, errorMessage, callback) {
-    try {
-      this.setState({ isLoading: true });
-      await handler();
-      if (successMessage) {
-        this.props.showSuccess(successMessage);
-      }
-      // in case we want a callback rather than a successMessage
-      if (callback){
-        callback();
-      }
-    } catch (e) {
-      console.error(e);
-      logger.error(`Error received from BidActionPanel - handleCTA]\n\n${e.message}\n${e.stack}\n`);
-      this.props.showError(errorMessage);
-      return;
-    } finally {
-      this.setState({isLoading: false});
-    }
-  }
-
-  getTimeRemaining(hoursUntilReveal) {
-    if (!hoursUntilReveal) {
-      return 'Revealing now!';
-    }
-
-    if (hoursUntilReveal < 24) {
-      const hours = Math.floor(hoursUntilReveal % 24);
-      const mins = Math.floor((hoursUntilReveal % 1) * 60);
-      return `~${hours}h ${mins}m`
-    }
-
-    const days = Math.floor(hoursUntilReveal / 24);
-    const hours = Math.floor(hoursUntilReveal % 24);
-    const mins = Math.floor((hoursUntilReveal % 1) * 60);
-    return `~${days}d ${hours}h ${mins}m`
-  }
-
-  findOwnBid() {
-    for (const {bid, height} of this.props.domain.bids) {
-      if (bid.own) {
-        return bid;
-      }
-    }
-
-    return null;
-  }
 }
 
 export default withRouter(
@@ -202,11 +104,6 @@ export default withRouter(
       network: state.node.network,
     }),
     dispatch => ({
-      sendOpen: name => dispatch(nameActions.sendOpen(name)),
-      sendBid: (name, amount, lockup) => dispatch(nameActions.sendBid(name, toBaseUnits(amount), toBaseUnits(lockup))),
-      sendReveal: (name) => dispatch(nameActions.sendReveal(name)),
-      showError: (message) => dispatch(showError(message)),
-      showSuccess: (message) => dispatch(showSuccess(message)),
       getWatching: (network) => dispatch(watchingActions.getWatching(network)),
       watchDomain: (name, network) => dispatch(watchingActions.addName(name, network)),
       unwatchDomain: (name, network) => dispatch(watchingActions.removeName(name, network)),

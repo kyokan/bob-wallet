@@ -40,11 +40,16 @@ export class AuctionPanelHeaderRow extends Component {
   static propTypes = {
     label: PropTypes.string.isRequired,
     children: PropTypes.node.isRequired,
+    className: PropTypes.string,
+  };
+
+  static defaultProps = {
+    className: '',
   };
 
   render() {
     return (
-      <div className="auction-panel__header__row">
+      <div className={`auction-panel__header__row ${this.props.className}`}>
         <div className="auction-panel__header__row__label">
           {this.props.label}
         </div>
