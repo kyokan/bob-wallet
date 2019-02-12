@@ -26,6 +26,10 @@ class BidActionPanel extends Component {
         name: PropTypes.string.isRequired
       })
     }),
+    network: PropTypes.string.isRequired,
+    getWatching: PropTypes.func.isRequired,
+    watchDomain: PropTypes.func.isRequired,
+    unwatchDomain: PropTypes.func.isRequired,
   };
 
   state = {
@@ -36,25 +40,34 @@ class BidActionPanel extends Component {
 
   async componentWillMount() {
     await this.props.getWatching(this.props.network);
-    const isWatching = this.props.watchList.includes(this.props.match.params.name)
-    this.setState({ isWatching: isWatching || {} })
+    const isWatching = this.props.watchList.includes(this.props.match.params.name);
+    this.setState({ isWatching })
   }
 
   render() {
-    const name = this.props.match.params.name;
-    const network = this.props.network;
-    const isWatching = this.state.isWatching;
+    const { match, network } = this.props;
+    const { params: { name } } = match;
+    const { isWatching } = this.state;
+
     return (
       <React.Fragment>
         {this.renderActionPanel()}
         <div className="domains__watch">
-          <div className={c("domains__watch__heart-icon", {
-            "domains__watch__heart-icon--active": this.state.isWatching
-            })} onClick={() => {
-              isWatching ? this.props.unwatchDomain(name, network) : this.props.watchDomain(name, network);
-              this.setState({ isWatching: !isWatching })
+          <div
+            className={c("domains__watch__heart-icon", {
+              "domains__watch__heart-icon--active": this.state.isWatching
+            })}
+            onClick={() => {
+              if (isWatching) {
+                this.props.unwatchDomain(name, network);
+              } else {
+                this.props.watchDomain(name, network);
+              }
+              this.setState({ isWatching: !isWatching });
             }}/>
-          <div className="domains__watch__text">{this.state.isWatching ? 'Added to Watchlist' : 'Add to Watchlist'}</div>
+          <div className="domains__watch__text">
+            { isWatching ? 'Added to Watchlist' : 'Add to Watchlist' }
+          </div>
         </div>
       </React.Fragment>
     )

@@ -10,7 +10,6 @@ import * as walletActions from '../../ducks/walletActions';
 import { isAvailable, isBidding, isClosed, isOpening, isReserved, isReveal, } from '../../utils/name-helpers';
 import { OwnedInfo, ReserveInfo, SoldInfo, PendingRenewInfo } from './info';
 import BidActionPanel from './BidActionPanel';
-import BidReminder from './BidReminder';
 import Collapsible from '../../components/Collapsible';
 import Blocktime from '../../components/Blocktime';
 import AuctionGraph from '../../components/AuctionGraph';
@@ -150,10 +149,7 @@ export default class Auction extends Component {
     }
 
     if (isAvailable(domain)) {
-      if (chain && chain.height >= domain.start.start) {
-        return <BidActionPanel domain={domain} />;
-      }
-      return <BidReminder domain={domain} />;
+      return <BidActionPanel domain={domain} />;
     }
 
     return null;
@@ -207,8 +203,8 @@ export default class Auction extends Component {
       return (
         <React.Fragment>
           <Collapsible className="domains__content__info-panel" title="Bid History" pillContent={pillContent} defaultCollapsed>
-          { this.props.domain ? 
-            <BidHistory bids={this.props.domain.bids} reveals={this.props.domain.reveals} /> : 
+          { this.props.domain ?
+            <BidHistory bids={this.props.domain.bids} reveals={this.props.domain.reveals} /> :
             'Loading...'
           }
           </Collapsible>
@@ -220,7 +216,7 @@ export default class Auction extends Component {
     } else {
       return <noscript />
     }
-    
+
   }
 
   getContentClassName() {
