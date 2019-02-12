@@ -48,7 +48,7 @@ export default function walletReducer(state = getInitialState(), {type, payload}
       return {
         ...state,
         balance: {
-          ...initialState.balance
+          ...state.balance
         },
         isLocked: true,
         transactions: []
