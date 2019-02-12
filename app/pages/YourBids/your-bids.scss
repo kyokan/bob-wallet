@@ -153,5 +153,7 @@
 
   &__link {
     @extend %link;
+
+    margin-left: .5rem;
   }
 }
