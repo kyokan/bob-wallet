@@ -34,11 +34,10 @@ class Sold extends Component {
   };
 
   render() {
-    const { domain, history, name, chain } = this.props;
+    const { domain } = this.props;
     const { info, bids = [] } = domain || {};
     const { highest, stats } = info || {};
-    const { renewalPeriodStart, renewalPeriodEnd } = stats || {};
-    const isPending = domain.pendingOperation === 'RENEW';
+    const { renewalPeriodEnd } = stats || {};
 
     return (
       <AuctionPanel>

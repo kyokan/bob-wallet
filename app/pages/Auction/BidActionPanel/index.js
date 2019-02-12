@@ -4,7 +4,7 @@ import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import c from 'classnames';
 import { protocol } from 'hsd';
-import { isAvailable, isBidding, isClosed, isOpening, isReveal } from '../../../utils/name-helpers';
+import { isAvailable, isBidding, isClosed, isOpening, isReserved, isReveal } from '../../../utils/name-helpers';
 import * as watchingActions from '../../../ducks/watching';
 import OpenBid from './OpenBid';
 import BidNow from './BidNow';
@@ -13,6 +13,7 @@ import Owned from './Owned';
 import '../domains.scss';
 import '../add-to-calendar.scss';
 import Sold from './Sold';
+import Reserved from './Reserved';
 
 @connect(
   (state) => ({
@@ -83,6 +84,10 @@ class BidActionPanel extends Component {
   renderActionPanel() {
     const { domain } = this.props;
     const name = this.props.match.params.name;
+
+    if (isReserved(domain)) {
+      return <Reserved domain={domain} name={name} />;
+    }
 
     if (this.isOwned()) {
       return (

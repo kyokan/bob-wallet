@@ -5,11 +5,16 @@ import './index.scss';
 export class AuctionPanel extends Component {
   static propTypes = {
     children: PropTypes.node,
+    className: PropTypes.string,
+  };
+
+  static defaultProps = {
+    className: '',
   };
 
   render() {
     return (
-      <div className="auction-panel">
+      <div className={`auction-panel ${this.props.className}`}>
         {this.props.children}
       </div>
     )

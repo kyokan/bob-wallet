@@ -8,7 +8,6 @@ import moment from 'moment';
 import * as names from '../../ducks/names';
 import * as walletActions from '../../ducks/walletActions';
 import { isAvailable, isBidding, isClosed, isOpening, isReserved, isReveal, } from '../../utils/name-helpers';
-import { OwnedInfo, ReserveInfo, SoldInfo, PendingRenewInfo } from './info';
 import BidActionPanel from './BidActionPanel';
 import Collapsible from '../../components/Collapsible';
 import Blocktime from '../../components/Blocktime';
@@ -78,18 +77,6 @@ export default class Auction extends Component {
     return domain && domain.isOwner;
   };
 
-  handleRenew = () => {
-    this.props.sendRenewal(this.getDomain())
-      .then(() => this.props.showSuccess('Your renew request is submitted! Please wait around 15 minutes for it to be confirmed.'))
-      .catch(e => this.props.showError(e.message))
-  };
-
-  handleRedeem = () => {
-    this.props.sendRedeem(this.getDomain())
-      .then(() => this.props.showSuccess('Your renew request is submitted! Please wait around 15 minutes for it to be confirmed.'))
-      .catch(e => this.props.showError(e.message))
-  }
-
   render() {
     return (
       <div className="domains">
@@ -105,7 +92,7 @@ export default class Auction extends Component {
     const {domain} = this.props;
 
     if (isReserved(domain)) {
-      return <ReserveInfo />;
+      return <BidActionPanel domain={domain} />;
     }
 
     if (this.isOwned()) {
