@@ -9,6 +9,7 @@ import * as watchingActions from '../../../ducks/watching';
 import OpenBid from './OpenBid';
 import BidNow from './BidNow';
 import Reveal from './Reveal';
+import Owned from './Owned';
 import '../domains.scss';
 import '../add-to-calendar.scss';
 
@@ -44,6 +45,11 @@ class BidActionPanel extends Component {
     this.setState({ isWatching })
   }
 
+  isOwned = () => {
+    const { domain } = this.props;
+    return domain && domain.isOwner;
+  };
+
   render() {
     const { match, network } = this.props;
     const { params: { name } } = match;
@@ -77,13 +83,22 @@ class BidActionPanel extends Component {
     const { domain } = this.props;
     const name = this.props.match.params.name;
 
+    if (this.isOwned()) {
+      return (
+        <Owned
+          domain={domain}
+          name={name}
+        />
+      )
+    }
+
     if (isBidding(domain)) {
       return (
         <BidNow
           domain={domain}
           name={name}
          />
-        )
+      )
     }
 
     if (isReveal(domain)) {

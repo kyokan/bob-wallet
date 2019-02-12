@@ -109,28 +109,30 @@ export default class Auction extends Component {
     }
 
     if (this.isOwned()) {
-      const renewStartBlock = domain.info.stats.renewalPeriodStart;
+      return <BidActionPanel domain={domain} />;
 
-      if (domain.pendingOperation === 'RENEW') {
-        return (
-          <PendingRenewInfo
-            onManageDomain={() => this.props.history.push(`/domain_manager/${this.getDomain()}`)}
-          />
-        )
-      }
-
-      return chain && chain.height >= renewStartBlock
-        ? (
-          <OwnedInfo
-            onClick={() => this.props.history.push(`/domain_manager/${this.getDomain()}`)}
-            onRenewalClick={this.handleRenew}
-          />
-        )
-        : (
-          <OwnedInfo
-            onClick={() => this.props.history.push(`/domain_manager/${this.getDomain()}`)}
-          />
-        )
+      // const renewStartBlock = domain.info.stats.renewalPeriodStart;
+      //
+      // if (domain.pendingOperation === 'RENEW') {
+      //   return (
+      //     <PendingRenewInfo
+      //       onManageDomain={() => this.props.history.push(`/domain_manager/${this.getDomain()}`)}
+      //     />
+      //   )
+      // }
+      //
+      // return chain && chain.height >= renewStartBlock
+      //   ? (
+      //     <OwnedInfo
+      //       onClick={() => this.props.history.push(`/domain_manager/${this.getDomain()}`)}
+      //       onRenewalClick={this.handleRenew}
+      //     />
+      //   )
+      //   : (
+      //     <OwnedInfo
+      //       onClick={() => this.props.history.push(`/domain_manager/${this.getDomain()}`)}
+      //     />
+      //   )
     }
 
     if (isClosed(domain)) {

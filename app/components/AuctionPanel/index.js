@@ -64,11 +64,16 @@ export class AuctionPanelHeaderRow extends Component {
 export class AuctionPanelFooter extends Component {
   static propTypes = {
     children: PropTypes.node,
+    className: PropTypes.string,
+  };
+
+  static defaultProps = {
+    className: '',
   };
 
   render() {
     return (
-      <div className="auction-panel__footer">
+      <div className={`auction-panel__footer ${this.props.className}`}>
         {this.props.children}
       </div>
     );

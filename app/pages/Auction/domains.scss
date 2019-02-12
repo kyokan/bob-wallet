@@ -121,6 +121,11 @@
       margin-top: 1rem;
     }
 
+    &__owned-actions {
+      @extend %col-nowrap;
+      padding: 1rem 1.5rem;
+    }
+
     &__reminder-link {
       @extend %link;
 
