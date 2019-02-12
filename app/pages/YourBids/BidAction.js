@@ -67,47 +67,58 @@ class BidAction extends Component {
 
     if (this.isOwned()) {
       return (
-        <div
-          className="bid-action"
-          onClick={e => {
-            e.stopPropagation();
-            history.push(`/domain_manager/${name}`)
-          }}
-        >
-          <div className="bid-action__link">Manage</div>
+        <div className="bid-action">
+          { this.renderRedeem() }
+          <div
+            className="bid-action__link"
+            onClick={e => {
+              e.stopPropagation();
+              history.push(`/domain_manager/${name}`)
+            }}
+          >
+            Manage
+          </div>
         </div>
       );
     }
 
     if (this.isSold()) {
-      const domain = this.props.domain || {};
-      const reveals = domain.reveals || [];
-
-      for (let i = 0; i < reveals.length; i++) {
-        const reveal = reveals[i];
-        if (reveal.bid.own && reveal.height >= domain.info.height) {
-          if (reveal.redeemable) {
-            return (
-              <div
-                className="bid-action"
-                onClick={e => {
-                  e.stopPropagation();
-                  this.props.sendRedeem()
-                    .then(() => this.props.showSuccess('Your redeem request is submitted! Please wait about 15 minutes for it to complete.'))
-                    .catch(e => this.props.showError(e.message));
-                }}
-              >
-                <div className="bid-action__link">Redeem</div>
-              </div>
-            );
-          }
-        }
-      }
+      return (
+        <div className="bid-action">
+          { this.renderRedeem() }
+        </div>
+      );
     }
 
     return (
       <div className="bid-action" />
     );
+  }
+
+  renderRedeem() {
+    const domain = this.props.domain || {};
+    const reveals = domain.reveals || [];
+
+    for (let i = 0; i < reveals.length; i++) {
+      const reveal = reveals[i];
+      if (reveal.bid.own && reveal.height >= domain.info.height) {
+        if (reveal.redeemable) {
+          return (
+            <div
+              className="bid-action__link"
+              onClick={e => {
+                e.stopPropagation();
+                this.props.sendRedeem()
+                  .then(() => this.props.showSuccess('Your redeem request is submitted! Please wait about 15 minutes for it to complete.'))
+                  .catch(e => this.props.showError(e.message));
+              }}
+            >
+              Redeem
+            </div>
+          );
+        }
+      }
+    }
   }
 }
 
