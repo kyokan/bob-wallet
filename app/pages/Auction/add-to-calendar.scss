@@ -1,8 +1,10 @@
 @import '../../variables';
 
 .react-add-to-calendar {
-  margin: 1rem 0 0rem 0;
-  width: 100%;
+  display: inline-block;
+  margin-right: .2rem;
+  position: relative;
+  width: 1rem;
 
   &__wrapper {
     @extend %col-nowrap;
@@ -10,53 +12,54 @@
   }
 
   &__button {
-    @extend %h3;
-    @extend %btn-secondary;
-    background-color: white;
-    font-weight: 600;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    text-align: center;
+    background-image: url('../../assets/images/calendar-icon.svg');
+    background-position: center;
+    background-size: cover;
+    height: .75rem;
+    width: .75rem;
   
     &:hover {
-      background-color: rgba($white, 1);
-      color: lighten($azure-blue, 10);
+      cursor: pointer;
     }
-    &:focus {
-      background-color: rgba($white, 0.9);
-      color: lighten($azure-blue, 10);
+
+    span {
+      display: none;
     }
-    &:active {
-      background-color: rgba($white, 0.9);
-      color: lighten($azure-blue, 10);
-    }
+
   }
   &__icon--right {
     display: none;
   }
 
   &__dropdown {
-    background-color: $azure-blue;
-    margin-top: 1rem;
-    border-bottom-left-radius: 0.5rem;
-    border-bottom-right-radius: 0.5rem;
-  }
-}
+    font-size: .1rem;
+    position: absolute;
+    left: 1.2rem;
+    top: -.3rem;
+    padding: .5rem 1.5rem;
+    background-color: $athens-gray;
+    border-radius: .5rem;
 
-.domains__bid-now__reveal {
-  ul {
-    text-align: center;
-    margin: 1rem 0 0 0;
-    padding: 0;
-    list-style-type: none;
-  }
-  
-  ul li a {
-    color: $white;
-    text-decoration: none;
-    font-size: 0.9rem;
-    line-height: 1.5rem;
-    font-weight: 500;
-    margin: 0.2rem 0;
+    ul {
+      text-align: center;
+      padding: 0;
+      list-style-type: none;
+    }
+    
+    ul li a {
+      color: $black;
+      text-decoration: none;
+      font-size: 0.75rem;
+      line-height: 1rem;
+      font-weight: 500;
+      margin: 0.2rem 0;
+      user-select: none;
+      transition: color .2s ease-in-out;
+
+      &:hover {
+        color: $azure-blue;
+      }
+    }
+
   }
 }

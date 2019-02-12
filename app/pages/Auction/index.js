@@ -8,9 +8,7 @@ import moment from 'moment';
 import * as names from '../../ducks/names';
 import * as walletActions from '../../ducks/walletActions';
 import { isAvailable, isBidding, isClosed, isOpening, isReserved, isReveal, } from '../../utils/name-helpers';
-import { OwnedInfo, ReserveInfo, SoldInfo, PendingRenewInfo } from './info';
 import BidActionPanel from './BidActionPanel';
-import BidReminder from './BidReminder';
 import Collapsible from '../../components/Collapsible';
 import Blocktime from '../../components/Blocktime';
 import AuctionGraph from '../../components/AuctionGraph';
@@ -79,18 +77,6 @@ export default class Auction extends Component {
     return domain && domain.isOwner;
   };
 
-  handleRenew = () => {
-    this.props.sendRenewal(this.getDomain())
-      .then(() => this.props.showSuccess('Your renew request is submitted! Please wait around 15 minutes for it to be confirmed.'))
-      .catch(e => this.props.showError(e.message))
-  };
-
-  handleRedeem = () => {
-    this.props.sendRedeem(this.getDomain())
-      .then(() => this.props.showSuccess('Your renew request is submitted! Please wait around 15 minutes for it to be confirmed.'))
-      .catch(e => this.props.showError(e.message))
-  }
-
   render() {
     return (
       <div className="domains">
@@ -103,46 +89,18 @@ export default class Auction extends Component {
   }
 
   renderAuctionRight = () => {
-    const {domain, chain} = this.props;
+    const {domain} = this.props;
 
     if (isReserved(domain)) {
-      return <ReserveInfo />;
+      return <BidActionPanel domain={domain} />;
     }
 
     if (this.isOwned()) {
-      const renewStartBlock = domain.info.stats.renewalPeriodStart;
-
-      if (domain.pendingOperation === 'RENEW') {
-        return (
-          <PendingRenewInfo
-            onManageDomain={() => this.props.history.push(`/domain_manager/${this.getDomain()}`)}
-          />
-        )
-      }
-
-      return chain && chain.height >= renewStartBlock
-        ? (
-          <OwnedInfo
-            onClick={() => this.props.history.push(`/domain_manager/${this.getDomain()}`)}
-            onRenewalClick={this.handleRenew}
-          />
-        )
-        : (
-          <OwnedInfo
-            onClick={() => this.props.history.push(`/domain_manager/${this.getDomain()}`)}
-          />
-        )
+      return <BidActionPanel domain={domain} />;
     }
 
     if (isClosed(domain)) {
-      return (
-        <SoldInfo
-          owner={domain.winner.address}
-          highestBid={domain.info.highest}
-          domain={domain}
-          onRedeem={this.handleRedeem}
-        />
-      );
+      return <BidActionPanel domain={domain} />;
     }
 
     if (isOpening(domain) || isBidding(domain) || isReveal(domain)) {
@@ -150,10 +108,7 @@ export default class Auction extends Component {
     }
 
     if (isAvailable(domain)) {
-      if (chain && chain.height >= domain.start.start) {
-        return <BidActionPanel domain={domain} />;
-      }
-      return <BidReminder domain={domain} />;
+      return <BidActionPanel domain={domain} />;
     }
 
     return null;
@@ -207,8 +162,8 @@ export default class Auction extends Component {
       return (
         <React.Fragment>
           <Collapsible className="domains__content__info-panel" title="Bid History" pillContent={pillContent} defaultCollapsed>
-          { this.props.domain ? 
-            <BidHistory bids={this.props.domain.bids} reveals={this.props.domain.reveals} /> : 
+          { this.props.domain ?
+            <BidHistory bids={this.props.domain.bids} reveals={this.props.domain.reveals} /> :
             'Loading...'
           }
           </Collapsible>
@@ -220,7 +175,7 @@ export default class Auction extends Component {
     } else {
       return <noscript />
     }
-    
+
   }
 
   getContentClassName() {

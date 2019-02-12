@@ -13,7 +13,7 @@
       font-weight: 500;
       font-size: 2.5rem;
     }
-    
+
     &__loading-wrapper {
       @extend %row-nowrap;
       justify-content: center;
@@ -77,17 +77,9 @@
     }
   }
 
-  &__action-panel,
-  &__bid-now {
-    flex: 0 0 auto;
-    box-shadow: 0 0 8px 2px rgba($black, 0.1);
-    border-radius: 1rem;
-    padding: 1.25rem 0;
-    width: 22rem;
-  }
-
   &__action-panel {
-    &--gray {
+    &__reserved {
+      padding: 1rem 0;
       background-color: $athens-gray;
     }
 
@@ -121,6 +113,11 @@
       margin-top: 1rem;
     }
 
+    &__owned-actions {
+      @extend %col-nowrap;
+      padding: 1rem 1.5rem;
+    }
+
     &__reminder-link {
       @extend %link;
 
@@ -133,32 +130,61 @@
 
     &__renew-domain-btn {
       @extend %btn-primary;
+
       margin-bottom: 1rem;
     }
 
     &__redeem-btn {
       @extend %btn-primary;
-      margin-top: 1rem;
+    }
+  }
+
+  &__open-bid {
+    &__content {
+      padding: 0 1.5rem;
     }
   }
 
   &__bid-now {
+    &__opening-text {
+      padding: 0 1.5rem;
+    }
+
+    &__review-info {
+      @extend %row-nowrap;
+    }
+
+    &__review-total {
+      font-weight: 600;
+    }
+
+    &__own-highest-bid {
+      &__title {
+        @extend %h2;
+
+        font-weight: 600;
+        padding: 1rem 1.5rem;
+      }
+    }
     &__title {
       @extend %h2;
+
       font-weight: 600;
-      margin-bottom: 1rem;
+      //margin-bottom: 1rem;
       padding: 0 1.5rem;
     }
 
     &__content {
       @extend %col-nowrap;
-      padding: 0 1.5rem;
-      line-height: 1.3rem;
+      margin-top: .5rem;
+      //padding: 0 1.5rem;
+      //line-height: 1.3rem;
     }
 
     &__info {
       @extend %row-nowrap;
       @extend %h4;
+
       align-items: center;
       font-weight: 500;
 
@@ -170,7 +196,10 @@
       &__value {
         flex: 1 0 auto;
         text-align: right;
-        padding: .25rem 0;
+
+        &--green {
+          color: $caribbean-green;
+        }
       }
 
       &__time-remaining {
@@ -182,7 +211,7 @@
         @extend %row-nowrap;
         align-items: center;
         color: $manatee-gray;
-        margin-top: 1rem;
+        margin: 1rem 1.5rem 0;
         font-weight: 500;
       }
 
@@ -194,15 +223,23 @@
         background-position: center;
         margin-right: 0.3rem;
       }
+
+      &__warning {
+        @extend %h4;
+
+        padding: .5rem 1.5rem;
+        text-align: center;
+        font-weight: 400;
+        color: $orange-red;
+      }
     }
 
     &__action {
       @extend %col-nowrap;
-      padding: 1rem 1.5rem 0;
+      padding: 1rem 1.5rem;
 
       &--placing-bid {
-        margin-top: 1rem;
-        border-top: 1px solid rgba($black, .1);
+        padding-top: 1rem;
       }
 
       &__cta {
