@@ -113,14 +113,7 @@ export default class Auction extends Component {
     }
 
     if (isClosed(domain)) {
-      return (
-        <SoldInfo
-          owner={domain.winner.address}
-          highestBid={domain.info.highest}
-          domain={domain}
-          onRedeem={this.handleRedeem}
-        />
-      );
+      return <BidActionPanel domain={domain} />;
     }
 
     if (isOpening(domain) || isBidding(domain) || isReveal(domain)) {

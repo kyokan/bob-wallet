@@ -12,6 +12,7 @@ import Reveal from './Reveal';
 import Owned from './Owned';
 import '../domains.scss';
 import '../add-to-calendar.scss';
+import Sold from './Sold';
 
 @connect(
   (state) => ({
@@ -90,6 +91,10 @@ class BidActionPanel extends Component {
           name={name}
         />
       )
+    }
+
+    if (isClosed(domain)) {
+      return <Sold domain={domain} name={name} />;
     }
 
     if (isBidding(domain)) {
