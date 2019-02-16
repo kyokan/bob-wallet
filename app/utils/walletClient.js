@@ -151,9 +151,9 @@ export function forNetwork(net) {
   // convenience method that throws an error for
   // implementations that ledger doesn't support.
   function disabledForLedger(message, onNonLedger) {
-    return ledgerFacade(false, () => {
+    return ledgerFacade(() => {
       throw new Error(message);
-    }, onNonLedger);
+    }, onNonLedger, false);
   }
 
   ret.getMasterHDKey = disabledForLedger('cannot get HD key for watch-only wallet', () => wallet.getMaster());
