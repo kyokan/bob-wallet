@@ -240,7 +240,7 @@ export function forNetwork(net) {
     });
   });
   ret.lock = ledgerFacade(() => null, () => wallet.lock());
-  ret.unlock = ledgerFacade(() => null, (passphrase) => wallet.unlock(passphrase, 3600));
+  ret.unlock = ledgerFacade(() => null, (passphrase) => wallet.unlock(passphrase, 3600), false);
   ret.isLocked = ledgerFacade(() => false, async () => {
     let addr = await getUnlockReceiveAddress(net);
     if (!addr) {
