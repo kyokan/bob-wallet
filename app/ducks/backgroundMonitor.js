@@ -81,8 +81,8 @@ export function createBackgroundMonitor() {
     try {
       await doPoll();
     } catch (e) {
-      console.error('failed to poll', e);
-      logger.error(`[Error received from backgroundMoniotr.js - poll\n\n${e.message}\n${e.stack}\n`);
+      console.error('failed to poll', e, e && e.stack);
+      logger.error(`[Error received from backgroundMonitor.js - poll\n\n${e.message}\n${e.stack}\n`);
     }
 
     timeout = setTimeout(poll, 1000);

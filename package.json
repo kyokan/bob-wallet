@@ -43,7 +43,12 @@
       "app/app.html",
       "app/main.prod.js",
       "app/main.prod.js.map",
-      "package.json"
+      "package.json",
+      {
+        "from": "node_modules/hsd/lib/covenants",
+        "to": "app",
+        "filter": ["names.db"]
+      }
     ],
     "dmg": {
       "contents": [

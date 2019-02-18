@@ -33,11 +33,18 @@ let hsdBinDir;
 let hsdPrefixDir;
 let outputDir;
 
-export function setPaths() {
+export async function setPaths() {
   udPath = app.getPath('userData');
   hsdBinDir = path.join(udPath, 'hsd');
   hsdPrefixDir = path.join(udPath, 'hsd_data');
   outputDir = path.join(udPath, 'hsd_output');
+
+  if (!fs.existsSync(hsdPrefixDir)) {
+    await pify(cb => fs.mkdir(hsdPrefixDir, {recursive: true}, cb));
+  }
+  if (!fs.existsSync(outputDir)) {
+    await pify(cb => fs.mkdir(outputDir, {recursive: true}, cb));
+  }
 }
 
 let hsd;
@@ -72,13 +79,6 @@ export async function start(net) {
   network = newNetwork;
 
   await installBinDep('hsd', 'darwin', 'x86_64');
-  if (!fs.existsSync(hsdPrefixDir)) {
-    await pify(cb => fs.mkdir(hsdPrefixDir, {recursive: true}, cb));
-  }
-  if (!fs.existsSync(outputDir)) {
-    await pify(cb => fs.mkdir(outputDir, {recursive: true}, cb));
-  }
-
   const stdout = fs.createWriteStream(path.join(outputDir, 'hsd.out.log'));
   const stderr = fs.createWriteStream(path.join(outputDir, 'hsd.err.log'));
   await pify(cb => stdout.on('open', cb()));

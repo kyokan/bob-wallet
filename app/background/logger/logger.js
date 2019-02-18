@@ -1,6 +1,7 @@
 import winston from 'winston';
 import { app } from 'electron';
 import fs from 'fs';
+import pify from '../../utils/pify';
 
 const path = require('path');
 
@@ -92,9 +93,9 @@ export function startLogger() {
     ]
   });
 
-  if (process.env.NODE_ENV !== 'production') {
+  // if (process.env.NODE_ENV !== 'production') {
     logger.add(new winston.transports.Console());
-  }
+  // }
 
   queue.forEach(fn => fn());
   queue = [];

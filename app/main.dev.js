@@ -9,7 +9,7 @@
  * `./app/main.prod.js` using webpack. This gives us some performance wins.
  *
  */
-import { app } from 'electron';
+import { app, dialog } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
@@ -64,17 +64,28 @@ app.on('ready', async () => {
   new AppUpdater();
 
   // start the IPC server
-  const node = require('./background/node');
-  require('./background/ipc');
-  node.setPaths();
-  const logger = require('./background/logger/logger');
-  logger.startLogger();
-  require('./background/airdrop');
-  require('./background/ledger');
-  require('./background/logger/index');
-  const db = require('./background/db');
-  await db.open();
+  let node;
+  try {
+    node = require('./background/node');
+    require('./background/ipc');
+    await node.setPaths();
+    const logger = require('./background/logger/logger');
+    logger.startLogger();
 
+    require('./background/airdrop');
+    require('./background/ledger');
+    require('./background/logger/index');
+    const db = require('./background/db');
+    await db.open();
+  } catch (e) {
+    dialog.showMessageBox(null, {
+      type: 'error',
+      buttons: ['OK'],
+      title: 'Couldn\'t Start',
+      message: 'An error occurred that prevented Bob from starting. Please quit and try again.',
+    }, () => app.quit());
+    console.log(e);
+  }
 
   app.on('window-all-closed', () => {
     // Respect the OSX convention of having the application in memory even
