@@ -7,6 +7,7 @@ import { executeBinDep, installBinDep } from './bindeps';
 
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 
 export const NETWORKS = {
   SIMNET: 'simnet',
@@ -78,7 +79,7 @@ export async function start(net) {
 
   network = newNetwork;
 
-  await installBinDep('hsd', 'darwin', 'x86_64');
+  await installBinDep('hsd', os.platform(), 'x86_64');
   const stdout = fs.createWriteStream(path.join(outputDir, 'hsd.out.log'));
   const stderr = fs.createWriteStream(path.join(outputDir, 'hsd.err.log'));
   await pify(cb => stdout.on('open', cb()));
@@ -133,7 +134,7 @@ async function awaitFSNotBusy(count = 0) {
   }
 
   return new Promise((resolve, reject) => {
-    fs.open(path.join(hsdPrefixDir, network, 'chain', 'LOCK'), 'r+', (err) => {
+    fs.open(path.join(hsdPrefixDir, network, 'chain', 'LOCK'), 'r+', (err, fd) => {
       if (err && err.code === 'ENOENT') {
         return resolve();
       }
@@ -146,6 +147,7 @@ async function awaitFSNotBusy(count = 0) {
         return reject(err);
       }
 
+      fs.closeSync(fd);
       return resolve();
     });
   });
