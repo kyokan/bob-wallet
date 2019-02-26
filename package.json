@@ -1,6 +1,7 @@
 {
   "name": "bob-electron",
   "productName": "Bob",
+  "author": "Kyokan Group Incorporated",
   "version": "0.0.1",
   "description": "A Handshake wallet and auction manager.",
   "scripts": {

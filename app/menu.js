@@ -172,10 +172,6 @@ export default class MenuBuilder {
         label: '&File',
         submenu: [
           {
-            label: '&Open',
-            accelerator: 'Ctrl+O'
-          },
-          {
             label: '&Close',
             accelerator: 'Ctrl+W',
             click: () => {
@@ -229,29 +225,15 @@ export default class MenuBuilder {
         label: 'Help',
         submenu: [
           {
-            label: 'Learn More',
-            click() {
-              shell.openExternal('http://electron.atom.io');
+            label: "About Bob",
+            click: () => {
+              shell.openExternal("https://github.com/kyokan/onoma-electron")
             }
           },
           {
-            label: 'Documentation',
+            label: 'Report an Issue',
             click() {
-              shell.openExternal(
-                'https://github.com/atom/electron/tree/master/docs#readme'
-              );
-            }
-          },
-          {
-            label: 'Community Discussions',
-            click() {
-              shell.openExternal('https://discuss.atom.io/c/electron');
-            }
-          },
-          {
-            label: 'Search Issues',
-            click() {
-              shell.openExternal('https://github.com/atom/electron/issues');
+              shell.openExternal('https://github.com/kyokan/onoma-electron/issues/new');
             }
           }
         ]
