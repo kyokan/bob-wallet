@@ -107,11 +107,7 @@ class App extends Component {
       return () => (
         <div className="app__uninitialized-wrapper">
           <div className="app__header">
-            <div className="app__logo">
-              <div className="app__logo--text">
-                Allison x Bob
-              </div>
-            </div>
+            <div className="app__logo"/>
             <div className="app__network-picker-wrapper">
               <NetworkPicker />
             </div>
@@ -128,11 +124,7 @@ class App extends Component {
     return () => (
       <div className="app__uninitialized-wrapper">
         <div className="app__header">
-          <div className="app__logo">
-            <div className="app__logo--text">
-              Allison x Bob
-            </div>
-          </div>
+          <div className="app__logo" />
           <div className="app__network-picker-wrapper">
             <div className="app__cancel" onClick={() => history.push('/')}>
               Return to Menu

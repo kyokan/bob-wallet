@@ -93,23 +93,13 @@
 
   &__logo {
     @extend %row-nowrap;
+
     align-items: baseline;
-
-    &--alice {
-      background-image: url('../../assets/images/alice.png');
-      height: 219px * 0.3;
-      width: 130px * 0.3;
-      background-position: center;
-      background-size: cover;
-    }
-
-    &--bob {
-      background-image: url('../../assets/images/the-cat.png');
-      height: 109px * 0.3;
-      width: 75px * 0.3;
-      background-position: center;
-      background-size: cover;
-    }
+    background-image: url('../../assets/images/bob-logo-circle.svg');
+    height: 109px * 0.3;
+    width: 109px * 0.3;
+    background-position: center;
+    background-size: cover;
 
     &--text {
       @extend %h1;

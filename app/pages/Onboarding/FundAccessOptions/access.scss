@@ -15,7 +15,7 @@
     &__alice,
     &__the-cat {
       display: inline-block;
-      background-size: cover;
+      background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
     }
@@ -27,9 +27,12 @@
     }
 
     &__the-cat {
-      background-image: url(../../../assets/images/the-cat.png);
-      height: 85px;
-      width: 58px;
+      background-image: url(../../../assets/images/bob-logo.svg);
+      background-repeat: no-repeat;
+      background-size: contain;
+      height: 4rem;
+      width: 4rem;
+      margin-bottom: 1.25rem;
     }
   }
 
