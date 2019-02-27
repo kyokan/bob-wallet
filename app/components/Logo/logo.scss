@@ -1,16 +1,20 @@
+@import "../../variables.scss";
 .logo {
-  font-size: 1.5rem;
-
-  &__allison {
-    color: #bc17db;
-  }
-
-  &__and {
-    color: #683bf4;
-  }
+  @extend %row-nowrap;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  background-color: $grey;
+  border-radius: 50%;
 
   &__bob {
-    color: #27a3e2;
+    background-image: url('../../assets/images/bob-logo.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 2rem;
+    height: 2rem;
   }
 
   &--clickable {

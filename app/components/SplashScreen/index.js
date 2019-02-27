@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Proptype from 'prop-types';
 import Alice from "../../assets/images/alice.png";
-import Bob from "../../assets/images/the-cat.png";
+import BobLogo from "../../assets/images/bob-logo-circle.svg";
 import Spinner from "../../assets/images/brick-loader.svg";
 
 export default class SplashScreen extends Component {
@@ -24,12 +24,6 @@ export default class SplashScreen extends Component {
       height: '100vh',
     }
 
-    const titleStyle = {
-      fontSize: '2rem',
-      fontWeight: 500,
-      textTransform: 'capitalize',
-    }
-
     const logoWrapperStyle = {
       display: 'flex',
       flexFlow: 'row nowrap',
@@ -38,21 +32,13 @@ export default class SplashScreen extends Component {
       margin: '3rem 0',
     }
 
-    const aliceLogoStyle = {
-      backgroundImage: `url(${Alice})`,
-      height: '219px',
-      width: '130px',
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      animation: '0.5s ease-in-out',
-    }
-
     const bobLogoStyle = {
-      backgroundImage: `url(${Bob})`,
-      height: '109px',
+      backgroundImage: `url(${BobLogo})`,
+      height: '75px',
       width: '75px',
-      backgroundSize: 'cover',
+      backgroundSize: 'contain',
       backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
       animation: '0.5s ease-in-out',
     }
 
@@ -74,11 +60,7 @@ export default class SplashScreen extends Component {
 
     return (
       <div style={ wrapperStyle }>
-        <div style={ titleStyle }> 
-          Allison x Bob
-        </div>
         <div style={ logoWrapperStyle }>
-          <div style={ aliceLogoStyle }/>
           <div style={ bobLogoStyle } />
         </div>
         {error ? <div style={ textStyles }> { error } </div> :  (

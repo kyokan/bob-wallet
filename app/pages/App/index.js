@@ -113,18 +113,18 @@ class App extends Component {
               </div>
             </div>
             <div className="app__network-picker-wrapper">
-              <NetworkPicker /> 
+              <NetworkPicker />
             </div>
           </div>
           <div className={c("app__uninitialized", {
           "app__uninitialized--auto-height": autoHeight,
-          })}> 
+          })}>
             <Component />
           </div>
         </div>
-      ) 
-    } 
-    
+      )
+    }
+
     return () => (
       <div className="app__uninitialized-wrapper">
         <div className="app__header">
@@ -141,7 +141,7 @@ class App extends Component {
         </div>
         <div className={c("app__uninitialized", {
           "app__uninitialized--auto-height": autoHeight,
-        })}> 
+        })}>
           <Component />
         </div>
       </div>
