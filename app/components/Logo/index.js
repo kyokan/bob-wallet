@@ -10,9 +10,7 @@ export function Logo(props) {
       })}
       onClick={props.onClick}
     >
-      <span className="logo__allison">Allison</span>{' '}
-      <span className="logo__and">and</span>{' '}
-      <span className="logo__bob">Bob</span>
+      <span className="logo__bob" />
     </div>
   );
 }

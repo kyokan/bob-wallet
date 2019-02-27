@@ -19,8 +19,9 @@
 
   &__logo-wrapper {
     @extend %row-nowrap;
-    margin: 1.25rem 0 2rem 0;
-    justify-content: space-between;
+
+    margin: 1.25rem 0;
+    justify-content: center;
     align-items: center;
   }
 

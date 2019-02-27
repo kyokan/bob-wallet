@@ -17,15 +17,14 @@ class FundAccessOptions extends Component {
     return (
       <div className="extension_primary_section funding-options">
         <div className="funding-options__header">
-          <div className="funding-options__header__alice" />
           <div className="funding-options__header__the-cat" />
         </div>
         <div className="funding-options__content">
           <div className="funding-options__content__title">
-            Allison Animates the Web
+            Hi, I am Bob.
           </div>
           <div className="funding-options__content__body-text">
-            Take control of your Handshake coins. browse Handshake websites, and
+            I am your Handshake SPV Client. I can help you take control of your Handshake coins. browse Handshake websites, and
             auction domains.
           </div>
         </div>

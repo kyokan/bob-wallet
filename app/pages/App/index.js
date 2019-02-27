@@ -107,32 +107,24 @@ class App extends Component {
       return () => (
         <div className="app__uninitialized-wrapper">
           <div className="app__header">
-            <div className="app__logo">
-              <div className="app__logo--text">
-                Allison x Bob
-              </div>
-            </div>
+            <div className="app__logo"/>
             <div className="app__network-picker-wrapper">
-              <NetworkPicker /> 
+              <NetworkPicker />
             </div>
           </div>
           <div className={c("app__uninitialized", {
           "app__uninitialized--auto-height": autoHeight,
-          })}> 
+          })}>
             <Component />
           </div>
         </div>
-      ) 
-    } 
-    
+      )
+    }
+
     return () => (
       <div className="app__uninitialized-wrapper">
         <div className="app__header">
-          <div className="app__logo">
-            <div className="app__logo--text">
-              Allison x Bob
-            </div>
-          </div>
+          <div className="app__logo" />
           <div className="app__network-picker-wrapper">
             <div className="app__cancel" onClick={() => history.push('/')}>
               Return to Menu
@@ -141,7 +133,7 @@ class App extends Component {
         </div>
         <div className={c("app__uninitialized", {
           "app__uninitialized--auto-height": autoHeight,
-        })}> 
+        })}>
           <Component />
         </div>
       </div>
