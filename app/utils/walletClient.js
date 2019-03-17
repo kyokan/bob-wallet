@@ -119,6 +119,10 @@ export function forNetwork(net) {
       return walletClient.execute('getbids');
     },
 
+    sendRawAirdrop: async (data) => {
+      await nClient.sendRawAirdrop(data);
+    },
+
     reset: async () => {
       await delUnlockReceiveAddress(net);
       return node.reset();

@@ -71,15 +71,13 @@
     margin-right: 1rem;
   }
 
-  &__text-input {
+  &__text-input textarea {
     @extend %box-input;
     box-shadow: 0 0 0 1.25px $mischka-gray;
     width: 100%;
     box-sizing: border-box;
-
-    input {
-      width: 100%;
-    }
+    border: 0;
+    font-family: "Courier New", monospace;
   }
 
   &__footer {
@@ -100,5 +98,16 @@
 
     width: 48%;
     padding: 0.7rem 2rem;
+  }
+
+  &__cli-step {
+    background: $athens-gray;
+    padding: 0.5rem;
+
+    code {
+      font-family: "Courier New", monospace;
+      font-size: 0.9rem;
+      color: $black;
+    }
   }
 }

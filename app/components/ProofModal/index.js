@@ -2,20 +2,16 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Modal from '../Modal';
 import './proof-modal.scss';
-import { remote, shell } from 'electron'
-import ellipsify from '../../utils/ellipsify';
+import { shell } from 'electron'
 import { connect } from 'react-redux';
 import { showSuccess } from '../../ducks/notifications';
-import { clientStub } from '../../background/airdrop';
+import * as walletClient from '../../utils/walletClient';
 import Alert from '../Alert';
-
-const airdropClient = clientStub(() => require('electron').ipcRenderer);
-
-const dialog = remote.dialog;
 
 @connect(
   (state) => ({
-    address: state.wallet.address
+    address: state.wallet.address,
+    network: state.node.network,
   }),
   (dispatch) => ({
     showSuccess: (message) => dispatch(showSuccess(message))
@@ -30,94 +26,38 @@ export default class ProofModal extends Component {
   };
 
   state = {
-    chosenKey: '',
-    passphrase: '',
-    keyId: '',
+    proof: '',
     errorMessage: '',
     isUploading: false,
   };
 
-  onClickChooseKey(title, defaultPath) {
-    dialog.showOpenDialog({
-      title,
-      defaultPath,
-      buttonLabel: 'Choose',
-      properties: [
-        'openFile',
-        'showHiddenFiles'
-      ]
-    }, (paths) => {
-      if (!paths) {
-        return;
-      }
-
-      this.setState({
-        chosenKey: paths[0]
-      });
-    });
-  }
-
-  setPassphrase = (e) => this.setState({
-    passphrase: e.target.value
-  });
-
-  setKeyId = (e) => this.setState({
-    keyId: e.target.value
+  setProof = (e) => this.setState({
+    proof: e.target.value
   });
 
   onSubmit = async () => {
-    const { chosenKey, passphrase, keyId } = this.state;
-    const { address } = this.props;
+    const client = walletClient.forNetwork(this.props.network);
 
-    this.setState({ isUploading: true })
+    this.setState({isUploading: true});
 
     try {
-      await airdropClient.proveFaucet(chosenKey, keyId, address, '0.5', passphrase);
+      await client.sendRawAirdrop(this.state.proof);
     } catch (e) {
+      console.error(e);
       this.setState({
-        errorMessage: this.parseError(e)
+        errorMessage: 'Invalid proof. Please try again.'
       });
       return;
     } finally {
-      this.setState({ isUploading: false })
+      this.setState({isUploading: false})
     }
 
     this.props.onClose();
     this.props.showSuccess('Airdrop confirmed! Your coins should appear within 15 minutes.');
   };
 
-  parseError(e) {
-    const defaultMessage = 'Something went wrong.';
-    
-    if (!e.message) {
-      return defaultMessage;
-    }
-
-    if (e.message.match(/invalid address hrp/i)) {
-      return 'Airdrops are not supported on this network.';
-    }
-
-    if (e.message.match(/pem parse error/i)) {
-      return 'Couldn\'t read your private key - did you choose the public key by mistake?';
-    }
-
-    if (e.message.match(/invalid pgp key id/i)) {
-      return 'Invalid PGP key ID.';
-    }
-
-    if (e.message.match(/invalid checksum/i)) {
-      return 'Invalid checksum - did you enter your passphrase correctly?';
-    }
-
-    return defaultMessage;
-  }
-
   isDisabled() {
-    if (this.props.type === 'PGP') {
-      return !this.state.chosenKey || !this.state.keyId;
-    }
-
-    return !this.state.chosenKey;
+    return !this.state.proof;
   }
 
   render() {
@@ -138,64 +78,56 @@ export default class ProofModal extends Component {
           </div>
           <div className="proof__content">
             <Alert type="error" message={this.state.errorMessage} />
-            {type === 'PGP' ? this.renderPGP() : this.renderSSH()}
+            {this.renderPGP(type === 'PGP')}
           </div>
         </div>
       </Modal>
     );
   }
 
-  renderPGP() {
+  renderPGP(isPGP) {
     return (
       <React.Fragment>
         <div className="proof__step">
           <div className="proof__step-title">
             <span className="proof__step-title--bolded">Step 1:</span>
-            <span>Find your PGP key.</span>
+            <span>Install hs-airdrop.</span>
           </div>
           <div className="proof__step-description">
-            Using the file picker below, find the your strong set PGP key. <strong>Your key will never leave
-            this device.</strong>
-          </div>
-          <div className="proof__choose-key">
-            <button className="proof__choose-key-btn" onClick={() => this.onClickChooseKey('Choose SSH key', '~/.ssh')}>
-              Choose Key
-            </button>
-            <div className="proof__choose-key-path">
-              {ellipsify(this.state.chosenKey, 30)}
-            </div>
+            Head on over to <a href="https://github.com/handshake-org/hs-airdrop">hs-airdrop on GitHub</a>, and
+            install the tool using the instructions in the README.
           </div>
         </div>
         <div className="proof__step">
           <div className="proof__step-title">
             <span className="proof__step-title--bolded">Step 2:</span>
-            <span>Enter your key's passphrase.</span>
+            <span>Generate your airdrop proof.</span>
           </div>
           <div className="proof__step-description">
-            Leave this blank if your key doesn't have a passphrase. <strong>Your passphrase will never leave this
-            device.</strong>
-          </div>
-          <div className="proof__text-input">
-            <input
-              type="password"
-              value={this.state.passphrase}
-              onChange={this.setPassphrase}
-            />
+            To generate your airdrop proof, you'll need to run the following commands in your terminal:
+
+            <pre className="proof__cli-step">
+              <code>
+                {isPGP ? 'hs-airdrop [key-path] [key-id] [tx1234] 0.005' : 'hs-airdrop [key-path] [tx1234] 0.005'}
+              </code>
+            </pre>
+
+            If everything went well, you should see a base64-encoded string in your terminal - that's your proof.
+            Broadcasting the proof on-chain will send your airdrop to this wallet.
           </div>
         </div>
         <div className="proof__step">
           <div className="proof__step-title">
             <span className="proof__step-title--bolded">Step 3:</span>
-            <span>Enter your key's ID.</span>
+            <span>Enter your proof.</span>
           </div>
           <div className="proof__step-description">
-            You can find this by looking at your PGP key management tool.
+            Copy the base64-encoded proof from your terminal into the box below.
           </div>
           <div className="proof__text-input">
-            <input
-              type="text"
-              value={this.state.keyId}
-              onChange={this.setKeyId}
+            <textarea
+              value={this.state.proof}
+              onChange={this.setProof}
             />
           </div>
         </div>
@@ -206,60 +138,8 @@ export default class ProofModal extends Component {
           >
             See full details
           </button>
-          <button className="proof__submit-btn" onClick={this.onSubmit} disabled={this.isDisabled() || this.state.isUploading}>
-            {this.state.isUploading ? 'Uploading...' : "Claim Coins"}
-          </button>
-        </div>
-      </React.Fragment>
-    );
-  }
-
-  renderSSH() {
-    return (
-      <React.Fragment>
-        <div className="proof__step">
-          <div className="proof__step-title">
-            <span className="proof__step-title--bolded">Step 1:</span>
-            <span>Find your SSH key.</span>
-          </div>
-          <div className="proof__step-description">
-            Using the file picker below, find the SSH private key you use on GitHub. <strong>Your key will never leave
-            this device.</strong>
-          </div>
-          <div className="proof__choose-key">
-            <button className="proof__choose-key-btn" onClick={() => this.onClickChooseKey('Choose SSH key', '~/.ssh')}>
-              Choose Key
-            </button>
-            <div className="proof__choose-key-path">
-              {ellipsify(this.state.chosenKey, 30)}
-            </div>
-          </div>
-        </div>
-        <div className="proof__step">
-          <div className="proof__step-title">
-            <span className="proof__step-title--bolded">Step 2:</span>
-            <span>Enter your key's passphrase.</span>
-          </div>
-          <div className="proof__step-description">
-            Leave this blank if your key doesn't have a passphrase. <strong>Your passphrase will never leave this
-            device.</strong>
-          </div>
-          <div className="proof__text-input">
-            <input
-              type="password"
-              value={this.state.passphrase}
-              onChange={this.setPassphrase}
-            />
-          </div>
-        </div>
-        <div className="proof__footer">
-          <button
-            className="proof__details-btn"
-            onClick={() => shell.openExternal('https://github.com/handshake-org/hs-airdrop')}
-          >
-            See full details
-          </button>
-          <button className="proof__submit-btn" onClick={this.onSubmit} disabled={this.isDisabled() || this.state.isUploading}>
+          <button className="proof__submit-btn" onClick={this.onSubmit}
+                  disabled={this.isDisabled() || this.state.isUploading}>
             {this.state.isUploading ? 'Uploading...' : "Claim Coins"}
           </button>
         </div>

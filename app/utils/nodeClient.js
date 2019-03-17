@@ -56,7 +56,11 @@ export function forNetwork(net) {
     },
 
     broadcastRawTx: async (tx) => {
-      return nodeClient.execute('sendrawtransaction', [ tx ]);
+      return nodeClient.execute('sendrawtransaction', [tx]);
+    },
+
+    sendRawAirdrop: async (data) => {
+      return nodeClient.execute('sendrawairdrop', data);
     },
 
     stop: async () => {
