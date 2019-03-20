@@ -191,7 +191,7 @@
     "electron-updater": "3.2.3",
     "gunzip-maybe": "1.4.1",
     "history": "4.7.2",
-    "hns-ledger": "https://github.com/boymanjor/hns-ledger.git#c5b7b72db86a653d496fe25ce4f5991343a6d7b4",
+    "hsd-ledger": "https://github.com/boymanjor/hsd-ledger#b13a8fa53d21c9c3310f2c7cffe8bd9dba4d498c",
     "hs-airdrop": "git://github.com/kyokan/hs-airdrop#master",
     "hs-client": "git://github.com/handshake-org/hs-client#master",
     "hsd": "git://github.com/kyokan/hsd.git#58a39d629636b1a594af6267225bebaf8e1ce7e8",

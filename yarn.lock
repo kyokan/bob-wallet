@@ -2287,16 +2287,6 @@ bcrypt-pbkdf@^1.0.0:
   dependencies:
     tweetnacl "^0.14.3"
 
-bcrypto@1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/bcrypto/-/bcrypto-1.1.0.tgz#e2e9aa037b8914cc46efbb5933bd8603a3492099"
-  integrity sha512-XOXwwnqnhH+9ASVHUtBP/tfzszHZ+TD5DMkER27OwF3wBUS8Rg/tnmfXRQ/h5hsrl5qPiTVtjsD6LjFvzgAIgw==
-  dependencies:
-    bindings "~1.3.0"
-    bsert "~0.0.4"
-    bufio "~1.0.1"
-    nan "~2.10.0"
-
 bcrypto@~3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/bcrypto/-/bcrypto-3.0.1.tgz#62e460ac5d5d492ef51620aa95f7695eecaac5d4"
@@ -2420,7 +2410,7 @@ bindings@^1.3.1:
   dependencies:
     file-uri-to-path "1.0.0"
 
-bindings@~1.3.0, bindings@~1.3.1:
+bindings@~1.3.1:
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/bindings/-/bindings-1.3.1.tgz#21fc7c6d67c18516ec5aaa2815b145ff77b26ea5"
   integrity sha512-i47mqjF9UbjxJhxGf+pZ6kSxrnI3wBLlnGI2ArWJ4r0VrvDS7ZYXkprq/pLaBWYq4GM0r4zdHY+NNRqEMU7uew==
@@ -2733,7 +2723,7 @@ bsert@0.0.4:
   resolved "https://registry.yarnpkg.com/bsert/-/bsert-0.0.4.tgz#2b3c236357923f0625f948802a5f9b66c0383d0b"
   integrity sha512-VReLe1aTaHRmf80YLOHUk8ONQ48SjseZP76GlNIDheD5REYByn/Mm9yrtI0/ZCaFrcfxzgpiw1/hMMCUOSMa3w==
 
-bsert@~0.0.3, bsert@~0.0.4, bsert@~0.0.5, bsert@~0.0.8:
+bsert@~0.0.3, bsert@~0.0.5, bsert@~0.0.8:
   version "0.0.8"
   resolved "https://registry.yarnpkg.com/bsert/-/bsert-0.0.8.tgz#1614b6d0faf6b5940d8ba2ab9520180e2b9a695d"
   integrity sha512-MzSxGNGymvJ2wAJ0lrC2cT+Irq2q+EMz5ijt8qXIxt02VoO+ZFWPNrmzNHGq6F8RJnIzzRmKz8mv1/j2xU1TQg==
@@ -2862,15 +2852,15 @@ bufio@1.0.1:
   resolved "https://registry.yarnpkg.com/bufio/-/bufio-1.0.1.tgz#525aab28d354031dd97398bfbb48f3f79282b65f"
   integrity sha512-yPe6AIUmbRCSXNrg6tBXc7E3FDnkcwLH2I8/G50bgfsUNVldFM7v42lsO1K8UPlcfTYm/GwRuEXsdSxX4L8lvA==
 
-bufio@~1.0.1, bufio@~1.0.4:
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/bufio/-/bufio-1.0.4.tgz#f6e197928cf4d1196c19b9dba6c3e89bb879aca7"
-  integrity sha512-z5HOP06DHRlwB6C4Ol6RNA2HWam8Pluo5pasPniQVyC4dzwutzYHHHDjDSOgSyGeThE7kmgT7ynV1A+EuD8s3w==
-
 bufio@~1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/bufio/-/bufio-1.0.3.tgz#8038166eade4ce36aa7785d801e7d73d5a401183"
   integrity sha512-3JCclITd40pHhAZX9zboZzTv35UJPrtXeY4KnI1KZb5nHWDtzzr04J8DGeSBFXjDnI6ObcJ6gbmUhWMQKub4xQ==
+
+bufio@~1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/bufio/-/bufio-1.0.4.tgz#f6e197928cf4d1196c19b9dba6c3e89bb879aca7"
+  integrity sha512-z5HOP06DHRlwB6C4Ol6RNA2HWam8Pluo5pasPniQVyC4dzwutzYHHHDjDSOgSyGeThE7kmgT7ynV1A+EuD8s3w==
 
 builder-util-runtime@7.1.0, builder-util-runtime@^7.1.0, builder-util-runtime@~7.1.0:
   version "7.1.0"
@@ -6251,18 +6241,6 @@ hmac-drbg@^1.0.0:
     minimalistic-assert "^1.0.0"
     minimalistic-crypto-utils "^1.0.1"
 
-"hns-ledger@https://github.com/boymanjor/hns-ledger.git#c5b7b72db86a653d496fe25ce4f5991343a6d7b4":
-  version "0.1.0"
-  resolved "https://github.com/boymanjor/hns-ledger.git#c5b7b72db86a653d496fe25ce4f5991343a6d7b4"
-  dependencies:
-    bcrypto "1.1.0"
-    blgr "^0.1.1"
-    bmutex "0.1.2"
-    bsert "0.0.4"
-    bufio "1.0.1"
-    node-hid "^0.7.3"
-    u2f-api "^1.0.6"
-
 hoist-non-react-statics@^2.5.0:
   version "2.5.5"
   resolved "https://registry.yarnpkg.com/hoist-non-react-statics/-/hoist-non-react-statics-2.5.5.tgz#c5903cf409c0dfd908f388e619d86b9c1174cb47"
@@ -6343,6 +6321,16 @@ hs-client@~0.0.5:
     bcfg "~0.1.5"
     bcurl "~0.1.5"
     bsert "~0.0.8"
+
+"hsd-ledger@https://github.com/boymanjor/hsd-ledger#b13a8fa53d21c9c3310f2c7cffe8bd9dba4d498c":
+  version "0.1.0-rc1"
+  resolved "https://github.com/boymanjor/hsd-ledger#b13a8fa53d21c9c3310f2c7cffe8bd9dba4d498c"
+  dependencies:
+    blgr "^0.1.1"
+    bmutex "0.1.2"
+    bsert "0.0.4"
+    bufio "1.0.1"
+    node-hid "^0.7.3"
 
 "hsd@git://github.com/kyokan/hsd.git#58a39d629636b1a594af6267225bebaf8e1ce7e8":
   version "0.0.0"
@@ -8743,11 +8731,6 @@ nan@^2.10.0, nan@^2.12.1, nan@^2.9.2, nan@~2.12.1:
   version "2.12.1"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.12.1.tgz#7b1aa193e9aa86057e3c7bbd0ac448e770925552"
   integrity sha512-JY7V6lRkStKcKTvHO5NVSQRv+RV+FIL5pvDoLiAtSL9pKlC5x9PKQcZDsq7m4FO4d57mkhC6Z+QhAh3Jdk5JFw==
-
-nan@~2.10.0:
-  version "2.10.0"
-  resolved "https://registry.yarnpkg.com/nan/-/nan-2.10.0.tgz#96d0cd610ebd58d4b4de9cc0c6828cda99c7548f"
-  integrity sha512-bAdJv7fBLhWC+/Bls0Oza+mvTaNQtP+1RyhhhvD95pgUJz6XM5IzgmxOkItJ9tkoCiplvAnXI1tNmmUD/eScyA==
 
 nan@~2.11.1:
   version "2.11.1"
@@ -12858,11 +12841,6 @@ typescript@^2.2.2:
   version "2.9.2"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.9.2.tgz#1cbf61d05d6b96269244eb6a3bce4bd914e0f00c"
   integrity sha512-Gr4p6nFNaoufRIY4NMdpQRNmgxVIGMs4Fcu/ujdYk3nAZqk7supzBE9idmvfZIlH/Cuj//dvi+019qEue9lV0w==
-
-u2f-api@^1.0.6:
-  version "1.0.10"
-  resolved "https://registry.yarnpkg.com/u2f-api/-/u2f-api-1.0.10.tgz#38d898a72daa6362040b27e37c8286d96cb8d320"
-  integrity sha512-0Zh+IqM2l6xaA/IUJDT9WwoEM6nwPx6ive4flVVYEfzzgXIrKFRaenieItsEkbXIgOZEw13nO3o3oLtSDOyesA==
 
 uglify-js@^3.1.4:
   version "3.4.9"

@@ -1,10 +1,10 @@
-import hnsLedger from 'hns-ledger';
+import hsdLedger from 'hsd-ledger';
 import * as logger from './logger/logger';
 import { defaultServer, makeClient } from './ipc';
 
 const MTX = require('hsd/lib/primitives/mtx');
-const {LedgerHSD} = hnsLedger;
-const {Device} = hnsLedger.HID;
+const {LedgerHSD} = hsdLedger;
+const {Device} = hsdLedger.HID;
 const ONE_MINUTE = 60000;
 
 export async function withLedger(action) {
@@ -18,6 +18,7 @@ export async function withLedger(action) {
       timeout: ONE_MINUTE
     });
     await device.open();
+    // TODO: this network parameter should be passed dynamically.
     ledger = new LedgerHSD({device, network: 'regtest'});
   } catch (e) {
     logger.error('failed to open ledger', e);
@@ -37,7 +38,8 @@ export async function withLedger(action) {
 
 export async function getXPub() {
   return withLedger(async (ledger) => {
-    return (await ledger.getAccountXpub(0)).xpubkey('regtest');
+    // TODO: this network parameter should be passed dynamically.
+    return (await ledger.getAccountXPUB(0)).xpubkey('regtest');
   });
 }
 
