@@ -20,8 +20,8 @@ export const addName = (name, network) => async dispatch => {
   const data = await getWatchlist(network);
   const result = validateWatchlist(data);
   result.push(name);
-  namesDb.storeName(name);
-  saveToWatchlist(network, result);
+  await namesDb.storeName(name);
+  await saveToWatchlist(network, result);
 
   dispatch({
     type: SET_WATCHLIST,
@@ -33,7 +33,7 @@ export const removeName = (name, network) => async dispatch => {
   const data = await getWatchlist(network);
   let result = validateWatchlist(data);
   result = result.filter(n => n !== name);
-  saveToWatchlist(network, result);
+  await saveToWatchlist(network, result);
   
   dispatch({
     type: SET_WATCHLIST,

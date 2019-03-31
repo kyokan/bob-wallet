@@ -40,7 +40,7 @@ class Watching extends Component {
   };
 
   onAdd = () => {
-    if (verifyName(this.state.name)) {
+    if (verifyName(this.state.name) && this.props.names.indexOf(this.state.name) === -1) {
       this.props.addName(this.state.name, this.props.network);
       this.onClose();
     } else {
