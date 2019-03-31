@@ -86,6 +86,9 @@ export default class CreatePassword extends Component {
             <div className="create-password__header_text">
               Set up a password
             </div>
+            <div className="create-password__body-text">
+              Your password must be at least 8 characters long.
+            </div>
             <div
               className={c('create-password__input', {
                 'create-password__input--error': this.state.passwordError

@@ -13,6 +13,12 @@
 
   &__header_text {
     @extend %header_text;
+    margin-bottom: 1.125rem;
+  }
+
+  &__body-text {
+    @extend %h4;
+    color: $manatee-gray;
     margin-bottom: 1.375rem;
   }
 
