@@ -24,8 +24,8 @@ class FundAccessOptions extends Component {
             Hi, I am Bob.
           </div>
           <div className="funding-options__content__body-text">
-            I am your Handshake SPV Client. I can help you take control of your Handshake coins. browse Handshake websites, and
-            auction domains.
+            I am your Handshake Wallet and full node. I can help you take control of your Handshake coins,
+            browse Handshake websites, and participate in domain auctions.
           </div>
         </div>
         <div className="funding-options__footer">
