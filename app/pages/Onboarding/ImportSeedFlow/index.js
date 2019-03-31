@@ -26,7 +26,8 @@ class ImportSeedFlow extends Component {
   };
 
   state = {
-    currentStep: TERM_OF_USE,
+    // temporarily skip TOU until we have one from legal
+    currentStep: WARNING_STEP,
     passphrase: '',
     isLoading: false,
   };
@@ -47,7 +48,7 @@ class ImportSeedFlow extends Component {
           <ImportSeedWarning
             currentStep={1}
             totalSteps={4}
-            onBack={() => this.goTo(TERM_OF_USE)}
+            onBack={() => this.props.history.push('/existing-options')}
             onNext={() => this.goTo(CREATE_PASSWORD)}
             onCancel={() => this.props.history.push('/funding-options')}
           />

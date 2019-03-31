@@ -26,7 +26,7 @@ class CreateNewAccount extends Component {
   };
 
   state = {
-    currentStep: TERMS_OF_USE,
+    currentStep: CREATE_PASSWORD,
     seedphrase: '',
     pasphrase: '',
     isLoading: false,
@@ -54,7 +54,7 @@ class CreateNewAccount extends Component {
           <CreatePassword
             currentStep={1}
             totalSteps={5}
-            onBack={() => this.setState({currentStep: TERMS_OF_USE})}
+            onBack={() => this.props.history.push('/funding-options')}
             onNext={async passphrase => {
               this.setState({currentStep: BACK_UP_SEED_WARNING, passphrase});
             }}
