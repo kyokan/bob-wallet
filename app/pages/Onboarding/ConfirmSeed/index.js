@@ -62,11 +62,11 @@ export default class ConfirmSeed extends Component {
               placeholder="Enter your seed phrase"
               onKeyDown={this.handleKeyDown}
               onChange={e => this.setState({ words: e.target.value })}
-              // onPaste={e => {
-              //   e.preventDefault();
-              //   this.setState({ pasteAttempted: true });
-              //   setTimeout(() => this.setState({ pasteAttempted: false }), 1000);
-              // }}
+              onPaste={e => {
+                e.preventDefault();
+                this.setState({ pasteAttempted: true });
+                setTimeout(() => this.setState({ pasteAttempted: false }), 1000);
+              }}
               value={this.state.words}
               autoFocus
             />

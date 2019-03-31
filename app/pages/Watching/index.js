@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
-import PropTypes from 'prop-types';
 import c from 'classnames';
 import './watching.scss';
 import { HeaderItem, HeaderRow, Table, TableItem, TableRow } from '../../components/Table';
