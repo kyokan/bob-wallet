@@ -24,7 +24,7 @@ export const VALID_NETWORKS = {
 };
 
 export const SEEDS = {
-  [NETWORKS.REGTEST]: [
+  [NETWORKS.SIMNET]: [
     'aorsxa4ylaacshipyjkfbvzfkh3jhh4yowtoqdt64nzemqtiw2whk@45.55.108.48'
   ]
 };
