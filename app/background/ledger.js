@@ -7,7 +7,7 @@ const {LedgerHSD} = hsdLedger;
 const {Device} = hsdLedger.HID;
 const ONE_MINUTE = 60000;
 
-export async function withLedger(action) {
+export async function withLedger(network, action) {
   let device;
   let ledger;
 
@@ -19,7 +19,7 @@ export async function withLedger(action) {
     });
     await device.open();
     // TODO: this network parameter should be passed dynamically.
-    ledger = new LedgerHSD({device, network: 'regtest'});
+    ledger = new LedgerHSD({device, network});
   } catch (e) {
     logger.error('failed to open ledger', e);
     throw e;
@@ -36,17 +36,16 @@ export async function withLedger(action) {
   }
 }
 
-export async function getXPub() {
-  return withLedger(async (ledger) => {
-    // TODO: this network parameter should be passed dynamically.
-    return (await ledger.getAccountXPUB(0)).xpubkey('regtest');
+export async function getXPub(network) {
+  return withLedger(network, async (ledger) => {
+    return (await ledger.getAccountXPUB(0)).xpubkey(network);
   });
 }
 
-export async function signTransaction(txJSON) {
+export async function signTransaction(network, txJSON) {
   const mtx = MTX.fromJSON(txJSON);
 
-  return withLedger(async (ledger) => {
+  return withLedger(network, async (ledger) => {
     const retMTX = await ledger.signTransaction(mtx);
 
     try {

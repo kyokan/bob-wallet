@@ -140,7 +140,7 @@ export function forNetwork(net) {
         if (shouldConfirmLedger) {
           const mtx = MTX.fromJSON(res);
           return awaitLedger(mtx.txid(), async () => {
-            const tx = await ledger.signTransaction(res);
+            const tx = await ledger.signTransaction(net, res);
             return await nClient.broadcastRawTx(tx.hex);
           });
         }

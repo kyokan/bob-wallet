@@ -46,7 +46,7 @@ class ConnectLedger extends React.Component {
     let xpub;
 
     try {
-      xpub = await ledgerClient.getXPub();
+      xpub = await ledgerClient.getXPub(this.props.network);
     } catch (e) {
       console.error(e);
       this.setState({
