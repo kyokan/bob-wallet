@@ -46,7 +46,7 @@ class ImportSeedFlow extends Component {
       case WARNING_STEP:
         return (
           <ImportSeedWarning
-            currentStep={0}
+            currentStep={1}
             totalSteps={3}
             onBack={() => this.props.history.push('/existing-options')}
             onNext={() => this.goTo(CREATE_PASSWORD)}
@@ -56,7 +56,7 @@ class ImportSeedFlow extends Component {
       case CREATE_PASSWORD:
         return (
           <CreatePassword
-            currentStep={1}
+            currentStep={2}
             totalSteps={3}
             onBack={() => this.setState({currentStep: WARNING_STEP})}
             onNext={passphrase => {
@@ -71,7 +71,7 @@ class ImportSeedFlow extends Component {
       case ENTRY_STEP:
         return (
           <ImportSeedEnterMnemonic
-            currentStep={2}
+            currentStep={3}
             totalSteps={3}
             onBack={() => this.goTo(CREATE_PASSWORD)}
             onNext={this.finishFlow}

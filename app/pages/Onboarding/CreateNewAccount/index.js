@@ -52,7 +52,7 @@ class CreateNewAccount extends Component {
       case CREATE_PASSWORD:
         return (
           <CreatePassword
-            currentStep={0}
+            currentStep={1}
             totalSteps={4}
             onBack={() => this.props.history.push('/funding-options')}
             onNext={async passphrase => {
@@ -64,7 +64,7 @@ class CreateNewAccount extends Component {
       case BACK_UP_SEED_WARNING:
         return (
           <BackUpSeedWarning
-            currentStep={1}
+            currentStep={2}
             totalSteps={4}
             onBack={() => this.setState({currentStep: CREATE_PASSWORD})}
             onNext={async () => {
@@ -81,7 +81,7 @@ class CreateNewAccount extends Component {
       case COPY_SEEDPHRASE:
         return (
           <CopySeed
-            currentStep={2}
+            currentStep={3}
             totalSteps={4}
             seedphrase={this.state.seedphrase}
             onBack={() => this.setState({currentStep: BACK_UP_SEED_WARNING})}
@@ -92,7 +92,7 @@ class CreateNewAccount extends Component {
       case CONFIRM_SEEDPHRASE:
         return (
           <ConfirmSeed
-            currentStep={3}
+            currentStep={4}
             totalSteps={4}
             seedphrase={this.state.seedphrase}
             onBack={() => this.setState({currentStep: COPY_SEEDPHRASE})}
