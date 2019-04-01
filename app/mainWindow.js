@@ -12,7 +12,6 @@ export default function showMainWindow() {
     show: false,
     width: 1024,
     height: 728,
-    icon: path.join(__dirname, 'assets/icons/png/64x64.png'),
   });
 
   mainWindow.loadURL(`file://${__dirname}/app.html`);
