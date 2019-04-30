@@ -24,6 +24,7 @@ export default class Settings extends Component {
 
   onDownload = async () => {
     const content = await logger.download();
+    console.log({ content })
     const csvContent = `data:text/log;charset=utf-8,${content}\r\n`;
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
