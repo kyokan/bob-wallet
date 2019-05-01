@@ -23,16 +23,22 @@ import NetworkPicker from '../NetworkPicker';
 export default class Settings extends Component {
 
   onDownload = async () => {
-    const content = await logger.download();
-    console.log({ content })
-    const csvContent = `data:text/log;charset=utf-8,${content}\r\n`;
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "bob-debug.log");
-    document.body.appendChild(link); // Required for FF
-    link.click();
-    link.remove();
+    try {
+      const content = await logger.download();
+      const csvContent = `data:text/log;charset=utf-8,${content}\r\n`;
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "bob-debug.log");
+      document.body.appendChild(link); // Required for FF
+      link.click();
+      link.remove();
+    } catch (e) {
+      logger.error(e.message);
+      setTimeout(() => {
+        throw e;
+      }, 0);
+    }
   };
 
   render() {

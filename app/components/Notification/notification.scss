@@ -33,4 +33,20 @@
     background-size: contain;
     cursor: pointer;
   }
+
+  &__issue-wrapper {
+    margin-top: 1rem;
+    font-size: .75rem;
+
+    &__title {
+      font-weight: 300;
+    }
+
+    &__action {
+      @extend %link;
+
+      margin-top: .25rem;
+    }
+  }
+
 }
