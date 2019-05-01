@@ -66,6 +66,12 @@ export default class Notification extends Component {
   }
 
   renderCreateIssue() {
+    const { type } = this.props;
+
+    if (type !== 'error') {
+      return null;
+    }
+
     return (
       <div className="notification__issue-wrapper">
         <div className="notification__issue-wrapper__title">
