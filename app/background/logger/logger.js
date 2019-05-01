@@ -58,19 +58,21 @@ export async function download() {
   const udPath = app.getPath('userData');
   const outputDir = path.join(udPath, 'hsd_output');
 
-  const content1 = fs.readFileSync(`${outputDir}/combined1.log`, 'utf8');
-  const content = fs.readFileSync(`${outputDir}/combined.log`, 'utf8');
+  let content = '';
 
-  return content1 + '\n' + content;
+  content += read(`${outputDir}/combined1.log`, 'utf8');
+  content += read(`${outputDir}/combined.log`, 'utf8');
+
+  return content;
 }
 
-// function readfile(path) {
-//   return new Promise((resolve, reject) => {
-//     fs.readFile(path, 'utf8', (e, data) => {
-//       console
-//     })
-//   })
-// }
+function read(filepath) {
+  try {
+    return fs.readFileSync(filepath, 'utf8');
+  } catch (e) {
+    return '\n';
+  }
+}
 
 export function startLogger() {
   const udPath = app.getPath('userData');

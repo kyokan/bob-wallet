@@ -35,12 +35,18 @@ export default class Notification extends Component {
     }
 
     setTimeout(() => (this.el.style.transform = 'translateY(60px)'), 0);
-    setTimeout(this.clear, 7000);
+    this.timeout = setTimeout(this.clear, 7000);
   }
 
   clear = () => {
-    this.el.style.transform = 'translateY(calc(-100% - 8px))';
-    setTimeout(() => this.props.clear(), 150);
+    if (this.timeout) {
+      clearTimeout(this.timeout);
+    }
+
+    if (this.el && this.el.style) {
+      this.el.style.transform = 'translateY(calc(-100% - 8px))';
+      this.timeout = setTimeout(() => this.props.clear(), 150);
+    }
   };
 
   render() {
@@ -54,7 +60,32 @@ export default class Notification extends Component {
       <div className={name} ref={(ref) => (this.el = ref)}>
         <div className="notification__close" onClick={this.clear}/>
         {this.props.message}
+        {this.renderCreateIssue()}
       </div>
     );
+  }
+
+  renderCreateIssue() {
+    const { type } = this.props;
+
+    if (type !== 'error') {
+      return null;
+    }
+
+    return (
+      <div className="notification__issue-wrapper">
+        <div className="notification__issue-wrapper__title">
+          Oops! Would you mind telling us what went wrong?
+        </div>
+        <div
+          className="notification__issue-wrapper__action"
+          onClick={() => {
+            require("electron").shell.openExternal("https://github.com/kyokan/onoma-electron/issues/new");
+          }}
+        >
+          Create Bug Report
+        </div>
+      </div>
+    )
   }
 }
