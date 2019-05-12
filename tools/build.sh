@@ -17,10 +17,10 @@ export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib"
 export CPPFLAGS="-I/usr/local/opt/openssl@1.1/include"
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-git clone git@github.com:handshake-org/hsd.git $DIR/hsd
+git clone git@github.com:kyokan/hsd.git $DIR/hsd
 cd $DIR/hsd
-# temporary to support ledger
-git checkout 405aa767f51b9c029d16d61aed30fc6201b59e73
+# temporary to bring back mirror RPC
+git checkout a2adde1bbd3cc850cd6b94b4efffc39d2bc50352
 
 # Install all dependencies, and store cache to ~/.electron-gyp.
 HOME=~/.electron-gyp npm install
