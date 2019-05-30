@@ -20,7 +20,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 git clone git@github.com:kyokan/hsd.git $DIR/hsd
 cd $DIR/hsd
 # temporary to bring back mirror RPC
-git checkout a2adde1bbd3cc850cd6b94b4efffc39d2bc50352
+git checkout 785a0aa33605546430b947952c60b4d5434bd84c
 
 # Install all dependencies, and store cache to ~/.electron-gyp.
 HOME=~/.electron-gyp npm install
