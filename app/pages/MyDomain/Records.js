@@ -11,7 +11,7 @@ import * as nameActions from '../../ducks/names';
 import { deepEqual } from '../../utils/helpers';
 import * as logger from '../../utils/logClient';
 import { showSuccess } from '../../ducks/notifications';
-import { serializeResource, deserializeResource } from '../../utils/record-helpers';
+import { serializeResource, deserializeResource } from '../../utils/recordHelpers';
 
 const { RECORD_TYPE } = nameActions;
 

@@ -44,8 +44,7 @@ app/style.css
 app/style.css.map
 dist
 dll
-main.js
-main.js.map
+*.map
 
 .idea
 *.iml

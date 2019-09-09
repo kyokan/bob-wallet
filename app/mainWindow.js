@@ -1,3 +1,4 @@
+import path from 'path';
 import { BrowserWindow } from 'electron';
 
 let mainWindow;
@@ -12,6 +13,10 @@ export default function showMainWindow() {
     show: false,
     width: 1024,
     height: 728,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: true
+    }
   });
 
   mainWindow.loadURL(`file://${__dirname}/app.html`);

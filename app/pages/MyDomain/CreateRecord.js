@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { TableItem, TableRow } from '../../components/Table';
-import { validate } from '../../utils/record-helpers';
+import { validate } from '../../utils/recordHelpers';
 import { DROPDOWN_TYPES } from '../../ducks/names';
 import Dropdown from '../../components/Dropdown';
 

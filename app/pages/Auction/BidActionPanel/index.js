@@ -4,7 +4,7 @@ import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import c from 'classnames';
 import { protocol } from 'hsd';
-import { isAvailable, isBidding, isClosed, isOpening, isReserved, isReveal } from '../../../utils/name-helpers';
+import { isAvailable, isBidding, isClosed, isOpening, isReserved, isReveal } from '../../../utils/nameHelpers';
 import * as watchingActions from '../../../ducks/watching';
 import OpenBid from './OpenBid';
 import BidNow from './BidNow';

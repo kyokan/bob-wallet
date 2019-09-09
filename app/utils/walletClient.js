@@ -1,6 +1,6 @@
 import { WalletClient } from 'hs-client';
-import { clientStub as nodeClientStub } from '../background/node';
-import { clientStub as ledgerClientStub } from '../background/ledger';
+import { clientStub as nodeClientStub } from '../background/node/client';
+import { clientStub as ledgerClientStub } from '../background/ledger/client';
 import { displayBalance, toBaseUnits } from './balances';
 import { delUnlockReceiveAddress, getUnlockReceiveAddress, setUnlockReceiveAddress } from '../db/system';
 import * as nodeClient from './nodeClient';

@@ -12,7 +12,7 @@ import {
 import { returnBlockTime } from '../../../components/Blocktime';
 import * as nameActions from '../../../ducks/names';
 import { showError, showSuccess } from '../../../ducks/notifications';
-import { isOpening } from '../../../utils/name-helpers';
+import { isOpening } from '../../../utils/nameHelpers';
 import * as logger from '../../../utils/logClient';
 
 const CAL_ITEMS = [

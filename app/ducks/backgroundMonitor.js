@@ -21,7 +21,6 @@ export function createBackgroundMonitor() {
       return;
     }
 
-
     const wClient = walletClient.forNetwork(state.node.network);
     const nClient = nodeClient.forNetwork(state.node.network);
 

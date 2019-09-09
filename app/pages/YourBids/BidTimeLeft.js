@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import * as nameActions from '../../ducks/names';
-import { isReveal, isBidding, isOpening } from '../../utils/name-helpers';
+import { isReveal, isBidding, isOpening } from '../../utils/nameHelpers';
 import { hoursToNow } from '../../utils/timeConverter';
 
 class BidTimeLeft extends Component {

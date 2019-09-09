@@ -7,7 +7,7 @@ import moment from 'moment';
 
 import * as names from '../../ducks/names';
 import * as walletActions from '../../ducks/walletActions';
-import { isAvailable, isBidding, isClosed, isOpening, isReserved, isReveal, } from '../../utils/name-helpers';
+import { isAvailable, isBidding, isClosed, isOpening, isReserved, isReveal, } from '../../utils/nameHelpers';
 import BidActionPanel from './BidActionPanel';
 import Collapsible from '../../components/Collapsible';
 import Blocktime from '../../components/Blocktime';

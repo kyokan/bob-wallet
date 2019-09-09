@@ -5,7 +5,7 @@ import { withRouter } from 'react-router-dom';
 import c from 'classnames';
 import ProgressBar from '../ProgressBar';
 import Blocktime from '../Blocktime';
-import { isBidding, isOpening, isReveal, } from '../../utils/name-helpers';
+import { isBidding, isOpening, isReveal, } from '../../utils/nameHelpers';
 import './auction-graph.scss';
 
 const OPENING = 0;

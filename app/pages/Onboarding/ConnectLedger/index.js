@@ -2,13 +2,12 @@ import React from 'react';
 import classNames from 'classnames';
 import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import ConnectLedgerStep from '../../../components/ConnectLedgerStep';
-import { clientStub as lClientStub } from '../../../background/ledger';
+import { clientStub as lClientStub } from '../../../background/ledger/client';
 import * as walletClient from '../../../utils/walletClient';
 import { connect } from 'react-redux';
 import * as walletActions from '../../../ducks/walletActions';
-import './connect.scss';
 import DefaultConnectLedgerSteps from '../../../components/ConnectLedgerStep/defaultSteps';
+import './connect.scss';
 
 const ledgerClient = lClientStub(() => require('electron').ipcRenderer);
 
@@ -85,7 +84,7 @@ class ConnectLedger extends React.Component {
         </div>
         <div className="create-password__content">
           <div className="header_text">Connect your Ledger</div>
-          <DefaultConnectLedgerSteps completedSteps={[isCreating, isCreating, isCreating]}/>
+          <DefaultConnectLedgerSteps completedSteps={[isCreating, isCreating, isCreating]} />
         </div>
         <div
           className={classNames([

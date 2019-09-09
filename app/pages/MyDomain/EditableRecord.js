@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { TableItem, TableRow } from '../../components/Table';
 import { RECORD_TYPE, DROPDOWN_TYPES } from '../../ducks/names';
-import { validate } from '../../utils/record-helpers';
+import { validate } from '../../utils/recordHelpers';
 import Dropdown from '../../components/Dropdown';
 
 class EditableRecord extends Component {

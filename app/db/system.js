@@ -1,5 +1,5 @@
-import { clientStub } from '../background/db';
-import { NETWORKS, VALID_NETWORKS } from '../background/node';
+import { clientStub } from '../background/db/client';
+import { NETWORKS, VALID_NETWORKS } from '../constants/networks';
 const dbClient = clientStub(() => require('electron').ipcRenderer);
 
 export async function getUnlockReceiveAddress(network) {

@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { withRouter, NavLink } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import c from 'classnames';
 import { connect } from 'react-redux';
 import './sidebar.scss';
 import ellipsify from '../../utils/ellipsify';

@@ -1,4 +1,5 @@
-import { clientStub } from '../background/logger';
+import { clientStub } from '../background/logger/client';
+
 const logClient = clientStub(() => require('electron').ipcRenderer);
 
 export const info = msg => {
@@ -20,16 +21,3 @@ export const log = () => {
 export const download = async () => {
   return await logClient.download();
 };
-
-// export const info = msg => {
-//   return getClient()
-//     .then(client => {
-//       console.log('hi')
-//       console.log(client)
-//     });
-// }
-//
-// async function getClient() {
-//   return getClientStub()
-//     .then(clientStub => clientStub(() => require('electron').ipcRenderer));
-// }

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Dropdown from '../../components/Dropdown';
-import { NETWORKS } from '../../background/node';
+import { NETWORKS } from '../../constants/networks';
 import { withRouter } from 'react-router-dom';
 import connect from 'react-redux/es/connect/connect';
 import * as nodeActions from '../../ducks/node';

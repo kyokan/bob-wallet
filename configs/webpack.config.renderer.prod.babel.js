@@ -5,15 +5,9 @@
 import path from 'path';
 import webpack from 'webpack';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
-import OptimizeCSSAssetsPlugin from 'optimize-css-assets-webpack-plugin';
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
-import merge from 'webpack-merge';
-import TerserPlugin from 'terser-webpack-plugin';
-import baseConfig from './webpack.config.base';
-import CheckNodeEnv from '../internals/scripts/CheckNodeEnv';
 
-CheckNodeEnv('production');
-export default merge.smart(baseConfig, {
+export default {
   devtool: 'source-map',
 
   mode: 'production',
@@ -23,13 +17,23 @@ export default merge.smart(baseConfig, {
   entry: path.join(__dirname, '..', 'app/index'),
 
   output: {
-    path: path.join(__dirname, '..', 'app/dist'),
+    path: path.join(__dirname, '..', 'dist'),
     publicPath: './dist/',
-    filename: 'renderer.prod.js'
+    filename: 'renderer.js'
   },
 
   module: {
     rules: [
+      {
+        test: /\.jsx?$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            cacheDirectory: true
+          }
+        }
+      },
       // Extract all .global.css to style.css as is
       {
         test: /\.global\.css$/,
@@ -164,26 +168,6 @@ export default merge.smart(baseConfig, {
     ]
   },
 
-  optimization: {
-    minimizer: process.env.E2E_BUILD
-      ? []
-      : [
-          new TerserPlugin({
-            parallel: true,
-            sourceMap: true,
-            cache: true
-          }),
-          new OptimizeCSSAssetsPlugin({
-            cssProcessorOptions: {
-              map: {
-                inline: false,
-                annotation: true
-              }
-            }
-          })
-        ]
-  },
-
   plugins: [
     /**
      * Create global constants which can be configured at compile time.
@@ -208,4 +192,4 @@ export default merge.smart(baseConfig, {
       openAnalyzer: process.env.OPEN_ANALYZER === 'true'
     })
   ]
-});
+};

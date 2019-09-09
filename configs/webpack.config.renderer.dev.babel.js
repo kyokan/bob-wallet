@@ -8,48 +8,25 @@
  */
 
 import path from 'path';
-import fs from 'fs';
 import webpack from 'webpack';
-import merge from 'webpack-merge';
-import { spawn, execSync } from 'child_process';
-import baseConfig from './webpack.config.base';
-import CheckNodeEnv from '../internals/scripts/CheckNodeEnv';
-
-CheckNodeEnv('development');
+import { spawn } from 'child_process';
+import { dependencies } from '../package.json';
 
 const port = process.env.PORT || 1212;
 const publicPath = `http://localhost:${port}/dist`;
-const dll = path.join(__dirname, '..', 'dll');
-const manifest = path.resolve(dll, 'renderer.json');
-const requiredByDLLConfig = module.parent.filename.includes(
-  'webpack.config.renderer.dev.dll'
-);
 
-/**
- * Warn if the DLL is not built
- */
-if (!requiredByDLLConfig && !(fs.existsSync(dll) && fs.existsSync(manifest))) {
-  console.log('The DLL files are missing. Sit back while we build them for you with "yarn build-dll"');
-  execSync('yarn build-dll');
-}
-
-export default merge.smart(baseConfig, {
+export default {
   devtool: 'inline-source-map',
 
   mode: 'development',
 
   target: 'electron-renderer',
 
-  entry: [
-    'react-hot-loader/patch',
-    `webpack-dev-server/client?http://localhost:${port}/`,
-    'webpack/hot/only-dev-server',
-    require.resolve('../app/index')
-  ],
+  entry: require.resolve('../app/index'),
 
   output: {
     publicPath: `http://localhost:${port}/dist/`,
-    filename: 'renderer.dev.js'
+    filename: 'renderer.js',
   },
 
   module: {
@@ -171,18 +148,6 @@ export default merge.smart(baseConfig, {
   },
 
   plugins: [
-    requiredByDLLConfig
-      ? null
-      : new webpack.DllReferencePlugin({
-          context: path.join(__dirname, '..', 'dll'),
-          manifest: require(manifest),
-          sourceType: 'var'
-        }),
-
-    new webpack.HotModuleReplacementPlugin({
-      multiStep: true
-    }),
-
     new webpack.NoEmitOnErrorsPlugin(),
 
     /**
@@ -219,8 +184,7 @@ export default merge.smart(baseConfig, {
     stats: 'errors-only',
     inline: true,
     lazy: false,
-    hot: true,
-    headers: { 'Access-Control-Allow-Origin': '*' },
+    headers: {'Access-Control-Allow-Origin': '*'},
     contentBase: path.join(__dirname, 'dist'),
     watchOptions: {
       aggregateTimeout: 300,
@@ -234,7 +198,7 @@ export default merge.smart(baseConfig, {
     before() {
       if (process.env.START_HOT) {
         console.log('Starting Main Process...');
-        spawn('yarn', ['run', 'start-main-dev'], {
+        spawn('npm', ['run', 'start-main-dev'], {
           shell: true,
           env: process.env,
           stdio: 'inherit'
@@ -244,4 +208,4 @@ export default merge.smart(baseConfig, {
       }
     }
   }
-});
+};

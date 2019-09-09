@@ -1,4 +1,4 @@
-import { clientStub } from '../background/db';
+import { clientStub } from '../background/db/client';
 import { hashName } from '../utils/nameChecker';
 const dbClient = clientStub(() => require('electron').ipcRenderer);
 

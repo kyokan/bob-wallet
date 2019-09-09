@@ -19,16 +19,3 @@ render(
   </AppContainer>,
   document.getElementById('root')
 );
-
-if (module.hot) {
-  module.hot.accept('./pages/Root', () => {
-    // eslint-disable-next-line global-require
-    const NextRoot = require('./pages/Root').default;
-    render(
-      <AppContainer>
-        <NextRoot store={store} history={history} />
-      </AppContainer>,
-      document.getElementById('root')
-    );
-  });
-}

@@ -10,7 +10,7 @@ import {
   isBidding,
   isOpening,
   isAvailable,
-} from '../../utils/name-helpers';
+} from '../../utils/nameHelpers';
 import Hash from '../../components/Hash';
 import Blocktime from '../../components/Blocktime';
 

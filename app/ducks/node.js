@@ -1,9 +1,10 @@
 import * as nodeClient from '../utils/nodeClient';
-import { clientStub, VALID_NETWORKS } from '../background/node';
+import { clientStub } from '../background/node/client';
 import { getNetwork, setNetwork } from '../db/system';
 import { fetchWallet } from './walletActions';
 import * as logger from '../utils/logClient';
 import { END_NETWORK_CHANGE, SET_NODE_INFO, START, START_ERROR, START_NETWORK_CHANGE, STOP } from './nodeReducer';
+import { VALID_NETWORKS } from '../constants/networks';
 
 const hsdClient = clientStub(() => require('electron').ipcRenderer);
 

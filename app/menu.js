@@ -1,15 +1,9 @@
 import { app, Menu, shell } from 'electron';
-import { getMainWindow } from './mainWindow';
-import showMainWindow from './mainWindow';
+import showMainWindow, { getMainWindow } from './mainWindow';
 
 export default class MenuBuilder {
   buildMenu() {
-    if (
-      process.env.NODE_ENV === 'development' ||
-      process.env.DEBUG_PROD === 'true'
-    ) {
-      this.setupDevelopmentEnvironment();
-    }
+    this.setupDevelopmentEnvironment();
 
     const template =
       process.platform === 'darwin'
@@ -24,7 +18,6 @@ export default class MenuBuilder {
 
   setupDevelopmentEnvironment() {
     const mainWin = getMainWindow();
-    mainWin.openDevTools();
     mainWin.webContents.on('context-menu', (e, props) => {
       const {x, y} = props;
       Menu.buildFromTemplate([
