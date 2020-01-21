@@ -1,0 +1,52 @@
+@import "../../variables";
+
+.notification {
+  $width: 18.75rem;
+  position: absolute;
+  width: $width;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.25);
+  padding: 1rem 3rem 1rem 1rem;
+  z-index: 50;
+  left: 50%;
+  top: 0;
+  margin-left: -($width / 2);
+  transform: translateY(calc(-100% - 8px));
+  transition: transform 250ms linear;
+  background: rgba($athens-gray, .8);
+  color: $black;
+
+  &--success {
+    border-left: 4px solid $success-green;
+  }
+
+  &--error {
+    border-left: 4px solid $orange-red;
+  }
+
+  &__close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background-image: url(../../assets/images/x-gray.svg);
+    width: .75rem;
+    height: .75rem;
+    background-size: contain;
+    cursor: pointer;
+  }
+
+  &__issue-wrapper {
+    margin-top: 1rem;
+    font-size: .75rem;
+
+    &__title {
+      font-weight: 300;
+    }
+
+    &__action {
+      @extend %link;
+
+      margin-top: .25rem;
+    }
+  }
+
+}

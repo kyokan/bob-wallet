@@ -1,0 +1,35 @@
+@import '../../../variables';
+
+.connect {
+  &__support-cta {
+    @extend %description_text;
+    align-self: center;
+    text-align: center;
+    margin: 0 0 0.3rem 0;
+    cursor: pointer;
+    transition: 0.3s;
+    &:hover {
+      opacity: 0.8;
+    }
+    &:active {
+      opacity: 1;
+    }
+  }
+}
+
+.ledger-circle-check-container {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 1rem;
+  background-color: #e2e2e2;
+  &__active {
+    background-color: $success-green;
+    background-image: url(../../../assets/images/check-icon-white.svg);
+    background-size: cover;
+    background-position: center;
+  }
+}
+
+.clickable {
+  cursor: pointer;
+}

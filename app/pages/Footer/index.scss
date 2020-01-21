@@ -1,0 +1,69 @@
+@import '../../variables.scss';
+
+.window-footer {
+  background: #111;
+  color: $manatee-gray;
+  padding: 36px 0;
+
+  &__centerer {
+    width: 704px;
+    margin: 0 auto;
+    display: flex;
+  }
+
+  &__40 {
+    width: 40%;
+    padding: 0 12px;
+  }
+
+  &__20 {
+    width: 20%;
+    padding: 0 12px;
+  }
+
+  &__explainer {
+    font-size: 12px;
+    line-height: 14px;
+    margin: 0;
+
+    strong {
+      color: $grey;
+    }
+  }
+
+  &__hashinfo {
+    // makes the current height text line up with AAW
+    margin-top: 3px;
+    margin-bottom: 24px;
+
+    .window-footer__explainer {
+      margin-bottom: 4px;
+    }
+  }
+
+  &__nav-header {
+    color: $manatee-gray;
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  &__nav-links {
+    margin: 0;
+    padding: 0;
+
+    li {
+      margin: 0;
+      padding: 0;
+      display: block;
+      line-height: 20px;
+    }
+
+    a {
+      color: $grey;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+  }
+}

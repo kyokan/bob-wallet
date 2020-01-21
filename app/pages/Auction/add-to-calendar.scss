@@ -1,0 +1,65 @@
+@import '../../variables';
+
+.react-add-to-calendar {
+  display: inline-block;
+  margin-right: .2rem;
+  position: relative;
+  width: 1rem;
+
+  &__wrapper {
+    @extend %col-nowrap;
+    flex: 1 1 auto;
+  }
+
+  &__button {
+    background-image: url('../../assets/images/calendar-icon.svg');
+    background-position: center;
+    background-size: cover;
+    height: .75rem;
+    width: .75rem;
+  
+    &:hover {
+      cursor: pointer;
+    }
+
+    span {
+      display: none;
+    }
+
+  }
+  &__icon--right {
+    display: none;
+  }
+
+  &__dropdown {
+    font-size: .1rem;
+    position: absolute;
+    left: 1.2rem;
+    top: -.3rem;
+    padding: .5rem 1.5rem;
+    background-color: $athens-gray;
+    border-radius: .5rem;
+
+    ul {
+      text-align: center;
+      padding: 0;
+      list-style-type: none;
+    }
+    
+    ul li a {
+      color: $black;
+      text-decoration: none;
+      font-size: 0.75rem;
+      line-height: 1rem;
+      font-weight: 500;
+      margin: 0.2rem 0;
+      user-select: none;
+      transition: color .2s ease-in-out;
+
+      &:hover {
+        color: $azure-blue;
+      }
+    }
+
+  }
+}

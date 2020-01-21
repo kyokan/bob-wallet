@@ -1,0 +1,16 @@
+@import '../../variables';
+
+.content-area {
+  background: $white;
+  border-radius: 0.2rem;
+}
+
+.content-area__title {
+  font-weight: 500;
+  padding: 0 0.5rem;
+  margin-bottom: 1rem;
+
+  &__no-padding {
+    padding: 0;
+  }
+}

@@ -1,0 +1,66 @@
+@import '../../variables.scss';
+
+.copy-seed {
+  &__subheader {
+    font-size: 0.85rem;
+    line-height: 1.2rem;
+    font-weight: 400;
+    padding-right: 2rem;
+    box-sizing: border-box;
+  }
+
+  &__textarea {
+    @extend %col-nowrap;
+    @extend %box-input;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.5rem;
+    flex: 1 1 auto;
+    margin: 1rem 0 3rem;
+    // box-shadow: 0 0 0 1.5px rgba($black, .2);
+
+    textarea {
+      flex: 1 1 auto;
+      width: 100%;
+      box-sizing: border-box;
+      resize: none;
+      border: none;
+      outline: none;
+      font-size: 0.9rem;
+      line-height: 1.2rem;
+      color: $black;
+      cursor: pointer;
+      background: transparent;
+    }
+
+    &--shake {
+      animation: shake 500ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+      transform: translate3d(0, 0, 0);
+      backface-visibility: hidden;
+      perspective: 1000px;
+    }
+  }
+}
+
+@keyframes shake {
+  10%,
+  90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+
+  20%,
+  80% {
+    transform: translate3d(2px, 0, 0);
+  }
+
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+
+  40%,
+  60% {
+    transform: translate3d(4px, 0, 0);
+  }
+}

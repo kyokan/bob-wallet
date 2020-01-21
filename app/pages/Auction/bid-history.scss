@@ -1,0 +1,34 @@
+@import "../../variables";
+
+.bid-history {
+  padding-top: 1.5rem;
+
+  &__empty {
+    font-size: 0.8rem;
+    color: #333;
+    font-weight: 400;
+    margin-top: 1.5rem;
+  }
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      text-align: left;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid $athens-gray;
+      font-weight: 700;
+    }
+
+    td {
+      padding: 1rem 0;
+      border-bottom: 1px solid $athens-gray;
+      font-size: 0.8rem;
+      color: #333;
+      font-weight: 400;
+    }
+  }
+}

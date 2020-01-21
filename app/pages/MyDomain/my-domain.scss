@@ -1,0 +1,365 @@
+@import '../../variables.scss';
+
+.my-domain {
+  @extend %col-nowrap;
+
+  &__back-arrow {
+    @extend %row-nowrap;
+
+    align-items: center;
+    cursor: pointer;
+
+    &::before {
+      display: inline-block;
+      content: '';
+      width: 1rem;
+      height: 1rem;
+      background-image: url(../../assets/images/arrow-back-blue.svg);
+      background-size: contain;
+      background-repeat: no-repeat;
+      margin-right: .25rem;
+    }
+  }
+
+  &__header {
+    &__title {
+      font-size: 1.75rem;
+      font-weight: 500;
+      padding: 1.5rem 0;
+    }
+
+    &__expires-text {
+      font-size: .8rem;
+      color: $manatee-gray;
+      padding-bottom: .25rem;
+    }
+
+    &__reveal-link {
+      @extend %link;
+
+      font-size: .8rem;
+    }
+
+    &__renewing-link {
+      @extend %link;
+      opacity: .5;
+      font-size: .8rem;
+      cursor: default;
+    }
+  }
+
+  &__info-panel {
+    .collapsible {
+      &__header {
+        @extend %info-header;
+
+        &__title {
+          @extend %info-title;
+        }
+      }
+    }
+  }
+}
+
+.domain-details {
+  @extend %col-nowrap;
+
+  margin-top: 1rem;
+}
+
+.domain-detail {
+  @extend %row-nowrap;
+
+  align-items: center;
+  font-size: .8rem;
+
+  &__label {
+    width: 8rem;
+    flex: 0 0 auto;
+    font-weight: 500;
+    padding: .25rem 0;
+  }
+
+  &__value {
+    flex: 1 1 auto;
+
+    &__data {
+      @extend %row-nowrap;
+      align-items: center;
+      font-family: "Roboto Mono", monospace;
+
+      .copy-btn {
+        margin-left: .25rem;
+      }
+    }
+
+    &__data-content {
+      flex: 1 1 auto;
+      width: 0;
+      font-family: "Roboto Mono", monospace;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+  }
+}
+
+.records-table {
+  margin-top: 2rem;
+  position: relative;
+
+  &__actions {
+    @extend %row-nowrap;
+    justify-content: flex-end;
+    align-items: center;
+    flex: 1 0 auto;
+
+    &__edit,
+    &__remove,
+    &__accept,
+    &__cancel {
+      width: 1rem;
+      height: 1rem;
+      background-size: contain;
+      background-repeat: no-repeat;
+      cursor: pointer;
+      opacity: .9;
+      transition: opacity 250ms ease-in-out;
+      border: none;
+      padding: 0;
+
+      &:hover {
+        opacity: .8;
+      }
+
+      &:active {
+        opacity: 1;
+      }
+
+      &:disabled {
+        opacity: 0.25;
+        cursor: default;
+      }
+    }
+
+    &__edit {
+      background-image: url(../../assets/images/edit-gray.svg);
+    }
+
+    &__remove {
+      background-image: url(../../assets/images/delete-gray.svg);
+      margin-left: 1rem;
+    }
+
+    &__accept {
+      background-image: url(../../assets/images/check-green.svg);
+    }
+
+    &__cancel {
+      height: .6rem;
+      background-image: url(../../assets/images/x-red.svg);
+      margin-top: .1rem;
+      margin-left: 1rem;
+    }
+  }
+
+    .table {
+      &__header {
+        &__item:nth-of-type(1) {
+          flex: 0 0 7rem;
+        }
+
+        &__item:nth-of-type(2) {
+          flex: 1 0 16rem;
+        }
+
+        &__item:nth-of-type(3) {
+          flex: 0 0 4rem;
+        }
+
+        &__item:nth-of-type(4) {
+          flex: 0 0 4rem;
+        }
+      }
+
+      &__row {
+        &__item:nth-of-type(1) {
+          flex: 0 0 7rem;
+        }
+
+        &__item:nth-of-type(2) {
+          flex: 1 0 16rem;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          white-space: nowrap;
+        }
+
+        &__item:nth-of-type(3) {
+          flex: 0 0 4rem;
+        }
+
+        &__item:nth-of-type(4) {
+          flex: 0 0 4rem;
+        }
+      }
+    }
+
+  &__create-record {
+    position: relative;
+    height: 3.8rem !important;
+
+    &__error-message {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      text-align: center;
+      flex: 0 0 auto;
+      color: $orange-red;
+      font-size: .7rem;
+      padding-bottom: .15rem;
+    }
+
+    &__inputs {
+      @extend %row-nowrap;
+      flex: 0 0 auto;
+      width: 100%;
+    }
+
+    &__create-btn {
+      @extend %btn-secondary;
+
+      margin: auto;
+      font-size: .8rem;
+      padding: .5rem 1rem;
+    }
+
+    &__record-type-dropdown {
+      .dropdown {
+        align-self: center;
+
+        &__current-item {
+          width: 6rem;
+          padding: .25rem .5rem;
+          font-size: .7rem;
+          border-radius: .25rem;
+
+          &::after {
+            top: .3rem;
+            right: .5rem;
+            height: .4rem;
+            width: .4rem;
+          }
+        }
+
+        &__options {
+          padding: .25rem 0;
+        }
+
+        &__option {
+          padding: .25rem .5rem;
+          font-size: .7rem;
+        }
+
+        &--opened {
+          .dropdown {
+            &__current-item {
+              border-bottom-left-radius: 0;
+              border-bottom-right-radius: 0;
+              &::after {
+                top: .55rem;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .table {
+      &__row {
+        &__item {
+          @extend %row-nowrap;
+
+          input {
+            flex: 1 1 auto;
+            width: 0;
+            border: none;
+            border-bottom: 1px dashed rgba($black, .1);
+            outline: none;
+          }
+        }
+      }
+    }
+  }
+
+  &__action-row {
+    @extend %row-nowrap;
+    background-color: $athens-gray;
+    border: 1px solid darken($athens-gray, 5);
+    align-items: center;
+    justify-content: flex-end;
+
+    &__add-btn, &__submit-btn {
+      padding: .25rem .5rem;
+      width: 5rem;
+      font-size: .8rem;
+      margin-right: 1rem;
+    }
+
+    &__dismiss-link {
+      font-size: .8rem;
+      margin-right: 1rem;
+    }
+
+    &__add-btn {
+      @extend %btn-secondary;
+    }
+
+    &__submit-btn {
+      @extend %btn-primary;
+    }
+
+    &__dismiss-link {
+      @extend %link;
+      font-size: .8rem;
+      margin-right: 1rem;
+      border: none;
+      outline: none;
+      background-color: transparent;
+
+      &:disabled {
+        opacity: .1;
+        cursor: default;
+      }
+    }
+
+    &__error-message {
+      font-size: .8rem;
+      color: $orange-red;
+      margin-right: 1rem;
+    }
+  }
+
+  &__pending-overlay {
+    display: inline-block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    line-height: 100%;
+    background-color: rgba($black, .45);
+    color: $white;
+    z-index: 100;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+
+    &__content {
+      @extend %row-nowrap;
+
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      width: 100%;
+    }
+  }
+}

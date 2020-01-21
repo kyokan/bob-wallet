@@ -1,0 +1,107 @@
+@import '../../variables';
+
+.dropdown {
+  position: relative;
+
+  &__current-item {
+    position: relative;
+    background-color: lighten($grey, 5);
+    font-size: .85rem;
+    font-weight: 600;
+    padding: .7rem 1.25rem;
+    border-radius: .5rem;
+    cursor: pointer;
+
+    &::after {
+      position: absolute;
+      top: .75rem;
+      right: 1.25rem;
+      content: '';
+      height: .5rem;
+      width: .5rem;
+      border-top: 1px solid $black;
+      border-left: 1px solid $black;
+      transform: rotate(-135deg);
+      transition: 200ms ease-in-out;
+    }
+
+    &__text {
+      user-select: none;
+    }
+  }
+
+  &__options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    display: none;
+    border-top: 1px solid $white;
+    padding: .5rem 0;
+    border-bottom-left-radius: .5rem;
+    border-bottom-right-radius: .5rem;
+    box-sizing: border-box;
+  }
+
+  &__option {
+    user-select: none;
+    cursor: pointer;
+    padding: .7rem 1.25rem;
+    font-size: .85rem;
+    transition: background-color 200ms ease-in-out;
+
+    &:hover {
+      background-color: $grey;
+    }
+
+    &:active {
+      background-color: darken($grey, 5);
+    }
+
+    &--disabled {
+      opacity: .25;
+      cursor: default;
+      &:hover {
+        background-color: lighten($grey, 5);
+      }
+
+      &:active {
+        background-color: lighten($grey, 5);
+      }
+    }
+  }
+
+  &--opened {
+    .dropdown {
+      &__current-item {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        &::after {
+          top: 1rem;
+          transform: rotate(45deg);
+        }
+      }
+
+      &__options {
+        @extend %col-nowrap;
+
+        background-color: lighten($grey, 5);
+        z-index: 200;
+      }
+    }
+  }
+
+  &--reversed {
+    .dropdown {
+      &__current-item {
+        background-color: white;
+        border: 1px solid $grey;
+      }
+
+      &__options {
+        background-color: white;
+        border: 1px solid $grey;
+      }
+    }
+  }
+}

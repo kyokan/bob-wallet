@@ -1,0 +1,70 @@
+@import '../../variables';
+
+.settings__label {
+  color: rgba(0, 0, 0, 0.4);
+  font-weight: 700;
+  font-size: 0.8rem;
+  margin-bottom: 0.75rem;
+}
+
+.settings__dropdown {
+  max-width: 170px;
+  margin-bottom: 36px;
+}
+
+.settings__section-head {
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 21px;
+  margin-bottom: 3px;
+}
+
+.settings__hd-path {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 22px;
+}
+
+.settings__balance {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 22px;
+  color: #909095;
+}
+
+.settings__links {
+  margin: 0 0 24px 0;
+  padding: 0;
+
+  li {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 19px;
+    margin: 0;
+    padding: 0;
+    display: block;
+  }
+
+  a {
+    @extend %link;
+    text-decoration: none;
+  }
+}
+
+.settings__link {
+  @extend %link;
+}
+
+.settings__copy-api-key {
+  border: 1px solid $grey;
+  padding: 6px;
+  width: 350px;
+  font-family: "Courier New", monospace;
+  font-size: 14px;
+  border-radius: .5rem;
+
+  &:focus {
+    border-color: $azure-blue;
+    outline: 0;
+  }
+}

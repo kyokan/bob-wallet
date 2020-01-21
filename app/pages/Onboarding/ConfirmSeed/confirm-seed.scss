@@ -1,0 +1,26 @@
+@import '../../../variables';
+
+.confirm-seed {
+  &__editable {
+    display: flex;
+    flex-flow: row wrap;
+    flex: 1 1 auto;
+    width: 100%;
+    box-sizing: border-box;
+    resize: none;
+    border: none;
+    outline: none;
+    font-size: 0.9rem;
+    line-height: 1.2rem;
+    color: $black;
+    cursor: text;
+  }
+
+  &__seed-word {
+    font-size: 0.9rem;
+    color: $white;
+    background-color: $azure-blue;
+    height: 1.2rem;
+    margin: 0.25rem;
+  }
+}

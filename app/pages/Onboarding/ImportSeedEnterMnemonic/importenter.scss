@@ -1,0 +1,107 @@
+@import '../../../variables';
+
+.import_enter_back_button {
+  margin-bottom: 10px;
+}
+
+.import_enter_back {
+  margin-right: 7px;
+  position: relative;
+  bottom: 1px;
+}
+
+.import_enter_status_bar {
+  margin-bottom: 10px;
+}
+
+.subheader_text {
+  font-weight: 500;
+  &__accent {
+    color: #f45e4f;
+    font-weight: 600;
+  }
+}
+
+.import_enter_warning_text {
+  margin-bottom: 20px;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.subheader_text_separator {
+  height: 7.5px;
+}
+
+.import-enter__textarea-container {
+  @extend %row-nowrap;
+  flex: 1 1 auto;
+  width: 100%;
+  margin-top: .5rem;
+}
+
+.import_enter_textarea {
+  @extend %box-input;
+  margin-top: 0.5rem;
+  resize: none;
+  white-space: normal;
+  border: none;
+  flex: 1 1 auto;
+  padding: .75rem 1rem;
+  line-height: 1.5rem;
+  margin-bottom: .5rem;
+}
+
+.import_enter_textarea::placeholder {
+  color: #a2a2a2;
+}
+
+.import_enter_cta_button {
+  height: 45px;
+  width: 100%;
+  border-radius: 8px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 16px;
+  @extend %btn-primary;
+  text-align: center;
+  outline: none;
+  border: none;
+  background-color: #e4e4e2;
+  color: #909095;
+
+  &__active {
+    height: 45px;
+    width: 100%;
+    border-radius: 8px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 16px;
+    @extend %btn-primary;
+    text-align: center;
+    outline: none;
+    border: none;
+    background-color: $azure-blue;
+    color: white;
+  }
+}
+
+.import_enter_cta {
+  margin-top: 20px;
+}
+
+.import_enter_text_description {
+  margin-top: 12px;
+  text-align: center;
+}
+
+.import_enter_text_purchase_description {
+  color: $azure-blue;
+  margin-top: 2.5px;
+  font-weight: 400;
+  text-align: center;
+  cursor: pointer;
+}

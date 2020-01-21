@@ -1,0 +1,207 @@
+@import '../../variables';
+
+.watching {
+
+  &__actions {
+    @extend %row-nowrap;
+    align-items: center;
+  }
+
+  &__warning-text {
+    text-align: right;
+    flex: 1 1 auto;
+    font-size: .7rem;
+    color: $manatee-gray;
+    padding-right: 1rem;
+  }
+
+  &__download {
+    @extend %row-nowrap;
+    @extend %link;
+
+    flex: 0 0 auto;
+
+    align-items: center;
+
+    &__icon {
+      background-image: url(../../assets/images/download-blue.png);
+      background-repeat: no-repeat;
+      background-size: contain;
+      background-position: center;
+      padding-right: .5rem;
+      width: .8rem;
+      height: .8rem;
+    }
+
+    &__link {
+      font-size: .8rem;
+    }
+  }
+
+  &__search {
+    margin: 1rem 0;
+    width: 10rem;
+  }
+}
+
+.watching-table {
+  &__remove-icon {
+    width: 1rem;
+    height: 1rem;
+    background-image: url(../../assets/images/delete-gray.svg);
+    background-size: cover;
+    background-repeat: no-repeat;
+    opacity: .5;
+    cursor: pointer;
+    transition: opacity 250ms ease-in-out;
+
+    &:hover {
+      opacity: .4;
+    }
+
+    &:active {
+      opacity: .6;
+    }
+  }
+
+  .table {
+    &__header {
+      &__item:nth-of-type(1) {
+        flex: 0 0 11rem;
+      }
+
+      &__item:nth-of-type(2) {
+        flex: 1 0 8rem;
+      }
+
+      &__item:nth-of-type(3) {
+        flex: 0 0 5rem;
+      }
+
+      &__item:nth-of-type(4) {
+        flex: 0 0 7rem;
+      }
+    }
+
+    &__row {
+      cursor: pointer;
+      transition: background-color 250ms ease-in-out;
+
+      &:hover {
+        background-color: rgba($black, .025);
+      }
+
+      &:active {
+        background-color: rgba($black, .05);
+      }
+
+      &__item:nth-of-type(1) {
+        flex: 0 0 11rem;
+      }
+
+      &__item:nth-of-type(2) {
+        flex: 1 0 8rem;
+      }
+
+      &__item:nth-of-type(3) {
+        flex: 0 0 5rem;
+      }
+
+      &__item:nth-of-type(4) {
+        @extend %row-nowrap;
+        flex: 0 0 7rem;
+        justify-content: flex-end;
+      }
+    }
+  }
+
+  &__empty-row {
+    @extend %row-nowrap;
+    height: 1.8rem;
+    font-size: .8rem;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__create-row {
+    @extend %row-nowrap;
+
+    align-items: center;
+    justify-content: center;
+    cursor: default !important;
+    transition: none !important;
+
+    &:hover {
+      background-color: $white !important;
+    }
+
+    &:active {
+      background-color: $white !important;
+    }
+
+    &__cta {
+      @extend %btn-primary;
+
+      font-size: .8rem;
+      padding: .5rem 1.5rem;
+    }
+
+    &__actions {
+      @extend %row-nowrap;
+      align-items: center;
+    }
+
+    &__form {
+      @extend %row-nowrap;
+      align-items: center;
+      flex: 1 0 auto;
+      padding: 5rem;
+
+      &__input {
+        @extend %box-input;
+        width: 100%;
+
+        input {
+          width: 100%;
+        }
+
+        &--error {
+          animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+          transform: translate3d(0, 0, 0);
+          backface-visibility: hidden;
+          perspective: 1000px;
+
+          &:focus-within {
+            box-shadow: 0 0 0 1.25px $orange-red;
+          }
+        }
+      }
+
+      &__cta {
+        @extend %btn-primary;
+        padding: .5rem 1.5rem;
+        font-size: .8rem;
+        margin: 0 1rem 0 1rem;
+      }
+
+      &__remove {
+        width: 1rem;
+        height: 1rem;
+        background-image: url(../../assets/images/delete-gray.svg);
+        background-size: cover;
+        background-repeat: no-repeat;
+        opacity: .5;
+        cursor: pointer;
+        transition: opacity 250ms ease-in-out;
+
+        &:hover {
+          opacity: .4;
+        }
+
+        &:active {
+          opacity: .6;
+        }
+      }
+    }
+  }
+}

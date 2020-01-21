@@ -1,0 +1,13 @@
+@import "../../variables";
+
+.alert {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+
+  &--error {
+    border: 1px solid $orange-red;
+    color: $orange-red;
+  }
+}

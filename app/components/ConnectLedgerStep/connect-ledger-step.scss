@@ -1,0 +1,33 @@
+@import "../../variables";
+
+.connect {
+  &__status-pill {
+    height: 60px;
+    border-radius: 27.5px;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    margin: 5px 0px;
+    background-color: #f7f7f7;
+  }
+
+  &__status-number {
+    height: 19px;
+    color: #111111;
+    font-weight: 600;
+    line-height: 19px;
+  }
+
+  &__status-text {
+    @extend %subheader_text;
+    width: 180px;
+    padding: 1rem 1.45rem;
+    height: 28px;
+    color: #111111;
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 14px;
+  }
+}

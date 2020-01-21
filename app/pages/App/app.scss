@@ -1,0 +1,121 @@
+@import '../../variables';
+
+.app {
+  @extend %row-nowrap;
+
+  height: 100vh;
+  width: 100vw;
+  position: relative;
+
+  &__header {
+    @extend %row-nowrap;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 2px -2px rgba(0, 0, 0, 0.25);
+    height: 70px;
+    width: 100%;
+    padding: 0 2rem;
+    margin-bottom: 5rem;
+  }
+
+  &__uninitialized-wrapper {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  &__uninitialized {
+    width: 400px;
+    height: 480px;
+    background: white;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.25);
+    border-radius: 0.5rem;
+
+    &--auto-height {
+      height: auto;
+    }
+  }
+
+  &__sidebar-wrapper {
+    flex: 0 0 auto;
+    width: 220px;
+    z-index: 1;
+  }
+
+  &__main-wrapper {
+    flex: 1 1 auto;
+    height: 100vh;
+    overflow: auto;
+  }
+
+  &__content {
+    padding: 2rem 3rem;
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  &__login {
+    margin: 5rem auto;
+    font-size: 16px;
+    background-color: white;
+    box-shadow: 0 2px 6px 0 rgba($black, 0.2);
+    border-radius: 0.2rem;
+    width: 320px !important;
+    height: 430px !important;
+
+    .header_text {
+      margin-bottom: 1rem;
+    }
+  }
+
+  &__component-wrapper {
+    padding: 1.2rem 1.4rem;
+    height: 100%;
+    box-sizing: border-box;
+    margin: 0 auto;
+    width: 340px;
+    height: 430px;
+    background-color: $white;
+    border-radius: 0.2rem;
+    box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.2);
+    padding: 0 !important;
+  }
+
+  &__network-picker-wrapper {
+    @extend %row-nowrap;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__logo {
+    @extend %row-nowrap;
+
+    align-items: baseline;
+    background-image: url('../../assets/images/bob-logo-circle.svg');
+    height: 109px * 0.3;
+    width: 109px * 0.3;
+    background-position: center;
+    background-size: cover;
+
+    &--text {
+      @extend %h1;
+      text-align: center;
+      font-weight: 800;
+      font-style: italic;
+      line-height: 1.5rem;
+    }
+  }
+
+  &__cancel {
+    margin-right: 1rem;
+    font-size: 0.8rem;
+    color: $azure-blue;
+    font-weight: 500;
+    transition: color 200ms ease-in-out;
+    cursor: pointer;
+  }
+}

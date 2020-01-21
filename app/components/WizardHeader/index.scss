@@ -1,0 +1,33 @@
+@import '../../variables';
+
+.wizard-header {
+  display: flex;
+  flex-direction: column;
+  height: 61px;
+
+  &__back {
+    margin-right: auto;
+  }
+
+  &__navigation {
+    @extend %row-nowrap;
+
+    align-items: center;
+    justify-content: center;
+    padding: 1.125rem 1.625rem 0.5rem;
+    height: 46px;
+  }
+
+  &__cancel {
+    @extend %link;
+
+    margin-left: auto;
+    text-align: right;
+    font-size: 0.8rem;
+  }
+
+  &__status-bar {
+    padding: 0 1.625rem;
+    margin-top: auto;
+  }
+}

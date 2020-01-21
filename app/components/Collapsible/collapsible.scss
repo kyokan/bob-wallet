@@ -1,0 +1,50 @@
+@import '../../variables.scss';
+
+.collapsible {
+  @extend %col-nowrap;
+
+  &__header {
+    @extend %row-nowrap;
+    align-items: center;
+
+    &__title {
+      @extend %row-nowrap;
+      flex: 1 1 auto;
+      width: 0;
+    }
+
+    &__toggle {
+      @extend %link;
+      font-size: .8rem;
+      font-weight: 400;
+    }
+
+    &__pill {
+      font-size: 0.7rem;
+      padding: 0.25rem 0.75rem;
+      background-color: rgba($azure-blue, 0.15);
+      color: $azure-blue;
+      font-weight: 700;
+      border-radius: 0.5rem;
+      transition: background-color 200ms ease-in-out;
+      margin-left: 0.5rem;
+    }
+
+  }
+
+  &__content {
+    opacity: 1;
+    // padding: 1rem;
+    position: relative;
+    max-height: 50rem;
+    height: auto;
+    transition: 0.5s ease-out;
+
+    &--hidden {
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: 0.5s ease-out;
+    }
+  }
+}

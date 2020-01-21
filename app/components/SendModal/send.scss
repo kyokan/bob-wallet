@@ -1,0 +1,395 @@
+@import '../../variables';
+
+.send {
+
+  &__container {
+    max-width: 30rem;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 0.6rem;
+    padding: 2rem;
+    margin: 0 auto;
+  }
+
+  &__close-btn {
+    position: absolute;
+    top: 1.25rem;
+    right: 2rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 1.2rem;
+  }
+
+  &__header {
+    @extend %col-nowrap;
+    margin-bottom: 1rem;
+  }
+
+  &__title {
+    text-align: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+    letter-spacing: -1px;
+  }
+
+  &__to,
+  &__amount,
+  &__network-fee {
+    @extend %col-nowrap;
+
+    margin-bottom: 1.5rem;
+    justify-content: center;
+  }
+
+  &__label {
+    color: rgba($black, 0.4);
+    font-weight: 600;
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
+  }
+
+  &__input {
+    @extend %box-input;
+    @extend %row-nowrap;
+
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.5rem 0.75rem;
+
+    input {
+      outline: none;
+      flex: 1 1 auto;
+      width: 0;
+      font-size: 0.85rem;
+      border: none;
+    }
+  }
+
+  &__amount-input {
+    @extend %box-input;
+    @extend %row-nowrap;
+
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 0.75rem;
+    height: 2.125rem;
+
+    input {
+      font-size: 0.85rem;
+    }
+
+    &__max-btn {
+      font-size: 0.7rem;
+      padding: 0.25rem 0.75rem;
+      background-color: rgba($azure-blue, 0.15);
+      color: $azure-blue;
+      font-weight: 700;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 200ms ease-in-out;
+      margin-right: 0.5rem;
+
+      &:focus,
+      &:hover {
+        background-color: rgba($azure-blue, 0.13);
+      }
+
+      &:active {
+        background-color: rgba($azure-blue, 0.17);
+      }
+    }
+
+    &__unit {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+  }
+
+  &__info-icon {
+    display: inline-block;
+    flex: 0 0 auto;
+    margin-left: 0.5rem;
+    color: $white;
+    background-color: rgba($black, 0.2);
+    border-radius: 50%;
+    font-size: 0.85rem;
+    line-height: 0.8rem;
+    width: 0.8rem;
+    height: 0.75rem;
+    cursor: pointer;
+  }
+
+  &__network-fee {
+    margin-bottom: 1rem;
+
+    &__form {
+      @extend %row-nowrap;
+    }
+
+    &__select {
+      @extend %col-nowrap;
+      @extend %box-input;
+
+      position: relative;
+      flex: 1 0 auto;
+      padding: 0 0.75rem;
+      height: 2.125rem;
+      justify-content: center;
+      font-size: 0.85rem;
+      margin-right: 0.75rem;
+
+      select {
+        position: absolute;
+        top: 0;
+        left: 0;
+        flex: 1 1 auto;
+        height: 100%;
+        width: 100%;
+        opacity: 0;
+        cursor: pointer;
+        z-index: 200;
+      }
+
+      &:focus-within {
+        box-shadow: 0 0 0 1.25px rgba($black, 0.1);
+      }
+
+      &::after {
+        content: ' ';
+        position: absolute;
+        top: 0.5rem;
+        right: 0.75rem;
+        height: 0.6rem;
+        width: 0.6rem;
+        border-top: 1px solid rgba($black, 0.4);
+        border-right: 1px solid rgba($black, 0.4);
+        transform: rotate(135deg);
+        z-index: 100;
+      }
+    }
+
+    &__fee-amount {
+      @extend %row-nowrap;
+      @extend %box-input;
+
+      flex: 1 0 auto;
+      padding: 0 0.75rem;
+      height: 2.125rem;
+      align-items: center;
+      font-size: 0.85rem;
+      color: rgba($black, 0.35);
+      user-select: none;
+      margin-left: 0.75rem;
+    }
+  }
+
+  &__input-disclaimer {
+    color: rgba($black, 0.4);
+    font-size: 0.8rem;
+    padding-top: 0.8rem;
+    font-style: italic;
+  }
+
+  &__cta-btn {
+    @extend %btn-primary;
+    margin-top: 1rem;
+    width: 100%;
+  }
+
+  &__back-btn {
+    @extend %row-nowrap;
+
+    align-items: center;
+    position: absolute;
+    top: 1.5rem;
+    left: 2rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+
+    &::before {
+      display: inline-block;
+      content: ' ';
+      height: 0.5rem;
+      width: 0.5rem;
+      border: solid $black;
+      border-width: 2px 2px 0 0;
+      transform: rotate(-135deg);
+      margin-right: 0.25rem;
+    }
+
+    &::after {
+      content: 'Back';
+    }
+  }
+
+  &__confirm {
+    &__from,
+    &__to,
+    &__time {
+      padding-bottom: 1.5rem;
+      // border-bottom: 1px solid rgba($black, 0.05);
+    }
+
+    &__label {
+      color: rgba($black, 0.4);
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    &__address {
+      font-family: 'Roboto Mono', monospace;
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    &__time-text {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    &__error-message {
+      color: $orange-red;
+      font-size: 0.75rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      line-height: 0.75rem;
+
+      &:empty {
+        display: none;
+      }
+    }
+
+    &__summary {
+      @extend %col-nowrap;
+
+      background-color: rgba($azure-blue, 0.1);
+      border-radius: 0.25rem;
+      padding: 1rem;
+      margin: 0.2rem 0 1.15rem 0;
+    }
+
+    &__summary-amount,
+    &__summary-fee,
+    &__summary-total {
+      @extend %row-nowrap;
+
+      padding: 0.25rem 0;
+      font-size: 0.85rem;
+    }
+
+    &__summary-label {
+      flex: 1 0 auto;
+    }
+
+    &__summary-total {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    &__actions {
+      @extend %row-nowrap;
+
+      width: 100%;
+    }
+
+    &__cancel-btn {
+      @extend %btn-secondary;
+
+      flex: 1 0 auto;
+      margin-right: 0.5rem;
+    }
+
+    &__cta-btn {
+      @extend %btn-primary;
+
+      flex: 1 0 auto;
+      margin-left: 0.5rem;
+    }
+
+    &__spinner {
+      height: 1rem;
+      width: 1rem;
+      border: 2px solid transparent;
+      border-top-color: $azure-blue;
+      border-radius: 50%;
+      animation: spin 750ms infinite cubic-bezier(0.55, 0.09, 0.68, 0.53);
+      margin: 0 auto;
+    }
+  }
+  &__sent {
+    &__confirm-icon {
+      background-image: url('../../assets/images/check-circle-blue.svg');
+      height: 2.5rem;
+      width: 2.5rem;
+      background-position: center;
+      background-size: cover;
+      margin: 1rem 0;
+    }
+    &__wrapper {
+      @extend %col-nowrap;
+      flex: 1 1 auto;
+      align-items: center;
+      vertical-align: center;
+    }
+
+    &__headline {
+      font-size: 2.5rem;
+      line-height: 2.5rem * 1.4;
+      font-weight: 600;
+      color: $azure-blue;
+      margin-bottom: 1rem;
+    }
+
+    &__description {
+      text-align: center;
+      @extend %h2;
+      font-weight: 400;
+      color: $manatee-gray;
+      margin-top: 1.5rem;
+    }
+
+    &__details {
+      @extend %h4;
+      margin: 4rem 0 0.5rem 0;
+      font-weight: 600;
+      color: $azure-blue;
+      &:hover {
+        cursor: pointer;
+      }
+    }
+  }
+
+  &__progress-bar {
+    @extend %row-nowrap;
+    margin-top: 2rem;
+    flex: 1 1 auto;
+    justify-content: center;
+    align-items: center;
+
+    &__dot {
+      background-color: $azure-blue;
+      border: 1px solid $azure-blue;
+      height: 0.3rem;
+      width: 0.3rem;
+      border-radius: 50%;
+      margin: 0.2rem;
+
+      &--empty {
+        background-color: $white;
+      }
+    }
+  }
+
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,26 @@
+@import "../../variables.scss";
+.logo {
+  @extend %row-nowrap;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  background-color: $grey;
+  border-radius: 50%;
+  margin: 0.5rem 0;
+
+  &__bob {
+    background-image: url('../../assets/images/bob-logo.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  &--clickable {
+    &:hover {
+      cursor: pointer;
+    }
+  }
+}

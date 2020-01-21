@@ -1,0 +1,19 @@
+@import '../../variables.scss';
+
+.search_tld {
+  @extend %col-nowrap;
+  justify-content: flex-end;
+  flex: 1 1 auto;
+  max-width: 30rem;
+  height: 40vh;
+  padding: 2rem;
+  margin: 0 auto;
+
+  &__headline {
+    font-size: 2rem;
+    line-height: 2rem * 1.4;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+}

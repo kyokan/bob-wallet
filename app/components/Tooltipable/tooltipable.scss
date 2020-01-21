@@ -1,0 +1,35 @@
+@import '../../variables';
+
+.tooltipable {
+  position: relative;
+  cursor: pointer;
+
+  &__tooltip {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    background-color: rgba($athens-gray, 1);
+    box-shadow: 0 2px 4px 2px rgba(0, 0, 0, 0.1);
+    border-radius: .25rem;
+    color: rgba($black, .95);
+    font-size: .75rem;
+    line-height: 1rem;
+    padding: 0;
+    opacity: 0;
+    height: 0;
+    font-weight: 500;
+    z-index: -99999;
+  }
+
+  &:hover {
+    .tooltipable__tooltip {
+      opacity: 1;
+      height: auto;
+      display: block;
+      transition: opacity 250ms;
+      transition-delay: 750ms;
+      padding: .75rem 1rem;
+      z-index: 99999;
+    }
+  }
+}

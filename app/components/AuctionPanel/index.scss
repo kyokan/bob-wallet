@@ -1,0 +1,47 @@
+@import "../../variables";
+
+.auction-panel {
+  @extend %col-nowrap;
+
+  flex: 0 0 auto;
+  box-shadow: 0 2px 4px 2px rgba($black, 0.1);
+  border-radius: 1rem;
+  width: 22rem;
+
+  &__title {
+    @extend %h2;
+
+    font-weight: 600;
+    padding: 1rem 1.5rem;
+    box-shadow: 0 1px 0 0 rgba($black, 0.1);
+  }
+
+  &__header {
+    @extend %col-nowrap;
+
+    &__content {
+      padding: .75rem 0;
+    }
+
+    &__row {
+      @extend %row-nowrap;
+
+      padding: .25rem 1.5rem;
+      font-size: .9rem;
+
+      &__label {
+
+      }
+
+      &__value {
+        flex: 1 0 auto;
+        text-align: right;
+      }
+    }
+  }
+
+  &__footer {
+    border-top: 1px solid rgba($black, .1);
+
+  }
+}

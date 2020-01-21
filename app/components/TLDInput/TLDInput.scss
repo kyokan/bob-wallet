@@ -1,0 +1,86 @@
+@import '../../variables.scss';
+
+.tld {
+  @extend %row-nowrap;
+  position: relative;
+  border: 1px solid rgba($black, 0.1);
+  border-radius: 1rem;
+  align-items: center;
+  padding: 0.4rem 0.5rem 0.4rem 0.75rem;
+  transition: 200ms ease-in-out;
+  margin: 0 0.5rem;
+
+  &--grey-theme {
+    background-color: $athens-gray;
+    border: none;
+    padding: 0.9rem 1rem 0.9rem 1.1rem;
+    border-radius: 3rem;
+    border: 1px solid rgba($athens-gray, 1);
+  }
+
+  &__input {
+    @extend %row-nowrap;
+    flex: 1 1 auto;
+    border: none;
+    outline: none;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1rem;
+    margin-right: 0.25rem;
+    min-width: 10rem;
+    background-color: transparent;
+    transition: 200ms ease-in-out;
+
+    &::-webkit-input-placeholder {
+      font-weight: 500;
+      color: rgba($black, 0.4);
+    }
+
+    &--error {
+      color: $orange-red;
+    }
+
+    &--grey-theme {
+      font-size: 1rem;
+    }
+  }
+
+  &:focus-within {
+    border: 1px solid rgba($azure-blue, 0.6);
+  }
+
+  &--error {
+    animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+
+    &:focus-within {
+      border-color: $orange-red;
+    }
+  }
+
+  &__icon {
+    background-image: url('../../assets/images/search.svg');
+    height: 1.25rem;
+    width: 1.25rem;
+    background-size: contain;
+    background-repeat: no-repeat;
+    transition: 200ms ease-in-out;
+
+    &--error {
+      margin: 0.25rem;
+      height: 0.75rem;
+      width: 0.75rem;
+      background-image: url('../../assets/images/x-red.svg');
+    }
+  }
+
+  &__error {
+    @extend %h5;
+    color: $orange-red;
+    padding: 0.5rem 1rem;
+    height: 0.7rem;
+  }
+
+}

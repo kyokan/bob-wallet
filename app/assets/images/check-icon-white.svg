@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="33px" height="33px" viewBox="0 0 33 33" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.5 (67469) - http://www.bohemiancoding.com/sketch -->
+    <title>check-circle-green</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="check-circle-green">
+            <circle id="Oval" fill-rule="nonzero" cx="16.5" cy="16.5" r="16.5"></circle>
+            <g id="check" transform="translate(9.000000, 11.000000)" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+                <polyline id="Path" points="16 0 5 11 0 6"></polyline>
+            </g>
+        </g>
+    </g>
+</svg>

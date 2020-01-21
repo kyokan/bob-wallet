@@ -1,0 +1,24 @@
+@import '../../variables';
+
+.account-index-modal__instructions {
+  margin-bottom: 27px;
+}
+
+.account-index-modal__path {
+  font-size: 20px;
+  font-weight: 500;
+  margin-bottom: 27px;
+}
+
+.account-index-modal__path-entry {
+  padding: 8px;
+  border-radius: 3px;
+  border: 1px solid $grey;
+  margin-left: 3px;
+  font-size: 16px;
+  width: 100px;
+}
+
+.account-index-modal__submit {
+  @extend %btn-primary;
+}

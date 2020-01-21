@@ -1,0 +1,97 @@
+@import '../../../variables';
+
+.terms {
+  @extend %col-nowrap;
+  height: 100%;
+
+  &__header {
+    @extend %row-nowrap;
+    padding: 1.125rem 1.625rem;
+    border-bottom: 1px solid $grey;
+    align-items: center;
+
+    &_text {
+      @extend %header_text;
+      margin-bottom: 1rem;
+    }
+  }
+
+  &__content {
+    @extend %col-nowrap;
+    padding: 1.25rem 1.875rem 1.875rem 1.875rem;
+    flex: 1 1 auto;
+    // height: 0;
+  }
+
+  &__button {
+    width: 100%;
+    height: 2.375rem;
+    margin-bottom: 0.5rem;
+    padding: 0 1rem;
+    color: #a2a2a6;
+    border-radius: 8px;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    line-height: 0.8rem;
+    cursor: pointer;
+    outline: 0;
+    border: 1px solid $grey;
+    box-shadow: 0 0 0 0.5px $grey;
+    transition: 200ms ease-in-out;
+
+    &--accepted {
+      border-color: $azure-blue;
+      box-shadow: 0 0 0 0.5px $azure-blue;
+      color: $black;
+    }
+  }
+}
+
+.terms_line_break {
+  margin-top: 10px;
+  margin-left: -25px;
+  margin-bottom: 20px;
+}
+
+.terms_subheader {
+  flex: 1 0 auto;
+  @extend %h4;
+  color: $manatee-gray;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.terms_cta {
+  width: 100%;
+  height: 50px;
+  font-size: 18px;
+  font-weight: 500;
+  margin-top: 10px;
+}
+
+.circle-check-container {
+  position: absolute;
+  margin-top: -22px;
+  margin-left: 122px;
+  width: 12.5px;
+  height: 12.5px;
+  border: 1px solid $azure-blue;
+  border-radius: 20px;
+  background-color: $azure-blue;
+}
+
+.circle-check-symbol {
+  position: absolute;
+  top: 3px;
+  left: 2px;
+  height: 0.2rem;
+  width: 0.4rem;
+  border-top: 2px solid $white;
+  border-right: 2px solid $white;
+  transform: rotate(135deg);
+}

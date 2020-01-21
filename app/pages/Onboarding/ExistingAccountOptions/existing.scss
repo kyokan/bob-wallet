@@ -1,0 +1,83 @@
+@import '../../../variables';
+
+.existing-options {
+  @extend %col-nowrap;
+  height: 100%;
+
+  &__header {
+    @extend %row-nowrap;
+    padding: 1.125rem 1.625rem;
+    border-bottom: 1px solid $grey;
+    align-items: center;
+
+    .arrow {
+      cursor: pointer;
+    }
+  }
+
+  &__content {
+    @extend %col-nowrap;
+    flex: 1 1 auto;
+    padding: 1.25rem 1.875rem;
+
+    &__title {
+      @extend %h2;
+      line-height: 1.5rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+
+    &__option {
+      @extend %col-nowrap;
+      align-items: center;
+      border-radius: 0.75rem;
+      border: 1px solid $grey;
+      box-shadow: 0 5px 10px 0 $grey;
+      margin: 0.5rem 0;
+      padding: 1.4rem 0;
+      cursor: pointer;
+      transition: border-color 250ms ease-in-out;
+
+      &__title {
+        @extend %h4;
+        color: $azure-blue;
+        font-weight: 600;
+      }
+
+      &__description {
+        @extend %h6;
+        color: rgba($azure-blue, 0.8);
+        text-transform: uppercase;
+      }
+
+      &:hover {
+        border-color: $azure-blue;
+      }
+
+      &--disabled {
+        opacity: .5;
+        cursor: default;
+
+        &:hover {
+          border-color: $grey;
+        }
+      }
+    }
+  }
+
+  &__footer {
+    @extend %col-nowrap;
+    align-items: center;
+    justify-content: center;
+    background-color: $athens-gray;
+    height: 4.25rem;
+
+    &__tip {
+      @extend %h6;
+      color: $manatee-gray;
+      padding: 1rem;
+      text-align: center;
+      font-weight: 500;
+    }
+  }
+}

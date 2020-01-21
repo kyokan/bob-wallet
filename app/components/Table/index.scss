@@ -1,0 +1,57 @@
+@import '../../variables.scss';
+
+.table {
+  @extend %col-nowrap;
+  width: 100%;
+
+  &__header {
+    @extend %row-nowrap;
+    height: 1.8rem;
+    align-items: center;
+    background-color: $athens-gray;
+    border: 1px solid darken($athens-gray, 5);
+    box-sizing: border-box;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+
+    &__item {
+      flex: 1 1 auto;
+      font-size: .6rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding-left: 1rem;
+    }
+
+    &__item:nth-of-type(1) {
+      padding-left: 1.5rem;
+    }
+
+    &__item:last-of-type {
+      padding-right: 1.5rem;
+    }
+  }
+
+  &__row {
+    @extend %row-nowrap;
+    height: 2.8rem;
+    align-items: center;
+    border: 1px solid darken($athens-gray, 5);
+    border-top: none;
+    box-sizing: border-box;
+
+    &__item {
+      flex: 1 1 auto;
+      font-size: .8rem;
+      font-weight: 400;
+      padding-left: 1rem;
+    }
+
+    &__item:nth-of-type(1) {
+      padding-left: 1.5rem;
+    }
+
+    &__item:last-of-type {
+      padding-right: 1.5rem;
+    }
+  }
+}

@@ -1,0 +1,77 @@
+@import '../../../variables';
+
+.funding-options {
+  @extend %col-nowrap;
+  padding: 1.2rem 1.4rem;
+  height: 100%;
+  box-sizing: border-box;
+
+  &__header {
+    @extend %row-nowrap;
+    margin-top: 1rem;
+    justify-content: center;
+    align-items: flex-end;
+
+    &__alice,
+    &__the-cat {
+      display: inline-block;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
+    &__alice {
+      background-image: url(../../../assets/images/alice.png);
+      height: 153px;
+      width: 91px;
+    }
+
+    &__the-cat {
+      background-image: url(../../../assets/images/bob-logo.svg);
+      background-repeat: no-repeat;
+      background-size: contain;
+      height: 4rem;
+      width: 4rem;
+      margin-bottom: 1.25rem;
+    }
+  }
+
+  &__content {
+    @extend %col-nowrap;
+    align-items: center;
+    flex: 1 1 auto;
+    margin-top: 0.75rem;
+
+    &__title {
+      @extend %h1;
+      text-align: center;
+      font-weight: 800;
+      font-style: italic;
+      padding: 0 3.5rem 0.5rem;
+      line-height: 1.5rem;
+    }
+
+    &__body-text {
+      @extend %h5;
+      text-align: center;
+      color: $manatee-gray;
+    }
+  }
+
+  &__footer {
+    @extend %col-nowrap;
+
+    &__primary-btn,
+    &__secondary-btn {
+      margin-bottom: 0.5rem;
+    }
+
+    &__primary-btn {
+      @extend %btn-primary;
+    }
+
+    &__secondary-btn {
+      @extend %btn-secondary;
+    }
+  }
+}
