@@ -30,7 +30,7 @@ export async function setOptIn(state) {
     platform: os.platform(),
     arch: os.arch(),
     appVersion: pkg.version,
-    isDev: electron.app.isPackaged || false,
+    isDev: !electron.app.isPackaged,
   });
 }
 
