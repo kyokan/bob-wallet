@@ -91,7 +91,7 @@ export default class GetCoins extends Component {
             This merkle tree is computed and its root is added to consensus rules of the Handshake blockchain, allowing
             the owner of a key to publish a signed merkle proof on-chain in order to redeem their airdrop.
           </p>
-          <div className="get-coins__link" onClick={() => shell.openExternal('https://github.com')}>
+          <div className="get-coins__link" onClick={() => shell.openExternal('https://github.com/handshake-org/hs-airdrop')}>
             See full details on GitHub
           </div>
           <h2>Privacy (GooSig)</h2>
@@ -111,7 +111,7 @@ export default class GetCoins extends Component {
             Boneh and Riad S. Wahby at the Stanford Center for Blockchain Research. It was originally ported from the
             python reference implementation to javascript, but has since been implemented in C as well.
           </p>
-          <div className="get-coins__link" onClick={() => shell.openExternal('https://github.com')}>
+          <div className="get-coins__link" onClick={() => shell.openExternal('https://github.com/handshake-org/hs-airdrop')}>
             See full details on GitHub
           </div>
         </div>
