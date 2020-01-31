@@ -1,9 +1,7 @@
 import { RECORD_TYPE } from '../ducks/names';
-import Resource from '../../node_modules/hsd/lib/dns/resource'
-import * as logger from './logClient';
 
-var ipv4Regex = /^(\d{1,3}\.){3,3}\d{1,3}$/;
-var ipv6Regex = /^(::)?(((\d{1,3}\.){3}(\d{1,3}){1})?([0-9a-f]){0,4}:{0,2}){1,8}(::)?$/i;
+const ipv4Regex = /^(\d{1,3}\.){3,3}\d{1,3}$/;
+const ipv6Regex = /^(::)?(((\d{1,3}\.){3}(\d{1,3}){1})?([0-9a-f]){0,4}:{0,2}){1,8}(::)?$/i;
 
 export const isV4Format = ip => ipv4Regex.test(ip);
 export const isV6Format = ip => ipv6Regex.test(ip) && !ipv4Regex.test(ip);
@@ -18,293 +16,173 @@ export const isHex = str => {
   return /^[A-Fa-f0-9]+$/.test(str);
 };
 
-export const validate = ({ type, value, ttl }) => {
+export const validate = (record) => {
   let errorMessage = '';
 
-  if (!RECORD_TYPE[type]) {
-    errorMessage = 'Invalid record type';
-  }
-
-  switch (type) {
-    case RECORD_TYPE.A:
-      if (!isV4Format(value)) {
-        errorMessage = 'Record type A must be IPv4';
-      }
-      break;
-    case RECORD_TYPE.AAAA:
-      if (!isV6Format(value) || isV4Format(value)) {
-        errorMessage = 'Record type A must be IPv6';
-      }
-      break;
-    case RECORD_TYPE.CNAME:
-      if (!value) {
-        errorMessage = 'Record type CNAME must not be empty';
-      }
-
-      if (isV6Format(value)) {
-        errorMessage = 'Record type CNAME cannot be INET';
-      }
-      break;
+  switch (record.type) {
     case RECORD_TYPE.NS:
-      if (!value) {
+      if (!record.ns) {
         errorMessage = 'Record type NS must not be empty';
-      }
-
-      if (isV6Format(value)) {
-        errorMessage = 'Record type NS cannot be INET';
       }
       break;
     case RECORD_TYPE.TXT:
-      if (!value) {
+      if (!record.txt[0]) {
         errorMessage = 'Record type TXT cannot be empty';
       }
       break;
     case RECORD_TYPE.DS:
-      try {
-        const json = JSON.parse(value);
+      if ((record.keyTag & 0xffff) !== record.keyTag) {
+        errorMessage = 'keyTag must be a natural number between 0 - 65535';
+        break;
+      }
 
-        if ((json.keyTag & 0xffff) !== json.keyTag) {
-          errorMessage = 'keyTag must be a natural number between 0 - 65535';
-        }
+      if ((record.algorithm & 0xff) !== record.algorithm) {
+        errorMessage = 'algorithm must be a natural number between 0 - 255';
+        break;
+      }
 
-        if ((json.algorithm & 0xff) !== json.algorithm) {
-          errorMessage = 'algorithm must be a natural number between 0 - 255';
-        }
+      if ((record.digestType & 0xff) !== record.digestType) {
+        errorMessage = 'digestType must be a natural number between 0 - 255';
+        break;
+      }
 
-        if ((json.digestType & 0xff) !== json.digestType) {
-          errorMessage = 'digestType must be a natural number between 0 - 255';
-        }
+      if (record.digest.length >>> 1 > 255) {
+        errorMessage = 'digest is too long';
+        break;
+      }
 
-        if (typeof json.digest !== 'string') {
-          errorMessage = 'digest must be a hex string';
-        }
-
-        if (json.digest.length >>> 1 > 255) {
-          errorMessage = 'digest is too long';
-        }
-
-      } catch (e) {
-        errorMessage = 'Expect json string with following keys: "keyTag", "algorithm", "digestType", "digest"';
+      if (!isHex(record.digest)) {
+        errorMessage = 'digest must be a hex string';
       }
       break;
-    case RECORD_TYPE.MX:
-      if (typeof value !== 'string') {
-        errorMessage = 'Expect string in the format of "[Priority] [Target]" (e.g. 10 mail.example.com.)';
+    case RECORD_TYPE.GLUE4:
+      if (typeof record.ns !== 'string') {
+        errorMessage = 'ns must be a string';
+        break;
       }
 
-      const [ priority, target ] = value.split(' ');
-
-      if (!priority || !target) {
-        errorMessage = 'Expect string in the format of "[Priority] [Target]" (e.g. 10 mail.example.com.)';
-      } else if ((Number(priority) & 0xff) !== Number(priority)) {
-        errorMessage = 'priority must be a natural number between 0 - 255';
-      } else if (target.charCodeAt(target.length - 1) !== 0x2e) {
-        errorMessage = 'target should have trailing period';
+      if (record.ns === '') {
+        errorMessage = 'must define an ns';
+        break;
       }
 
-      break;
-    case RECORD_TYPE.OPENPGPKEY:
-      try {
-        const json = JSON.parse(value);
-
-        if (!isHex(json.hash)) {
-          errorMessage = 'hash is not a valid hex string';
-        }
-
-        if (!isHex(json.publicKey)) {
-          errorMessage = 'publicKey is not a valid hex string';
-        }
-
-      } catch (e) {
-        errorMessage = 'Expect json string with following keys: "hash", "publicKey"';
+      if (!isV4Format(record.address)) {
+        errorMessage = 'address must be a V4 IP';
       }
       break;
-    case RECORD_TYPE.SRV:
-      try {
-        const json = JSON.parse(value);
-
-        if (typeof json.protocol !== 'string') {
-          errorMessage = 'protocol should not be empty';
-        }
-
-        if (typeof json.service !== 'string') {
-          errorMessage = 'service should not be empty';
-        }
-
-        if (json.priority != null) {
-          if ((json.priority & 0xff) !== json.priority) {
-            errorMessage = 'priority must be a natural number between 0 - 255';
-          }
-        }
-
-        if (json.weight != null) {
-          if ((json.weight & 0xff) !== json.weight) {
-            errorMessage = 'weight must be a natural number between 0 - 255';
-          }
-        }
-
-        if (json.port != null) {
-          if ((json.port & 0xffff) !== json.port) {
-            errorMessage = 'port must be a natural number between 0 - 65535';
-          }
-        }
-      } catch (e) {
-        errorMessage = 'Expect json string with following keys: "protocol", "service", "weight", "target", "port", "priority"';
+    case RECORD_TYPE.GLUE6:
+      if (typeof record.ns !== 'string') {
+        errorMessage = 'ns must be a string';
+        break;
       }
+
+      if (!record.ns) {
+        errorMessage = 'must define an ns';
+        break;
+      }
+
+      if (!isV6Format(record.address)) {
+        errorMessage = 'address must be a V6 IP';
+      }
+      break;
+    case RECORD_TYPE.SYNTH4:
+      if (!isV4Format(record.address)) {
+        errorMessage = 'address must be a v4 IP';
+      }
+      break;
+    case RECORD_TYPE.SYNTH6:
+      if (!isV6Format(record.address)) {
+        errorMessage = 'address must be a V6 IP';
+      }
+      break;
     default:
       break;
-  }
-
-  if (isNaN(Number(ttl))) {
-    errorMessage = 'TTL must be number';
   }
 
   return errorMessage;
 };
 
 const serializers = {
-  [RECORD_TYPE.A]: json => maybeArray(json.hosts)
-    .filter(isV4Format)
-    .map(ip => makeRecord(RECORD_TYPE.A, ip)),
-  [RECORD_TYPE.AAAA]: json => maybeArray(json.hosts)
-    .filter(isV6Format)
-    .map(ip => makeRecord(RECORD_TYPE.AAAA, ip)),
-  [RECORD_TYPE.TXT]: json => maybeArray(json.text)
-    .map(text => makeRecord(RECORD_TYPE.TXT, text)),
-  [RECORD_TYPE.NS]: json => maybeArray(json.ns)
-    .map(ns => makeRecord(RECORD_TYPE.NS, ns)),
-  [RECORD_TYPE.DS]: json => maybeArray(json.ds)
-    .map(ds => makeRecord(RECORD_TYPE.DS, JSON.stringify(ds))),
-  [RECORD_TYPE.MX]: json => maybeArray(json.service)
-    .filter(({ protocol, service }) => protocol === 'tcp' && service === 'smtp')
-    .map(({ priority, target }) => makeRecord(RECORD_TYPE.MX, `${priority} ${target}`)),
-  [RECORD_TYPE.CNAME]: json => json.canonical ? [makeRecord(RECORD_TYPE.CNAME, json.canonical)] : [],
-  [RECORD_TYPE.OPENPGPKEY]: json => maybeArray(json.pgp)
-    .map(pgp => makeRecord(RECORD_TYPE.OPENPGPKEY, JSON.stringify(pgp))),
-  [RECORD_TYPE.SRV]: json => maybeArray(json.service)
-    .filter(({ protocol, service }) => protocol !== 'tcp' || service !== 'smtp')
-    .map(srv => makeRecord(RECORD_TYPE.SRV, JSON.stringify(srv))),
+  [RECORD_TYPE.TXT]: record => record.txt[0],
+  [RECORD_TYPE.NS]: record => record.ns,
+  [RECORD_TYPE.DS]: record => `${record.keyTag} ${record.algorithm} ${record.digestType} ${record.digest}`,
+  [RECORD_TYPE.GLUE4]: record => `${record.ns} ${record.address}`,
+  [RECORD_TYPE.GLUE6]: record => `${record.ns} ${record.address}`,
+  [RECORD_TYPE.SYNTH4]: record => record.address,
+  [RECORD_TYPE.SYNTH6]: record => record.address,
 };
 
 const deserializers = {
-  [RECORD_TYPE.A]: (acc, value) => {
-    acc.hosts = maybeArray(acc.hosts);
-    acc.hosts.push(value);
-  },
-  [RECORD_TYPE.AAAA]: (acc, value) => {
-    acc.hosts = maybeArray(acc.hosts);
-    acc.hosts.push(value);
-  },
-  [RECORD_TYPE.TXT]: (acc, value) => {
-    acc.text = maybeArray(acc.text);
-    acc.text.push(value);
-  },
-  [RECORD_TYPE.NS]: (acc, value) => {
-    acc.ns = maybeArray(acc.ns);
-    acc.ns.push(value);
-  },
-  [RECORD_TYPE.DS]: (acc, value) => {
-    try {
-      const { keyTag, digest, digestType, algorithm } = JSON.parse(value);
-      acc.ds = maybeArray(acc.ds);
-      acc.ds.push({ keyTag, digest, digestType, algorithm });
-    } catch (e) {
-      logger.error(`Error received from record-helpers - deserializers.DS]\n\n${e.message}\n${e.stack}\n`);
-      console.error(e);
+  [RECORD_TYPE.TXT]: (value) => ({
+    type: RECORD_TYPE.TXT,
+    txt: [value],
+  }),
+  [RECORD_TYPE.NS]: (value) => ({
+    type: RECORD_TYPE.NS,
+    ns: value,
+  }),
+  [RECORD_TYPE.DS]: (value) => {
+    const parts = value.trim().split(' ');
+    if (parts.length !== 4) {
+      throw new Error('DS records must be formatted as keyTag algorithm digestType digest');
     }
+
+    return {
+      type: RECORD_TYPE.DS,
+      keyTag: Number(parts[0]),
+      algorithm: Number(parts[1]),
+      digestType: Number(parts[2]),
+      digest: parts[3],
+    };
   },
-  [RECORD_TYPE.CNAME]: (acc, value) => {
-    acc.canonical = value
-  },
-  [RECORD_TYPE.MX]: (acc, value) => {
-    const [ priority, target ] = value.split(' ');
-    acc.service = maybeArray(acc.service);
-    acc.service.push({
-      priority: Number(priority),
-      target,
-      protocol: 'tcp',
-      service: 'smtp',
-    })
-  },
-  [RECORD_TYPE.OPENPGPKEY]: (acc, value) => {
-    try {
-      const { hash, publicKey } = JSON.parse(value);
-      acc.pgp = maybeArray(acc.pgp);
-      acc.pgp.push({ hash, publicKey });
-    } catch (e) {
-      console.error(e);
+  [RECORD_TYPE.GLUE4]: (value) => {
+    const parts = value.trim().split(' ');
+    if (parts.length !== 2) {
+      throw new Error('GLUE4 records must be formatted as ns address');
     }
+
+    return {
+      type: RECORD_TYPE.GLUE4,
+      ns: parts[0],
+      address: parts[1],
+    };
   },
-  [RECORD_TYPE.SRV]: (acc, value) => {
-    try {
-      const {
-        protocol,
-        service,
-        weight,
-        target,
-        port,
-        priority,
-      } = JSON.parse(value);
-      acc.service = maybeArray(acc.service);
-      acc.service.push({
-        protocol,
-        service,
-        weight,
-        target,
-        port,
-        priority,
-      });
-    } catch (e) {
-      logger.error(`Error received from record-helpers - deserializers.SRV]\n\n${e.message}\n${e.stack}\n`);
-      console.error(e);
+  [RECORD_TYPE.GLUE6]: (value) => {
+    const parts = value.trim().split(' ');
+    if (parts.length !== 2) {
+      throw new Error('GLUE6 records must be formatted as ns address');
     }
-  }
+
+    return {
+      type: RECORD_TYPE.GLUE4,
+      ns: parts[0],
+      address: parts[1],
+    };
+  },
+  [RECORD_TYPE.SYNTH4]: (value) => ({
+    type: RECORD_TYPE.SYNTH4,
+    address: value,
+  }),
+  [RECORD_TYPE.SYNTH6]: (value) => ({
+    type: RECORD_TYPE.SYNTH6,
+    address: value,
+  }),
 };
 
-export const serializeResource = resource => {
-  if (!resource || !resource.getJSON) {
-    return [];
+export function deserializeRecord({type, value}) {
+  const deserializer = deserializers[type];
+  if (!deserializer) {
+    throw new Error('Invalid record type.');
   }
 
-  let ret = [];
-  const json = resource.getJSON();
-
-  Object.entries(serializers)
-    .forEach(([ type, serialize ]) => {
-      ret = ret.concat(serialize(json))
-    });
-
-  return ret;
-};
-
-export const deserializeResource = (records, ttl) => {
-  if (!Array.isArray(records)) {
-    console.error('Expect args[0] to be an array of records');
-    return;
-  }
-
-  const json = {};
-
-  records.forEach(({ type, value }) => {
-    const deserialize = maybeFunc(deserializers[type]);
-    deserialize(json, value);
-  });
-
-  if (ttl != null && ttl) {
-    json.ttl = Number(ttl);
-  }
-
-  return Resource.fromJSON(json);
-};
-
-function maybeArray(val) {
-  return Array.isArray(val) ? val : [];
+  return deserializer(value);
 }
 
-function maybeFunc(fn) {
-  return typeof fn === 'function' ? fn : function() {}
-}
+export function serializeRecord(record) {
+  const serializer = serializers[record.type];
+  if (!serializer) {
+    throw new Error('Invalid record type.');
+  }
 
-function makeRecord(type, value) {
-  return { type, value };
+  return serializer(record);
 }

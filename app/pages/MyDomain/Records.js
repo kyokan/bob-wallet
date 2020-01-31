@@ -4,28 +4,34 @@ import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import connect from 'react-redux/es/connect/connect';
 import cn from 'classnames';
-import Resource from '../../../node_modules/hsd/lib/dns/resource';
+import { Resource } from 'hsd/lib/dns/resource';
 import CreateRecord from './CreateRecord';
 import EditableRecord from './EditableRecord';
 import * as nameActions from '../../ducks/names';
-import { deepEqual } from '../../utils/helpers';
+import deepEqual from 'deep-equal';
 import * as logger from '../../utils/logClient';
 import { showSuccess } from '../../ducks/notifications';
-import { deserializeResource, serializeResource } from '../../utils/recordHelpers';
 import { clientStub as aClientStub } from '../../background/analytics/client';
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
-const {RECORD_TYPE} = nameActions;
+const DEFAULT_RESOURCE = {
+  __isDefault__: true,
+  records: [],
+};
 
 class Records extends Component {
   static propTypes = {
     name: PropTypes.string.isRequired,
     resource: PropTypes.object,
-    pendingData: PropTypes.string,
+    pendingData: PropTypes.object,
     showSuccess: PropTypes.func.isRequired,
     sendUpdate: PropTypes.func.isRequired,
   };
+
+  shouldComponentUpdate(nextProps, nextState, nextContext) {
+    return !deepEqual(this.props, nextProps) || !deepEqual(this.state, nextState);
+  }
 
   static renderHeaders() {
     return (
@@ -34,17 +40,30 @@ class Records extends Component {
           <div>Type</div>
         </HeaderItem>
         <HeaderItem>Value</HeaderItem>
-        <HeaderItem>TTL</HeaderItem>
         <HeaderItem />
       </HeaderRow>
     );
   }
 
-  state = {
-    isUpdating: false,
-    errorMessage: '',
-    updatedResource: null,
-  };
+  constructor(props) {
+    super(props);
+    this.state = {
+      isUpdating: false,
+      errorMessage: '',
+      updatedResource: DEFAULT_RESOURCE,
+    };
+  }
+
+  static getDerivedStateFromProps(props, state) {
+    if (state.updatedResource.__isDefault__ && props.resource) {
+      return {
+        ...state,
+        updatedResource: props.resource,
+      };
+    }
+
+    return state;
+  }
 
   hasChanged = () => {
     const oldResource = this.props.resource;
@@ -62,17 +81,15 @@ class Records extends Component {
       return false;
     }
 
-    return !deepEqual(oldResource.getJSON(), updatedResource.getJSON());
+    return !deepEqual(oldResource, updatedResource);
   };
 
   sendUpdate = async () => {
     this.setState({isUpdating: true});
     try {
       const {updatedResource} = this.state;
-      const json = updatedResource.toJSON();
-      await this.props.sendUpdate(this.props.name, json);
+      await this.props.sendUpdate(this.props.name, updatedResource);
       this.setState({isUpdating: false});
-      // console.log({ json })
       this.props.showSuccess('Your update request is sent successfully! It should be confirmed in 15 minutes.');
       analytics.track('updated domain');
     } catch (e) {
@@ -84,119 +101,38 @@ class Records extends Component {
     }
   };
 
-  onCreate = async ({type, value, ttl}) => {
-    const {resource} = this.props;
-    const {updatedResource} = this.state;
-    let records = serializeResource(updatedResource || resource);
-    let newTTL;
-
-    if (resource) {
-      newTTL = resource.ttl;
-    }
-
-    if (updatedResource) {
-      newTTL = updatedResource.ttl;
-    }
-
-    if (ttl) {
-      newTTL = ttl;
-    }
-
-    if (type === RECORD_TYPE.CNAME && hasCNAME(records)) {
-      records = records
-        .map(record => (
-          record.type === type
-            ? {type, value}
-            : record
-        ));
-    } else {
-      records.push({type, value});
-    }
-
+  onCreate = async (record) => {
+    const updatedResource = JSON.parse(JSON.stringify(this.state.updatedResource));
+    updatedResource.records.push(record);
     this.setState({
-      updatedResource: deserializeResource(records, newTTL),
+      updatedResource,
     });
   };
 
   onRemove = i => {
-    const {resource} = this.props;
-    const {updatedResource} = this.state;
-
-    let ttl;
-
-    if (resource) {
-      ttl = resource.ttl;
-    }
-
-    if (updatedResource) {
-      ttl = updatedResource.ttl;
-    }
-
-    let records = serializeResource(updatedResource || resource);
-
-    records = records.filter((n, j) => i !== j);
-
+    const updatedResource = JSON.parse(JSON.stringify(this.state.updatedResource));
+    updatedResource.records.splice(i, 1);
     this.setState({
-      updatedResource: deserializeResource(records, ttl),
+      updatedResource,
     });
   };
 
-  makeOnEdit = i => async ({type, value, ttl}) => {
-    const {resource} = this.props;
-    const {updatedResource} = this.state;
-    let records = serializeResource(updatedResource || resource);
-    let newTTL;
-
-    if (resource) {
-      newTTL = resource.ttl;
-    }
-
-    if (updatedResource) {
-      newTTL = updatedResource.ttl;
-    }
-
-    if (ttl) {
-      newTTL = ttl;
-    }
-
-    if (type === RECORD_TYPE.CNAME && hasCNAME(records)) {
-      records = records.filter((n, j) => i !== j);
-      records.push({type, value});
-    } else {
-      records[i] = {type, value};
-    }
-
+  makeOnEdit = i => async (record) => {
+    const updatedResource = JSON.parse(JSON.stringify(this.state.updatedResource));
+    updatedResource.records[i] = record;
     this.setState({
-      updatedResource: deserializeResource(records, newTTL),
+      updatedResource,
     });
   };
 
   renderRows() {
-    const {name, resource, pendingData} = this.props;
-    const {updatedResource} = this.state;
-    const records = serializeResource(pendingData || updatedResource || resource);
-
-    let ttl;
-
-    if (resource) {
-      ttl = resource.ttl;
-    }
-
-    if (updatedResource) {
-      ttl = updatedResource.ttl;
-    }
-
-    if (pendingData) {
-      ttl = pendingData.ttl;
-    }
-
-    return records.map(({type, value}, i) => {
+    const resource = this.state.updatedResource;
+    return resource.records.map((record, i) => {
       return (
         <EditableRecord
-          key={`${name}-${type}-${value}-${i}`}
-          name={name}
-          record={{type, value}}
-          ttl={ttl}
+          key={`${this.props.name}-${record.type}-${i}`}
+          name={this.props.name}
+          record={record}
           onEdit={this.makeOnEdit(i)}
           onRemove={() => this.onRemove(i)}
         />
@@ -223,7 +159,7 @@ class Records extends Component {
         </button>
         <button
           className="records-table__action-row__dismiss-link"
-          onClick={() => this.setState({updatedResource: null})}
+          onClick={() => this.setState({updatedResource: DEFAULT_RESOURCE})}
           disabled={!this.hasChanged() || this.state.isUpdating}
         >
           Discard Changes
@@ -290,12 +226,12 @@ function getDecodedResource(domain) {
     return;
   }
 
-  return Resource.decode(new Buffer(data, 'hex'));
+  return Resource.decode(new Buffer(data, 'hex')).toJSON();
 }
 
 function getPendingData(domain) {
   if (!domain) {
-    return '';
+    return null;
   }
 
   if (domain.pendingOperation === 'UPDATE' || domain.pendingOperation === 'REGISTER') {
@@ -306,9 +242,6 @@ function getPendingData(domain) {
     });
   }
 
-  return '';
+  return null;
 }
 
-function hasCNAME(records) {
-  return !!records.filter(({type}) => type === RECORD_TYPE.CNAME).length;
-}

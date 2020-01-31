@@ -1,85 +1,75 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { TableItem, TableRow } from '../../components/Table';
-import { RECORD_TYPE, DROPDOWN_TYPES } from '../../ducks/names';
-import { validate } from '../../utils/recordHelpers';
+import { DROPDOWN_TYPES } from '../../ducks/names';
+import { deserializeRecord, serializeRecord, validate } from '../../utils/recordHelpers';
 import Dropdown from '../../components/Dropdown';
 
 class EditableRecord extends Component {
   static propTypes = {
-    record: PropTypes.shape({
-      type: PropTypes.string,
-      value: PropTypes.string,
-    }).isRequired,
-    ttl: PropTypes.number,
+    record: PropTypes.object.isRequired,
     onEdit: PropTypes.func.isRequired,
     onRemove: PropTypes.func.isRequired,
   };
 
   constructor(props) {
     super(props);
-    const { ttl } = props;
-    const { type, value } = props.record || {};
+    const {type} = props.record || {};
     const currentTypeIndex = DROPDOWN_TYPES.findIndex(d => d.label === type);
     this.state = {
       isEditing: false,
-      value,
-      ttl,
+      value: serializeRecord(props.record),
       errorMessage: '',
       currentTypeIndex: Math.max(currentTypeIndex, 0),
     };
   }
 
   componentWillReceiveProps(props) {
-    const { ttl } = props;
-    const { type, value } = props.record || {};
-    const currentTypeIndex = DROPDOWN_TYPES.findIndex(d => d.label === type);
-    this.state = {
-      isEditing: false,
-      value,
-      ttl,
-      errorMessage: '',
-      currentTypeIndex: Math.max(currentTypeIndex, 0),
-    };
-  }
-
-  isValid() {
-    const { value, ttl, currentTypeIndex } = this.state;
-    const {label: type} = DROPDOWN_TYPES[currentTypeIndex];
-    return validate({ type, value, ttl });
-  }
-
-  cancel = () => {
-    const { ttl } = this.props;
-    const { type, value } = this.props.record || {};
+    const {type} = props.record || {};
     const currentTypeIndex = DROPDOWN_TYPES.findIndex(d => d.label === type);
     this.setState({
       isEditing: false,
-      value,
-      ttl,
+      value: serializeRecord(props.record),
+      errorMessage: '',
+      currentTypeIndex: Math.max(currentTypeIndex, 0),
+    });
+  }
+
+  cancel = () => {
+    const {type} = this.props.record || {};
+    const currentTypeIndex = DROPDOWN_TYPES.findIndex(d => d.label === type);
+    this.setState({
+      isEditing: false,
+      value: serializeRecord(this.props.record),
       errorMessage: '',
       currentTypeIndex: Math.max(currentTypeIndex, 0),
     });
   };
 
   editRecord = () => {
-    const errorMessage = this.isValid();
+    const {value, currentTypeIndex} = this.state;
+    const {label: type} = DROPDOWN_TYPES[currentTypeIndex];
 
-    if (errorMessage) {
-      this.setState({ errorMessage });
+    let record;
+    try {
+      record = deserializeRecord({type, value});
+    } catch (e) {
+      this.setState({errorMessage: e.message});
       return;
     }
 
-    const { value, currentTypeIndex, ttl } = this.state;
-    const {label: type} = DROPDOWN_TYPES[currentTypeIndex];
-    this.props.onEdit({ type, value, ttl })
-      .then(() => this.setState({
-        isEditing: false,
-        errorMessage: '',
-      }))
-      .catch(e => this.setState({
-        errorMessage: e.message,
-      }));
+    const errorMessage = validate(record);
+    if (errorMessage) {
+      this.setState({errorMessage});
+      return;
+    }
+
+    this.props.onEdit(record).then(() => this.setState({
+      isEditing: false,
+      errorMessage: '',
+    })).catch(e => this.setState({
+      errorMessage: e.message,
+    }));
   };
 
   render() {
@@ -93,11 +83,11 @@ class EditableRecord extends Component {
       <TableItem className="records-table__create-record__record-type-dropdown">
         <Dropdown
           currentIndex={this.state.currentTypeIndex}
-          onChange={i => this.setState({ currentTypeIndex: i, errorMessage: '' })}
+          onChange={i => this.setState({currentTypeIndex: i, errorMessage: ''})}
           items={DROPDOWN_TYPES}
         />
       </TableItem>
-    )
+    );
   }
 
   renderInput(name) {
@@ -122,10 +112,8 @@ class EditableRecord extends Component {
           {this.state.errorMessage}
         </div>
         <div className="records-table__create-record__inputs">
-          {/*{this.renderInput('type')}*/}
           {this.renderTypeDropdown()}
           {this.renderInput('value')}
-          {this.renderInput('ttl')}
           <TableItem>
             <div className="records-table__actions">
               <button
@@ -145,19 +133,15 @@ class EditableRecord extends Component {
   }
 
   renderRow() {
-    const { record, ttl } = this.props;
-    const { type, value } = record || {};
-
     return (
       <TableRow>
-        <TableItem>{type}</TableItem>
-        <TableItem>{value}</TableItem>
-        <TableItem>{ttl}</TableItem>
+        <TableItem>{DROPDOWN_TYPES[this.state.currentTypeIndex].label}</TableItem>
+        <TableItem>{this.state.value}</TableItem>
         <TableItem>
           <div className="records-table__actions">
             <div
               className="records-table__actions__edit"
-              onClick={() => this.setState({ isEditing: true })}
+              onClick={() => this.setState({isEditing: true})}
             />
             <div
               className="records-table__actions__remove"

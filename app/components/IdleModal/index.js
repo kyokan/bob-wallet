@@ -5,7 +5,7 @@ import Modal from '../Modal';
 import * as walletAction from '../../ducks/walletActions';
 import './idle-modal.scss';
 
-const MAX_IDLE = process.env.NODE_ENV === 'production' ? 5 : 1;
+const MAX_IDLE = 5;
 
 class IdleModal extends Component {
   static propTypes = {
