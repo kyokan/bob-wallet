@@ -6,15 +6,17 @@ import { LOCK_WALLET, SET_PENDING_TRANSACTIONS } from './walletReducer';
 import { getInitializationState } from '../db/system';
 import isEqual from 'lodash.isequal';
 import { SET_NODE_INFO } from './nodeReducer';
+import { getNameInfo } from './names';
 
 export function createBackgroundMonitor() {
   let isLocked;
   let timeout;
   let info;
   let fees;
+  let prevNamesWithPendingUpdates = new Set();
 
   const doPoll = async () => {
-    const state = store.getState();
+    let state = store.getState();
     const isInitialized = await getInitializationState(state.node.network);
     if (!isInitialized) {
       return;
@@ -60,6 +62,21 @@ export function createBackgroundMonitor() {
       type: SET_PENDING_TRANSACTIONS,
       payload: newPendingTxns,
     });
+
+    // once a pending name operation is no longer pending,
+    // refresh that name's state.
+    state = store.getState();
+    const currentNamesWithPendingUpdates = new Set();
+    Object.keys(state.names).filter((k) => {
+      const domain = state.names[k];
+      return domain.pendingOperation === 'UPDATE' || domain.pendingOperation === 'REGISTER';
+    }).forEach((name) => currentNamesWithPendingUpdates.add(name));
+
+    const noLongerPending = difference(prevNamesWithPendingUpdates, currentNamesWithPendingUpdates);
+    for (const name of noLongerPending) {
+      await store.dispatch(getNameInfo(name));
+    }
+    prevNamesWithPendingUpdates = currentNamesWithPendingUpdates;
   };
 
   const poll = async () => {
@@ -84,6 +101,14 @@ export function createBackgroundMonitor() {
       clearTimeout(poll);
     },
   };
+}
+
+function difference(setA, setB) {
+  let d = new Set(setA);
+  for (let elem of setB) {
+    d.delete(elem);
+  }
+  return d;
 }
 
 export const monitor = createBackgroundMonitor();
