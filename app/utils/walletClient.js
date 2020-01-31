@@ -2,7 +2,6 @@ import { WalletClient } from 'hs-client';
 import { clientStub as nodeClientStub } from '../background/node/client';
 import { clientStub as ledgerClientStub } from '../background/ledger/client';
 import { displayBalance, toBaseUnits } from './balances';
-import { delUnlockReceiveAddress } from '../db/system';
 import nodeClient from './nodeClient';
 import { awaitLedger } from '../ducks/ledgerManager';
 
@@ -180,7 +179,6 @@ const client = {
   },
 
   reset: async () => {
-    await delUnlockReceiveAddress(currentNetwork);
     return node.reset();
   },
 

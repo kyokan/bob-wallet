@@ -2,18 +2,6 @@ import { clientStub } from '../background/db/client';
 import { NETWORKS, VALID_NETWORKS } from '../constants/networks';
 const dbClient = clientStub(() => require('electron').ipcRenderer);
 
-export async function getUnlockReceiveAddress(network) {
-  return dbClient.get(unlockReceiveAddressKey(network));
-}
-
-export async function setUnlockReceiveAddress(network, addr) {
-  return dbClient.put(unlockReceiveAddressKey(network), addr);
-}
-
-export async function delUnlockReceiveAddress(network) {
-  return dbClient.del(unlockReceiveAddressKey(network));
-}
-
 export async function getNetwork() {
   return (await dbClient.get(networkKey())) || NETWORKS.SIMNET;
 }
@@ -32,10 +20,6 @@ export async function getInitializationState(network) {
 
 export async function setInitializationState(network, state) {
   return dbClient.put(initializationStateKey(network), state ? '1' : '0');
-}
-
-function unlockReceiveAddressKey(network) {
-  return `unlock-receive-address:${network}`;
 }
 
 function initializationStateKey(network) {
