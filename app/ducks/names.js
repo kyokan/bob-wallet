@@ -5,27 +5,23 @@ import { fetchPendingTransactions, SET_PENDING_TRANSACTIONS } from './walletActi
 import { SET_NAME } from './namesReducer';
 
 export const RECORD_TYPE = {
-  A: 'A',
-  CNAME: 'CNAME',
-  AAAA: 'AAAA',
-  MX: 'MX',
-  TXT: 'TXT',
   DS: 'DS',
-  OPENPGPKEY: 'OPENPGPKEY',
   NS: 'NS',
-  SRV: 'SRV',
+  GLUE4: 'GLUE4',
+  GLUE6: 'GLUE6',
+  SYNTH4: 'SYNTH4',
+  SYNTH6: 'SYNTH6',
+  TXT: 'TXT',
 };
 
 export const DROPDOWN_TYPES = [
-  {label: RECORD_TYPE.A},
-  {label: RECORD_TYPE.AAAA},
-  {label: RECORD_TYPE.CNAME},
   {label: RECORD_TYPE.DS},
-  {label: RECORD_TYPE.MX},
   {label: RECORD_TYPE.NS},
+  {label: RECORD_TYPE.GLUE4},
+  {label: RECORD_TYPE.GLUE6},
+  {label: RECORD_TYPE.SYNTH4},
+  {label: RECORD_TYPE.SYNTH6},
   {label: RECORD_TYPE.TXT},
-  {label: RECORD_TYPE.OPENPGPKEY},
-  {label: RECORD_TYPE.SRV},
 ];
 
 // Other Constants

@@ -9,7 +9,6 @@ import { SET_NODE_INFO } from './nodeReducer';
 
 export function createBackgroundMonitor() {
   let isLocked;
-  let pendingTxns = new Set();
   let timeout;
   let info;
   let fees;
@@ -57,20 +56,10 @@ export function createBackgroundMonitor() {
     }
 
     const newPendingTxns = await walletClient.getPendingTransactions();
-    let hasNewPending = false;
-    for (const tx of newPendingTxns) {
-      if (!pendingTxns.has(tx.hash)) {
-        pendingTxns.add(tx.hash);
-        hasNewPending = true;
-      }
-    }
-
-    if (hasNewPending) {
-      store.dispatch({
-        type: SET_PENDING_TRANSACTIONS,
-        payload: newPendingTxns,
-      });
-    }
+    store.dispatch({
+      type: SET_PENDING_TRANSACTIONS,
+      payload: newPendingTxns,
+    });
   };
 
   const poll = async () => {

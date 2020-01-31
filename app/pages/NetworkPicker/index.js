@@ -27,16 +27,21 @@ const networks = [
   },
   {
     label: 'Regtest',
-    disabled: true,
   },
 ];
 
 const networksIndices = {
+  [NETWORKS.MAINNET]: 0,
+  [NETWORKS.TESTNET]: 1,
   [NETWORKS.SIMNET]: 2,
+  [NETWORKS.REGTEST]: 3,
 };
 
 const indicesNetworks = [
+  NETWORKS.MAINNET,
+  NETWORKS.TESTNET,
   NETWORKS.SIMNET,
+  NETWORKS.REGTEST,
 ];
 
 @withRouter
