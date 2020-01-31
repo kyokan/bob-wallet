@@ -4,8 +4,6 @@ import { SET_PENDING_TRANSACTIONS } from './walletActions';
 const FETCH_MY_NAMES_START = 'app/myDomains/fetchMyNamesStart';
 const FETCH_MY_NAMES_STOP = 'app/myDomains/fetchMyNamesStop';
 
-const EMPTY_OWNER_HASH = '0000000000000000000000000000000000000000000000000000000000000000';
-
 const initialState = {
   names: [],
   isFetching: false,
