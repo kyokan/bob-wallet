@@ -2,6 +2,7 @@ import mixpanel from 'mixpanel';
 import uuid from 'uuid';
 import { del, get, put } from '../db/service';
 import * as os from 'os';
+import isDev from '../../utils/isDev';
 
 const pkg = require('../../../package.json');
 const electron = require('electron');
@@ -30,7 +31,7 @@ export async function setOptIn(state) {
     platform: os.platform(),
     arch: os.arch(),
     appVersion: pkg.version,
-    isDev: !electron.app.isPackaged,
+    isDev: isDev(),
   });
 }
 

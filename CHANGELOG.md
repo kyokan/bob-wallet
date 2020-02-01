@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `hsd` updated to latest pre-mainnet version
 - Record management updated to reflect latest `hsd` changes
     - All record types except `NS`, `DS`, `GLUE4/6`, `SYNTH4/6`, and `TXT` have been removed
+- Removed some unused internal methods
 
 ### Fixed
 - Fix the GitHub link on the Add Funds screen
