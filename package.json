@@ -2,7 +2,7 @@
   "name": "bob-wallet",
   "productName": "Bob",
   "author": "Kyokan Group, Inc.",
-  "version": "0.1.2-pre.1",
+  "version": "0.1.2-pre.2",
   "description": "A Handshake wallet and auction manager.",
   "scripts": {
     "build": "./scripts/package.sh",
@@ -123,7 +123,7 @@
     "electron-updater": "4.1.2",
     "history": "4.7.2",
     "hs-client": "https://github.com/handshake-org/hs-client.git",
-    "hsd": "https://github.com/handshake-org/hsd/tarball/6afb72bb42cb05d52835eb36bf8ae3f9fbf9f3e0",
+    "hsd": "https://github.com/handshake-org/hsd/tarball/44c29055703ed19016f44e92ecc23e3dbd88ba56",
     "lodash.isequal": "4.5.0",
     "lodash.throttle": "^4.1.1",
     "mixpanel": "0.10.2",

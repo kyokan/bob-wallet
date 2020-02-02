@@ -120,7 +120,7 @@ export const fetchTransactions = () => async (dispatch, getState) => {
     const isPending = tx.block === null;
     const txData = {
       id: tx.hash,
-      date: isPending ? new Date(tx.mdate) : Date.parse(tx.date),
+      date: isPending ? Date.now() : Date.parse(tx.date),
       pending: isPending,
       balance: aggregate.toString(),
       ...ios,
@@ -133,6 +133,8 @@ export const fetchTransactions = () => async (dispatch, getState) => {
 
     payload.push(txData);
   }
+
+  payload = payload.sort((a, b) => b.date - a.date);
 
   dispatch({
     type: SET_TRANSACTIONS,

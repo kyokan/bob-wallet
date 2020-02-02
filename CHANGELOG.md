@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fix the GitHub link on the Add Funds screen
+- Fixed transaction ordering
 
 ## [0.1.1] - 2020-01-22
 ### Fixed
