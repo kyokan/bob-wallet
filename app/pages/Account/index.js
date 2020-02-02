@@ -33,7 +33,7 @@ export default class Account extends Component {
     return (
       <div className="account">
         <div className="account__alert">
-          <strong>Important:</strong> For the first two weeks of mainnet, transactions are disabled.
+          <strong>Important:</strong> Transactions are disabled for the first two weeks of mainnet.
         </div>
         <div className="account__header">
           <div className="account__header-section">
