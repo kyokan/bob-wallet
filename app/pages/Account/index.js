@@ -1,4 +1,3 @@
-import os from 'os';
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -33,6 +32,9 @@ export default class Account extends Component {
 
     return (
       <div className="account">
+        <div className="account__alert">
+          <strong>Important:</strong> For the first two weeks of mainnet, transactions are disabled.
+        </div>
         <div className="account__header">
           <div className="account__header-section">
             <div className="account__address">
