@@ -9,7 +9,7 @@ const FullNode = require('hsd/lib/node/fullnode');
 const WalletPlugin = require('hsd/lib/wallet/plugin');
 
 let started = false;
-ipc.on('start', (_, prefix, net, seeds, apiKey) => {
+ipc.on('start', (_, prefix, net, apiKey) => {
   if (started) {
     ipc.send('started');
     return;
@@ -35,7 +35,6 @@ ipc.on('start', (_, prefix, net, seeds, apiKey) => {
       bip37: true,
       indexAddress: true,
       indexTX: true,
-      seeds: seeds || undefined,
       apiKey,
     });
 

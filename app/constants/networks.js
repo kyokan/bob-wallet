@@ -1,12 +1,12 @@
 export const NETWORKS = {
   SIMNET: 'simnet',
   TESTNET: 'testnet',
-  MAINNET: 'mainnet',
+  MAINNET: 'main',
   REGTEST: 'regtest'
 };
 export const VALID_NETWORKS = {
   simnet: 'simnet',
   testnet: 'testnet',
-  mainnet: 'mainnet',
+  main: 'main',
   regtest: 'regtest'
 };

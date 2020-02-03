@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.0] - 2020-02-03
 ### Added
-- Enabled mainnet/testnet networks at 9AM PST
+- Enabled mainnet/testnet networks
 - Added support for Windows
 - Added a message alerting users that transactions are disabled for the first two weeks following mainnet
 

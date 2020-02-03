@@ -119,7 +119,7 @@
     "electron-updater": "4.1.2",
     "history": "4.7.2",
     "hs-client": "https://github.com/handshake-org/hs-client.git",
-    "hsd": "https://github.com/handshake-org/hsd/tarball/44c29055703ed19016f44e92ecc23e3dbd88ba56",
+    "hsd": "https://github.com/kyokan/hsd/tarball/2c6a71a60888f8e4d121e60f33b86319d784da48",
     "lodash.isequal": "4.5.0",
     "lodash.throttle": "^4.1.1",
     "mixpanel": "0.10.2",

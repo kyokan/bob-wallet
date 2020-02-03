@@ -9,12 +9,6 @@ import {NodeClient} from 'hs-client';
 
 const Network = require('hsd/lib/protocol/network');
 
-export const SEEDS = {
-  [NETWORKS.REGTEST]: [
-    'aorsxa4ylaacshipyjkfbvzfkh3jhh4yowtoqdt64nzemqtiw2whk@107.170.249.165',
-  ],
-};
-
 let udPath;
 let hsdBinDir;
 let hsdPrefixDir;
@@ -74,7 +68,7 @@ export async function startNode(net) {
   });
   network = newNetwork;
   await hsd.loadURL(`file://${path.join(__dirname, '../../hsd.html')}`);
-  hsd.webContents.send('start', hsdPrefixDir, network, SEEDS[network], apiKey);
+  hsd.webContents.send('start', hsdPrefixDir, network, apiKey);
   await new Promise((resolve, reject) => {
     const lis = (_, channel, ...args) => {
       if (channel !== 'started' && channel !== 'error') {

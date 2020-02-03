@@ -3,7 +3,7 @@ import { NETWORKS, VALID_NETWORKS } from '../constants/networks';
 const dbClient = clientStub(() => require('electron').ipcRenderer);
 
 export async function getNetwork() {
-  return (await dbClient.get(networkKey())) || NETWORKS.SIMNET;
+  return (await dbClient.get(networkKey())) || NETWORKS.MAINNET;
 }
 
 export async function setNetwork(network) {
