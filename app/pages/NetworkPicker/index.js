@@ -16,11 +16,9 @@ const dummyItems = [
 const networks = [
   {
     label: 'Mainnet',
-    disabled: true,
   },
   {
     label: 'Testnet',
-    disabled: true,
   },
   {
     label: 'Simnet',
