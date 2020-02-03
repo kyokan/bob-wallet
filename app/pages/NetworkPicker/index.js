@@ -6,6 +6,10 @@ import connect from 'react-redux/es/connect/connect';
 import * as nodeActions from '../../ducks/node';
 import './network-picker.scss';
 
+const GENESIS_TIME = 1580749200000;
+
+const preGenesis = Date.now() < GENESIS_TIME;
+
 const dummyItems = [
   {
     label: '--',
@@ -16,9 +20,11 @@ const dummyItems = [
 const networks = [
   {
     label: 'Mainnet',
+    disabled: preGenesis
   },
   {
     label: 'Testnet',
+    disabled: preGenesis
   },
   {
     label: 'Simnet',
