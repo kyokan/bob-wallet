@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const exec = require('child_process').exec;
 const rootDir = path.resolve(path.join(__dirname, '..'));
-const cspPolicy = `default-src 'self'; style-src 'self' 'sha256-GhG3bE0iJoXJDtzwjDYe4ewzpUCrcbsJVwiqGhTOAVg=' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src * data:; connect-src http://localhost:13037 http://localhost:13039 http://localhost:14037 http://localhost:14039 http://localhost:15037 http://localhost:15039 https://*.sentry.io https://*.mixpanel.com;`;
+const cspPolicy = `default-src 'self'; style-src 'self' 'sha256-GhG3bE0iJoXJDtzwjDYe4ewzpUCrcbsJVwiqGhTOAVg=' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src * data:; connect-src http://localhost:13037 http://localhost:13039 http://localhost:14037 http://localhost:14039 http://localhost:15037 http://localhost:15039 http://localhost:12037 http://localhost:12039 https://*.sentry.io https://*.mixpanel.com;`;
 const binDir = path.join(rootDir, 'node_modules', '.bin');
 const webpackBin = path.join(binDir, 'webpack.cmd');
 const babelBin = path.join(binDir, 'babel.cmd');
