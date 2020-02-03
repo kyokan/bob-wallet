@@ -1,5 +1,5 @@
 const Sentry = require('@sentry/electron');
-const electron = require('electron')
+const electron = require('electron');
 const pkg = require('../package.json');
 
 (function () {

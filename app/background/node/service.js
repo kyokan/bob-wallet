@@ -1,12 +1,11 @@
 import pify from '../../utils/pify';
-import { app, BrowserWindow } from 'electron';
+import {app, BrowserWindow} from 'electron';
 import rimraf from 'rimraf';
-import { NETWORKS, VALID_NETWORKS } from '../../constants/networks';
+import {NETWORKS, VALID_NETWORKS} from '../../constants/networks';
 import path from 'path';
 import fs from 'fs';
-import { awaitFSNotBusy } from '../../utils/fs';
 import crypto from 'crypto';
-import { NodeClient } from 'hs-client';
+import {NodeClient} from 'hs-client';
 
 const Network = require('hsd/lib/protocol/network');
 
@@ -128,7 +127,27 @@ export async function stop() {
   };
   const client = new NodeClient(networkOptions);
   await client.execute('stop');
-  await awaitFSNotBusy(path.join(hsdPrefixDir, network, 'chain', 'LOCK'));
+
+  let attempts = 0;
+  const checkDown = async () => {
+    try {
+      await client.getInfo();
+      return false;
+    } catch (e) {
+      return true;
+    }
+  };
+  for (; attempts < 10; attempts++) {
+    const down = await checkDown();
+    if (down) {
+      break;
+    }
+  }
+
+  if (attempts === 10) {
+    throw new Error('timed out stopping node');
+  }
+
   hsd.close();
   hsd = null;
 }

@@ -1,15 +1,9 @@
 require('./sentry');
 
 import { app, dialog } from 'electron';
-import { autoUpdater } from 'electron-updater';
 import MenuBuilder from './menu';
 import showMainWindow from './mainWindow';
-
-export default class AppUpdater {
-  constructor() {
-    autoUpdater.checkForUpdatesAndNotify();
-  }
-}
+const Sentry = require('@sentry/electron');
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -24,10 +18,6 @@ if (
 }
 
 app.on('ready', async () => {
-  // Remove this if your app does not use auto updates
-  // eslint-disable-next-line
-  new AppUpdater();
-
   // start the IPC server
   try {
     const server = require('./background/ipc/service').start();
@@ -43,7 +33,8 @@ app.on('ready', async () => {
       message: 'An error occurred that prevented Bob from starting. Please quit and try again.',
       detail: `Error: ${e.message}\nStack: ${e.stack}`,
     }, () => app.quit());
-    console.log(e);
+    Sentry.captureException(e);
+    return;
   }
 
   app.on('window-all-closed', () => {

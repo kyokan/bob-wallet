@@ -1,7 +1,7 @@
 import fs from 'fs';
 
 export async function awaitFSNotBusy(lockPath, count = 0) {
-  if (count === 3) {
+  if (count === 5) {
     throw new Error('timeout exceeded');
   }
 
@@ -12,7 +12,7 @@ export async function awaitFSNotBusy(lockPath, count = 0) {
       }
 
       if (err && err.code === 'EBUSY') {
-        return setTimeout(() => awaitFSNotBusy(lockPath, count + 1).then(resolve).catch(reject), 500);
+        return setTimeout(() => awaitFSNotBusy(lockPath, count + 1).then(resolve).catch(reject), 1000);
       }
 
       if (err) {

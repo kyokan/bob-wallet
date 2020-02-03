@@ -2,7 +2,7 @@
   "name": "bob-wallet",
   "productName": "Bob",
   "author": "Kyokan Group, Inc.",
-  "version": "0.1.2-pre.2",
+  "version": "0.2.0",
   "description": "A Handshake wallet and auction manager.",
   "scripts": {
     "build": "./scripts/package.sh",
@@ -12,7 +12,7 @@
     "package-all": "npm run build && electron-builder build -mwl",
     "package-ci": "npm run postinstall && npm run build && electron-builder --publish always",
     "package-linux": "npm run build && electron-builder build --linux",
-    "package-win": "npm run build && electron-builder build --win --x64",
+    "package-win": "node ./scripts/package.js && electron-builder build --win --x64 --arm64=false",
     "prestart": "npm run build",
     "start": "cross-env NODE_ENV=production electron -r @babel/register -r @babel/polyfill ./app/main.js",
     "start-main-dev": "cross-env HOT=1 NODE_ENV=development electron --inspect=5858 -r @babel/register -r @babel/polyfill ./app/main.js",
@@ -53,15 +53,11 @@
     },
     "win": {
       "target": [
-        "nsis",
         "msi"
       ]
     },
     "linux": {
       "target": [
-        "deb",
-        "rpm",
-        "snap",
         "AppImage"
       ],
       "category": "Development"
@@ -99,7 +95,7 @@
     "electron-devtools-installer": "2.2.4",
     "file-loader": "2.0.0",
     "mini-css-extract-plugin": "0.4.4",
-    "node-sass": "4.10.0",
+    "node-sass": "4.13.1",
     "redux-logger": "3.0.6",
     "resolve-url-loader": "3.0.0",
     "sass-loader": "7.1.0",

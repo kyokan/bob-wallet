@@ -1,5 +1,5 @@
 import path from 'path';
-import { BrowserWindow } from 'electron';
+import { BrowserWindow, app } from 'electron';
 
 let mainWindow;
 
@@ -37,6 +37,13 @@ export default function showMainWindow() {
 
   mainWindow.on('closed', () => {
     mainWindow = null;
+
+    // need to quit the entire app (i.e., including
+    // the HSD window) once the main window is closed
+    // on Windows
+    if (process.platform === 'win32') {
+      app.quit();
+    }
   });
 }
 
