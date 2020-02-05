@@ -1,11 +1,11 @@
 import pify from '../../utils/pify';
-import {app, BrowserWindow} from 'electron';
+import { app, BrowserWindow } from 'electron';
 import rimraf from 'rimraf';
-import {NETWORKS, VALID_NETWORKS} from '../../constants/networks';
+import { NETWORKS, VALID_NETWORKS } from '../../constants/networks';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
-import {NodeClient} from 'hs-client';
+import { NodeClient } from 'hs-client';
 
 const Network = require('hsd/lib/protocol/network');
 
@@ -34,16 +34,39 @@ let apiKey = crypto.randomBytes(20).toString('hex');
 
 export async function reset() {
   await stop();
-  const walletDir = path.join(hsdPrefixDir, network, 'wallet');
-  await new Promise((resolve, reject) => {
-    rimraf(walletDir, error => {
+
+  if (network === NETWORKS.MAINNET) {
+    await wipeMainnet();
+  } else {
+    const walletDir = path.join(hsdPrefixDir, network, 'wallet');
+    await new Promise((resolve, reject) => rimraf(walletDir, error => {
       if (error) {
         return reject(error);
       }
       resolve();
-    });
-  });
+    }));
+  }
+
   return startNode(network);
+}
+
+// Mainnet data doesn't get stored in its own directory,
+// so we have to manually nuke it here.
+async function wipeMainnet() {
+  const dirs = [
+    'chain',
+    'tree',
+    'wallet',
+  ];
+
+  for (const dir of dirs) {
+    await new Promise((resolve, reject) => rimraf(path.join(hsdPrefixDir, dir), error => {
+      if (error) {
+        return reject(error);
+      }
+      resolve();
+    }));
+  }
 }
 
 export async function startNode(net) {
