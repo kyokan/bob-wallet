@@ -54,8 +54,6 @@ export async function reset() {
 // so we have to manually nuke it here.
 async function wipeMainnet() {
   const dirs = [
-    'chain',
-    'tree',
     'wallet',
   ];
 
