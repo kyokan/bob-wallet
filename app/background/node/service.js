@@ -6,6 +6,7 @@ import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
 import { NodeClient } from 'hs-client';
+import tcpPortUsed from 'tcp-port-used';
 
 const Network = require('hsd/lib/protocol/network');
 
@@ -79,6 +80,13 @@ export async function startNode(net) {
     await stop();
   }
 
+  const netConfig = Network.get(net);
+  const portsFree = await checkHSDPortsFree(netConfig);
+  console.log(portsFree);
+  if (!portsFree) {
+    throw new Error('hsd ports in use. Please make sure no other hsd instance is running, quit Bob, and try again.');
+  }
+
   hsd = new BrowserWindow({
     width: 400,
     height: 400,
@@ -109,24 +117,11 @@ export async function startNode(net) {
     hsd.webContents.on('ipc-message', lis);
   });
 
-  const netConfig = Network.get(net);
-  const networkOptions = {
-    network: netConfig.type,
-    port: netConfig.rpcPort,
-    apiKey,
-  };
-  const client = new NodeClient(networkOptions);
-
-  for (let i = 0; i < 10; i++) {
-    try {
-      await client.getInfo();
-      return apiKey;
-    } catch (e) {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
+  try {
+    await ensureHSDPortState(netConfig, true);
+  } catch (e) {
+    throw new Error('Timed out starting HSD node.');
   }
-
-  throw new Error('timed out');
 }
 
 export async function stop() {
@@ -142,27 +137,7 @@ export async function stop() {
   };
   const client = new NodeClient(networkOptions);
   await client.execute('stop');
-
-  let attempts = 0;
-  const checkDown = async () => {
-    try {
-      await client.getInfo();
-      return false;
-    } catch (e) {
-      return true;
-    }
-  };
-  for (; attempts < 10; attempts++) {
-    const down = await checkDown();
-    if (down) {
-      break;
-    }
-  }
-
-  if (attempts === 10) {
-    throw new Error('timed out stopping node');
-  }
-
+  await ensureHSDPortState(netConfig, false);
   hsd.close();
   hsd = null;
 }
@@ -177,4 +152,42 @@ const methods = {
 export async function start(server) {
   await setPaths();
   server.withService(sName, methods);
+}
+
+async function ensureHSDPortState(network, used = false) {
+  const ports = [
+    network.port,
+    network.rpcPort,
+    network.walletPort,
+    network.nsPort,
+  ];
+
+  let timeout = 5000;
+  for (const port of ports) {
+    const start = Date.now();
+    if (used) {
+      await tcpPortUsed.waitUntilUsed(port, timeout);
+    } else {
+      await tcpPortUsed.waitUntilFree(port, 200, timeout);
+    }
+    timeout = timeout - (Date.now() - start);
+  }
+}
+
+async function checkHSDPortsFree(network) {
+  const ports = [
+    network.port,
+    network.rpcPort,
+    network.walletPort,
+    network.nsPort,
+  ];
+
+  for (const port of ports) {
+    const inUse = await tcpPortUsed.check(port);
+    if (inUse) {
+      return false;
+    }
+  }
+
+  return true;
 }

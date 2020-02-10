@@ -11,7 +11,6 @@ export async function open() {
   }
 
   const loc = path.join(app.getPath('userData'), 'db');
-  await awaitFSNotBusy(path.join(loc, 'LOCK'));
   let tdb = bdb.create(loc);
   await tdb.open();
   db = tdb;

@@ -1,20 +1,19 @@
 import React, { Component } from 'react';
 import Proptype from 'prop-types';
-import Alice from "../../assets/images/alice.png";
-import BobLogo from "../../assets/images/bob-logo-circle.svg";
-import Spinner from "../../assets/images/brick-loader.svg";
+import BobLogo from '../../assets/images/bob-logo-circle.svg';
+import Spinner from '../../assets/images/brick-loader.svg';
 
 export default class SplashScreen extends Component {
   static propTypes = {
-    error: Proptype.string
-  }
+    error: Proptype.string,
+  };
 
   static defaultProps = {
-    error: ''
-  }
+    error: '',
+  };
 
   render() {
-    const { error } = this.props;
+    const {error} = this.props;
 
     const wrapperStyle = {
       display: 'flex',
@@ -22,7 +21,7 @@ export default class SplashScreen extends Component {
       justifyContent: 'center',
       alignItems: 'center',
       height: '100vh',
-    }
+    };
 
     const logoWrapperStyle = {
       display: 'flex',
@@ -30,7 +29,7 @@ export default class SplashScreen extends Component {
       justifyContent: 'center',
       alignItems: 'baseline',
       margin: '3rem 0',
-    }
+    };
 
     const bobLogoStyle = {
       backgroundImage: `url(${BobLogo})`,
@@ -40,7 +39,7 @@ export default class SplashScreen extends Component {
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',
       animation: '0.5s ease-in-out',
-    }
+    };
 
     const spinnerStyle = {
       backgroundImage: `url(${Spinner})`,
@@ -50,27 +49,28 @@ export default class SplashScreen extends Component {
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       animation: '0.5s ease-in-out',
-    }
+    };
 
     const textStyles = {
-        fontSize: '1rem',
-        lineHeight: '1rem * 1.4',
-        color: '#909095',
-    }
+      fontSize: '1rem',
+      lineHeight: '1rem * 1.4',
+      color: '#909095',
+      maxWidth: '300px',
+    };
 
     return (
-      <div style={ wrapperStyle }>
-        <div style={ logoWrapperStyle }>
-          <div style={ bobLogoStyle } />
+      <div style={wrapperStyle}>
+        <div style={logoWrapperStyle}>
+          <div style={bobLogoStyle} />
         </div>
-        {error ? <div style={ textStyles }> { error } </div> :  (
+        {error ? <div style={textStyles}> {error} </div> : (
           <React.Fragment>
-            <div style={ spinnerStyle } />
-            <div style={ textStyles }>Loading node...</div>
+            <div style={spinnerStyle} />
+            <div style={textStyles}>Loading node...</div>
           </React.Fragment>
-          )
+        )
         }
       </div>
-    )
+    );
   }
 }

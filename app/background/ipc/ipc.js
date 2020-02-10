@@ -1,12 +1,18 @@
+const Sentry = require('@sentry/electron');
+
 export const SIGIL = '@@RPC@@';
 
 let lastId = 0;
 
 export const nullServer = {
-  withMethod() {},
-  withService() {},
-  start() {},
-  stop() {}
+  withMethod() {
+  },
+  withService() {
+  },
+  start() {
+  },
+  stop() {
+  },
 };
 
 function log() {
@@ -14,7 +20,7 @@ function log() {
     return;
   }
 
-  console.log(...arguments)
+  console.log(...arguments);
 }
 
 // used to scrub sensitive info from RPC calls
@@ -61,9 +67,9 @@ export function makeServer(ipcMain) {
       if (err) {
         log('Sending IPC method error.', sanitizeData(data, method), err);
         log('Stack:', err.stack);
+        Sentry.captureException(err);
         return event.sender.send(SIGIL, makeError(err.code || -1, `${err.message}${err.stack ? '\n' + err.stack : ''}`, data.id));
       }
-
       log('Sending IPC method response.', sanitizeData(data, method), res);
       return event.sender.send(SIGIL, makeResponse(res, data.id));
     };
@@ -78,7 +84,7 @@ export function makeServer(ipcMain) {
 
   const server = {
     withMethod(service, name, method) {
-      methods[`${service}.${name}`] = method
+      methods[`${service}.${name}`] = method;
     },
     withService(sName, methods) {
       Object.keys(methods).forEach((mName) => {
@@ -90,7 +96,7 @@ export function makeServer(ipcMain) {
     },
     stop() {
       ipcMain.removeListener(SIGIL, handler);
-    }
+    },
   };
   return server;
 }
@@ -124,7 +130,7 @@ export function makeClient(ipcRendererInjector, sName, methods) {
         jsonrpc: '2.0',
         method: `${sName}.${mName}`,
         params,
-        id
+        id,
       });
       ipcRenderer.on(SIGIL, handler);
     });
@@ -140,7 +146,7 @@ function makeResponse(result, id) {
   return JSON.stringify({
     jsonrpc: '2.0',
     result,
-    id
+    id,
   });
 }
 
@@ -149,8 +155,8 @@ function makeError(code, message, id) {
     jsonrpc: '2.0',
     error: {
       code,
-      message
+      message,
     },
-    id
+    id,
   });
 }
