@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Fixed
-- Fixed an issue where chainstate was wiped when mainnet wallets are reset. This means that Bob no longer needs to perform a sync from zero after resetting mainnet wallets 
+- Fixed an issue where chainstate was wiped when mainnet wallets are reset. This means that Bob no longer needs to perform a sync from zero after resetting mainnet wallets
+- Fixed an issue where Windows machines might time out restarting Bob
+- Fixed an issue where the error displayed when `hsd`'s ports are in use displayed as `undefined` on the splash screen 
 
 ## 0.2.1 - 2020-02-03
 ### Fixed
