@@ -1,7 +1,6 @@
 import { app } from 'electron';
 import bdb from 'bdb';
 import path from 'path';
-import { awaitFSNotBusy } from '../../utils/fs';
 
 let db;
 
