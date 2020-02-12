@@ -3,6 +3,7 @@ require('./sentry');
 import { app, dialog } from 'electron';
 import MenuBuilder from './menu';
 import showMainWindow from './mainWindow';
+
 const Sentry = require('@sentry/electron');
 
 if (process.env.NODE_ENV === 'production') {
@@ -19,11 +20,13 @@ if (
 
 app.on('ready', async () => {
   // start the IPC server
+  const dbService = require('./background/db/service');
   try {
     const server = require('./background/ipc/service').start();
     require('./background/logger/service').start(server);
-    await require('./background/db/service').start(server);
+    await dbService.start(server);
     await require('./background/node/service').start(server);
+    await require('./background/wallet/service').start(server);
     await require('./background/analytics/service').start(server);
   } catch (e) {
     dialog.showMessageBox(null, {
@@ -44,6 +47,21 @@ app.on('ready', async () => {
       app.quit();
     }
   });
+
+  let didFireQuitHandlers = false;
+
+  function quit(event) {
+    if (didFireQuitHandlers) {
+      return;
+    }
+    event.preventDefault();
+    didFireQuitHandlers = true;
+    dbService.close()
+      .catch((e) => console.error('Error in shutdown:', e))
+      .then(() => app.quit());
+  }
+
+  app.on('before-quit', quit);
 
   showMainWindow();
 

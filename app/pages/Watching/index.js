@@ -69,7 +69,7 @@ class Watching extends Component {
             value={this.state.query}
           />
           <div className="watching__warning-text">
-            Your watchlist does not transfer across different device
+            Your watchlist does not transfer across devices!
           </div>
           <div className="watching__download" onClick={this.onDownload}>
             <div className="watching__download__icon" />

@@ -1,5 +1,3 @@
-import { default as nodeClient, setClient as setNodeClient } from '../utils/nodeClient';
-import { setClient as setWalletClient } from '../utils/walletClient';
 import { clientStub } from '../background/node/client';
 import { getNetwork, setNetwork } from '../db/system';
 import { fetchWallet } from './walletActions';
@@ -7,7 +5,7 @@ import * as logger from '../utils/logClient';
 import { END_NETWORK_CHANGE, SET_NODE_INFO, START, START_ERROR, START_NETWORK_CHANGE, STOP } from './nodeReducer';
 import { VALID_NETWORKS } from '../constants/networks';
 
-const hsdClient = clientStub(() => require('electron').ipcRenderer);
+const nodeClient = clientStub(() => require('electron').ipcRenderer);
 
 export const start = (network) => async (dispatch, getState) => {
   if (network === getState().node.network) {
@@ -20,7 +18,8 @@ export const start = (network) => async (dispatch, getState) => {
   await setNetwork(network);
 
   try {
-    const apiKey = await hsdClient.start(network);
+    await nodeClient.start(network);
+    const apiKey = await nodeClient.getAPIKey();
     dispatch({
       type: START,
       payload: {
@@ -28,8 +27,6 @@ export const start = (network) => async (dispatch, getState) => {
         apiKey,
       },
     });
-    setNodeClient(network, apiKey);
-    setWalletClient(network, apiKey);
     await dispatch(setNodeInfo());
     await dispatch(fetchWallet());
   } catch (error) {
@@ -64,7 +61,7 @@ export const changeNetwork = (network) => async (dispatch) => {
     throw new Error('invalid network');
   }
 
-  await hsdClient.stop();
+  await nodeClient.stop();
   dispatch({
     type: START_NETWORK_CHANGE,
   });

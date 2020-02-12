@@ -1,17 +1,17 @@
-import React, {Component} from 'react';
-import {HeaderItem, HeaderRow, Table, TableRow} from '../../components/Table';
+import React, { Component } from 'react';
+import { HeaderItem, HeaderRow, Table, TableRow } from '../../components/Table';
 import PropTypes from 'prop-types';
-import {withRouter} from 'react-router';
+import { withRouter } from 'react-router';
 import connect from 'react-redux/es/connect/connect';
 import cn from 'classnames';
-import Resource from 'hsd/lib/dns/resource';
+import { Resource } from 'hsd/lib/dns/resource';
 import CreateRecord from './CreateRecord';
 import EditableRecord from './EditableRecord';
 import * as nameActions from '../../ducks/names';
 import deepEqual from 'deep-equal';
 import * as logger from '../../utils/logClient';
-import {showSuccess} from '../../ducks/notifications';
-import {clientStub as aClientStub} from '../../background/analytics/client';
+import { showSuccess } from '../../ducks/notifications';
+import { clientStub as aClientStub } from '../../background/analytics/client';
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -40,7 +40,7 @@ class Records extends Component {
           <div>Type</div>
         </HeaderItem>
         <HeaderItem>Value</HeaderItem>
-        <HeaderItem/>
+        <HeaderItem />
       </HeaderRow>
     );
   }
@@ -141,7 +141,7 @@ class Records extends Component {
   }
 
   renderCreateRecord() {
-    return <CreateRecord name={this.props.name} onCreate={this.onCreate}/>;
+    return <CreateRecord name={this.props.name} onCreate={this.onCreate} />;
   }
 
   renderActionRow() {
@@ -228,7 +228,7 @@ function getDecodedResource(domain) {
 
   return {
     records: [],
-    ...Resource.decode(new Buffer(data, 'hex')).toJSON()
+    ...Resource.decode(new Buffer(data, 'hex')).toJSON(),
   };
 }
 

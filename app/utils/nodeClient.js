@@ -1,73 +1,46 @@
-import { NodeClient } from 'hs-client';
-import { BigNumber } from 'bignumber.js';
+import { clientStub as nodeClientStub } from '../background/node/client';
 
-const Network = require('hsd/lib/protocol/network');
-
-const MIN_FEE = new BigNumber(0.001);
-
-let nodeClient;
-
-export function setClient(net, apiKey) {
-  const network = Network.get(net);
-  const networkOptions = {
-    network: network.type,
-    port: network.rpcPort,
-    apiKey,
-  };
-
-  nodeClient = new NodeClient(networkOptions);
-}
+const node = nodeClientStub(() => require('electron').ipcRenderer);
 
 const client = {
   getInfo: async () => {
-    return nodeClient.getInfo();
+    return node.getInfo();
   },
 
   getFees: async () => {
-    const slowRes = await nodeClient.execute('estimatesmartfee', [5]);
-    const standardRes = await nodeClient.execute('estimatesmartfee', [2]);
-    const fastRes = await nodeClient.execute('estimatesmartfee', [1]);
-    const slow = BigNumber.max(new BigNumber(slowRes.fee), MIN_FEE).toFixed(6);
-    const standard = BigNumber.max(new BigNumber(standardRes.fee), MIN_FEE).toFixed(6);
-    const fast = BigNumber.max(new BigNumber(fastRes.fee), MIN_FEE).toFixed(6);
-
-    return {
-      slow,
-      standard,
-      fast,
-    };
+    return node.getFees();
   },
 
   getNameInfo: async (name) => {
-    return nodeClient.execute('getnameinfo', [name]);
+    return node.getNameInfo(name);
   },
 
   getNameByHash: async (hash) => {
-    return nodeClient.execute('getnamebyhash', [hash]);
+    return node.getNameByHash(hash);
   },
 
   getAuctionInfo: async (name) => {
-    return nodeClient.execute('getauctioninfo', [name]);
+    return node.getAuctionInfo(name);
   },
 
   getBlockByHeight: async (height, verbose, details) => {
-    return nodeClient.execute('getblockbyheight', [height, verbose ? 1 : 0, details ? 1 : 0]);
+    return node.getBlockByHeight(height, verbose, details);
   },
 
   getTx: async (hash) => {
-    return nodeClient.getTX(hash);
+    return node.getTx(hash);
   },
 
   broadcastRawTx: async (tx) => {
-    return nodeClient.execute('sendrawtransaction', [tx]);
+    return node.broadcastRawTx(tx);
   },
 
   sendRawAirdrop: async (data) => {
-    return nodeClient.execute('sendrawairdrop', data);
+    return node.sendRawAirdrop(data);
   },
 
   stop: async () => {
-    return nodeClient.execute('stop');
+    return node.stop();
   },
 };
 
