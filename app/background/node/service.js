@@ -65,7 +65,7 @@ export class NodeService extends EventEmitter {
         hsdWindow.webContents.removeListener('error', lis);
 
         if (channel === 'error') {
-          console.error('Error opening hsd window:', args[0]);
+          console.error('Error opening hsd window:', args);
           return reject(args[0]);
         }
 

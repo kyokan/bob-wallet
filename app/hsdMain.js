@@ -47,7 +47,10 @@ ipc.on('start', (_, prefix, net, apiKey) => {
     .then(() => hsd.connect())
     .then(() => hsd.startSync())
     .then(() => ipc.send('started'))
-    .catch((e) => ipc.send('error', e));
+    .catch((e) => {
+      console.log(e);
+      ipc.send('error', e)
+    });
 });
 
 ipc.on('close', () => {
