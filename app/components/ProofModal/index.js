@@ -73,7 +73,7 @@ export default class ProofModal extends Component {
   isDisabled() {
     const { network, chainHeight } = this.props;
 
-    if (network === NETWORKS.MAINNET && chainHeight <= 2016) {
+    if (network === NETWORKS.MAINNET && chainHeight < 2016) {
       return true;
     }
 
