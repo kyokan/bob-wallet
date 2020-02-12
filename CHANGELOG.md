@@ -5,13 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.1] - 2020-02-10
+## [0.2.2] - 2020-02-11
+### Changed
+- Disable airdrop functionality until block 2016
+- Made transaction activation alerts dynamic
+- Made node start/stop functionality node robust
+
+### Fixed
+- Fixed a crash while updating domain name records
+- Fixed various minor copy issues
+
+## [0.2.2] - 2020-02-10
 ### Fixed
 - Fixed an issue where chainstate was wiped when mainnet wallets are reset. This means that Bob no longer needs to perform a sync from zero after resetting mainnet wallets
 - Fixed an issue where Windows machines might time out restarting Bob
 - Fixed an issue where the error displayed when `hsd`'s ports are in use displayed as `undefined` on the splash screen 
 
-## 0.2.1 - 2020-02-03
+## [0.2.1] - 2020-02-03
 ### Fixed
 - Fixed an issue where mainnet wallets could not be regenerated
 
