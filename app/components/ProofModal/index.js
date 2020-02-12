@@ -183,7 +183,7 @@ export default class ProofModal extends Component {
     if (network === NETWORKS.MAINNET && chainHeight < 2016) {
       return (
         <div className="proof__alert">
-          <strong>Important:</strong> Transactions are disabled on mainnet until block 2,016 (about 2 weeks). The network will reject proofs sent before then, so be sure to wait until then before sending it!
+          <strong>Important:</strong> Transactions are disabled on mainnet until block 2,016 (about 2 weeks). The network will reject proofs sent before then, so be sure to wait!
         </div>
       );
     }
