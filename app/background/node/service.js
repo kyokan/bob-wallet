@@ -99,7 +99,7 @@ export class NodeService extends EventEmitter {
       throw new Error('hsd not started.');
     }
     const closed = new Promise((resolve) => this.hsdWindow.on('closed', resolve));
-    this.hsdWindow.close();
+    this.hsdWindow.send('close');
     await closed;
   }
 

@@ -7,17 +7,15 @@ process.env.NODE_BACKEND = 'js';
 const ipc = require('electron').ipcRenderer;
 const FullNode = require('hsd/lib/node/fullnode');
 const WalletPlugin = require('hsd/lib/wallet/plugin');
+const remote = require('electron').remote;
 
-let started = false;
+let hsd = null;
 ipc.on('start', (_, prefix, net, apiKey) => {
-  if (started) {
+  if (hsd) {
     ipc.send('started');
     return;
   }
 
-  started = true;
-
-  let hsd;
   try {
     hsd = new FullNode({
       config: true,
@@ -50,4 +48,13 @@ ipc.on('start', (_, prefix, net, apiKey) => {
     .then(() => hsd.startSync())
     .then(() => ipc.send('started'))
     .catch((e) => ipc.send('error', e));
+});
+
+ipc.on('close', () => {
+  if (!hsd) {
+    return;
+  }
+
+  hsd.close()
+    .then(() => remote.getCurrentWindow().close());
 });
