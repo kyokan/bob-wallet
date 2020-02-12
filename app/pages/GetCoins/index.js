@@ -21,18 +21,20 @@ export default class GetCoins extends Component {
   state = {
     isShowingGitHubModal: false,
     isShowingPGPModal: false,
+    isShowingFaucetModal: false,
   };
 
   componentDidMount() {
     analytics.screenView('Get Coins');
   }
 
-  closeModal = () => this.setState({isShowingGitHubModal: false, isShowingPGPModal: false});
-  openGitHubModal = () => this.setState({isShowingGitHubModal: true, isShowingPGPModal: false});
-  openPGPModal = () => this.setState({isShowingGitHubModal: false, isShowingPGPModal: true});
+  closeModal = () => this.setState({isShowingFaucetModal: false, isShowingGitHubModal: false, isShowingPGPModal: false});
+  openGitHubModal = () => this.setState({isShowingFaucetModal: false, isShowingGitHubModal: true, isShowingPGPModal: false});
+  openPGPModal = () => this.setState({isShowingFaucetModal: false, isShowingGitHubModal: false, isShowingPGPModal: true});
+  openFaucetModal = () => this.setState({isShowingFaucetModal: true, isShowingGitHubModal: false, isShowingPGPModal: false});
 
   renderModal() {
-    const {isShowingGitHubModal, isShowingPGPModal} = this.state;
+    const {isShowingGitHubModal, isShowingPGPModal, isShowingFaucetModal} = this.state;
 
     if (isShowingGitHubModal) {
       return (
@@ -47,6 +49,15 @@ export default class GetCoins extends Component {
       return (
         <ProofModal
           type="PGP"
+          onClose={this.closeModal}
+        />
+      );
+    }
+
+    if (isShowingFaucetModal) {
+      return (
+        <ProofModal
+          type="Faucet"
           onClose={this.closeModal}
         />
       );
@@ -122,7 +133,7 @@ export default class GetCoins extends Component {
               <div>GitHub Developers</div>
               <div>+ 4,662.598321 HNS</div>
               <div>15 or more followers during the week of 2018-08-27</div>
-              <div>SSH key</div>
+              <div>SSH/PGP key</div>
               <button onClick={this.openGitHubModal}>Redeem</button>
             </div>
             <div className="get-coins__panel__offer">
@@ -131,6 +142,12 @@ export default class GetCoins extends Component {
               <div>Strong set email</div>
               <div>PGP keys</div>
               <button onClick={this.openPGPModal}>Redeem</button>
+            </div>
+            <div className="get-coins__panel__offer">
+              <div>Handshake.org Faucet (Now Closed)</div>
+              <div>+ 2,500 HNS and up</div>
+              <div>Seed phrase</div>
+              <button onClick={this.openFaucetModal}>Redeem</button>
             </div>
           </div>
         </div>

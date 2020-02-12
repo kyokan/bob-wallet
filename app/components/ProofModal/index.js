@@ -8,6 +8,7 @@ import { showSuccess } from '../../ducks/notifications';
 import walletClient from '../../utils/walletClient';
 import Alert from '../Alert';
 import { clientStub as aClientStub } from '../../background/analytics/client';
+import {NETWORKS} from "../../constants/networks";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -15,6 +16,7 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
   (state) => ({
     address: state.wallet.address,
     network: state.node.network,
+    chainHeight: state.node.chain ? state.node.chain.height : -1,
   }),
   (dispatch) => ({
     showSuccess: (message) => dispatch(showSuccess(message)),
@@ -24,6 +26,8 @@ export default class ProofModal extends Component {
   static propTypes = {
     type: PropTypes.string.isRequired,
     address: PropTypes.string.isRequired,
+    network: PropTypes.string.isRequired,
+    chainHeight: PropTypes.number.isRequired,
     onClose: PropTypes.func.isRequired,
     showSuccess: PropTypes.func.isRequired,
   };
@@ -67,6 +71,12 @@ export default class ProofModal extends Component {
   };
 
   isDisabled() {
+    const { network, chainHeight } = this.props;
+
+    if (network === NETWORKS.MAINNET && chainHeight < 2016) {
+      return true;
+    }
+
     return !this.state.proof;
   }
 
@@ -86,16 +96,27 @@ export default class ProofModal extends Component {
               ✕
             </div>
           </div>
+          {this.renderInfoBox()}
           <div className="proof__content">
             <Alert type="error" message={this.state.errorMessage} />
-            {this.renderPGP(type === 'PGP')}
+            {this.renderPGP(type)}
           </div>
         </div>
       </Modal>
     );
   }
 
-  renderPGP(isPGP) {
+  renderPGP(type) {
+    let command = '';
+
+    if (type === 'PGP') {
+      command = 'hs-airdrop [key-path] [key-id] [addr] -f 0.5';
+    } else if (type === 'SSH') {
+      command = 'hs-airdrop [key-path] [addr] -f 0.5';
+    } else if (type === 'Faucet') {
+      command = 'hs-airdrop [addr] -f 0.5'
+    }
+
     return (
       <React.Fragment>
         <div className="proof__step">
@@ -118,7 +139,7 @@ export default class ProofModal extends Component {
 
             <pre className="proof__cli-step">
               <code>
-                {isPGP ? 'hs-airdrop [key-path] [key-id] [tx1234] 0.005' : 'hs-airdrop [key-path] [tx1234] 0.005'}
+                {command}
               </code>
             </pre>
 
@@ -155,5 +176,18 @@ export default class ProofModal extends Component {
         </div>
       </React.Fragment>
     );
+  }
+
+  renderInfoBox() {
+    const { network, chainHeight } = this.props;
+    if (network === NETWORKS.MAINNET && chainHeight < 2016) {
+      return (
+        <div className="proof__alert">
+          <strong>Important:</strong> Transactions are disabled on mainnet until block 2,016 (about 2 weeks). The network will reject proofs sent before then, so be sure to wait!
+        </div>
+      );
+    }
+
+    return null;
   }
 }
