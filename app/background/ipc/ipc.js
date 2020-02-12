@@ -25,19 +25,22 @@ function log() {
 
 // used to scrub sensitive info from RPC calls
 function sanitizeData(data, method) {
-  if (method.sanitizedArgs) {
+  if (method.suppressLogging) {
     const copy = JSON.parse(JSON.stringify(data));
-    for (let i = 0; i < method.sanitizedArgs.length; i++) {
-      const pIdx = method.sanitizedArgs[i];
-      if (copy.params[pIdx]) {
-        copy.params[pIdx] = '<SANITIZED>';
-      }
-    }
-
+    copy.params = ['<SANITIZED>'];
     return copy;
   }
 
   return data;
+}
+
+// used to scrub sensitive info from RPC responses
+function sanitizeRes(res, method) {
+  if (method.suppressLogging) {
+    return '<SANITIZED>';
+  }
+
+  return res;
 }
 
 export function makeServer(ipcMain) {
@@ -52,7 +55,7 @@ export function makeServer(ipcMain) {
     }
 
     if (!method) {
-      log('IPC method does not exist, aborting.');
+      log(`IPC method ${data.method} does not exist, aborting.`);
       return event.sender.send(SIGIL, makeError(-32601, 'method not found', data.id));
     }
 
@@ -70,7 +73,7 @@ export function makeServer(ipcMain) {
         Sentry.captureException(err);
         return event.sender.send(SIGIL, makeError(err.code || -1, `${err.message}${err.stack ? '\n' + err.stack : ''}`, data.id));
       }
-      log('Sending IPC method response.', sanitizeData(data, method), res);
+      log('Sending IPC method response.', sanitizeData(data, method), sanitizeRes(res, method));
       return event.sender.send(SIGIL, makeResponse(res, data.id));
     };
 

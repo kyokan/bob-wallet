@@ -15,12 +15,14 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
   (state) => ({
     confirmedBalance: state.wallet.balance.confirmed,
     unconfirmedBalance: state.wallet.balance.unconfirmed,
+    height: state.node.chain.height,
   }),
 )
 export default class Account extends Component {
   static propTypes = {
     confirmedBalance: PropTypes.number.isRequired,
     unconfirmedBalance: PropTypes.number.isRequired,
+    height: PropTypes.number.isRequired,
   };
 
   componentDidMount() {
@@ -32,9 +34,7 @@ export default class Account extends Component {
 
     return (
       <div className="account">
-        <div className="account__alert">
-          <strong>Important:</strong> Transactions are disabled for the first two weeks of mainnet.
-        </div>
+        {this.maybeRenderTXAlert()}
         <div className="account__header">
           <div className="account__header-section">
             <div className="account__address">
@@ -61,6 +61,18 @@ export default class Account extends Component {
           <div className="account__panel-title">Transaction History</div>
           <Transactions />
         </div>
+      </div>
+    );
+  }
+
+  maybeRenderTXAlert() {
+    if (this.props.height > 2016) {
+      return null;
+    }
+
+    return (
+      <div className="account__alert">
+        <strong>Important:</strong> Transactions are disabled for the first two weeks of mainnet.
       </div>
     );
   }

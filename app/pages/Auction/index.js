@@ -18,6 +18,8 @@ import BidHistory from './BidHistory';
 import './domains.scss';
 import { clientStub as aClientStub } from '../../background/analytics/client';
 
+const Sentry = require('@sentry/electron');
+
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
 @withRouter
@@ -67,7 +69,9 @@ export default class Auction extends Component {
       await this.props.getNameInfo(this.getDomain());
       await this.props.fetchPendingTransactions();
     } catch (e) {
-      this.showError('Something went wrong fetching this name. Please try again.');
+      console.error(e);
+      Sentry.captureException(e);
+      this.props.showError('Something went wrong fetching this name. Please try again.');
     } finally {
       this.setState({isLoading: false});
     }
