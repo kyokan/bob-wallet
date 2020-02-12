@@ -25,6 +25,18 @@
     margin-bottom: 0.5rem;
   }
 
+  &__alert {
+    background: #d4e0f5;
+    border-radius: 3px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    @extend %h4;
+
+    strong {
+      font-weight: 500;
+    }
+  }
+
   &__title {
     font-weight: 600;
     font-size: 1.25rem;
