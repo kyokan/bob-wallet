@@ -12,7 +12,7 @@ import { BigNumber } from 'bignumber.js';
 
 const Network = require('hsd/lib/protocol/network');
 
-const MIN_FEE = new BigNumber(0.001);
+const MIN_FEE = new BigNumber(0.01);
 
 export class NodeService extends EventEmitter {
   constructor() {
@@ -171,8 +171,8 @@ export class NodeService extends EventEmitter {
     const standardRes = await this.client.execute('estimatesmartfee', [2]);
     const fastRes = await this.client.execute('estimatesmartfee', [1]);
     const slow = BigNumber.max(new BigNumber(slowRes.fee), MIN_FEE).toFixed(6);
-    const standard = BigNumber.max(new BigNumber(standardRes.fee), MIN_FEE).toFixed(6);
-    const fast = BigNumber.max(new BigNumber(fastRes.fee), MIN_FEE).toFixed(6);
+    const standard = BigNumber.max(new BigNumber(standardRes.fee), MIN_FEE * 5).toFixed(6);
+    const fast = BigNumber.max(new BigNumber(fastRes.fee), MIN_FEE * 10).toFixed(6);
 
     return {
       slow,
