@@ -144,8 +144,9 @@ class WalletService {
 
   estimateTxFee = async (to, amount, feeRate) => {
     this._ensureClient();
+    const feeRateBaseUnits = Number(toBaseUnits(feeRate));
     const createdTx = await this.client.createTX(WALLET_ID, {
-      rate: Number(toBaseUnits(feeRate)),
+      rate: feeRateBaseUnits,
       outputs: [{
         value: Number(toBaseUnits(amount)),
         address: to,
@@ -154,7 +155,7 @@ class WalletService {
     return {
       feeRate,
       amount: Number(toDisplayUnits(createdTx.fee)),
-      txSize: Number(new BigNumber(createdTx.fee).div(1000).toFixed(3)),
+      txSize: Number(new BigNumber(createdTx.fee).div(feeRateBaseUnits).toFixed(3)),
     };
   };
 

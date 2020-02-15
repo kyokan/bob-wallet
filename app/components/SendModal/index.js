@@ -47,18 +47,23 @@ class SendModal extends Component {
     network: PropTypes.string.isRequired,
   };
 
-  state = {
-    selectedGasOption: STANDARD,
-    isConfirming: false,
-    transactionSent: false,
-    isSending: false,
-    to: '',
-    amount: '',
-    errorMessage: '',
-    addressError: false,
-    feeAmount: 0,
-    txSize: 0,
-  };
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      selectedGasOption: STANDARD,
+      gasFee: props.fees[STANDARD.toLowerCase()],
+      isConfirming: false,
+      transactionSent: false,
+      isSending: false,
+      to: '',
+      amount: '',
+      errorMessage: '',
+      addressError: false,
+      feeAmount: 0,
+      txSize: 0,
+    };
+  }
 
   componentDidMount() {
     analytics.screenView('Send');
@@ -70,6 +75,7 @@ class SendModal extends Component {
       this.setState({errorMessage: 'Invalid Address Prefix'});
     }
   };
+
   updateAmount = e => this.setState({amount: e.target.value});
 
   validate() {
@@ -83,17 +89,14 @@ class SendModal extends Component {
   }
 
   send = async () => {
-    const {to, amount, isSending, selectedGasOption} = this.state;
-    const fee = this.props.fees[selectedGasOption.toLowerCase()];
-
+    const {to, amount, isSending, gasFee} = this.state;
     if (isSending) {
       return;
     }
-
     this.setState({isSending: true, errorMessage: ''});
 
     try {
-      await this.props.send(to, amount, fee);
+      await this.props.send(to, amount, gasFee);
       this.setState({
         isSending: false,
         isConfirming: false,
@@ -113,8 +116,7 @@ class SendModal extends Component {
   };
 
   sendMax = async () => {
-    const {selectedGasOption} = this.state;
-    const fee = this.props.fees[selectedGasOption.toLowerCase()];
+    const fee = this.state.gasFee;
 
     let maxBal;
     try {
@@ -139,6 +141,7 @@ class SendModal extends Component {
   resetState() {
     this.setState({
       selectedGasOption: STANDARD,
+      gasFee: this.props.fees[STANDARD.toLowerCase()],
       isConfirming: false,
       transactionSent: false,
       isSending: false,
@@ -154,7 +157,6 @@ class SendModal extends Component {
   renderSend() {
     const {selectedGasOption, amount, to} = this.state;
     const {isValid} = this.validate();
-    const gasFee = this.props.fees[selectedGasOption.toLowerCase()];
 
     return (
       <div className="send__container">
@@ -205,9 +207,10 @@ class SendModal extends Component {
               <div className="send__network-fee__select">
                 <div>{selectedGasOption}</div>
                 <select
-                  onChange={e =>
-                    this.setState({selectedGasOption: e.target.value})
-                  }
+                  onChange={e => this.setState({
+                    selectedGasOption: e.target.value,
+                    gasFee: this.props.fees[e.target.value.toLowerCase()],
+                  })}
                   value={selectedGasOption}
                 >
                   <option value={SLOW}>Slow</option>
@@ -216,7 +219,11 @@ class SendModal extends Component {
                 </select>
               </div>
               <div className="send__network-fee__fee-amount">
-                {`${gasFee} HNS`}
+                <input
+                  value={this.state.gasFee}
+                  onChange={(e) => this.setState({gasFee: e.target.value})}
+                  type="number"
+                />
               </div>
             </div>
             <div className="send__input-disclaimer">
@@ -249,10 +256,9 @@ class SendModal extends Component {
       return;
     }
 
-    const selectedGasOption = this.state.selectedGasOption;
     let feeInfo;
     try {
-      feeInfo = await walletClient.estimateTxFee(this.state.to, this.state.amount, this.props.fees[selectedGasOption.toLowerCase()]);
+      feeInfo = await walletClient.estimateTxFee(this.state.to, this.state.amount, this.state.gasFee);
     } catch (e) {
       this.setState({
         errorMessage: e.message,
@@ -269,7 +275,7 @@ class SendModal extends Component {
 
   renderConfirm() {
     const {
-      selectedGasOption,
+      gasFee,
       amount,
       to,
       isSending,
@@ -295,9 +301,7 @@ class SendModal extends Component {
           <div className="send__confirm__time">
             <div className="send__confirm__label">Transaction time</div>
             <div className="send__confirm__time-text">
-              {`${selectedGasOption} - this may take up to ${
-                GAS_TO_ESTIMATES[selectedGasOption]
-              }`}
+              {this.renderConfirmTime()}
             </div>
           </div>
           <div className="send__confirm__summary">
@@ -311,7 +315,7 @@ class SendModal extends Component {
             </div>
             <div className="send__confirm__summary-fee">
               <div className="send__confirm__summary-label">Network Fee Rate:</div>
-              <div className="send__confirm__summary-value">{this.props.fees[selectedGasOption.toLowerCase()]}</div>
+              <div className="send__confirm__summary-value">{gasFee}</div>
             </div>
             <div className="send__confirm__summary-fee">
               <div className="send__confirm__summary-label">Estimated TX Size:</div>
@@ -390,6 +394,17 @@ class SendModal extends Component {
 
   render() {
     return this.renderContent();
+  }
+
+  renderConfirmTime() {
+    const {selectedGasOption, gasFee} = this.state;
+    if (gasFee === this.props.fees[selectedGasOption.toLowerCase()]) {
+      return `${selectedGasOption} - this may take up to ${
+        GAS_TO_ESTIMATES[selectedGasOption]
+      }`;
+    }
+
+    return 'You entered a custom gas fee, so we don\'t have an estimate.';
   }
 }
 
