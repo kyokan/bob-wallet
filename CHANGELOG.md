@@ -5,7 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.4] - Unreleased
+## [0.2.5] - Unreleased
+## Changed
+- Changed fee estimation screen to properly account for how the fee is a rate, not a flat fee per transaction 
+
+## [0.2.4] - 2020-02-14
 ### Fixed
 - Upgraded HSD to a version without mempool issues 
 

@@ -10,6 +10,9 @@ import Alert from '../Alert';
 import isValidAddress from '../../utils/verifyAddress';
 import * as logger from '../../utils/logClient';
 import { clientStub as aClientStub } from '../../background/analytics/client';
+import walletClient from '../../utils/walletClient';
+
+const Sentry = require('@sentry/electron');
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -53,6 +56,8 @@ class SendModal extends Component {
     amount: '',
     errorMessage: '',
     addressError: false,
+    feeAmount: 0,
+    txSize: 0,
   };
 
   componentDidMount() {
@@ -101,18 +106,26 @@ class SendModal extends Component {
     } catch (err) {
       logger.error('failed to send transaction', {err});
       this.setState({
-        errorMessage: 'Something went wrong, please try again.',
+        errorMessage: `Something went wrong: ${err ? err.message : 'Unknown Error'}`,
         isSending: false,
       });
     }
   };
 
-  sendMax = () => {
+  sendMax = async () => {
     const {selectedGasOption} = this.state;
     const fee = this.props.fees[selectedGasOption.toLowerCase()];
 
+    let maxBal;
+    try {
+      maxBal = await walletClient.estimateMaxSend(fee);
+    } catch (e) {
+      Sentry.captureException(e);
+      maxBal = bn(this.props.totalBalance).minus(fee).toFixed();
+    }
+
     this.setState({
-      amount: bn(this.props.totalBalance).minus(fee).toFixed(),
+      amount: maxBal,
     });
   };
 
@@ -133,6 +146,8 @@ class SendModal extends Component {
       amount: '',
       errorMessage: '',
       addressError: false,
+      feeAmount: 0,
+      txSize: 0,
     });
   }
 
@@ -183,7 +198,7 @@ class SendModal extends Component {
           </div>
           <div className="send__network-fee">
             <div className="send__label">
-              <span>Network Fee</span>
+              <span>Network Fee Rate</span>
               <div className="send__info-icon">ⓘ</div>
             </div>
             <div className="send__network-fee__form">
@@ -213,7 +228,7 @@ class SendModal extends Component {
           <button
             className="send__cta-btn"
             key="continue"
-            onClick={() => isValid && this.setState({isConfirming: true})}
+            onClick={this.onClickContinue}
             disabled={!isValid}
           >
             Continue
@@ -229,16 +244,38 @@ class SendModal extends Component {
     );
   }
 
+  onClickContinue = async () => {
+    if (!this.validate()) {
+      return;
+    }
+
+    const selectedGasOption = this.state.selectedGasOption;
+    let feeInfo;
+    try {
+      feeInfo = await walletClient.estimateTxFee(this.state.to, this.state.amount, this.props.fees[selectedGasOption.toLowerCase()]);
+    } catch (e) {
+      this.setState({
+        errorMessage: e.message,
+      });
+      return;
+    }
+
+    this.setState({
+      feeAmount: feeInfo.amount,
+      txSize: feeInfo.txSize,
+      isConfirming: true,
+    });
+  };
+
   renderConfirm() {
     const {
       selectedGasOption,
       amount,
       to,
-      errorMessage,
       isSending,
+      feeAmount,
+      txSize,
     } = this.state;
-    const gasFee = this.props.fees[selectedGasOption.toLowerCase()];
-    const {address, onClose} = this.props;
 
     return (
       <div className="send__container">
@@ -273,13 +310,21 @@ class SendModal extends Component {
               )} HNS`}</div>
             </div>
             <div className="send__confirm__summary-fee">
-              <div className="send__confirm__summary-label">Network Fee:</div>
-              <div className="send__confirm__summary-value">{gasFee}</div>
+              <div className="send__confirm__summary-label">Network Fee Rate:</div>
+              <div className="send__confirm__summary-value">{this.props.fees[selectedGasOption.toLowerCase()]}</div>
+            </div>
+            <div className="send__confirm__summary-fee">
+              <div className="send__confirm__summary-label">Estimated TX Size:</div>
+              <div className="send__confirm__summary-value">{txSize} kB</div>
+            </div>
+            <div className="send__confirm__summary-fee">
+              <div className="send__confirm__summary-label">Estimated Fee:</div>
+              <div className="send__confirm__summary-value">{feeAmount}</div>
             </div>
             <div className="send__confirm__summary-total">
               <div className="send__confirm__summary-label">Total:</div>
               <div className="send__confirm__summary-value">{`${bn(amount)
-                .plus(gasFee)
+                .plus(feeAmount)
                 .toFixed(6)} HNS`}</div>
             </div>
           </div>

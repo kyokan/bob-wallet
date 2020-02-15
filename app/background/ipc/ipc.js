@@ -71,7 +71,7 @@ export function makeServer(ipcMain) {
         log('Sending IPC method error.', sanitizeData(data, method), err);
         log('Stack:', err.stack);
         Sentry.captureException(err);
-        return event.sender.send(SIGIL, makeError(err.code || -1, `${err.message}${err.stack ? '\n' + err.stack : ''}`, data.id));
+        return event.sender.send(SIGIL, makeError(err.code || -1, err.message, data.id));
       }
       log('Sending IPC method response.', sanitizeData(data, method), sanitizeRes(res, method));
       return event.sender.send(SIGIL, makeResponse(res, data.id));

@@ -1,11 +1,21 @@
 import { WalletClient } from 'hs-client';
-import { displayBalance, toBaseUnits } from '../../utils/balances';
+import { displayBalance, toBaseUnits, toDisplayUnits } from '../../utils/balances';
 import { service as nodeService } from '../node/service';
+import BigNumber from 'bignumber.js';
+import { NETWORKS } from '../../constants/networks';
+
+const Sentry = require('@sentry/electron');
 
 const MasterKey = require('hsd/lib/wallet/masterkey');
 const Mnemonic = require('hsd/lib/hd/mnemonic');
 
 const WALLET_ID = 'allison';
+const randomAddrs = {
+  [NETWORKS.TESTNET]: 'ts1qfcljt5ylsa9rcyvppvl8k8gjnpeh079drfrmzq',
+  [NETWORKS.REGTEST]: 'rs1qh57neh8npuxeyxfsl35373vshs0d40cvxx57aj',
+  [NETWORKS.MAINNET]: 'hs1q5e06h2fcwx9sx38k6skzwkzmm54meudhphkytx',
+  [NETWORKS.SIMNET]: 'ss1qfrfg6pg7emnx5m53zf4fe24vdtt8thljhyekhj',
+};
 
 class WalletService {
   constructor() {
@@ -132,6 +142,45 @@ class WalletService {
     },
   );
 
+  estimateTxFee = async (to, amount, feeRate) => {
+    this._ensureClient();
+    const createdTx = await this.client.createTX(WALLET_ID, {
+      rate: Number(toBaseUnits(feeRate)),
+      outputs: [{
+        value: Number(toBaseUnits(amount)),
+        address: to,
+      }],
+    });
+    return {
+      feeRate,
+      amount: Number(toDisplayUnits(createdTx.fee)),
+      txSize: Number(new BigNumber(createdTx.fee).div(1000).toFixed(3)),
+    };
+  };
+
+  estimateMaxSend = async (feeRate) => {
+    const info = await this.getAccountInfo();
+    const confirmedBal = new BigNumber(toDisplayUnits(info.balance.confirmed));
+    if (confirmedBal.isZero()) {
+      return 0;
+    }
+
+    const dummyAddr = randomAddrs[this.networkName];
+    let feeFudge = 0.0001;
+    while (feeFudge < 10) {
+      try {
+        const maxBal = confirmedBal.minus(feeFudge);
+        await this.estimateTxFee(dummyAddr, maxBal, feeRate);
+        return maxBal;
+      } catch (e) {
+        feeFudge = feeFudge * 10;
+      }
+    }
+
+    Sentry.captureMessage(`Max send never converged. Balance: ${toDisplayUnits(confirmedBal)}`);
+    return confirmedBal;
+  };
+
   sendOpen = (name) => this._ledgerProxy(
     () => this._executeRPC('createopen', [name]),
     () => this._executeRPC('sendopen', [name]),
@@ -197,6 +246,7 @@ class WalletService {
   );
 
   _onNodeStart = async (networkName, network, apiKey) => {
+    this.networkName = networkName;
     const walletOptions = {
       network: network,
       port: network.walletPort,
@@ -255,7 +305,6 @@ class WalletService {
 }
 
 const service = new WalletService();
-
 service.createNewWallet.suppressLogging = true;
 service.importSeed.suppressLogging = true;
 service.getMasterHDKey.suppressLogging = true;
@@ -281,6 +330,8 @@ const methods = {
   getMasterHDKey: service.getMasterHDKey,
   setPassphrase: service.setPassphrase,
   revealSeed: service.revealSeed,
+  estimateTxFee: service.estimateTxFee,
+  estimateMaxSend: service.estimateMaxSend,
   sendOpen: service.sendOpen,
   sendBid: service.sendBid,
   sendUpdate: service.sendUpdate,
