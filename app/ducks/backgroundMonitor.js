@@ -7,6 +7,7 @@ import { getInitializationState } from '../db/system';
 import isEqual from 'lodash.isequal';
 import { SET_NODE_INFO } from './nodeReducer';
 import { getNameInfo } from './names';
+import { fetchTransactions, fetchWallet } from './walletActions';
 
 export function createBackgroundMonitor() {
   let isLocked;
@@ -62,6 +63,9 @@ export function createBackgroundMonitor() {
       type: SET_PENDING_TRANSACTIONS,
       payload: newPendingTxns,
     });
+
+    await store.dispatch(fetchWallet());
+    await store.dispatch(fetchTransactions());
 
     // once a pending name operation is no longer pending,
     // refresh that name's state.
