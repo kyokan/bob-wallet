@@ -125,7 +125,7 @@ export default class ProofModal extends Component {
             <span>Install hs-airdrop.</span>
           </div>
           <div className="proof__step-description">
-            Head on over to <a href="https://github.com/handshake-org/hs-airdrop">hs-airdrop on GitHub</a>, and
+            Head on over to <a onClick={() => shell.openExternal('https://github.com/handshake-org/hs-airdrop')}>hs-airdrop on GitHub</a>, and
             install the tool using the instructions in the README.
           </div>
         </div>
