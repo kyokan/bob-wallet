@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.6] - 2020-02-14
 ### Added
 - Added a feature to specify custom fee rates
+- Added links to HNScan on the transactions page
 
 ## [0.2.5] - 2020-02-14
 ### Fixed

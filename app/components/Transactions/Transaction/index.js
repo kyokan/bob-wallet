@@ -7,6 +7,7 @@ import '../index.scss';
 import { displayBalance } from '../../../utils/balances';
 import ellipsify from '../../../utils/ellipsify';
 import Tooltipable from '../../Tooltipable';
+import { shell } from 'electron';
 
 const RECEIVE = 'RECEIVE';
 const SEND = 'SEND';
@@ -20,7 +21,7 @@ const COINBASE = 'COINBASE';
 
 class Transaction extends Component {
   static propTypes = {
-    transaction: PropTypes.object.isRequired
+    transaction: PropTypes.object.isRequired,
   };
 
   // conditional styling
@@ -29,19 +30,19 @@ class Transaction extends Component {
     classnames('transaction__tx-icon ', {
       'transaction__tx-icon--pending': tx.pending,
       'transaction__tx-icon--received': (tx.type === RECEIVE || tx.type === COINBASE) && !tx.pending,
-      'transaction__tx-icon--sent': tx.type === SEND && !tx.pending
+      'transaction__tx-icon--sent': tx.type === SEND && !tx.pending,
     });
 
   titleStyling = tx =>
     classnames('transaction__title', {
-      'transaction__title--pending': tx.pending
+      'transaction__title--pending': tx.pending,
     });
 
   numberStyling = tx =>
     classnames('transaction__number', {
       'transaction__number--pending': tx.pending,
       'transaction__number--positive': (tx.type === RECEIVE || tx.type === COINBASE) && !tx.pending,
-      'transaction__number--negative': (tx.type !== RECEIVE && tx.type !== COINBASE) && !tx.pending
+      'transaction__number--negative': (tx.type !== RECEIVE && tx.type !== COINBASE) && !tx.pending,
     });
 
   renderTimestamp = tx => {
@@ -73,7 +74,7 @@ class Transaction extends Component {
     } else if (tx.type === BID) {
       description = 'Placed Bid';
       content = this.formatDomain(tx.meta.domain);
-    } else if (tx.type === REVEAL){
+    } else if (tx.type === REVEAL) {
       description = 'Revealed Bid';
       content = this.formatDomain(tx.meta.domain);
     } else if (tx.type === UPDATE) {
@@ -86,14 +87,14 @@ class Transaction extends Component {
       description = 'Redeemed Bid';
       content = this.formatDomain(tx.meta.domain);
     } else if (tx.type === COINBASE) {
-      description = 'Mining Reward'
+      description = 'Mining Reward';
     } else {
       description = 'Unknown Transaction';
     }
 
     return (
       <div className="transaction__tx-description">
-        <div className={this.titleStyling(tx)}>{description}</div>
+        <div className={this.titleStyling(tx)} onClick={this.onClickTitle}>{description}</div>
         <div className="transaction__party">
           {content}
         </div>
@@ -136,6 +137,10 @@ class Transaction extends Component {
       )
       : '(unknown)';
   }
+
+  onClickTitle = () => {
+    shell.openExternal(`https://hnscan.com/tx/${this.props.transaction.id}`);
+  };
 };
 
 export default withRouter(Transaction);
