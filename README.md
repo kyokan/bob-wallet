@@ -8,6 +8,28 @@ Most discussion around Bob is on the [forum](https://forum.kyokan.io). Please go
 
 **This is beta software, so use it at your own risk!** We expect to exit beta soon.
 
+## How to Install Bob
+
+Most users (especially those who are unsure how to install Bob) should use the prebuilt binaries in this repo's [releases](https://github.com/kyokan/bob-wallet/releases) page.
+
+![Screen Shot 2020-02-22 at 11 08 18 AM](https://user-images.githubusercontent.com/8230144/75097836-06f48480-5564-11ea-85db-64251184e7bf.png)
+
+Note: this screenshot is unlikely to age well but the filetypes are highlighted so you know what to install. It says 0.2.6 here but you should always look for the latest version.
+.dmg - mac
+.msi - windows
+
+
+
+
+Interested developers are welcome to build the app with:
+```
+npm install
+npm run package
+```
+contributions are very welcome.
+
+
+
 ## Features
 
 Bob supports all of the following features:
