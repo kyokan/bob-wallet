@@ -9,18 +9,18 @@ import Checkbox from '../../components/Checkbox';
 export default class InterstitialWarningModal extends Component {
   static propTypes = {
     nextRoute: PropTypes.string.isRequired,
-    nextAction: PropTypes.func
+    nextAction: PropTypes.func,
   };
 
   static defaultProps = {
-    nextAction: () => Promise.resolve()
+    nextAction: () => Promise.resolve(),
   };
 
   constructor(props) {
     super(props);
 
     this.state = {
-      acceptances: [false, false, false]
+      acceptances: [false, false, false],
     };
   }
 
@@ -30,7 +30,7 @@ export default class InterstitialWarningModal extends Component {
       acceptances[i] = !acceptances[i];
 
       this.setState({
-        acceptances
+        acceptances,
       });
     };
   }
@@ -39,7 +39,8 @@ export default class InterstitialWarningModal extends Component {
     return (
       !this.state.acceptances[0] ||
       !this.state.acceptances[1] ||
-      !this.state.acceptances[2]
+      !this.state.acceptances[2] ||
+      !this.state.acceptances[3]
     );
   };
 
@@ -91,6 +92,16 @@ export default class InterstitialWarningModal extends Component {
           />
           <div className="interstitial-warning-modal__checkbox-label">
             There will be no way to recover my seed.
+          </div>
+        </div>
+        <div className="interstitial-warning-modal__checkbox">
+          <Checkbox
+            className="interstitial-warning-modal__checkbox-box"
+            onChange={this.toggleCheck(3)}
+            checked={this.state.acceptances[3]}
+          />
+          <div className="interstitial-warning-modal__checkbox-label">
+            I will need to re-import nonces for all of my active bids.
           </div>
         </div>
         <div className="interstitial-warning-modal__buttons">
