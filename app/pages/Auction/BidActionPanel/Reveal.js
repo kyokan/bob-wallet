@@ -8,7 +8,6 @@ import {
   AuctionPanelHeaderRow,
 } from '../../../components/AuctionPanel';
 import Blocktime from '../../../components/Blocktime';
-import AddToCalendar from 'react-add-to-calendar';
 import { displayBalance } from '../../../utils/balances';
 import * as logger from '../../../utils/logClient';
 import * as nameActions from '../../../ducks/names';
@@ -16,12 +15,6 @@ import { showError, showSuccess } from '../../../ducks/notifications';
 import { clientStub as aClientStub } from '../../../background/analytics/client';
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
-
-const CAL_ITEMS = [
-  {google: 'Google'},
-  {apple: 'iCal'},
-  {outlook: 'Outlook'},
-];
 
 class Reveal extends Component {
   static propTypes = {
@@ -82,10 +75,6 @@ class Reveal extends Component {
           <AuctionPanelHeaderRow label="Reveal Ends:">
             <div className="domains__bid-now__info__time-remaining">
               <div>
-                <AddToCalendar
-                  event={this.state.event}
-                  listItems={CAL_ITEMS}
-                />
                 {this.getTimeRemaining()}
               </div>
             </div>

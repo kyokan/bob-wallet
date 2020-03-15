@@ -10,7 +10,6 @@ import BidNow from './BidNow';
 import Reveal from './Reveal';
 import Owned from './Owned';
 import '../domains.scss';
-import '../add-to-calendar.scss';
 import Sold from './Sold';
 import Reserved from './Reserved';
 import { clientStub as aClientStub } from '../../../background/analytics/client';

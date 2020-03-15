@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed date calculations on auction screens
 
+### Removed
+- Removed broken "add to calendar" functionality
+
 ## [0.2.6] - 2020-02-14
 ### Added
 - Added a feature to specify custom fee rates
