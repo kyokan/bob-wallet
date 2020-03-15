@@ -104,7 +104,7 @@ class MyDomain extends Component {
         <Collapsible className="my-domain__info-panel" title="Records">
           <Records name={name} />
         </Collapsible>
-        <Collapsible className="my-domain__info-panel" title="Bid History" defaultCollapsed>
+        <Collapsible className="my-domain__info-panel" title="Your Bids" defaultCollapsed>
           {
             this.props.domain
               ? <BidHistory bids={this.props.domain.bids} reveals={this.props.domain.reveals} />

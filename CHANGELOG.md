@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Leading and trailing whitespace is now removed before verifying seed phrases
+- Updated copy on the auctions screen to say "Your Bids," rather than "Bid History," which more accurately reflects the data being displayed
 
 ### Removed
 - Removed broken "add to calendar" functionality
