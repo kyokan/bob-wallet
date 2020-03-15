@@ -101,8 +101,9 @@ export const removeWallet = () => async (dispatch, getState) => {
 };
 
 export const send = (to, amount, fee) => async (dispatch) => {
-  await walletClient.send(to, amount, fee);
+  const res = await walletClient.send(to, amount, fee);
   await dispatch(fetchWallet());
+  return res;
 };
 
 export const fetchTransactions = () => async (dispatch, getState) => {

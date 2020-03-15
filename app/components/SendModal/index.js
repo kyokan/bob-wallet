@@ -11,6 +11,7 @@ import isValidAddress from '../../utils/verifyAddress';
 import * as logger from '../../utils/logClient';
 import { clientStub as aClientStub } from '../../background/analytics/client';
 import walletClient from '../../utils/walletClient';
+import { shell } from 'electron';
 
 const Sentry = require('@sentry/electron');
 
@@ -55,6 +56,7 @@ class SendModal extends Component {
       gasFee: props.fees[STANDARD.toLowerCase()],
       isConfirming: false,
       transactionSent: false,
+      transactionHash: '',
       isSending: false,
       to: '',
       amount: '',
@@ -96,12 +98,13 @@ class SendModal extends Component {
     this.setState({isSending: true, errorMessage: ''});
 
     try {
-      await this.props.send(to, amount, gasFee);
+      const res = await this.props.send(to, amount, gasFee);
       this.setState({
         isSending: false,
         isConfirming: false,
         transactionSent: true,
         errorMessage: '',
+        transactionHash: res.hash
       });
       analytics.track('sent coins', {
         selectedGasOption,
@@ -376,6 +379,9 @@ class SendModal extends Component {
             Your balance will update as soon as the blockchain has confirmed
             your transaction.
           </div>
+          <div className="send__sent__details send__sent__details-first" onClick={this.viewOnHNScan}>
+            View on HNScan
+          </div>
           <div className="send__sent__details" onClick={() => this.resetState()}>Create New Transaction</div>
         </div>
       </div>
@@ -395,6 +401,10 @@ class SendModal extends Component {
   render() {
     return this.renderContent();
   }
+
+  viewOnHNScan = () => {
+    shell.openExternal(`https://hnscan.com/tx/${this.state.transactionHash}`);
+  };
 
   renderConfirmTime() {
     const {selectedGasOption, gasFee} = this.state;

@@ -353,12 +353,16 @@
 
     &__details {
       @extend %h4;
-      margin: 4rem 0 0.5rem 0;
+      margin: 1rem 0 0.5rem 0;
       font-weight: 600;
       color: $azure-blue;
       &:hover {
         cursor: pointer;
       }
+    }
+
+    &__details-first {
+      margin-top: 4rem;
     }
   }
 

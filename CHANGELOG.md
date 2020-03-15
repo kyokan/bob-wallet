@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Added an additional warning to the reset screen to highlight how bids need to be re-imported after deleting a wallet
+- Added an HNScan link to the transaction confirmation dialog
 
 ### Fixed
 - Fixed date calculations on auction screens
