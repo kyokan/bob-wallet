@@ -94,7 +94,7 @@ export default class GetCoins extends Component {
             airdrop.
           </p>
           <p>
-            If you had 15 or more followers on GitHub during the week of 2018-08-27, your GitHub SSH & PGP keys are
+            If you had 15 or more followers on GitHub during the week of 2019-02-04, your GitHub SSH & PGP keys are
             included in the Handshake network’s merkle tree. Likewise, roughly 30,000 keys from the PGP WOT Strongset
             have also been included in the tree. You’ll receive 2500 HNS for each proof.
           </p>
@@ -132,7 +132,7 @@ export default class GetCoins extends Component {
             <div className="get-coins__panel__offer">
               <div>GitHub Developers</div>
               <div>+ 4,662.598321 HNS</div>
-              <div>15 or more followers during the week of 2018-08-27</div>
+              <div>15 or more followers during the week of 2019-02-04</div>
               <div>SSH/PGP key</div>
               <button onClick={this.openGitHubModal}>Redeem</button>
             </div>

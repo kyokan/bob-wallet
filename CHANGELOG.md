@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed date calculations on auction screens
 - Fixed auction pages to show "Coming Soon" when auctions aren't available yet
+- Fixed copy on the "Get Coins" screen to accurately reflect when the [hs-airdrop](https://github.com/handshake-org/hs-airdrop) snapshot was taken
 
 ### Removed
 - Removed broken "add to calendar" functionality
