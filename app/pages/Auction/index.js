@@ -7,7 +7,15 @@ import moment from 'moment';
 
 import * as names from '../../ducks/names';
 import * as walletActions from '../../ducks/walletActions';
-import { isAvailable, isBidding, isClosed, isOpening, isReserved, isReveal } from '../../utils/nameHelpers';
+import {
+  isAvailable,
+  isBidding,
+  isClosed,
+  isComingSoon,
+  isOpening,
+  isReserved,
+  isReveal,
+} from '../../utils/nameHelpers';
 import BidActionPanel from './BidActionPanel';
 import Collapsible from '../../components/Collapsible';
 import Blocktime from '../../components/Blocktime';
@@ -245,6 +253,13 @@ export default class Auction extends Component {
       const bids = domain.bids || [];
       status = 'Available';
       description = `Bidding Now (${bids.length} bids)`;
+    } else if (isComingSoon(domain, this.props.chain.height)) {
+      status = 'Coming Soon';
+      description = (
+        <span>
+          Available around <Blocktime height={domain.start.start} format="ll" />
+        </span>
+      );
     } else if (isAvailable(domain)) {
       status = 'Available';
       description = 'No Bids';

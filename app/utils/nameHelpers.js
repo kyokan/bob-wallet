@@ -12,8 +12,12 @@ const STATES_TO_OPS = {
   REVEAL: 'REVEAL',
 };
 
+export const isComingSoon = (name, currentHeight) => {
+  return name && name.start && name.start.start > currentHeight;
+};
+
 export const isAvailable = name => {
-  const { start, info } = name || {};
+  const {start, info} = name || {};
 
   if (!start) {
     return false;
@@ -35,7 +39,7 @@ export const isAvailable = name => {
 };
 
 export const isReserved = name => {
-  const { start } = name || {};
+  const {start} = name || {};
 
   // Not available if start is undefined
   if (!start) {
@@ -56,7 +60,7 @@ function checkState(name, expectedState) {
     return false;
   }
 
-  const { start, info } = name;
+  const {start, info} = name;
   const ops = STATES_TO_OPS[expectedState];
 
   if (typeof ops !== 'undefined' && name.pendingOperation === ops) {

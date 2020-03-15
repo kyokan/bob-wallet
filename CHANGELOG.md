@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fixed date calculations on auction screens
+- Fixed auction pages to show "Coming Soon" when auctions aren't available yet
 
 ### Removed
 - Removed broken "add to calendar" functionality
