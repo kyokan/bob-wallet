@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed auction pages to show "Coming Soon" when auctions aren't available yet
 - Fixed copy on the "Get Coins" screen to accurately reflect when the [hs-airdrop](https://github.com/handshake-org/hs-airdrop) snapshot was taken
 
+### Changed
+- Leading and trailing whitespace is now removed before verifying seed phrases
+
 ### Removed
 - Removed broken "add to calendar" functionality
 

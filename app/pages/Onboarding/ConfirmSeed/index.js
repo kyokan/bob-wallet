@@ -81,7 +81,7 @@ export default class ConfirmSeed extends Component {
           <button
             className="extension_cta_button create_cta"
             onClick={() => {
-              if (this.state.words === seedphrase) {
+              if (this.state.words.trim() === seedphrase) {
                 onNext();
               } else {
                 this.setState({ pasteAttempted: true });
