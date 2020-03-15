@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added an additional warning to the reset screen to highlight how bids need to be re-imported after deleting a wallet
 
+### Fixed
+- Fixed date calculations on auction screens
+
 ## [0.2.6] - 2020-02-14
 ### Added
 - Added a feature to specify custom fee rates

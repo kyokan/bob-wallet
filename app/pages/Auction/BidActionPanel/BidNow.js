@@ -1,17 +1,15 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import {
   AuctionPanel,
-  AuctionPanelHeader,
   AuctionPanelFooter,
-  AuctionPanelHeaderRow
+  AuctionPanelHeader,
+  AuctionPanelHeaderRow,
 } from '../../../components/AuctionPanel';
 import Tooltipable from '../../../components/Tooltipable';
 import SuccessModal from '../../../components/SuccessModal';
 import Checkbox from '../../../components/Checkbox';
-import { returnBlockTime } from '../../../components/Blocktime';
-import AddToCalendar from 'react-add-to-calendar';
 import * as nameActions from '../../../ducks/names';
 import { showError, showSuccess } from '../../../ducks/notifications';
 import { displayBalance, toBaseUnits } from '../../../utils/balances';
@@ -19,12 +17,6 @@ import * as logger from '../../../utils/logClient';
 import { clientStub as aClientStub } from '../../../background/analytics/client';
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
-
-const CAL_ITEMS = [
-  { google: 'Google' },
-  { apple: 'iCal' },
-  { outlook: 'Outlook' },
-];
 
 class BidNow extends Component {
   static propTypes = {
@@ -39,7 +31,6 @@ class BidNow extends Component {
   };
 
   state = {
-    event: {},
     isPlacingBid: false,
     shouldAddDisguise: false,
     isReviewing: false,
@@ -50,52 +41,26 @@ class BidNow extends Component {
     showSuccessModal: false,
   };
 
-  async componentDidMount() {
-    const event = await this.generateEvent();
-    this.setState({event})
-  }
-
-  async generateEvent() {
-    const { domain, network, name } = this.props;
-    const { info } = domain || {};
-    const { stats } = info || {};
-    const { revealPeriodEnd } = stats || {};
-
-    const startDatetime = await returnBlockTime(revealPeriodEnd, network);
-
-    const endDatetime = startDatetime.clone().add(1, 'hours');
-
-    const event = {
-      title: `Reveal End of ${name}`,
-      description: `The Handshake domain ${name} will to revealable until block ${revealPeriodEnd}. Make sure to reveal your bids before the reveal period ends.`,
-      location: 'The Decentralized Internet',
-      startTime: startDatetime.format(),
-      endTime: endDatetime.format(),
-    };
-
-    return event;
-  }
-
   getTimeRemaining = () => {
-    const { info } = this.props.domain || {};
-    const { stats } = info || {};
-    const { hoursUntilReveal } = stats || {};
+    const {info} = this.props.domain || {};
+    const {stats} = info || {};
+    const {hoursUntilReveal} = stats || {};
 
     if (hoursUntilReveal < 24) {
       const hours = Math.floor(hoursUntilReveal % 24);
       const mins = Math.floor((hoursUntilReveal % 1) * 60);
-      return `~${hours}h ${mins}m`
+      return `~${hours}h ${mins}m`;
     }
 
     const days = Math.floor(hoursUntilReveal / 24);
     const hours = Math.floor(hoursUntilReveal % 24);
     const mins = Math.floor((hoursUntilReveal % 1) * 60);
-    return `~${days}d ${hours}h ${mins}m`
+    return `~${days}d ${hours}h ${mins}m`;
   };
 
   sendBid = async () => {
-    const { sendBid } = this.props;
-    const { bidAmount, disguiseAmount } = this.state;
+    const {sendBid} = this.props;
+    const {bidAmount, disguiseAmount} = this.state;
     const lockup = Number(disguiseAmount) + Number(bidAmount);
 
     try {
@@ -114,8 +79,8 @@ class BidNow extends Component {
     }
   };
 
-  render () {
-    const { domain } = this.props;
+  render() {
+    const {domain} = this.props;
 
     const {
       bidAmount,
@@ -124,9 +89,9 @@ class BidNow extends Component {
       isPlacingBid,
     } = this.state;
 
-    const { bids = [], info } = domain || {};
-    const { highest = 0, stats } = info || {};
-    const { bidPeriodEnd } = stats || {};
+    const {bids = [], info} = domain || {};
+    const {highest = 0, stats} = info || {};
+    const {bidPeriodEnd} = stats || {};
 
     return (
       <AuctionPanel>
@@ -136,7 +101,7 @@ class BidNow extends Component {
               bidAmount={bidAmount}
               maskAmount={Number(bidAmount) + Number(disguiseAmount)}
               revealStartBlock={bidPeriodEnd}
-              onClose={() => this.setState({ showSuccessModal: false })}
+              onClose={() => this.setState({showSuccessModal: false})}
             />
           )
         }
@@ -144,10 +109,6 @@ class BidNow extends Component {
           <AuctionPanelHeaderRow label="Reveal Ends:">
             <div className="domains__bid-now__info__time-remaining">
               <div>
-                <AddToCalendar
-                  event={this.state.event}
-                  listItems={CAL_ITEMS}
-                />
                 {this.getTimeRemaining()}
               </div>
             </div>
@@ -159,7 +120,8 @@ class BidNow extends Component {
             {highest}
           </AuctionPanelHeaderRow>
           <div className="domains__bid-now__info__disclaimer">
-            <Tooltipable tooltipContent={'To prevent price sniping, Handshake uses a blind second-price auction called a Vickrey Auction. Users can buy and register top-level domains (TLDs) with Handshake coins (HNS).'}>
+            <Tooltipable
+              tooltipContent={'To prevent price sniping, Handshake uses a blind second-price auction called a Vickrey Auction. Users can buy and register top-level domains (TLDs) with Handshake coins (HNS).'}>
               <div className="domains__bid-now__info__icon" />
             </Tooltipable>
             Winner pays 2nd highest bid price.
@@ -175,7 +137,7 @@ class BidNow extends Component {
       bidAmount,
     } = this.state;
 
-    const { confirmedBalance } = this.props;
+    const {confirmedBalance} = this.props;
 
     return (
       <AuctionPanelFooter>
@@ -187,7 +149,7 @@ class BidNow extends Component {
                 <input
                   type="number"
                   placeholder="0.00"
-                  onChange={e => this.setState({ bidAmount: e.target.value })}
+                  onChange={e => this.setState({bidAmount: e.target.value})}
                   value={bidAmount}
                 />
               </div>
@@ -196,7 +158,7 @@ class BidNow extends Component {
           </div>
           <button
             className="domains__bid-now__action__cta"
-            onClick={() => this.setState({ isReviewing: true })}
+            onClick={() => this.setState({isReviewing: true})}
             disabled={!(bidAmount > 0)}
           >
             Review Bid
@@ -208,7 +170,7 @@ class BidNow extends Component {
           </div>
         </div>
       </AuctionPanelFooter>
-    )
+    );
   }
 
   renderMask() {
@@ -238,7 +200,7 @@ class BidNow extends Component {
             <input
               type="number"
               placeholder="Optional"
-              onChange={e => this.setState({ disguiseAmount: e.target.value })}
+              onChange={e => this.setState({disguiseAmount: e.target.value})}
               value={disguiseAmount}
             />
           </div>
@@ -249,15 +211,15 @@ class BidNow extends Component {
     return (
       <div
         className="domains__bid-now__form__link"
-        onClick={() => this.setState({ shouldAddDisguise: true })}
+        onClick={() => this.setState({shouldAddDisguise: true})}
       >
         Add Disguise
       </div>
-    )
+    );
   }
 
   renderOwnHighestBid() {
-    const { ownHighestBid, totalBids, totalMasks } = this.props;
+    const {ownHighestBid, totalBids, totalMasks} = this.props;
 
     if (ownHighestBid) {
       return (
@@ -272,7 +234,7 @@ class BidNow extends Component {
             </AuctionPanelHeaderRow>
           </div>
         </div>
-      )
+      );
     }
   }
 
@@ -283,10 +245,10 @@ class BidNow extends Component {
         <div className="domains__bid-now__action">
           <button
             className="domains__bid-now__action__cta"
-            onClick={() => this.setState({ isPlacingBid: true })}
+            onClick={() => this.setState({isPlacingBid: true})}
             disabled={this.isBidPending()}
           >
-             {this.isBidPending() ? 'Bid Pending...' : 'Place Bid' }
+            {this.isBidPending() ? 'Bid Pending...' : 'Place Bid'}
           </button>
         </div>
       </AuctionPanelFooter>
@@ -302,7 +264,7 @@ class BidNow extends Component {
 
     return (
       <AuctionPanelFooter>
-        <div className="domains__bid-now__action--placing-bid" >
+        <div className="domains__bid-now__action--placing-bid">
           <div className="domains__bid-now__title">Review Your Bid</div>
           <div className="domains__bid-now__content">
             <AuctionPanelHeaderRow label="Bid Amount:">
@@ -312,7 +274,7 @@ class BidNow extends Component {
                 </div>
                 <div
                   className="domains__bid-now__action__edit-icon"
-                  onClick={() => this.setState({ isReviewing: false })}
+                  onClick={() => this.setState({isReviewing: false})}
                 />
               </div>
             </AuctionPanelHeaderRow>
@@ -343,7 +305,7 @@ class BidNow extends Component {
           <div className="domains__bid-now__action">
             <div className="domains__bid-now__action__agreement">
               <Checkbox
-                onChange={e => this.setState({ hasAccepted: e.target.checked })}
+                onChange={e => this.setState({hasAccepted: e.target.checked})}
                 checked={hasAccepted}
               />
               <div className="domains__bid-now__action__agreement-text">
@@ -360,22 +322,22 @@ class BidNow extends Component {
           </div>
         </div>
       </AuctionPanelFooter>
-    )
+    );
   }
 
   isBidPending() {
-    const { successfullyBid } = this.state;
+    const {successfullyBid} = this.state;
     return successfullyBid || this.props.isPending;
   }
 
   renderBidNow() {
-    const { isReviewing } = this.state;
+    const {isReviewing} = this.state;
     return isReviewing ? this.renderReviewing() : this.renderBiddingView();
   }
 }
 
 export default connect(
-  (state, { domain }) => ({
+  (state, {domain}) => ({
     confirmedBalance: state.wallet.balance.confirmed,
     ownHighestBid: _ownHighestBid(domain),
     totalBids: getTotalBids(domain),
@@ -383,7 +345,7 @@ export default connect(
     network: state.node.network,
     isPending: domain.pendingOperation === 'BID',
   }),
-  (dispatch, { name }) => ({
+  (dispatch, {name}) => ({
     sendBid: (amount, lockup) => dispatch(nameActions.sendBid(name, toBaseUnits(amount), toBaseUnits(lockup))),
     showError: (message) => dispatch(showError(message)),
     showSuccess: (message) => dispatch(showSuccess(message)),
@@ -420,7 +382,7 @@ function _ownHighestBid(domain) {
   for (const {bid} of domain.bids) {
     if (bid.own) {
       if (!highestBid) {
-        highestBid = bid
+        highestBid = bid;
       } else {
         highestBid = bid.value > highestBid.value ? bid : highestBid;
       }

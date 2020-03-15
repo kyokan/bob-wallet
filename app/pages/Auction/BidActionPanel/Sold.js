@@ -45,6 +45,7 @@ class Sold extends Component {
           <AuctionPanelHeaderRow label="Expires On:">
             <Blocktime
               height={renewalPeriodEnd}
+              format="ll"
             />
           </AuctionPanelHeaderRow>
           <AuctionPanelHeaderRow label="Total Bids:">

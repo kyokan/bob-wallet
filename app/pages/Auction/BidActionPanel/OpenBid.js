@@ -2,14 +2,13 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import c from 'classnames';
-import AddToCalendar from 'react-add-to-calendar';
 import {
   AuctionPanel,
   AuctionPanelFooter,
   AuctionPanelHeader,
   AuctionPanelHeaderRow,
 } from '../../../components/AuctionPanel';
-import { returnBlockTime } from '../../../components/Blocktime';
+import Blocktime from '../../../components/Blocktime';
 import * as nameActions from '../../../ducks/names';
 import { showError, showSuccess } from '../../../ducks/notifications';
 import { isOpening } from '../../../utils/nameHelpers';
@@ -17,12 +16,6 @@ import * as logger from '../../../utils/logClient';
 import { clientStub as aClientStub } from '../../../background/analytics/client';
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
-
-const CAL_ITEMS = [
-  {google: 'Google'},
-  {apple: 'iCal'},
-  {outlook: 'Outlook'},
-];
 
 class OpenBid extends Component {
   static propTypes = {
@@ -32,40 +25,6 @@ class OpenBid extends Component {
     showSuccess: PropTypes.func.isRequired,
     currentBlock: PropTypes.number.isRequired,
   };
-
-  state = {
-    startTime: '',
-    event: {},
-  };
-
-  async componentDidMount() {
-    await this.getBlockTime();
-    const event = await this.generateEvent();
-    this.setState({event});
-  }
-
-  async getBlockTime() {
-    const {startBlock, network} = this.props;
-
-    const startTime = await returnBlockTime(startBlock, network);
-    return this.setState({startTime: startTime.format('ll')});
-  }
-
-  async generateEvent() {
-    const {startBlock, network, name} = this.props;
-    const startDatetime = await returnBlockTime(startBlock, network);
-    const endDatetime = startDatetime.clone().add(1, 'hours');
-
-    const event = {
-      title: `Opening of ${name}`,
-      description: `The Handshake domain ${name} will be ready for bids at block ${startBlock}.`,
-      location: 'The Decentralized Internet',
-      startTime: startDatetime.format(),
-      endTime: endDatetime.format(),
-    };
-
-    return event;
-  }
 
   sendOpen = async () => {
     const {sendOpen} = this.props;
@@ -100,11 +59,7 @@ class OpenBid extends Component {
                   ? 'Now'
                   : (
                     <div>
-                      <AddToCalendar
-                        event={this.state.event}
-                        listItems={CAL_ITEMS}
-                      />
-                      {this.state.startTime}
+                      <Blocktime height={startBlock} format="ll" />
                     </div>
                   )
               }
@@ -124,6 +79,7 @@ class OpenBid extends Component {
     const {domain, currentBlock} = this.props;
     const {start} = domain || {};
     const startBlock = start.start;
+    console.log('my new start block is', startBlock);
 
     if (isOpening(domain)) {
       return (
@@ -148,8 +104,14 @@ class OpenBid extends Component {
         <div className="domains__bid-now__content domains__open-bid__content">
           {
             startBlock <= currentBlock
-              ? 'Start the auction process by making an open bid.'
-              : `Come back on ${this.state.startTime} to open the auction. You can add the domain to your watchlist or set a calendar invite to not miss it.`
+              ?
+              'Start the auction process by making an open bid.'
+              :
+              <span>
+                Come back around{' '}
+                <Blocktime height={startBlock} format="ll" /> to open the auction. You can add the domain
+                to your watchlist to make sure you don't miss it.
+              </span>
           }
         </div>
         <div className="domains__bid-now__action">

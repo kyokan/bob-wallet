@@ -13,6 +13,7 @@ import { BigNumber } from 'bignumber.js';
 const Network = require('hsd/lib/protocol/network');
 
 const MIN_FEE = new BigNumber(0.01);
+const DEFAULT_BLOCK_TIME = 10 * 60 * 1000;
 
 export class NodeService extends EventEmitter {
   constructor() {
@@ -181,6 +182,35 @@ export class NodeService extends EventEmitter {
     };
   }
 
+  async getAverageBlockTime() {
+    this._ensureStarted();
+
+    const info = await this.client.getInfo();
+    const height = info.chain.height;
+    if (height <= 1) {
+      return DEFAULT_BLOCK_TIME;
+    }
+
+    const averageOver = 50;
+    const startHeight = Math.max(height - averageOver, 1);
+    let previous = 0;
+    let count = 0;
+    let sum = 0;
+    for (let i = startHeight; i <= height; i++) {
+      const block = await this.client.execute('getblockbyheight', [i, true, false]);
+      if (previous === 0) {
+        previous = block.time;
+        continue;
+      }
+
+      count++;
+      sum += (block.time - previous);
+      previous = block.time;
+    }
+
+    return Math.floor((sum / count) * 1000);
+  }
+
   _ensureStarted() {
     if (!this.hsdWindow) {
       throw new Error('hsd not started.');
@@ -244,6 +274,7 @@ const methods = {
   broadcastRawTx: (tx) => service.broadcastRawTx(tx),
   sendRawAirdrop: (data) => service.sendRawAirdrop(data),
   getFees: () => service.getFees(),
+  getAverageBlockTime: () => service.getAverageBlockTime(),
 };
 
 export async function start(server) {

@@ -7,9 +7,8 @@ import {
   AuctionPanelHeader,
   AuctionPanelHeaderRow,
 } from '../../../components/AuctionPanel';
-import { returnBlockTime } from '../../../components/Blocktime';
+import Blocktime from '../../../components/Blocktime';
 import AddToCalendar from 'react-add-to-calendar';
-import moment from 'moment';
 import { displayBalance } from '../../../utils/balances';
 import * as logger from '../../../utils/logClient';
 import * as nameActions from '../../../ducks/names';
@@ -36,43 +35,6 @@ class Reveal extends Component {
     totalBids: PropTypes.number.isRequired,
     totalMasks: PropTypes.number.isRequired,
   };
-
-  state = {
-    event: {},
-    revealEndDate: null,
-  };
-
-  async componentDidMount() {
-    const {domain, network} = this.props;
-    const {info} = domain || {};
-    const {stats} = info || {};
-    const {revealPeriodEnd} = stats || {};
-    const revealEndDate = await returnBlockTime(revealPeriodEnd, network);
-    const event = await this.generateEvent();
-
-    this.setState({event, revealEndDate});
-  }
-
-  async generateEvent() {
-    const {domain, network, name} = this.props;
-    const {info} = domain || {};
-    const {stats} = info || {};
-    const {revealPeriodEnd} = stats || {};
-
-    const startDatetime = await returnBlockTime(revealPeriodEnd, network);
-
-    const endDatetime = startDatetime.clone().add(1, 'hours');
-
-    const event = {
-      title: `Reveal End of ${name}`,
-      description: `The Handshake domain ${name} will to revealable until block ${revealPeriodEnd}. Make sure to reveal your bids before the reveal period ends.`,
-      location: 'The Decentralized Internet',
-      startTime: startDatetime.format(),
-      endTime: endDatetime.format(),
-    };
-
-    return event;
-  }
 
   getTimeRemaining = () => {
     const {info} = this.props.domain || {};
@@ -207,15 +169,14 @@ class Reveal extends Component {
 
   renderWarning() {
     const {hasRevealableBid, totalMasks, hasRevealed} = this.props;
-    const {revealEndDate} = this.state;
-
     if (hasRevealed || !hasRevealableBid) {
       return <div className="domains__bid-now__info__warning" />;
     }
 
     return (
       <div className="domains__bid-now__info__warning">
-        {`You will lose ${displayBalance(totalMasks, true)} if you don't reveal before ${moment(revealEndDate).format('MM/DD/YYYY')}.`}
+        You will lose {displayBalance(totalMasks, true)} if you don't reveal before
+        <Blocktime height={this.props.domain.stats.revealPeriodEnd} format="ll" />
       </div>
     );
   }
