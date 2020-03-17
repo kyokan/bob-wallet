@@ -164,8 +164,8 @@ class Reveal extends Component {
 
     return (
       <div className="domains__bid-now__info__warning">
-        You will lose {displayBalance(totalMasks, true)} if you don't reveal before
-        <Blocktime height={this.props.domain.stats.revealPeriodEnd} format="ll" />
+        You will lose {displayBalance(totalMasks, true)} if you don't reveal before{' '}
+        <Blocktime height={this.props.domain.info.stats.revealPeriodEnd} format="ll" />
       </div>
     );
   }
