@@ -223,17 +223,24 @@ async function parseInputsOutputs(net, tx) {
     }
   }
 
+  let totalValue = 0;
+  let rec = false;
   for (const output of tx.outputs) {
     if (output.path) {
-      return {
-        type: isCoinbase ? 'COINBASE' : 'RECEIVE',
-        meta: {
-          from: isCoinbase ? '' : tx.inputs[0].address,
-        },
-        value: output.value,
-        fee: tx.fee,
-      };
+      rec = true;
+      totalValue += output.value;
     }
+  }
+
+  if (rec) {
+    return {
+      type: isCoinbase ? 'COINBASE' : 'RECEIVE',
+      meta: {
+        from: isCoinbase ? '' : tx.inputs[0].address,
+      },
+      value: totalValue,
+      fee: tx.fee,
+    };
   }
 
   return {
