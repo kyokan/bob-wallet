@@ -185,7 +185,7 @@ class SendModal extends Component {
               <input
                 type="number"
                 min={0}
-                placeholder="0.00000"
+                placeholder="0.000000"
                 onChange={this.updateAmount}
                 value={amount}
               />
