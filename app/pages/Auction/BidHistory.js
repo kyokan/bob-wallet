@@ -56,11 +56,16 @@ export default class BidHistory extends Component {
             {order.map(fromAddress => {
               const bid = map[fromAddress];
               const {month, day, year} = bid.date;
+              let bidValue = 'Hidden Until Reveal';
+              if (!bid.bid && bid.own)
+                bidValue = '⚠️ Unknown Bid';
+              if (bid.bid)
+                bidValue = displayBalance(bid.bid, true);
               return (
                 <tr key={fromAddress}>
                   <td>{month}/{day}/{year}</td>
                   <td>{bid.own ? 'You' : ellipsify(fromAddress, 10)}</td>
-                  <td>{typeof bid.bid === 'number' ? displayBalance(bid.bid, true) : 'Hidden Until Reveal'}</td>
+                  <td>{bidValue}</td>
                   <td>{displayBalance(bid.mask, true)}</td>
                 </tr>
               )

@@ -114,7 +114,7 @@ class Reveal extends Component {
         <div className="domains__bid-now__title">Your Bids</div>
         <div className="domains__bid-now__content">
           <AuctionPanelHeaderRow label="Total Bids:">
-            {displayBalance(totalBids, true)}
+            {totalBids < 0 ? '?' : displayBalance(totalBids, true)}
           </AuctionPanelHeaderRow>
           <AuctionPanelHeaderRow label="Total Masks:">
             {displayBalance(totalMasks, true)}
@@ -131,9 +131,11 @@ class Reveal extends Component {
       hasRevealableBid,
       hasRevealed,
       hasPendingReveal,
+      needsRepair,
     } = this.props;
 
     let text = 'Reveal Your Bids';
+    let cname = 'domains__bid-now__action__cta'
 
     if (hasRevealed) {
       text = 'Bid Successfully Revealed';
@@ -143,12 +145,17 @@ class Reveal extends Component {
       text = 'Reveal Pending...';
     }
 
+    if (needsRepair) {
+      text = 'Repair unknown bids';
+      cname = 'domains__bid-now__action__warning';
+    }
+
     return (
       <div className="domains__bid-now__action">
         <button
-          className="domains__bid-now__action__cta"
+          className={cname}
           onClick={this.sendReveal}
-          disabled={hasRevealed || hasPendingReveal || !hasRevealableBid}
+          disabled={hasRevealed || hasPendingReveal || !hasRevealableBid || needsRepair}
         >
           {text}
         </button>
@@ -176,6 +183,7 @@ export default connect(
     hasRevealableBid: _hasRevealableBid(domain),
     hasPendingReveal: _hasPendingReveal(domain),
     hasRevealed: _hasRevealed(domain),
+    needsRepair: getTotalBids(domain) < 0,
     totalBids: getTotalBids(domain),
     totalMasks: getTotalMasks(domain),
     network: state.node.network,
@@ -220,6 +228,10 @@ function getTotalBids(domain) {
 
   for (const {bid} of domain.bids) {
     if (bid.own) {
+      // This is our bid, but we don't know its value
+      if (!bid.value)
+        return -1;
+
       total += bid.value;
     }
   }
