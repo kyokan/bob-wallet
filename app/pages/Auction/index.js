@@ -182,7 +182,11 @@ export default class Auction extends Component {
         <React.Fragment>
           <Collapsible className="domains__content__info-panel" title="Your Bids" pillContent={pillContent}>
             {this.props.domain ?
-              <BidHistory bids={this.props.domain.bids} reveals={this.props.domain.reveals} /> :
+              <BidHistory
+                bids={this.props.domain.bids}
+                reveals={this.props.domain.reveals}
+                getNameInfo={this.props.getNameInfo}
+              /> :
               'Loading...'
             }
           </Collapsible>

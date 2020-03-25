@@ -28,4 +28,6 @@ export const clientStub = ipcRendererInjector => makeClient(ipcRendererInjector,
   'lock',
   'unlock',
   'isLocked',
+  'getNonce',
+  'importNonce',
 ]);
