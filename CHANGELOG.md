@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed total amount received by a transaction with multiple outputs to the wallet
 
+### Added
+- Added warning for missing bid values and functionality to repair missing bids
+
 ## [0.2.8] - 2020-03-17
 ### Fixed
 - Fixed a crash when names transitioned from the bidding to revealing state
