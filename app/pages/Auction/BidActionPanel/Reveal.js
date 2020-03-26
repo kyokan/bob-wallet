@@ -146,7 +146,7 @@ class Reveal extends Component {
     }
 
     if (needsRepair) {
-      text = 'Repair unknown bids';
+      text = 'Repair Unknown Bids';
       cname = 'domains__bid-now__action__warning';
     }
 
