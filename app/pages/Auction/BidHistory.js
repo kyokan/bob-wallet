@@ -11,6 +11,7 @@ export default class BidHistory extends Component {
     bids: PropTypes.array.isRequired,
     reveals: PropTypes.array.isRequired,
     getNameInfo: PropTypes.func.isRequired,
+    showError: PropTypes.func.isRequired,
   };
 
   render() {
@@ -62,8 +63,13 @@ export default class BidHistory extends Component {
               const bid = map[fromAddress];
               const {month, day, year} = bid.date;
               let bidValue = 'Hidden Until Reveal';
-              if (!bid.bid && bid.own)
-                bidValue = <RepairBid bid={bid} getNameInfo={this.props.getNameInfo}/>;
+              if (!bid.bid && bid.own) {
+                bidValue = <RepairBid
+                  bid={bid}
+                  getNameInfo={this.props.getNameInfo}
+                  showError={this.props.showError}
+                />;
+              }
               if (bid.bid)
                 bidValue = displayBalance(bid.bid, true);
               return (

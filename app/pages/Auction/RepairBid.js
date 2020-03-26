@@ -9,6 +9,7 @@ class RepairBid extends Component {
   static propTypes = {
     bid: PropTypes.object.isRequired,
     getNameInfo: PropTypes.func.isRequired,
+    showError: PropTypes.func.isRequired,
   };
 
   constructor(props) {
@@ -46,33 +47,38 @@ class RepairBid extends Component {
     );
   }
 
-  processValue(val) {
+  processValue = async (val) => {
     const value = val.match(/[0-9]*\.?[0-9]{0,6}/g)[0];
     if (value * consensus.COIN > consensus.MAX_MONEY)
       return;
     this.setState({value: value});
-    this.verifyBid(value);
+    if (parseFloat(value))
+      return this.verifyBid(value);
   }
 
-  verifyBid(value) {
+  async verifyBid(value) {
     const {bid} = this.props;
-    walletClient.getNonce({
-      name: bid.name,
-      address: bid.from,
-      bid: value * consensus.COIN
-    }).then((attempt) => {
-      if (attempt.blind === bid.blind)
+    try {
+      const attempt = await walletClient.getNonce({
+        name: bid.name,
+        address: bid.from,
+        bid: value * consensus.COIN
+      });
+
+      if (attempt.blind === bid.blind) {
         this.setState({isCorrect: true});
-        walletClient.importNonce({
+
+        await walletClient.importNonce({
           name: bid.name,
           address: bid.from,
           bid: parseFloat(value),
-        }).then(() => {
-          this.props.getNameInfo(bid.name);
         });
-    });
 
-    
+        this.props.getNameInfo(bid.name);
+      }
+    } catch (e) {
+      this.props.showError(e.message);
+    }
   }
 
   render() {
