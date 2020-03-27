@@ -260,6 +260,10 @@ class WalletService {
     return this.client.zap(WALLET_ID, 'default', 1);
   };
 
+  importName = (name, start) => {
+    return this._executeRPC('importname', [name, start]);
+  };
+
   _onNodeStart = async (networkName, network, apiKey) => {
     this.networkName = networkName;
     const walletOptions = {
@@ -360,6 +364,7 @@ const methods = {
   getNonce: service.getNonce,
   importNonce: service.importNonce,
   zap: service.zap,
+  importName: service.importName,
 };
 
 export async function start(server) {

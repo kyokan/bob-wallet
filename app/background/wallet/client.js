@@ -31,4 +31,5 @@ export const clientStub = ipcRendererInjector => makeClient(ipcRendererInjector,
   'getNonce',
   'importNonce',
   'zap',
+  'importName',
 ]);
