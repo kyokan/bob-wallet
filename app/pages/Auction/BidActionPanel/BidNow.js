@@ -15,6 +15,7 @@ import { showError, showSuccess } from '../../../ducks/notifications';
 import { displayBalance, toBaseUnits } from '../../../utils/balances';
 import * as logger from '../../../utils/logClient';
 import { clientStub as aClientStub } from '../../../background/analytics/client';
+import walletClient from '../../../utils/walletClient';
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -28,6 +29,7 @@ class BidNow extends Component {
     ownHighestBid: PropTypes.object.isRequired,
     isPending: PropTypes.bool.isRequired,
     confirmedBalance: PropTypes.number.isRequired,
+    getNameInfo: PropTypes.func.isRequired,
   };
 
   state = {
@@ -79,6 +81,15 @@ class BidNow extends Component {
     }
   };
 
+  rescanAuction = async () => {
+    const {domain} = this.props;
+    const result = await walletClient.importName(domain.name, domain.info.height - 1);
+    // TODO: disable the UI while we rescan and release when wdb.height == chain.height
+    // This timeout is a nasty hack until the feature is available in hsd.
+    await new Promise((r) => setTimeout(r, 5000));
+    this.props.getNameInfo(domain.name);
+  }
+
   render() {
     const {domain} = this.props;
 
@@ -128,6 +139,7 @@ class BidNow extends Component {
           </div>
         </AuctionPanelHeader>
         {isPlacingBid ? this.renderBidNow() : this.renderOwnBidAction()}
+        {domain.walletHasName ? '' : this.renderRescanButton()}
       </AuctionPanel>
     );
   }
@@ -333,6 +345,25 @@ class BidNow extends Component {
   renderBidNow() {
     const {isReviewing} = this.state;
     return isReviewing ? this.renderReviewing() : this.renderBiddingView();
+  }
+
+  renderRescanButton() {
+    return (
+      <div className="domains__bid-now__action">
+        <button
+          className="domains__bid-now__action__cta"
+          onClick={this.rescanAuction}
+        >
+          Rescan Auction
+            <Tooltipable
+              left={"-130px"}
+              className="domains__bid-now__rescan-tooltip"
+              tooltipContent={'Rewinds blockchain to look for bids placed in the past. This may take a few minutes to complete, during which time the wallet will be unresponsive.'}>
+              <div className="account__info-icon" />
+            </Tooltipable>
+        </button>
+      </div>
+    );
   }
 }
 

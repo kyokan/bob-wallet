@@ -111,23 +111,23 @@ export default class Auction extends Component {
     const {domain} = this.props;
 
     if (isReserved(domain)) {
-      return <BidActionPanel domain={domain} />;
+      return <BidActionPanel domain={domain} getNameInfo={this.props.getNameInfo} />;
     }
 
     if (this.isOwned()) {
-      return <BidActionPanel domain={domain} />;
+      return <BidActionPanel domain={domain} getNameInfo={this.props.getNameInfo} />;
     }
 
     if (isClosed(domain)) {
-      return <BidActionPanel domain={domain} />;
+      return <BidActionPanel domain={domain} getNameInfo={this.props.getNameInfo} />;
     }
 
     if (isOpening(domain) || isBidding(domain) || isReveal(domain)) {
-      return <BidActionPanel domain={domain} />;
+      return <BidActionPanel domain={domain} getNameInfo={this.props.getNameInfo} />;
     }
 
     if (isAvailable(domain)) {
-      return <BidActionPanel domain={domain} />;
+      return <BidActionPanel domain={domain} getNameInfo={this.props.getNameInfo} />;
     }
 
     return null;

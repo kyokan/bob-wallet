@@ -34,6 +34,7 @@ class BidActionPanel extends Component {
     getWatching: PropTypes.func.isRequired,
     watchDomain: PropTypes.func.isRequired,
     unwatchDomain: PropTypes.func.isRequired,
+    getNameInfo: PropTypes.func.isRequired,
   };
 
   state = {
@@ -114,6 +115,7 @@ class BidActionPanel extends Component {
         <BidNow
           domain={domain}
           name={name}
+          getNameInfo={this.props.getNameInfo}
         />
       );
     }
