@@ -41,6 +41,7 @@ export const getNameInfo = name => async (dispatch) => {
   let reveals = [];
   let winner = null;
   let isOwner = false;
+  let walletHasName = false;
   if (!info) {
     dispatch({
       type: SET_NAME,
@@ -52,6 +53,7 @@ export const getNameInfo = name => async (dispatch) => {
         reveals,
         winner,
         isOwner,
+        walletHasName,
       },
     });
     return;
@@ -59,6 +61,7 @@ export const getNameInfo = name => async (dispatch) => {
 
   try {
     const auctionInfo = await walletClient.getAuctionInfo(name);
+    walletHasName = true;
     bids = await inflateBids(nodeClient, walletClient, auctionInfo.bids, info.height);
     reveals = await inflateReveals(nodeClient, walletClient, auctionInfo.reveals, info.height);
   } catch (e) {
@@ -79,7 +82,7 @@ export const getNameInfo = name => async (dispatch) => {
 
   dispatch({
     type: SET_NAME,
-    payload: {name, start, info, bids, reveals, winner, isOwner},
+    payload: {name, start, info, bids, reveals, winner, isOwner, walletHasName},
   });
 };
 
