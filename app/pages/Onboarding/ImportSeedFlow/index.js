@@ -28,6 +28,7 @@ class ImportSeedFlow extends Component {
     }).isRequired,
     completeInitialization: PropTypes.func.isRequired,
     network: PropTypes.string.isRequired,
+    waitForWalletSync: PropTypes.func.isRequired,
   };
 
   state = {
@@ -116,6 +117,7 @@ class ImportSeedFlow extends Component {
     try {
       await walletClient.importSeed(this.state.passphrase, mnemonic);
       await this.props.completeInitialization(this.state.passphrase);
+      await this.props.waitForWalletSync();
     } catch (e) {
       logger.error(`Error received from ImportSeedFlow - finishFlow]\n\n${e.message}\n${e.stack}\n`);
     } finally {
@@ -131,6 +133,7 @@ export default withRouter(
     }),
     dispatch => ({
       completeInitialization: (passphrase) => dispatch(walletActions.completeInitialization(passphrase)),
+      waitForWalletSync: () => dispatch(walletActions.waitForWalletSync()),
     }),
   )(ImportSeedFlow),
 );

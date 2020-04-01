@@ -16,6 +16,7 @@ import { displayBalance, toBaseUnits } from '../../../utils/balances';
 import * as logger from '../../../utils/logClient';
 import { clientStub as aClientStub } from '../../../background/analytics/client';
 import walletClient from '../../../utils/walletClient';
+import * as walletActions from '../../../ducks/walletActions';
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -30,6 +31,7 @@ class BidNow extends Component {
     isPending: PropTypes.bool.isRequired,
     confirmedBalance: PropTypes.number.isRequired,
     getNameInfo: PropTypes.func.isRequired,
+    waitForWalletSync: PropTypes.func.isRequired,
   };
 
   state = {
@@ -83,10 +85,8 @@ class BidNow extends Component {
 
   rescanAuction = async () => {
     const {domain} = this.props;
-    const result = await walletClient.importName(domain.name, domain.info.height - 1);
-    // TODO: disable the UI while we rescan and release when wdb.height == chain.height
-    // This timeout is a nasty hack until the feature is available in hsd.
-    await new Promise((r) => setTimeout(r, 5000));
+    this.props.waitForWalletSync();
+    await walletClient.importName(domain.name, domain.info.height - 1);
     this.props.getNameInfo(domain.name);
   }
 
@@ -380,6 +380,7 @@ export default connect(
     sendBid: (amount, lockup) => dispatch(nameActions.sendBid(name, toBaseUnits(amount), toBaseUnits(lockup))),
     showError: (message) => dispatch(showError(message)),
     showSuccess: (message) => dispatch(showSuccess(message)),
+    waitForWalletSync: () => dispatch(walletActions.waitForWalletSync()),
   }),
 )(BidNow);
 
