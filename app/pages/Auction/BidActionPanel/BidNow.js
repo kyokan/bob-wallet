@@ -63,11 +63,19 @@ class BidNow extends Component {
   };
 
   sendBid = async () => {
-    const {sendBid} = this.props;
+    const {sendBid, domain} = this.props;
     const {bidAmount, disguiseAmount} = this.state;
     const lockup = Number(disguiseAmount) + Number(bidAmount);
 
     try {
+      // If the name is not already stored in the wallet, rescan the auction
+      // for past bids before proceeding. The wallet will continue to track
+      // newer bids automatically.
+      if (!domain.walletHasName) {
+        this.props.waitForWalletSync();
+        await walletClient.importName(domain.name, domain.info.height - 1);
+      }
+
       await sendBid(bidAmount, lockup);
       this.setState({
         isReviewing: false,
@@ -80,6 +88,8 @@ class BidNow extends Component {
       console.error(e);
       logger.error(`Error received from BidNow - sendBid]\n\n${e.message}\n${e.stack}\n`);
       this.props.showError('Failed to place bid. Please try again.');
+    } finally {
+      await this.props.getNameInfo(domain.name);  
     }
   };
 
