@@ -13,6 +13,9 @@ import {
   SET_TRANSACTIONS,
   SET_WALLET,
   UNLOCK_WALLET,
+  START_SYNC_WALLET,
+  STOP_SYNC_WALLET,
+  SYNC_WALLET_PROGRESS,
 } from './walletReducer';
 
 let idleInterval;
@@ -104,6 +107,25 @@ export const send = (to, amount, fee) => async (dispatch) => {
   const res = await walletClient.send(to, amount, fee);
   await dispatch(fetchWallet());
   return res;
+};
+
+export const waitForWalletSync = () => async (dispatch, getState) => {
+  await dispatch({type: START_SYNC_WALLET});
+
+  for (;;) {
+    const nodeInfo = await nodeClient.getInfo();
+    const wdbInfo = await walletClient.rpcGetWalletInfo();
+
+    if (nodeInfo.chain.height === wdbInfo.height) {
+      dispatch({type: STOP_SYNC_WALLET});
+      break;
+    } else {
+      const progress = parseInt(wdbInfo.height / nodeInfo.chain.height * 100);
+      dispatch({type: SYNC_WALLET_PROGRESS, payload: progress});
+    }
+
+    await new Promise((r) => setTimeout(r, 1000));
+  }
 };
 
 export const fetchTransactions = () => async (dispatch, getState) => {

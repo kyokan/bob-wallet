@@ -27,6 +27,7 @@ import AccountLogin from '../AcountLogin';
 import * as node from '../../ducks/node';
 import Notification from '../../components/Notification';
 import SplashScreen from "../../components/SplashScreen";
+import WalletSync from "../../components/WalletSync";
 import NetworkPicker from '../NetworkPicker';
 import IdleModal from '../../components/IdleModal';
 import { LedgerModal } from '../../components/LedgerModal';
@@ -66,6 +67,7 @@ class App extends Component {
 
     return (
       <div className="app">
+        <WalletSync />
         <IdleModal />
         {this.renderContent()}
       </div>
