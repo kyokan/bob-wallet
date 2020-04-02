@@ -180,10 +180,14 @@ export default class Auction extends Component {
     if (isAvailable(domain) || isOpening(domain) || isBidding(domain) || isReveal(domain)) {
       return (
         <React.Fragment>
-          <Collapsible className="domains__content__info-panel" title="Your Bids" pillContent={pillContent}
-                       defaultCollapsed>
+          <Collapsible className="domains__content__info-panel" title="Your Bids" pillContent={pillContent}>
             {this.props.domain ?
-              <BidHistory bids={this.props.domain.bids} reveals={this.props.domain.reveals} /> :
+              <BidHistory
+                bids={this.props.domain.bids}
+                reveals={this.props.domain.reveals}
+                getNameInfo={this.props.getNameInfo}
+                showError={this.props.showError}
+              /> :
               'Loading...'
             }
           </Collapsible>

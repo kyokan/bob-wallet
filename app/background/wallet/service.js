@@ -246,6 +246,15 @@ class WalletService {
     },
   );
 
+  getNonce = async (options) => {
+    this._ensureClient();
+    return this.client.getNonce(WALLET_ID, options.name, options);
+  };
+
+  importNonce = async (options) => {
+    return this._executeRPC('importnonce', [options.name, options.address, options.bid]);
+  }
+
   _onNodeStart = async (networkName, network, apiKey) => {
     this.networkName = networkName;
     const walletOptions = {
@@ -343,6 +352,8 @@ const methods = {
   lock: service.lock,
   unlock: service.unlock,
   isLocked: service.isLocked,
+  getNonce: service.getNonce,
+  importNonce: service.importNonce,
 };
 
 export async function start(server) {

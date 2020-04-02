@@ -247,6 +247,33 @@
         font-weight: 600;
       }
 
+      &__warning {
+        @extend %btn-primary;
+        font-weight: 600;
+        color: $white;
+        background-color: $orange-red;
+        border: 1px solid $orange-red;
+
+        &:focus {
+          color: $white;
+          background-color: $orange-red;
+          border: 1px solid $orange-red;
+        }
+
+        &:hover {
+          color: $white;
+          background-color: $orange-red;
+          border: 1px solid $orange-red;
+        }
+
+        &:disabled {
+          background-color: $orange-red;
+          border: 1px solid $orange-red;
+          opacity: .5;
+          cursor: default;
+        }
+      }
+
       &__agreement {
         @extend %row-nowrap;
 

@@ -3,12 +3,15 @@ import PropTypes from 'prop-types';
 import createAMPMTimeStamp from '../../utils/timeConverter';
 import { displayBalance } from '../../utils/balances';
 import ellipsify from '../../utils/ellipsify';
+import RepairBid from './RepairBid';
 import './bid-history.scss';
 
 export default class BidHistory extends Component {
   static propTypes = {
     bids: PropTypes.array.isRequired,
     reveals: PropTypes.array.isRequired,
+    getNameInfo: PropTypes.func.isRequired,
+    showError: PropTypes.func.isRequired,
   };
 
   render() {
@@ -33,6 +36,9 @@ export default class BidHistory extends Component {
         bid: bid.bid.value,
         mask: bid.bid.lockup,
         own: bid.bid.own,
+        name: bid.bid.name,
+        from: bid.from,
+        blind: bid.bid.blind,
       }
     });
 
@@ -56,11 +62,21 @@ export default class BidHistory extends Component {
             {order.map(fromAddress => {
               const bid = map[fromAddress];
               const {month, day, year} = bid.date;
+              let bidValue = 'Hidden Until Reveal';
+              if (!bid.bid && bid.own) {
+                bidValue = <RepairBid
+                  bid={bid}
+                  getNameInfo={this.props.getNameInfo}
+                  showError={this.props.showError}
+                />;
+              }
+              if (bid.bid)
+                bidValue = displayBalance(bid.bid, true);
               return (
                 <tr key={fromAddress}>
                   <td>{month}/{day}/{year}</td>
                   <td>{bid.own ? 'You' : ellipsify(fromAddress, 10)}</td>
-                  <td>{typeof bid.bid === 'number' ? displayBalance(bid.bid, true) : 'Hidden Until Reveal'}</td>
+                  <td>{bidValue}</td>
                   <td>{displayBalance(bid.mask, true)}</td>
                 </tr>
               )

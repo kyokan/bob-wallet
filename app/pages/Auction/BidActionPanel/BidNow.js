@@ -227,7 +227,7 @@ class BidNow extends Component {
           <div className="domains__bid-now__own-highest-bid__title">Your Highest Bid</div>
           <div className="domains__bid-now__content">
             <AuctionPanelHeaderRow label="Total Bids:">
-              {displayBalance(totalBids, true)}
+              {totalBids < 0 ? '?' : displayBalance(totalBids, true)}
             </AuctionPanelHeaderRow>
             <AuctionPanelHeaderRow label="Total Masks:">
               {displayBalance(totalMasks, true)}
@@ -357,6 +357,10 @@ function getTotalBids(domain) {
 
   for (const {bid} of domain.bids) {
     if (bid.own) {
+      // This is our bid, but we don't know its value
+      if (!bid.value)
+        return -1;
+
       total += bid.value;
     }
   }
