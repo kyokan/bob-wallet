@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added warning for missing bid values and functionality to repair missing bids
 - Added wallet action in Settings page to delete unconfirmed transactions
+- Added "Rescan Auction" button to import name into wallet and discover existing bids
+- Automatically rescan auction if a user bids on a name that is not already in the wallet
+- Introduce "Wallet Sync" modal that blocks UI and displays wallet rescan progress
 
 ## [0.2.8] - 2020-03-17
 ### Fixed
