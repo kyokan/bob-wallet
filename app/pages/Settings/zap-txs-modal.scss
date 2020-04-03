@@ -1,0 +1,38 @@
+@import '../../variables';
+
+.zap-txs-modal {
+
+  &__checkbox {
+    overflow: auto;
+    margin-bottom: 16px;
+    display: flex;
+    padding-top: 10px;
+  }
+
+  &__checkbox-label {
+    font-size: 14px;
+    color: #909095;
+    font-weight: 500;
+    line-height: 18px;
+    padding-left: 10px;
+    text-align: left;
+    width: 100%;
+  }
+
+  &__tx-list {
+    overflow-y: auto;
+    max-height: 15rem;
+  }
+
+  &__checkbox-box {
+
+  }
+
+  &__action {
+    @extend %btn-primary;
+  }
+}
+
+.wide {
+  width: 100%;
+}
