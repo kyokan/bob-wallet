@@ -330,7 +330,15 @@ async function nameByHash(net, covenant) {
   if (nameCache.cache[hash]) {
     return nameCache.cache[hash];
   }
-  const name = await nodeClient.getNameByHash(hash);
+  let name = await nodeClient.getNameByHash(hash);
+
+  if (!name && covenant.action === 'OPEN') {
+    // Before an OPEN is confirmed, the name->hash mapping will not be present
+    // in the full node. Luckily, the name is included as an ASCII string in
+    // the covenant itself.
+    name = Buffer.from(covenant.items[2], 'hex').toString('ascii');
+  }
+
   if (name) {
     nameCache.cache[hash] = name;
   }
