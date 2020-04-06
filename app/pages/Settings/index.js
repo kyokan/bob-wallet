@@ -32,12 +32,13 @@ export default class Settings extends Component {
 
   onDownload = async () => {
     try {
-      const content = await logger.download();
+      const {network} = this.props;
+      const content = await logger.download(network);
       const csvContent = `data:text/log;charset=utf-8,${content}\r\n`;
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement('a');
       link.setAttribute('href', encodedUri);
-      link.setAttribute('download', 'bob-debug.log');
+      link.setAttribute('download', `bob-debug-${network}.log`);
       document.body.appendChild(link); // Required for FF
       link.click();
       link.remove();
