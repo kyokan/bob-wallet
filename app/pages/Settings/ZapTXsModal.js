@@ -7,18 +7,23 @@ import Checkbox from '../../components/Checkbox';
 import MiniModal from '../../components/Modal/MiniModal';
 import { fetchTransactions } from '../../ducks/walletActions';
 import walletClient from '../../utils/walletClient';
+import {showError, showSuccess } from '../../ducks/notifications';
 
 @connect(
   (state) => ({
     transactions: state.wallet.transactions,
   }),
   (dispatch) => ({
-    fetchTransactions: () => dispatch(fetchTransactions())
+    fetchTransactions: () => dispatch(fetchTransactions()),
+    showError: (message) => dispatch(showError(message)),
+    showSuccess: (message) => dispatch(showSuccess(message)),
   })
 )
 class ZapTXsModal extends Component {
   static propTypes = {
-    transactions: PropTypes.array.isRequired
+    transactions: PropTypes.array.isRequired,
+    showError: PropTypes.func.isRequired,
+    showSuccess: PropTypes.func.isRequired,
   };
 
   async componentDidMount() {
@@ -27,6 +32,16 @@ class ZapTXsModal extends Component {
 
   state = {
     accepted: false,
+  };
+
+  zapTXs = async () => {
+    this.props.history.push('/settings');
+    try {
+      await walletClient.zap();
+      this.props.showSuccess('All pending transactions have been deleted!');
+    } catch (e) {
+      this.props.showError(e.message);
+    }
   };
 
   render() {
@@ -97,7 +112,7 @@ class ZapTXsModal extends Component {
         <div className="">
           <button
             className="zap-txs-modal__action"
-            onClick={()=>{walletClient.zap(); this.props.history.push("/settings")}}
+            onClick={this.zapTXs}
             disabled={!this.state.accepted}
           >
             Delete Unconfirmed Transactions
