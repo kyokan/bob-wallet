@@ -74,9 +74,7 @@ class BidNow extends Component {
       if (!domain.walletHasName)
         height = domain.info.height - 1;
 
-      await this.props.startWalletSync();
       await sendBid(bidAmount, lockup, height);
-      await this.props.waitForWalletSync();
       this.setState({
         isReviewing: false,
         isPlacingBid: false,

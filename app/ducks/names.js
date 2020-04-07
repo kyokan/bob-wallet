@@ -1,7 +1,13 @@
 import nodeClient from '../utils/nodeClient';
 import walletClient from '../utils/walletClient';
 import * as namesDb from '../db/names';
-import { fetchPendingTransactions, SET_PENDING_TRANSACTIONS } from './walletActions';
+import {
+  startWalletSync,
+  stopWalletSync,
+  waitForWalletSync,
+  fetchPendingTransactions,
+  SET_PENDING_TRANSACTIONS
+} from './walletActions';
 import { SET_NAME } from './namesReducer';
 
 export const RECORD_TYPE = {
@@ -138,13 +144,22 @@ export const sendOpen = name => async (dispatch) => {
   await dispatch(fetchPendingTransactions());
 };
 
-export const sendBid = (name, amount, lockup, height) => async () => {
+export const sendBid = (name, amount, lockup, height) => async (dispatch) => {
   if (!name) {
     return;
   }
 
-  if (height)
-    await walletClient.importName(name, height);
+  if (height) {
+    try {
+      await dispatch(startWalletSync());
+      await walletClient.importName(name, height);
+      await dispatch(waitForWalletSync());
+    } catch (e) {
+      throw e;
+    } finally {
+      await dispatch(stopWalletSync());
+    }
+  }
 
   await walletClient.sendBid(name, amount, lockup);
   await namesDb.storeName(name);
