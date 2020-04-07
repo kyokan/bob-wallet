@@ -109,8 +109,11 @@ export const send = (to, amount, fee) => async (dispatch) => {
   return res;
 };
 
-export const waitForWalletSync = () => async (dispatch, getState) => {
+export const startWalletSync = () => async (dispatch) => {
   await dispatch({type: START_SYNC_WALLET});
+};
+
+export const waitForWalletSync = () => async (dispatch, getState) => {
   let lastProgress = 0;
   let stall = 0;
 

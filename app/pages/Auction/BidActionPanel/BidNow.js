@@ -32,6 +32,7 @@ class BidNow extends Component {
     confirmedBalance: PropTypes.number.isRequired,
     getNameInfo: PropTypes.func.isRequired,
     waitForWalletSync: PropTypes.func.isRequired,
+    startWalletSync: PropTypes.func.isRequired,
   };
 
   state = {
@@ -72,10 +73,9 @@ class BidNow extends Component {
       // for past bids before proceeding. The wallet will continue to track
       // newer bids automatically.
       if (!domain.walletHasName) {
-        walletClient.importName(domain.name, domain.info.height - 1).catch((e) => {
-          this.props.showError(e.message);
-        });
-        await this.props.waitForWalletSync()
+        await this.props.startWalletSync();
+        await walletClient.importName(domain.name, domain.info.height - 1);
+        await this.props.waitForWalletSync();
       }
 
       await sendBid(bidAmount, lockup);
@@ -98,10 +98,9 @@ class BidNow extends Component {
   rescanAuction = async () => {
     try {
       const {domain} = this.props;
-      walletClient.importName(domain.name, domain.info.height - 1).catch((e) => {
-        this.props.showError(e.message);
-      });
-      await this.props.waitForWalletSync()
+      await this.props.startWalletSync();
+      await walletClient.importName(domain.name, domain.info.height - 1);
+      await this.props.waitForWalletSync();
       await this.props.getNameInfo(domain.name);
     } catch (e) {
       this.props.showError(e.message);
@@ -399,6 +398,7 @@ export default connect(
     showError: (message) => dispatch(showError(message)),
     showSuccess: (message) => dispatch(showSuccess(message)),
     waitForWalletSync: () => dispatch(walletActions.waitForWalletSync()),
+    startWalletSync: () => dispatch(walletActions.startWalletSync()),
     getNameInfo: tld => dispatch(nameActions.getNameInfo(tld)),
   }),
 )(BidNow);

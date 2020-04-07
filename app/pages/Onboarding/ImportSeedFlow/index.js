@@ -29,6 +29,7 @@ class ImportSeedFlow extends Component {
     }).isRequired,
     completeInitialization: PropTypes.func.isRequired,
     network: PropTypes.string.isRequired,
+    startWalletSync: PropTypes.func.isRequired,
     waitForWalletSync: PropTypes.func.isRequired,
     showError: PropTypes.func.isRequired,
     fetchWallet: PropTypes.func.isRequired,
@@ -121,6 +122,7 @@ class ImportSeedFlow extends Component {
     try {
       await walletClient.importSeed(this.state.passphrase, mnemonic);
       await this.props.completeInitialization(this.state.passphrase);
+      await this.props.startWalletSync();
       await this.props.waitForWalletSync();
       await this.props.fetchWallet();
       await this.props.fetchTransactions();
@@ -141,6 +143,7 @@ export default withRouter(
     dispatch => ({
       completeInitialization: (passphrase) => dispatch(walletActions.completeInitialization(passphrase)),
       waitForWalletSync: () => dispatch(walletActions.waitForWalletSync()),
+      startWalletSync: () => dispatch(walletActions.startWalletSync()),
       showError: (message) => dispatch(showError(message)),
       fetchWallet: () => dispatch(walletActions.fetchWallet()),
       fetchTransactions: () => dispatch(walletActions.fetchTransactions()),
