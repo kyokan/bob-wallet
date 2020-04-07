@@ -72,8 +72,10 @@ class BidNow extends Component {
       // for past bids before proceeding. The wallet will continue to track
       // newer bids automatically.
       if (!domain.walletHasName) {
-        this.props.waitForWalletSync();
-        await walletClient.importName(domain.name, domain.info.height - 1);
+        walletClient.importName(domain.name, domain.info.height - 1).catch((e) => {
+          this.props.showError(e.message);
+        });
+        await this.props.waitForWalletSync()
       }
 
       await sendBid(bidAmount, lockup);
@@ -87,17 +89,23 @@ class BidNow extends Component {
     } catch (e) {
       console.error(e);
       logger.error(`Error received from BidNow - sendBid]\n\n${e.message}\n${e.stack}\n`);
-      this.props.showError('Failed to place bid. Please try again.');
+      this.props.showError(`Failed to place bid: ${e.message}`);
     } finally {
       await this.props.getNameInfo(domain.name);  
     }
   };
 
   rescanAuction = async () => {
-    const {domain} = this.props;
-    this.props.waitForWalletSync();
-    await walletClient.importName(domain.name, domain.info.height - 1);
-    this.props.getNameInfo(domain.name);
+    try {
+      const {domain} = this.props;
+      walletClient.importName(domain.name, domain.info.height - 1).catch((e) => {
+        this.props.showError(e.message);
+      });
+      await this.props.waitForWalletSync()
+      await this.props.getNameInfo(domain.name);
+    } catch (e) {
+      this.props.showError(e.message);
+    }
   }
 
   render() {
