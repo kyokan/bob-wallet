@@ -52,14 +52,14 @@ export async function log() {
   }
 }
 
-export async function download() {
+export async function download(network) {
   const udPath = app.getPath('userData');
-  const outputDir = path.join(udPath, 'hsd_output');
+  let outputDir = path.join(udPath, 'hsd_data');
 
-  let content = '';
+  if (network !== 'main')
+    outputDir = path.join(outputDir, network);
 
-  content += read(`${outputDir}/combined1.log`, 'utf8');
-  content += read(`${outputDir}/combined.log`, 'utf8');
+  const content = read(`${outputDir}/debug.log`);
 
   return content;
 }

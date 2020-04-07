@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import './index.scss';
 import AccountIndexModal from './AccountIndexModal';
 import RevealSeedModal from './RevealSeedModal';
+import ZapTXsModal from './ZapTXsModal';
 import InterstitialWarningModal from './InterstitialWarningModal';
 import * as logger from '../../utils/logClient';
 import * as walletActions from '../../ducks/walletActions';
@@ -31,12 +32,13 @@ export default class Settings extends Component {
 
   onDownload = async () => {
     try {
-      const content = await logger.download();
+      const {network} = this.props;
+      const content = await logger.download(network);
       const csvContent = `data:text/log;charset=utf-8,${content}\r\n`;
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement('a');
       link.setAttribute('href', encodedUri);
-      link.setAttribute('download', 'bob-debug.log');
+      link.setAttribute('download', `bob-debug-${network}.log`);
       document.body.appendChild(link); // Required for FF
       link.click();
       link.remove();
@@ -50,37 +52,49 @@ export default class Settings extends Component {
 
   render() {
     return (
-      <ContentArea title="Settings" noPadding>
-        <div className="settings__label">Network</div>
-        <div className="settings__dropdown">
-          <NetworkPicker />
-        </div>
+      <ContentArea noPadding>
+        <div className="settings__supersection">Wallet Actions</div>
+        <hr className="settings__separator"/>
         <ul className="settings__links">
           <li>
             <a href="#" onClick={this.props.lockWallet}>
-              Log out
+              Lock wallet and logout
             </a>
           </li>
+        </ul>
+        <ul className="settings__links">
+          <li>
+            <Link to="/settings/zap-txs">Delete unconfirmed transactions</Link>
+          </li>
+        </ul>
+        <ul className="settings__links">
+          <li>
+            <Link to="/settings/reveal-seed">Reveal recovery seed phrase</Link>
+          </li>
+        </ul>
+        <ul className="settings__links">
+          <li>
+            <Link to="/settings/new-wallet">Remove wallet and create new wallet</Link>
+          </li>
+        </ul>
+        <p />
+        <div className="settings__supersection">Advanced</div>
+        <hr className="settings__separator"/>
+        <div className="settings__section-head">HSD API Key</div>
+        <input type="text" className="settings__copy-api-key" value={this.props.apiKey} readOnly />
+        <p />
+        <div className="settings__section-head">Network</div>
+        <div className="settings__dropdown">
+          <NetworkPicker />
+        </div>
+        <div className="settings__section-head">Debug</div>
+        <ul className="settings__links">
           <li>
             <div className="settings__link" onClick={this.onDownload}>
-              Download logs
+              Download log
             </div>
           </li>
         </ul>
-        <div className="settings__section-head">Your recovery seed phrase</div>
-        <ul className="settings__links">
-          <li>
-            <Link to="/settings/reveal-seed">Reveal</Link>
-          </li>
-        </ul>
-        <div className="settings__section-head">Reset your account</div>
-        <ul className="settings__links">
-          <li>
-            <Link to="/settings/new-wallet">Create a new wallet</Link>
-          </li>
-        </ul>
-        <div className="settings__section-head">HSD API Key</div>
-        <input type="text" className="settings__copy-api-key" value={this.props.apiKey} readOnly />
         <Switch>
           <Route path="/settings/account-index" component={AccountIndexModal} />
           <Route
@@ -93,6 +107,7 @@ export default class Settings extends Component {
             )}
           />
           <Route path="/settings/reveal-seed" component={RevealSeedModal} />
+          <Route path="/settings/zap-txs" component={ZapTXsModal} />
         </Switch>
       </ContentArea>
     );

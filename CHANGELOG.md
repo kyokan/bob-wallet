@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Added warning for missing bid values and functionality to repair missing bids
+- Added wallet action in Settings page to delete unconfirmed transactions
 
 ## [0.2.8] - 2020-03-17
 ### Fixed

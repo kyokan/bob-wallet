@@ -10,7 +10,8 @@ export class MiniModal extends Component {
     closeRoute: PropTypes.string.isRequired,
     children: PropTypes.node.isRequired,
     title: PropTypes.string.isRequired,
-    centered: PropTypes.bool
+    centered: PropTypes.bool,
+    wide: PropTypes.bool,
   };
 
   onClose = () => {
@@ -19,7 +20,8 @@ export class MiniModal extends Component {
 
   render() {
     const names = classnames('mini-modal', {
-      'mini-modal--centered': this.props.centered
+      'mini-modal--centered': this.props.centered,
+      'mini-modal--wide': this.props.wide,
     });
 
     return (
