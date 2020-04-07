@@ -113,6 +113,10 @@ export const startWalletSync = () => async (dispatch) => {
   await dispatch({type: START_SYNC_WALLET});
 };
 
+export const stopWalletSync = () => async (dispatch) => {
+  await dispatch({type: STOP_SYNC_WALLET});
+};
+
 export const waitForWalletSync = () => async (dispatch, getState) => {
   let lastProgress = 0;
   let stall = 0;

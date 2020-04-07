@@ -33,6 +33,7 @@ class BidNow extends Component {
     getNameInfo: PropTypes.func.isRequired,
     waitForWalletSync: PropTypes.func.isRequired,
     startWalletSync: PropTypes.func.isRequired,
+    stopWalletSync: PropTypes.func.isRequired,
   };
 
   state = {
@@ -85,6 +86,7 @@ class BidNow extends Component {
       analytics.track('sent bid');
     } catch (e) {
       console.error(e);
+      await this.props.stopWalletSync();
       logger.error(`Error received from BidNow - sendBid]\n\n${e.message}\n${e.stack}\n`);
       this.props.showError(`Failed to place bid: ${e.message}`);
     } finally {
@@ -100,6 +102,7 @@ class BidNow extends Component {
       await this.props.waitForWalletSync();
       await this.props.getNameInfo(domain.name);
     } catch (e) {
+      await this.props.stopWalletSync();
       this.props.showError(e.message);
     }
   }
@@ -396,6 +399,7 @@ export default connect(
     showSuccess: (message) => dispatch(showSuccess(message)),
     waitForWalletSync: () => dispatch(walletActions.waitForWalletSync()),
     startWalletSync: () => dispatch(walletActions.startWalletSync()),
+    stopWalletSync: () => dispatch(walletActions.stopWalletSync()),
     getNameInfo: tld => dispatch(nameActions.getNameInfo(tld)),
   }),
 )(BidNow);
