@@ -399,6 +399,7 @@ export default connect(
     showError: (message) => dispatch(showError(message)),
     showSuccess: (message) => dispatch(showSuccess(message)),
     waitForWalletSync: () => dispatch(walletActions.waitForWalletSync()),
+    getNameInfo: tld => dispatch(nameActions.getNameInfo(tld)),
   }),
 )(BidNow);
 

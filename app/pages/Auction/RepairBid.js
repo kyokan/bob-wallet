@@ -3,9 +3,16 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import {consensus} from 'hsd/lib/protocol';
 import walletClient from '../../utils/walletClient';
+import * as names from '../../ducks/names';
 
-
-class RepairBid extends Component {
+@connect(
+  () => ({}),
+  dispatch => ({
+    getNameInfo: tld => dispatch(names.getNameInfo(tld)),
+    showError: (message) => dispatch(showError(message)),
+  }),
+)
+export default class RepairBid extends Component {
   static propTypes = {
     bid: PropTypes.object.isRequired,
     getNameInfo: PropTypes.func.isRequired,
@@ -87,5 +94,3 @@ class RepairBid extends Component {
     : this.renderRepairableBid();
   }
 }
-
-export default RepairBid;

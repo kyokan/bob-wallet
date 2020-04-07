@@ -111,23 +111,23 @@ export default class Auction extends Component {
     const {domain} = this.props;
 
     if (isReserved(domain)) {
-      return <BidActionPanel domain={domain} getNameInfo={this.props.getNameInfo} />;
+      return <BidActionPanel domain={domain} />;
     }
 
     if (this.isOwned()) {
-      return <BidActionPanel domain={domain} getNameInfo={this.props.getNameInfo} />;
+      return <BidActionPanel domain={domain} />;
     }
 
     if (isClosed(domain)) {
-      return <BidActionPanel domain={domain} getNameInfo={this.props.getNameInfo} />;
+      return <BidActionPanel domain={domain} />;
     }
 
     if (isOpening(domain) || isBidding(domain) || isReveal(domain)) {
-      return <BidActionPanel domain={domain} getNameInfo={this.props.getNameInfo} />;
+      return <BidActionPanel domain={domain} />;
     }
 
     if (isAvailable(domain)) {
-      return <BidActionPanel domain={domain} getNameInfo={this.props.getNameInfo} />;
+      return <BidActionPanel domain={domain} />;
     }
 
     return null;
@@ -185,8 +185,6 @@ export default class Auction extends Component {
               <BidHistory
                 bids={this.props.domain.bids}
                 reveals={this.props.domain.reveals}
-                getNameInfo={this.props.getNameInfo}
-                showError={this.props.showError}
               /> :
               'Loading...'
             }

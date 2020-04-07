@@ -10,8 +10,6 @@ export default class BidHistory extends Component {
   static propTypes = {
     bids: PropTypes.array.isRequired,
     reveals: PropTypes.array.isRequired,
-    getNameInfo: PropTypes.func.isRequired,
-    showError: PropTypes.func.isRequired,
   };
 
   render() {
@@ -66,8 +64,6 @@ export default class BidHistory extends Component {
               if (!bid.bid && bid.own) {
                 bidValue = <RepairBid
                   bid={bid}
-                  getNameInfo={this.props.getNameInfo}
-                  showError={this.props.showError}
                 />;
               }
               if (bid.bid)
