@@ -69,16 +69,13 @@ class BidNow extends Component {
     const lockup = Number(disguiseAmount) + Number(bidAmount);
 
     try {
-      // If the name is not already stored in the wallet, rescan the auction
-      // for past bids before proceeding. The wallet will continue to track
-      // newer bids automatically.
-      if (!domain.walletHasName) {
-        await this.props.startWalletSync();
-        await walletClient.importName(domain.name, domain.info.height - 1);
-        await this.props.waitForWalletSync();
-      }
+      let height = null;
+      if (!domain.walletHasName)
+        height = domain.info.height - 1;
 
-      await sendBid(bidAmount, lockup);
+      await this.props.startWalletSync();
+      await sendBid(bidAmount, lockup, height);
+      await this.props.waitForWalletSync();
       this.setState({
         isReviewing: false,
         isPlacingBid: false,
@@ -394,7 +391,7 @@ export default connect(
     isPending: domain.pendingOperation === 'BID',
   }),
   (dispatch, {name}) => ({
-    sendBid: (amount, lockup) => dispatch(nameActions.sendBid(name, toBaseUnits(amount), toBaseUnits(lockup))),
+    sendBid: (amount, lockup, height) => dispatch(nameActions.sendBid(name, toBaseUnits(amount), toBaseUnits(lockup), height)),
     showError: (message) => dispatch(showError(message)),
     showSuccess: (message) => dispatch(showSuccess(message)),
     waitForWalletSync: () => dispatch(walletActions.waitForWalletSync()),

@@ -138,10 +138,13 @@ export const sendOpen = name => async (dispatch) => {
   await dispatch(fetchPendingTransactions());
 };
 
-export const sendBid = (name, amount, lockup) => async () => {
+export const sendBid = (name, amount, lockup, height) => async () => {
   if (!name) {
     return;
   }
+
+  if (height)
+    await walletClient.importName(name, height);
 
   await walletClient.sendBid(name, amount, lockup);
   await namesDb.storeName(name);
