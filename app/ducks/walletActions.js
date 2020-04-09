@@ -143,7 +143,6 @@ export const waitForWalletSync = () => async (dispatch, getState) => {
     if (stall >= 5) {
       dispatch({type: STOP_SYNC_WALLET});
       throw new Error('Wallet sync progress has stalled.');
-      break;
     }
 
     if (progress === 100) {
