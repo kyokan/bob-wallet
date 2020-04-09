@@ -19,11 +19,6 @@ if (
 }
 
 app.on('ready', async () => {
-  // Need this to force bcrypto to use
-  // the JavaScript backend since native
-  // bindings are unsupported in Electron.
-  process.env.NODE_BACKEND = 'js';
-
   // start the IPC server
   const dbService = require('./background/db/service');
   try {
