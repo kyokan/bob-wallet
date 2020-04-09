@@ -185,8 +185,6 @@ export default class Auction extends Component {
               <BidHistory
                 bids={this.props.domain.bids}
                 reveals={this.props.domain.reveals}
-                getNameInfo={this.props.getNameInfo}
-                showError={this.props.showError}
               /> :
               'Loading...'
             }

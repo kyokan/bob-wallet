@@ -15,6 +15,8 @@ import { showError, showSuccess } from '../../../ducks/notifications';
 import { displayBalance, toBaseUnits } from '../../../utils/balances';
 import * as logger from '../../../utils/logClient';
 import { clientStub as aClientStub } from '../../../background/analytics/client';
+import walletClient from '../../../utils/walletClient';
+import * as walletActions from '../../../ducks/walletActions';
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -28,6 +30,10 @@ class BidNow extends Component {
     ownHighestBid: PropTypes.object.isRequired,
     isPending: PropTypes.bool.isRequired,
     confirmedBalance: PropTypes.number.isRequired,
+    getNameInfo: PropTypes.func.isRequired,
+    waitForWalletSync: PropTypes.func.isRequired,
+    startWalletSync: PropTypes.func.isRequired,
+    stopWalletSync: PropTypes.func.isRequired,
   };
 
   state = {
@@ -59,12 +65,16 @@ class BidNow extends Component {
   };
 
   sendBid = async () => {
-    const {sendBid} = this.props;
+    const {sendBid, domain} = this.props;
     const {bidAmount, disguiseAmount} = this.state;
     const lockup = Number(disguiseAmount) + Number(bidAmount);
 
     try {
-      await sendBid(bidAmount, lockup);
+      let height = null;
+      if (!domain.walletHasName)
+        height = domain.info.height - 1;
+
+      await sendBid(bidAmount, lockup, height);
       this.setState({
         isReviewing: false,
         isPlacingBid: false,
@@ -74,10 +84,26 @@ class BidNow extends Component {
       analytics.track('sent bid');
     } catch (e) {
       console.error(e);
+      await this.props.stopWalletSync();
       logger.error(`Error received from BidNow - sendBid]\n\n${e.message}\n${e.stack}\n`);
-      this.props.showError('Failed to place bid. Please try again.');
+      this.props.showError(`Failed to place bid: ${e.message}`);
+    } finally {
+      await this.props.getNameInfo(domain.name);  
     }
   };
+
+  rescanAuction = async () => {
+    try {
+      const {domain} = this.props;
+      await this.props.startWalletSync();
+      await walletClient.importName(domain.name, domain.info.height - 1);
+      await this.props.waitForWalletSync();
+      await this.props.getNameInfo(domain.name);
+    } catch (e) {
+      await this.props.stopWalletSync();
+      this.props.showError(e.message);
+    }
+  }
 
   render() {
     const {domain} = this.props;
@@ -128,6 +154,7 @@ class BidNow extends Component {
           </div>
         </AuctionPanelHeader>
         {isPlacingBid ? this.renderBidNow() : this.renderOwnBidAction()}
+        {domain.walletHasName ? '' : this.renderRescanButton()}
       </AuctionPanel>
     );
   }
@@ -334,6 +361,25 @@ class BidNow extends Component {
     const {isReviewing} = this.state;
     return isReviewing ? this.renderReviewing() : this.renderBiddingView();
   }
+
+  renderRescanButton() {
+    return (
+      <div className="domains__bid-now__action">
+        <button
+          className="domains__bid-now__action__cta"
+          onClick={this.rescanAuction}
+        >
+          Rescan Auction
+            <Tooltipable
+              left={"-130px"}
+              className="domains__bid-now__rescan-tooltip"
+              tooltipContent={'Rewinds blockchain to look for bids placed in the past. This may take a few minutes to complete, during which time the wallet will be unresponsive.'}>
+              <div className="account__info-icon" />
+            </Tooltipable>
+        </button>
+      </div>
+    );
+  }
 }
 
 export default connect(
@@ -346,9 +392,13 @@ export default connect(
     isPending: domain.pendingOperation === 'BID',
   }),
   (dispatch, {name}) => ({
-    sendBid: (amount, lockup) => dispatch(nameActions.sendBid(name, toBaseUnits(amount), toBaseUnits(lockup))),
+    sendBid: (amount, lockup, height) => dispatch(nameActions.sendBid(name, toBaseUnits(amount), toBaseUnits(lockup), height)),
     showError: (message) => dispatch(showError(message)),
     showSuccess: (message) => dispatch(showSuccess(message)),
+    waitForWalletSync: () => dispatch(walletActions.waitForWalletSync()),
+    startWalletSync: () => dispatch(walletActions.startWalletSync()),
+    stopWalletSync: () => dispatch(walletActions.stopWalletSync()),
+    getNameInfo: tld => dispatch(nameActions.getNameInfo(tld)),
   }),
 )(BidNow);
 

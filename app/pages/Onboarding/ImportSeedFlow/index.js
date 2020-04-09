@@ -12,6 +12,7 @@ import walletClient from '../../../utils/walletClient';
 import * as logger from '../../../utils/logClient';
 import OptInAnalytics from '../OptInAnalytics';
 import { clientStub as aClientStub } from '../../../background/analytics/client';
+import { showError } from '../../../ducks/notifications';
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -28,6 +29,11 @@ class ImportSeedFlow extends Component {
     }).isRequired,
     completeInitialization: PropTypes.func.isRequired,
     network: PropTypes.string.isRequired,
+    startWalletSync: PropTypes.func.isRequired,
+    waitForWalletSync: PropTypes.func.isRequired,
+    showError: PropTypes.func.isRequired,
+    fetchWallet: PropTypes.func.isRequired,
+    fetchTransactions: PropTypes.func.isRequired,
   };
 
   state = {
@@ -116,7 +122,12 @@ class ImportSeedFlow extends Component {
     try {
       await walletClient.importSeed(this.state.passphrase, mnemonic);
       await this.props.completeInitialization(this.state.passphrase);
+      await this.props.startWalletSync();
+      await this.props.waitForWalletSync();
+      await this.props.fetchWallet();
+      await this.props.fetchTransactions();
     } catch (e) {
+      this.props.showError(e.message);
       logger.error(`Error received from ImportSeedFlow - finishFlow]\n\n${e.message}\n${e.stack}\n`);
     } finally {
       this.setState({isLoading: false});
@@ -131,6 +142,11 @@ export default withRouter(
     }),
     dispatch => ({
       completeInitialization: (passphrase) => dispatch(walletActions.completeInitialization(passphrase)),
+      waitForWalletSync: () => dispatch(walletActions.waitForWalletSync()),
+      startWalletSync: () => dispatch(walletActions.startWalletSync()),
+      showError: (message) => dispatch(showError(message)),
+      fetchWallet: () => dispatch(walletActions.fetchWallet()),
+      fetchTransactions: () => dispatch(walletActions.fetchTransactions()),
     }),
   )(ImportSeedFlow),
 );

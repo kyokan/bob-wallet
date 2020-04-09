@@ -1,0 +1,20 @@
+@import "../../variables";
+
+.wallet-sync {
+  &__wrapper {
+    width: 15rem;
+    padding: 2rem 3rem;
+  }
+
+  &__progress {
+    @extend %box-input;
+    box-sizing: border-box;
+    width: 100%;
+    border: none;
+    border-radius: 8px;
+    
+    font-weight: 500;
+    font-size: 1.2rem;
+    text-align: center;
+  }
+}

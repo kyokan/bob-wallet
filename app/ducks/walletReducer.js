@@ -10,6 +10,9 @@ export const SET_TRANSACTIONS = 'app/wallet/setTransactions';
 export const INCREMENT_IDLE = 'app/wallet/incrementIdle';
 export const RESET_IDLE = 'app/wallet/resetIdle';
 export const SET_PENDING_TRANSACTIONS = 'app/wallet/setPendingTransactions';
+export const START_SYNC_WALLET = 'app/wallet/startSyncWallet';
+export const STOP_SYNC_WALLET = 'app/wallet/stopSyncWallet';
+export const SYNC_WALLET_PROGRESS = 'app/wallet/syncWalletProgress';
 
 export function getInitialState() {
   return {
@@ -24,6 +27,8 @@ export function getInitialState() {
     },
     transactions: [],
     idle: 0,
+    walletSync: false,
+    walletSyncProgress: 0,
   };
 }
 
@@ -72,6 +77,21 @@ export default function walletReducer(state = getInitialState(), {type, payload}
       return {
         ...state,
         idle: 0,
+      };
+    case START_SYNC_WALLET:
+      return {
+        ...state,
+        walletSync: true,
+      };
+    case STOP_SYNC_WALLET:
+      return {
+        ...state,
+        walletSync: false,
+      };
+    case SYNC_WALLET_PROGRESS:
+      return {
+        ...state,
+        walletSyncProgress: payload,
       };
     default:
       return state;

@@ -1,7 +1,13 @@
 import nodeClient from '../utils/nodeClient';
 import walletClient from '../utils/walletClient';
 import * as namesDb from '../db/names';
-import { fetchPendingTransactions, SET_PENDING_TRANSACTIONS } from './walletActions';
+import {
+  startWalletSync,
+  stopWalletSync,
+  waitForWalletSync,
+  fetchPendingTransactions,
+  SET_PENDING_TRANSACTIONS
+} from './walletActions';
 import { SET_NAME } from './namesReducer';
 
 export const RECORD_TYPE = {
@@ -41,6 +47,7 @@ export const getNameInfo = name => async (dispatch) => {
   let reveals = [];
   let winner = null;
   let isOwner = false;
+  let walletHasName = false;
   if (!info) {
     dispatch({
       type: SET_NAME,
@@ -52,6 +59,7 @@ export const getNameInfo = name => async (dispatch) => {
         reveals,
         winner,
         isOwner,
+        walletHasName,
       },
     });
     return;
@@ -59,6 +67,7 @@ export const getNameInfo = name => async (dispatch) => {
 
   try {
     const auctionInfo = await walletClient.getAuctionInfo(name);
+    walletHasName = true;
     bids = await inflateBids(nodeClient, walletClient, auctionInfo.bids, info.height);
     reveals = await inflateReveals(nodeClient, walletClient, auctionInfo.reveals, info.height);
   } catch (e) {
@@ -79,7 +88,7 @@ export const getNameInfo = name => async (dispatch) => {
 
   dispatch({
     type: SET_NAME,
-    payload: {name, start, info, bids, reveals, winner, isOwner},
+    payload: {name, start, info, bids, reveals, winner, isOwner, walletHasName},
   });
 };
 
@@ -135,9 +144,21 @@ export const sendOpen = name => async (dispatch) => {
   await dispatch(fetchPendingTransactions());
 };
 
-export const sendBid = (name, amount, lockup) => async () => {
+export const sendBid = (name, amount, lockup, height) => async (dispatch) => {
   if (!name) {
     return;
+  }
+
+  if (height) {
+    try {
+      await dispatch(startWalletSync());
+      await walletClient.importName(name, height);
+      await dispatch(waitForWalletSync());
+    } catch (e) {
+      throw e;
+    } finally {
+      await dispatch(stopWalletSync());
+    }
   }
 
   await walletClient.sendBid(name, amount, lockup);

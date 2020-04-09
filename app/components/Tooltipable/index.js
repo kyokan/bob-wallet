@@ -9,21 +9,23 @@ export default class Tooltipable extends Component {
     className: PropTypes.string,
     width: PropTypes.string,
     textAlign: PropTypes.string,
+    left: PropTypes.string,
   };
 
   static defaultProps = {
     className: '',
     width: '16rem',
     textAlign: 'left',
+    left: '0px',
   };
 
   render() {
-    const { children, tooltipContent, className, width, textAlign } = this.props;
+    const { children, tooltipContent, className, width, textAlign, left } = this.props;
 
     return (
       <div className={`tooltipable ${className}`}>
         {children}
-        <div className='tooltipable__tooltip' style={{ width, textAlign }}>   
+        <div className='tooltipable__tooltip' style={{ width, textAlign, left }}>   
           {tooltipContent}
         </div>
       </div>

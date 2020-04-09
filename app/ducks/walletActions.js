@@ -13,6 +13,9 @@ import {
   SET_TRANSACTIONS,
   SET_WALLET,
   UNLOCK_WALLET,
+  START_SYNC_WALLET,
+  STOP_SYNC_WALLET,
+  SYNC_WALLET_PROGRESS,
 } from './walletReducer';
 
 let idleInterval;
@@ -104,6 +107,53 @@ export const send = (to, amount, fee) => async (dispatch) => {
   const res = await walletClient.send(to, amount, fee);
   await dispatch(fetchWallet());
   return res;
+};
+
+export const startWalletSync = () => async (dispatch) => {
+  await dispatch({type: START_SYNC_WALLET});
+};
+
+export const stopWalletSync = () => async (dispatch) => {
+  await dispatch({type: STOP_SYNC_WALLET});
+};
+
+export const waitForWalletSync = () => async (dispatch, getState) => {
+  let lastProgress = 0;
+  let stall = 0;
+
+  for (;;) {
+    const nodeInfo = await nodeClient.getInfo();
+    const wdbInfo = await walletClient.rpcGetWalletInfo();
+
+    if (nodeInfo.chain.height === 0) {
+      dispatch({type: STOP_SYNC_WALLET});
+      break;
+    }
+
+    const progress = parseInt(wdbInfo.height / nodeInfo.chain.height * 100);
+
+    // If we go 5 seconds without any progress, throw an error
+    if (lastProgress === progress) {
+      stall++;
+    } else {
+      lastProgress = progress;
+      stall = 0;
+    }
+
+    if (stall >= 5) {
+      dispatch({type: STOP_SYNC_WALLET});
+      throw new Error('Wallet sync progress has stalled.');
+    }
+
+    if (progress === 100) {
+      dispatch({type: STOP_SYNC_WALLET});
+      break;
+    } else {
+      dispatch({type: SYNC_WALLET_PROGRESS, payload: progress});
+    }
+
+    await new Promise((r) => setTimeout(r, 1000));
+  }
 };
 
 export const fetchTransactions = () => async (dispatch, getState) => {
