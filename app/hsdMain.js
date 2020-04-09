@@ -1,9 +1,5 @@
 require('./sentry');
 
-// Need this to force bcrypto to use
-// the JavaScript backend since native
-// bindings are unsupported in Electron.
-process.env.NODE_BACKEND = 'js';
 const ipc = require('electron').ipcRenderer;
 const FullNode = require('hsd/lib/node/fullnode');
 const WalletPlugin = require('hsd/lib/wallet/plugin');
