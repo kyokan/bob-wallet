@@ -11,6 +11,7 @@ import * as logger from '../../utils/logClient';
 import * as walletActions from '../../ducks/walletActions';
 import NetworkPicker from '../NetworkPicker';
 import { clientStub as aClientStub } from '../../background/analytics/client';
+const pkg = require('../../../package.json');
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -109,6 +110,9 @@ export default class Settings extends Component {
           <Route path="/settings/reveal-seed" component={RevealSeedModal} />
           <Route path="/settings/zap-txs" component={ZapTXsModal} />
         </Switch>
+        <div className="settings__footer">
+          Bob v{pkg.version}
+        </div>
       </ContentArea>
     );
   }
