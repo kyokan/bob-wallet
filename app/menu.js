@@ -39,7 +39,7 @@ export default class MenuBuilder {
       submenu: [
         {
           label: 'About Bob',
-          selector: 'orderFrontStandardAboutPanel:'
+          role: 'about'
         },
         {type: 'separator'},
         {label: 'Services', submenu: []},
@@ -47,14 +47,14 @@ export default class MenuBuilder {
         {
           label: 'Hide Bob',
           accelerator: 'Command+H',
-          selector: 'hide:'
+          role: 'hide'
         },
         {
           label: 'Hide Others',
           accelerator: 'Command+Shift+H',
-          selector: 'hideOtherApplications:'
+          role: 'hideOthers'
         },
-        {label: 'Show All', selector: 'unhideAllApplications:'},
+        {label: 'Show All', role: 'unhide'},
         {type: 'separator'},
         {
           label: 'Quit',
@@ -68,16 +68,16 @@ export default class MenuBuilder {
     const subMenuEdit = {
       label: 'Edit',
       submenu: [
-        {label: 'Undo', accelerator: 'Command+Z', selector: 'undo:'},
-        {label: 'Redo', accelerator: 'Shift+Command+Z', selector: 'redo:'},
+        {label: 'Undo', accelerator: 'Command+Z', role: 'undo'},
+        {label: 'Redo', accelerator: 'Shift+Command+Z', role: 'redo'},
         {type: 'separator'},
-        {label: 'Cut', accelerator: 'Command+X', selector: 'cut:'},
-        {label: 'Copy', accelerator: 'Command+C', selector: 'copy:'},
-        {label: 'Paste', accelerator: 'Command+V', selector: 'paste:'},
+        {label: 'Cut', accelerator: 'Command+X', role: 'cut'},
+        {label: 'Copy', accelerator: 'Command+C', role: 'copy'},
+        {label: 'Paste', accelerator: 'Command+V', role: 'paste'},
         {
           label: 'Select All',
           accelerator: 'Command+A',
-          selector: 'selectAll:'
+          role: 'selectAll'
         }
       ]
     };
@@ -132,11 +132,11 @@ export default class MenuBuilder {
         {
           label: 'Minimize',
           accelerator: 'Command+M',
-          selector: 'performMiniaturize:'
+          role: 'minimize'
         },
-        {label: 'Close', accelerator: 'Command+W', selector: 'performClose:'},
+        {label: 'Close', accelerator: 'Command+W', role: 'close'},
         {type: 'separator'},
-        {label: 'Bring All to Front', selector: 'arrangeInFront:'}
+        {label: 'Bring All to Front', role: 'front'}
       ]
     };
     const subMenuHelp = {
