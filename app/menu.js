@@ -1,8 +1,28 @@
 import { app, Menu, shell } from 'electron';
 import showMainWindow, { getMainWindow } from './mainWindow';
+const pkg = require('../package.json');
+const Path = require('path');
 
 export default class MenuBuilder {
   buildMenu() {
+
+    // https://www.electronjs.org/docs/all#appsetaboutpaneloptionsoptions
+    // version: MacOS only
+    // credits: MacOS & Windows only
+    // authors: Linux only
+    // website: Linux only
+    // iconPath: Linux & Windows only
+    app.setAboutPanelOptions({
+      applicationName: pkg.productName, 
+      applicationVersion: pkg.version,
+      copyright: `License: ${pkg.license}`,
+      version: pkg.version,
+      credits: pkg.author,
+      author: pkg.author,
+      website: pkg.homepage,
+      iconPath: Path.join(__dirname, '../resources/icons/128x128.png')
+    });
+
     this.setupDevelopmentEnvironment();
 
     const template =
