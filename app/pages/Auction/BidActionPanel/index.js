@@ -16,11 +16,6 @@ import { clientStub as aClientStub } from '../../../background/analytics/client'
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
-@connect(
-  (state) => ({
-    network: state.node.network,
-  }),
-)
 class BidActionPanel extends Component {
   static propTypes = {
     domain: PropTypes.object.isRequired,
