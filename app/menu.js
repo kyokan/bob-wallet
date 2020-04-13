@@ -20,7 +20,7 @@ export default class MenuBuilder {
       credits: pkg.author,
       author: pkg.author,
       website: pkg.homepage,
-      iconPath: Path.join(__dirname, '../resources/icons/128x128.png')
+      iconPath: Path.join(process.resourcesPath, 'icons/128x128.png')
     });
 
     this.setupDevelopmentEnvironment();
