@@ -16,11 +16,6 @@ import { clientStub as aClientStub } from '../../../background/analytics/client'
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
-@connect(
-  (state) => ({
-    network: state.node.network,
-  }),
-)
 class BidActionPanel extends Component {
   static propTypes = {
     domain: PropTypes.object.isRequired,
@@ -38,15 +33,8 @@ class BidActionPanel extends Component {
 
   state = {
     isLoading: false,
-    isWatching: false,
     event: {},
   };
-
-  async componentWillMount() {
-    await this.props.getWatching(this.props.network);
-    const isWatching = this.props.watchList.includes(this.props.match.params.name);
-    this.setState({isWatching});
-  }
 
   isOwned = () => {
     const {domain} = this.props;
@@ -56,7 +44,7 @@ class BidActionPanel extends Component {
   render() {
     const {match, network} = this.props;
     const {params: {name}} = match;
-    const {isWatching} = this.state;
+    const isWatching = this.props.watchList.includes(this.props.match.params.name);
 
     return (
       <React.Fragment>
@@ -64,7 +52,7 @@ class BidActionPanel extends Component {
         <div className="domains__watch">
           <div
             className={c('domains__watch__heart-icon', {
-              'domains__watch__heart-icon--active': this.state.isWatching,
+              'domains__watch__heart-icon--active': isWatching,
             })}
             onClick={() => {
               if (isWatching) {
@@ -78,7 +66,6 @@ class BidActionPanel extends Component {
                   source: 'Bid Action Panel',
                 });
               }
-              this.setState({isWatching: !isWatching});
             }} />
           <div className="domains__watch__text">
             {isWatching ? 'Added to Watchlist' : 'Add to Watchlist'}
