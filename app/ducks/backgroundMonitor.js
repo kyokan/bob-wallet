@@ -5,7 +5,7 @@ import { store } from '../store/configureStore';
 import { LOCK_WALLET, SET_PENDING_TRANSACTIONS } from './walletReducer';
 import { getInitializationState } from '../db/system';
 import isEqual from 'lodash.isequal';
-import { SET_NODE_INFO } from './nodeReducer';
+import { SET_NODE_INFO, SET_FEE_INFO, NEW_BLOCK_STATUS } from './nodeReducer';
 import { getNameInfo } from './names';
 import { fetchTransactions, fetchWallet } from './walletActions';
 
@@ -13,7 +13,6 @@ export function createBackgroundMonitor() {
   let isLocked;
   let timeout;
   let info;
-  let fees;
   let prevNamesWithPendingUpdates = new Set();
 
   const doPoll = async () => {
@@ -44,24 +43,18 @@ export function createBackgroundMonitor() {
       chain: infoRes.chain,
       network: infoRes.network,
     };
-    store.dispatch({
-      type: SET_NODE_INFO,
-      payload: {
-        info: newInfo,
-      },
-    });
-
-    const newFees = await nodeClient.getFees();
-    if (!isEqual(info, newInfo) || !isEqual(fees, newFees)) {
+    if (!isEqual(info, newInfo)) {
       info = newInfo;
-      fees = newFees;
       store.dispatch({
-        type: SET_FEE_INFO,
+        type: SET_NODE_INFO,
         payload: {
-          fees: newFees,
+          info: newInfo,
         },
       });
     }
+
+    if (state.node.chain.height !== infoRes.chain.height)
+      await onNewBlock();
 
     const newPendingTxns = await walletClient.getPendingTransactions();
     store.dispatch({
@@ -118,6 +111,20 @@ function difference(setA, setB) {
     d.delete(elem);
   }
   return d;
+}
+
+async function onNewBlock() {
+  store.dispatch({type: NEW_BLOCK_STATUS, payload: "Updating fees..."});
+  const newFees = await nodeClient.getFees();
+  store.dispatch({
+    type: SET_FEE_INFO,
+    payload: {
+      fees: newFees,
+    },
+  });
+
+  
+  store.dispatch({type: NEW_BLOCK_STATUS, payload: ''});
 }
 
 export const monitor = createBackgroundMonitor();
