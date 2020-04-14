@@ -10,7 +10,8 @@ import { Logo } from '../Logo';
 @connect(
   state => ({
     height: state.node.chain.height,
-    tip: state.node.chain.tip
+    tip: state.node.chain.tip,
+    newBlockStatus: state.node.newBlockStatus,
   }),
   dispatch => ({})
 )
@@ -23,7 +24,8 @@ class Sidebar extends Component {
       pathname: PropTypes.string.isRequired
     }).isRequired,
     height: PropTypes.number.isRequired,
-    tip: PropTypes.string.isRequired
+    tip: PropTypes.string.isRequired,
+    newBlockStatus: PropTypes.string.isRequired,
   };
 
   render() {
@@ -118,6 +120,9 @@ class Sidebar extends Component {
   renderFooter() {
     return (
       <div className="sidebar__footer">
+        <div className="sidebar__footer__row">
+          <div className="sidebar__footer__title">{this.props.newBlockStatus}</div>
+        </div>
         <div className="sidebar__footer__row">
           <div className="sidebar__footer__title">Current Height</div>
           <div className="sidebar__footer__text">
