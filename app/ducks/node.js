@@ -2,7 +2,15 @@ import { clientStub } from '../background/node/client';
 import { getNetwork, setNetwork } from '../db/system';
 import { fetchWallet } from './walletActions';
 import * as logger from '../utils/logClient';
-import { END_NETWORK_CHANGE, SET_NODE_INFO, START, START_ERROR, START_NETWORK_CHANGE, STOP } from './nodeReducer';
+import {
+  END_NETWORK_CHANGE,
+  SET_NODE_INFO,
+  SET_FEE_INFO,
+  START,
+  START_ERROR,
+  START_NETWORK_CHANGE,
+  STOP,
+} from './nodeReducer';
 import { VALID_NETWORKS } from '../constants/networks';
 
 const nodeClient = clientStub(() => require('electron').ipcRenderer);
@@ -47,6 +55,11 @@ const setNodeInfo = () => async (dispatch) => {
       type: SET_NODE_INFO,
       payload: {
         info,
+      },
+    });
+    dispatch({
+      type: SET_FEE_INFO,
+      payload: {
         fees,
       },
     });

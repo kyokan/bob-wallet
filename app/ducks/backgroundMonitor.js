@@ -44,15 +44,20 @@ export function createBackgroundMonitor() {
       chain: infoRes.chain,
       network: infoRes.network,
     };
+    store.dispatch({
+      type: SET_NODE_INFO,
+      payload: {
+        info: newInfo,
+      },
+    });
 
     const newFees = await nodeClient.getFees();
     if (!isEqual(info, newInfo) || !isEqual(fees, newFees)) {
       info = newInfo;
       fees = newFees;
       store.dispatch({
-        type: SET_NODE_INFO,
+        type: SET_FEE_INFO,
         payload: {
-          info: newInfo,
           fees: newFees,
         },
       });
