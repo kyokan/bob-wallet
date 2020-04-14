@@ -322,7 +322,7 @@ class WalletService {
   };
 
   async _executeRPC(method, args) {
-    this._selectWallet();
+    await this._selectWallet();
     return this.client.execute(method, args);
   }
 }
