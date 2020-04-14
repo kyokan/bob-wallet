@@ -25,6 +25,7 @@ import * as walletActions from '../../ducks/walletActions';
 import './app.scss';
 import AccountLogin from '../AcountLogin';
 import * as node from '../../ducks/node';
+import { onNewBlock } from '../../ducks/backgroundMonitor';
 import Notification from '../../components/Notification';
 import SplashScreen from "../../components/SplashScreen";
 import WalletSync from "../../components/WalletSync";
@@ -37,8 +38,8 @@ class App extends Component {
     error: PropTypes.string.isRequired,
     isLocked: PropTypes.bool.isRequired,
     initialized: PropTypes.bool.isRequired,
-    fetchWallet: PropTypes.func.isRequired,
     startNode: PropTypes.func.isRequired,
+    onNewBlock: PropTypes.func.isRequired,
     watchActivity: PropTypes.func.isRequired,
     isChangingNetworks: PropTypes.bool.isRequired,
   };
@@ -50,7 +51,7 @@ class App extends Component {
   async componentDidMount() {
     this.setState({isLoading: true});
     await this.props.startNode();
-    await this.props.fetchWallet();
+    await this.props.onNewBlock();
     this.props.watchActivity();
     setTimeout(() => this.setState({isLoading: false}), 1000)
   }
@@ -229,9 +230,9 @@ export default withRouter(
       initialized: state.wallet.initialized
     }),
     dispatch => ({
-      fetchWallet: () => dispatch(walletActions.fetchWallet()),
       watchActivity: () => dispatch(walletActions.watchActivity()),
       startNode: () => dispatch(node.start()),
+      onNewBlock: () => dispatch(onNewBlock()),
     })
   )(App)
 );
