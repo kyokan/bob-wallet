@@ -7,6 +7,7 @@ import { getInitializationState } from '../db/system';
 import isEqual from 'lodash.isequal';
 import { SET_NODE_INFO, SET_FEE_INFO, NEW_BLOCK_STATUS } from './nodeReducer';
 import { getNameInfo } from './names';
+import { getYourBids } from './bids';
 import { fetchTransactions, fetchWallet } from './walletActions';
 
 export function createBackgroundMonitor() {
@@ -54,7 +55,7 @@ export function createBackgroundMonitor() {
     }
 
     if (state.node.chain.height !== infoRes.chain.height)
-      await onNewBlock();
+      await store.dispatch(onNewBlock());
 
     const newPendingTxns = await walletClient.getPendingTransactions();
     store.dispatch({
@@ -113,18 +114,32 @@ function difference(setA, setB) {
   return d;
 }
 
-async function onNewBlock() {
-  store.dispatch({type: NEW_BLOCK_STATUS, payload: "Updating fees..."});
-  const newFees = await nodeClient.getFees();
-  store.dispatch({
-    type: SET_FEE_INFO,
-    payload: {
-      fees: newFees,
-    },
-  });
+export const onNewBlock = () => async (dispatch, getState) => {
+  let state = getState();
 
+  dispatch({type: NEW_BLOCK_STATUS, payload: 'Updating fees...'});
+  const newFees = await nodeClient.getFees();
+  if (!isEqual(state.node.fees, newFees)) {
+    dispatch({
+      type: SET_FEE_INFO,
+      payload: {
+        fees: newFees,
+      },
+    });
+  }
+
+  dispatch({type: NEW_BLOCK_STATUS, payload: 'Loading bids...'});
+  await dispatch(getYourBids());
   
-  store.dispatch({type: NEW_BLOCK_STATUS, payload: ''});
+  state = getState();
+  const bids = state.bids.yourBids;
+  for (const bid of bids) {
+    const name = bid.name;
+    dispatch({type: NEW_BLOCK_STATUS, payload: `Loading name: ${name}`});
+    await dispatch(getNameInfo(name));
+  }
+
+  dispatch({type: NEW_BLOCK_STATUS, payload: ''});
 }
 
 export const monitor = createBackgroundMonitor();

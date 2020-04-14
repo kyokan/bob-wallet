@@ -3,7 +3,6 @@ import cn from 'classnames';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
-import * as nameActions from '../../ducks/names';
 import {
   isReveal,
   isClosed,
@@ -18,12 +17,7 @@ class BidStatus extends Component {
   static propTypes = {
     name: PropTypes.string.isRequired,
     address: PropTypes.string.isRequired,
-    getNameInfo: PropTypes.func.isRequired,
   };
-
-  componentWillMount() {
-    this.props.getNameInfo();
-  }
 
   isSold = () => isClosed(this.props.domain);
   isReveal = () => isReveal(this.props.domain);
@@ -157,9 +151,6 @@ export default withRouter(
         domain: name,
         address: state.wallet.address,
       };
-    },
-    (dispatch, ownProps) => ({
-      getNameInfo: () => dispatch(nameActions.getNameInfo(ownProps.name)),
-    }),
+    }
   )(BidStatus)
 );
