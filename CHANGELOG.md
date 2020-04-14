@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Fixed
 - Fixed total amount received by a transaction with multiple outputs to the wallet
+- Fixed sluggish UI from mass of redundant rpc calls on "Your Bids" view
 
 ### Added
 - Added warning for missing bid values and functionality to repair missing bids
