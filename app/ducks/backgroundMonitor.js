@@ -116,6 +116,14 @@ function difference(setA, setB) {
 
 export const onNewBlock = () => async (dispatch, getState) => {
   let state = getState();
+  const isInitialized = await getInitializationState(state.node.network);
+  if (!isInitialized) {
+    return;
+  }
+
+  if (!state.wallet.initialized || !state.node.isRunning) {
+    return;
+  }
 
   dispatch({type: NEW_BLOCK_STATUS, payload: 'Updating fees...'});
   const newFees = await nodeClient.getFees();
