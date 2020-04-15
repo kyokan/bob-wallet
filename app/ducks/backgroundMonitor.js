@@ -54,7 +54,7 @@ export function createBackgroundMonitor() {
       });
     }
 
-    if (state.node.chain.height !== infoRes.chain.height)
+    if (state.node.chain.tip !== infoRes.chain.tip)
       await store.dispatch(onNewBlock());
 
     const newPendingTxns = await walletClient.getPendingTransactions();
