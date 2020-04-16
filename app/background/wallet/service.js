@@ -222,7 +222,7 @@ class WalletService {
 
   unlock = (passphrase) => this._ledgerProxy(
     () => null,
-    () => this.client.unlock(WALLET_ID, passphrase, 60 * 60 * 24 * 365),
+    () => this.client.unlock(WALLET_ID, passphrase),
   );
 
   isLocked = () => this._ledgerProxy(
