@@ -6,7 +6,6 @@ import {
   stopWalletSync,
   waitForWalletSync,
   fetchPendingTransactions,
-  SET_PENDING_TRANSACTIONS
 } from './walletActions';
 import { SET_NAME } from './namesReducer';
 
