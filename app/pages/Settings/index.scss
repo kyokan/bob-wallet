@@ -79,3 +79,14 @@
 .settings__separator {
   border: 1px solid $athens-gray;
 }
+
+.settings__footer {
+  @extend %h5;
+  position: absolute;
+  padding: 1rem;
+  color: $manatee-gray;
+  font-family: monospace;
+  bottom: 0px;
+  right: 0px;
+}
+
