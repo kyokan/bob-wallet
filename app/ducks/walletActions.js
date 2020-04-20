@@ -17,6 +17,7 @@ import {
   STOP_SYNC_WALLET,
   SYNC_WALLET_PROGRESS,
 } from './walletReducer';
+import {NEW_BLOCK_STATUS} from './nodeReducer';
 
 let idleInterval;
 
@@ -157,11 +158,24 @@ export const waitForWalletSync = () => async (dispatch, getState) => {
 };
 
 export const fetchTransactions = () => async (dispatch, getState) => {
-  const net = getState().node.network;
+  const state = getState();
+  const net = state.node.network;
+  const currentTXs = state.wallet.transactions;
   const txs = await walletClient.getTransactionHistory();
   let payload = new Map();
 
-  for (const tx of txs) {
+  for (let i = 0; i < txs.length; i++) {
+    const tx = txs[i];
+    const existing = currentTXs.get(tx.hash);
+    if (existing) {
+      const isPending = tx.block === null; 
+      existing.date = isPending ? Date.now() : Date.parse(tx.date);
+      existing.pending = isPending;
+
+      payload.set(existing.id, existing);
+      continue;
+    }
+    dispatch({type: NEW_BLOCK_STATUS, payload: `Processing TX: ${i}/${txs.length}`});
     const ios = await parseInputsOutputs(net, tx);
     const isPending = tx.block === null;
     const txData = {
@@ -173,6 +187,7 @@ export const fetchTransactions = () => async (dispatch, getState) => {
 
     payload.set(tx.hash, txData);
   }
+  dispatch({type: NEW_BLOCK_STATUS, payload: ''});
 
   // Sort all TXs by date without losing the hash->tx mapping
   payload = new Map([...payload.entries()].sort((a, b) => b[1].date - a[1].date));
