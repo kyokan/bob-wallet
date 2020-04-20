@@ -159,21 +159,15 @@ export const waitForWalletSync = () => async (dispatch, getState) => {
 export const fetchTransactions = () => async (dispatch, getState) => {
   const net = getState().node.network;
   const txs = await walletClient.getTransactionHistory();
-  let aggregate = new BigNumber(0);
   let payload = [];
 
   for (const tx of txs) {
     const ios = await parseInputsOutputs(net, tx);
-    aggregate =
-      ios.type !== 'RECEIVE'
-        ? aggregate.minus(ios.value)
-        : aggregate.plus(ios.value);
     const isPending = tx.block === null;
     const txData = {
       id: tx.hash,
       date: isPending ? Date.now() : Date.parse(tx.date),
       pending: isPending,
-      balance: aggregate.toString(),
       ...ios,
     };
 
