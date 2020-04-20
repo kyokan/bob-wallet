@@ -25,7 +25,7 @@ export function getInitialState() {
       confirmed: '0',
       unconfirmed: '0'
     },
-    transactions: [],
+    transactions: new Map(),
     idle: 0,
     walletSync: false,
     walletSyncProgress: 0,
@@ -56,7 +56,7 @@ export default function walletReducer(state = getInitialState(), {type, payload}
           ...state.balance
         },
         isLocked: true,
-        transactions: []
+        transactions: new Map()
       };
     case UNLOCK_WALLET:
       return {

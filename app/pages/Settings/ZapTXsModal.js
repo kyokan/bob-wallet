@@ -21,7 +21,7 @@ import {showError, showSuccess } from '../../ducks/notifications';
 )
 class ZapTXsModal extends Component {
   static propTypes = {
-    transactions: PropTypes.array.isRequired,
+    transactions: PropTypes.instanceOf(Map).isRequired,
     showError: PropTypes.func.isRequired,
     showSuccess: PropTypes.func.isRequired,
   };
@@ -51,10 +51,10 @@ class ZapTXsModal extends Component {
     if (this.props.transactions) {
       const txs = [];
 
-      for (const tx of this.props.transactions) {
+      this.props.transactions.forEach( tx => {
         if (tx.pending)
           txs.push(tx);
-      }
+      });
 
       if (txs.length === 0) {
         txList.push(

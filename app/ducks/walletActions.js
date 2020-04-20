@@ -159,7 +159,7 @@ export const waitForWalletSync = () => async (dispatch, getState) => {
 export const fetchTransactions = () => async (dispatch, getState) => {
   const net = getState().node.network;
   const txs = await walletClient.getTransactionHistory();
-  let payload = [];
+  let payload = new Map();
 
   for (const tx of txs) {
     const ios = await parseInputsOutputs(net, tx);
@@ -171,15 +171,11 @@ export const fetchTransactions = () => async (dispatch, getState) => {
       ...ios,
     };
 
-    if (isPending) {
-      payload.unshift(txData);
-      continue;
-    }
-
-    payload.push(txData);
+    payload.set(tx.hash, txData);
   }
 
-  payload = payload.sort((a, b) => b.date - a.date);
+  // Sort all TXs by date without losing the hash->tx mapping
+  payload = new Map([...payload.entries()].sort((a, b) => b[1].date - a[1].date));
 
   dispatch({
     type: SET_TRANSACTIONS,
