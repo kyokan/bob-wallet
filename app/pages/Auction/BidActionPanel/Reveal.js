@@ -60,7 +60,7 @@ class Reveal extends Component {
     } catch (e) {
       console.error(e);
       logger.error(`Error received from Reveal - sendReveal]\n\n${e.message}\n${e.stack}\n`);
-      this.props.showError('Failed to reveal bid. Please try again.');
+      this.props.showError(`Failed to reveal bid: ${e.message}`);
     }
   };
 
