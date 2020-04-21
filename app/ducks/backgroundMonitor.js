@@ -2,7 +2,7 @@ import walletClient from '../utils/walletClient';
 import nodeClient from '../utils/nodeClient';
 import * as logger from '../utils/logClient';
 import { store } from '../store/configureStore';
-import { LOCK_WALLET, SET_PENDING_TRANSACTIONS } from './walletReducer';
+import { SET_PENDING_TRANSACTIONS } from './walletReducer';
 import { getInitializationState } from '../db/system';
 import isEqual from 'lodash.isequal';
 import { SET_NODE_INFO, SET_FEE_INFO, NEW_BLOCK_STATUS } from './nodeReducer';
@@ -11,7 +11,6 @@ import { getYourBids } from './bids';
 import { fetchTransactions, fetchWallet } from './walletActions';
 
 export function createBackgroundMonitor() {
-  let isLocked;
   let timeout;
   let info;
   let prevNamesWithPendingUpdates = new Set();
@@ -24,18 +23,6 @@ export function createBackgroundMonitor() {
     }
 
     if (!state.wallet.initialized || !state.node.isRunning) {
-      return;
-    }
-
-    const newIsLocked = await walletClient.isLocked();
-    if (newIsLocked) {
-      if (newIsLocked !== isLocked) {
-        isLocked = newIsLocked;
-        store.dispatch({
-          type: LOCK_WALLET,
-        });
-      }
-
       return;
     }
 

@@ -26,7 +26,6 @@ export const setWallet = opts => {
     initialized = false,
     address = '',
     type = NONE,
-    isLocked = true,
     balance = {},
   } = opts;
 
@@ -36,7 +35,6 @@ export const setWallet = opts => {
       initialized,
       address,
       type,
-      isLocked,
       balance,
     },
   };
@@ -61,7 +59,6 @@ export const fetchWallet = () => async (dispatch, getState) => {
       initialized: false,
       address: '',
       type: NONE,
-      isLocked: true,
       balance: {
         ...getInitialState().balance,
       },
@@ -69,12 +66,10 @@ export const fetchWallet = () => async (dispatch, getState) => {
   }
 
   const accountInfo = await walletClient.getAccountInfo();
-  const isLocked = await walletClient.isLocked();
   dispatch(setWallet({
     initialized: isInitialized,
     address: accountInfo && accountInfo.receiveAddress,
     type: NONE,
-    isLocked,
     balance: (accountInfo && accountInfo.balance) || {
       ...getInitialState().balance,
     },
@@ -87,7 +82,9 @@ export const revealSeed = (passphrase) => async () => {
 
 export const unlockWallet = passphrase => async (dispatch) => {
   await walletClient.unlock(passphrase);
-  await dispatch(fetchWallet());
+  dispatch({
+    type: UNLOCK_WALLET,
+  });
 };
 
 export const lockWallet = () => async (dispatch) => {

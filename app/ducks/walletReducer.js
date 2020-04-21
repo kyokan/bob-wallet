@@ -41,7 +41,6 @@ export default function walletReducer(state = getInitialState(), {type, payload}
         ...state,
         address: payload.address,
         type: payload.type,
-        isLocked: payload.isLocked,
         balance: {
           ...state.balance,
           confirmed: payload.balance.confirmed,
@@ -55,11 +54,7 @@ export default function walletReducer(state = getInitialState(), {type, payload}
     case LOCK_WALLET:
       return {
         ...state,
-        balance: {
-          ...state.balance
-        },
-        isLocked: true,
-        transactions: new Map()
+        isLocked: true
       };
     case UNLOCK_WALLET:
       return {
