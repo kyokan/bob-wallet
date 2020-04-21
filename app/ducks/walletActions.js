@@ -16,6 +16,7 @@ import {
   START_SYNC_WALLET,
   STOP_SYNC_WALLET,
   SYNC_WALLET_PROGRESS,
+  GET_PASSPHRASE,
 } from './walletReducer';
 import {NEW_BLOCK_STATUS} from './nodeReducer';
 
@@ -102,6 +103,9 @@ export const removeWallet = () => async (dispatch, getState) => {
 };
 
 export const send = (to, amount, fee) => async (dispatch) => {
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
   const res = await walletClient.send(to, amount, fee);
   await dispatch(fetchWallet());
   return res;
@@ -213,6 +217,16 @@ const incrementIdle = () => ({
 
 export const resetIdle = () => ({
   type: RESET_IDLE,
+});
+
+export const getPassphrase = (resolve, reject) => ({
+  type: GET_PASSPHRASE,
+  payload: {get: true, resolve, reject},
+});
+
+export const closeGetPassphrase = () => ({
+  type: GET_PASSPHRASE,
+  payload: {get: false},
 });
 
 export const watchActivity = () => dispatch => {
