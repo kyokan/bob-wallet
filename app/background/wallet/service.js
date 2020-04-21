@@ -151,7 +151,8 @@ class WalletService {
         value: Number(toBaseUnits(amount)),
         address: to,
       }],
-      subtractFee
+      subtractFee,
+      sign: false,
     });
     return {
       feeRate,
