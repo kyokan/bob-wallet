@@ -8,6 +8,7 @@ import './mini-modal.scss';
 export class MiniModal extends Component {
   static propTypes = {
     closeRoute: PropTypes.string,
+    onClose: PropTypes.func,
     children: PropTypes.node.isRequired,
     title: PropTypes.string.isRequired,
     centered: PropTypes.bool,
@@ -15,6 +16,9 @@ export class MiniModal extends Component {
   };
 
   onClose = () => {
+    if (this.props.onClose)
+      return this.props.onClose();
+
     this.props.closeRoute
     ? this.props.history.push(this.props.closeRoute)
     : this.props.history.goBack();
