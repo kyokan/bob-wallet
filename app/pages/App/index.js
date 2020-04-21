@@ -24,6 +24,7 @@ import SearchTLD from '../SearchTLD';
 import * as walletActions from '../../ducks/walletActions';
 import './app.scss';
 import AccountLogin from '../AcountLogin';
+import PassphraseModal from '../AcountLogin/PassphraseModal';
 import * as node from '../../ducks/node';
 import { onNewBlock } from '../../ducks/backgroundMonitor';
 import Notification from '../../components/Notification';
@@ -70,6 +71,7 @@ class App extends Component {
       <div className="app">
         <WalletSync />
         <IdleModal />
+        <PassphraseModal />
         {this.renderContent()}
       </div>
     );
