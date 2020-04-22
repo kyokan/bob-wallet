@@ -134,6 +134,28 @@ class SendModal extends Component {
     });
   };
 
+  onClickContinue = async () => {
+    if (!this.validate()) {
+      return;
+    }
+
+    let feeInfo;
+    try {
+      feeInfo = await walletClient.estimateTxFee(this.state.to, this.state.amount, this.state.gasFee);
+    } catch (e) {
+      this.setState({
+        errorMessage: e.message,
+      });
+      return;
+    }
+
+    this.setState({
+      feeAmount: feeInfo.amount,
+      txSize: feeInfo.txSize,
+      isConfirming: true,
+    });
+  };
+
   addDecimalsToInteger(amount) {
     if (amount % 1 === 0) {
       return bn(amount).toFixed(2);
@@ -253,28 +275,6 @@ class SendModal extends Component {
       </div>
     );
   }
-
-  onClickContinue = async () => {
-    if (!this.validate()) {
-      return;
-    }
-
-    let feeInfo;
-    try {
-      feeInfo = await walletClient.estimateTxFee(this.state.to, this.state.amount, this.state.gasFee);
-    } catch (e) {
-      this.setState({
-        errorMessage: e.message,
-      });
-      return;
-    }
-
-    this.setState({
-      feeAmount: feeInfo.amount,
-      txSize: feeInfo.txSize,
-      isConfirming: true,
-    });
-  };
 
   renderConfirm() {
     const {
