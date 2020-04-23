@@ -41,8 +41,23 @@ class Transaction extends Component {
   numberStyling = tx =>
     classnames('transaction__number', {
       'transaction__number--pending': tx.pending,
-      'transaction__number--positive': (tx.type === RECEIVE || tx.type === COINBASE) && !tx.pending,
-      'transaction__number--negative': (tx.type !== RECEIVE && tx.type !== COINBASE) && !tx.pending,
+      'transaction__number--positive':
+        (tx.type === RECEIVE
+        || tx.type === COINBASE
+        || tx.type === REVEAL
+        || tx.type === REDEEM)
+         && !tx.pending,
+      'transaction__number--neutral':
+        (tx.type === UPDATE
+        || tx.type === RENEW)
+        && !tx.pending,
+      'transaction__number--negative':
+        (tx.type !== RECEIVE
+        && tx.type !== REVEAL
+        && tx.type !== REDEEM
+        && tx.type !== RENEW
+        && tx.type !== COINBASE)
+        && !tx.pending,
     });
 
   renderTimestamp = tx => {
@@ -92,6 +107,8 @@ class Transaction extends Component {
       description = 'Unknown Transaction';
     }
 
+    description += tx.meta.multiple ? ' (multiple)' : '';
+
     return (
       <div className="transaction__tx-description">
         <div className={this.titleStyling(tx)} onClick={this.onClickTitle}>{description}</div>
@@ -107,7 +124,11 @@ class Transaction extends Component {
       <div className={this.numberStyling(tx)}>
         {tx.pending ? <em>(pending)</em> : null}
         {' '}
-        {tx.type === RECEIVE || tx.type === COINBASE ? '+' : '-'}
+        {
+          tx.type === RECEIVE || tx.type === COINBASE || tx.type === REDEEM || tx.type === REVEAL ? '+'
+          : tx.type === UPDATE || tx.type === RENEW ? ''
+          : '-'
+        }
         {displayBalance(tx.value)} HNS
       </div>
     </div>
