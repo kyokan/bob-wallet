@@ -29,7 +29,7 @@ class BidNow extends Component {
     totalMasks: PropTypes.number.isRequired,
     ownHighestBid: PropTypes.object.isRequired,
     isPending: PropTypes.bool.isRequired,
-    confirmedBalance: PropTypes.number.isRequired,
+    spendableBalance: PropTypes.number.isRequired,
     getNameInfo: PropTypes.func.isRequired,
     waitForWalletSync: PropTypes.func.isRequired,
     startWalletSync: PropTypes.func.isRequired,
@@ -164,7 +164,7 @@ class BidNow extends Component {
       bidAmount,
     } = this.state;
 
-    const {confirmedBalance} = this.props;
+    const {spendableBalance} = this.props;
 
     return (
       <AuctionPanelFooter>
@@ -193,7 +193,7 @@ class BidNow extends Component {
         </div>
         <div className="domains__bid-now__action domains__bid-now__action--placing-bid">
           <div className="domains__bid-now__HNS-status">
-            {`${displayBalance(confirmedBalance)} HNS Unlocked Balance Available`}
+            {`${displayBalance(spendableBalance)} HNS Spendable Balance Available`}
           </div>
         </div>
       </AuctionPanelFooter>
@@ -384,7 +384,7 @@ class BidNow extends Component {
 
 export default connect(
   (state, {domain}) => ({
-    confirmedBalance: state.wallet.balance.confirmed,
+    spendableBalance: state.wallet.balance.spendable,
     ownHighestBid: _ownHighestBid(domain),
     totalBids: getTotalBids(domain),
     totalMasks: getTotalMasks(domain),

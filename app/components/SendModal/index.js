@@ -4,7 +4,7 @@ import { BigNumber as bn } from 'bignumber.js';
 import { connect } from 'react-redux';
 import c from 'classnames';
 import './send.scss';
-import { displayUnlockedConfirmBalance } from '../../utils/balances';
+import { displayBalance, toDisplayUnits } from '../../utils/balances';
 import * as walletActions from '../../ducks/walletActions';
 import Alert from '../Alert';
 import isValidAddress from '../../utils/verifyAddress';
@@ -33,7 +33,7 @@ const GAS_TO_ESTIMATES = {
   state => ({
     address: state.wallet.address,
     fees: state.node.fees,
-    totalBalance: displayUnlockedConfirmBalance(state.wallet.balance),
+    spendableBalance: state.wallet.balance.spendable,
     network: state.node.network,
   }),
   dispatch => ({
@@ -44,7 +44,7 @@ class SendModal extends Component {
   static propTypes = {
     send: PropTypes.func.isRequired,
     address: PropTypes.string.isRequired,
-    totalBalance: PropTypes.string.isRequired,
+    spendableBalance: PropTypes.number.isRequired,
     network: PropTypes.string.isRequired,
   };
 
@@ -78,7 +78,7 @@ class SendModal extends Component {
     }
   };
 
-  updateAmount = e => this.setState({amount: e.target.value});
+  updateAmount = e => this.setState({amount: e.target.value, errorMessage: ''});
 
   validate() {
     const {to, amount} = this.state;
@@ -119,14 +119,17 @@ class SendModal extends Component {
   };
 
   sendMax = async () => {
+    this.setState({errorMessage: ''});
     const fee = this.state.gasFee;
 
     let maxBal;
     try {
       maxBal = await walletClient.estimateMaxSend(fee);
     } catch (e) {
-      Sentry.captureException(e);
-      maxBal = bn(this.props.totalBalance).minus(fee).toFixed();
+      this.setState({
+        errorMessage: `Something went wrong: ${e.message}`,
+      });
+      return;     
     }
 
     this.setState({
@@ -220,7 +223,7 @@ class SendModal extends Component {
               <div className="send__amount-input__unit">HNS</div>
             </div>
             <div className="send__input-disclaimer">
-              {`Available to send: ${this.props.totalBalance} HNS`}
+              {`Available to send (including fee): ${displayBalance(this.props.spendableBalance)}`}
             </div>
           </div>
           <div className="send__network-fee">
@@ -318,7 +321,7 @@ class SendModal extends Component {
             </div>
             <div className="send__confirm__summary-fee">
               <div className="send__confirm__summary-label">Network Fee Rate:</div>
-              <div className="send__confirm__summary-value">{gasFee}</div>
+              <div className="send__confirm__summary-value">{gasFee} HNS/kB</div>
             </div>
             <div className="send__confirm__summary-fee">
               <div className="send__confirm__summary-label">Estimated TX Size:</div>
@@ -374,10 +377,6 @@ class SendModal extends Component {
             {`You just sent ${this.addDecimalsToInteger(
               amount,
             )} HNS to an external Handshake address.`}
-          </div>
-          <div className="send__sent__description">
-            Your balance will update as soon as the blockchain has confirmed
-            your transaction.
           </div>
           <div className="send__sent__details send__sent__details-first" onClick={this.viewOnHNScan}>
             View on HNScan

@@ -13,15 +13,15 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
 
 @connect(
   (state) => ({
-    confirmedBalance: state.wallet.balance.confirmed,
     unconfirmedBalance: state.wallet.balance.unconfirmed,
+    spendableBalance: state.wallet.balance.spendable,
     height: state.node.chain.height,
   }),
 )
 export default class Account extends Component {
   static propTypes = {
-    confirmedBalance: PropTypes.number.isRequired,
     unconfirmedBalance: PropTypes.number.isRequired,
+    spendableBalance: PropTypes.number.isRequired,
     height: PropTypes.number.isRequired,
   };
 
@@ -30,7 +30,7 @@ export default class Account extends Component {
   }
 
   render() {
-    const {confirmedBalance, unconfirmedBalance} = this.props;
+    const {unconfirmedBalance, spendableBalance} = this.props;
 
     return (
       <div className="account">
@@ -46,14 +46,14 @@ export default class Account extends Component {
           </div>
           <div className="account__header-section">
             <div className="account__address">
-              <div>Unlocked Balance</div>
+              <div>Spendable Balance</div>
               <Tooltipable
-                tooltipContent="Unlocked balance equals your current balance that's written on the HNS blockchain. It does not reflect pending transactions.">
+                tooltipContent="Spendable balance represents all coins in the wallet (both confirmed and unconfirmed) that are not locked by auction bids or registered names.">
                 <div className="account__info-icon" />
               </Tooltipable>
             </div>
             <div className="account__balance-wrapper">
-              <div className="account__balance-wrapper__amount">{`HNS ${displayBalance(confirmedBalance)}`}</div>
+              <div className="account__balance-wrapper__amount">{`HNS ${displayBalance(spendableBalance)}`}</div>
             </div>
           </div>
         </div>
