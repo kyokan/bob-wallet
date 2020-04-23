@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatically rescan auction if a user bids on a name that is not already in the wallet
 - Introduce "Wallet Sync" modal that blocks UI and displays wallet rescan progress
 
+### Changed
+- Switch bcrypto backend to native for remarkable performance improvements
+- Total Balance is now the "unconfirmed" balance from hsd. Unlocked balance is replaced
+with "spendable" balance which is total unconfirmed minus total locked coins
+- Covenants in portfolio view now display their value as it affects spendable balance
+- Improvements to maxSend based on spendable balance and cleaner fee estimation
+
 ## [0.2.8] - 2020-03-17
 ### Fixed
 - Fixed a crash when names transitioned from the bidding to revealing state
