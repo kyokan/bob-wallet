@@ -15,9 +15,3 @@ export function toBaseUnits(bal) {
 export function toDisplayUnits(bal) {
   return new BigNumber(bal).div(UNIT_DIVISOR).toFixed(DECIMALS);
 }
-
-export function displayUnlockedConfirmBalance(balance, withUnit) {
-  const {confirmed = 0, lockedConfirmed = 0} = balance || {};
-  const ret = new BigNumber(confirmed - lockedConfirmed).div(UNIT_DIVISOR).toFixed(DECIMALS);
-  return withUnit ? `${ret} HNS` : ret;
-}
