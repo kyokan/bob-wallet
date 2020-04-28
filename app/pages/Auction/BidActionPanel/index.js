@@ -130,7 +130,6 @@ class BidActionPanel extends Component {
 export default withRouter(
   connect(
     (state) => ({
-      confirmedBalance: state.wallet.balance.confirmed,
       watchList: state.watching.names,
       currentBlock: state.node.chain.height,
       network: state.node.network,

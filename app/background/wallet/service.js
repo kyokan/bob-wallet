@@ -142,7 +142,7 @@ class WalletService {
     },
   );
 
-  estimateTxFee = async (to, amount, feeRate) => {
+  estimateTxFee = async (to, amount, feeRate, subtractFee = false) => {
     this._ensureClient();
     const feeRateBaseUnits = Number(toBaseUnits(feeRate));
     const createdTx = await this.client.createTX(WALLET_ID, {
@@ -151,6 +151,7 @@ class WalletService {
         value: Number(toBaseUnits(amount)),
         address: to,
       }],
+      subtractFee
     });
     return {
       feeRate,
@@ -161,25 +162,16 @@ class WalletService {
 
   estimateMaxSend = async (feeRate) => {
     const info = await this.getAccountInfo();
-    const confirmedBal = new BigNumber(toDisplayUnits(info.balance.confirmed));
-    if (confirmedBal.isZero()) {
+    const spendable = info.balance.unconfirmed - info.balance.lockedUnconfirmed;
+    const value = new BigNumber(toDisplayUnits(spendable));
+    if (value.isZero()) {
       return 0;
     }
 
     const dummyAddr = randomAddrs[this.networkName];
-    let feeFudge = 0.0001;
-    while (feeFudge < 10) {
-      try {
-        const maxBal = confirmedBal.minus(feeFudge);
-        await this.estimateTxFee(dummyAddr, maxBal, feeRate);
-        return maxBal;
-      } catch (e) {
-        feeFudge = feeFudge * 10;
-      }
-    }
-
-    Sentry.captureMessage(`Max send never converged. Balance: ${toDisplayUnits(confirmedBal)}`);
-    return confirmedBal;
+    // Estiamte a 1-output TX consuming entire spendable balance minus fee
+    const {amount} = await this.estimateTxFee(dummyAddr, value, feeRate, true);
+    return value - amount;
   };
 
   sendOpen = (name) => this._ledgerProxy(

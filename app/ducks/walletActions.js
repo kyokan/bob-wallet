@@ -225,78 +225,91 @@ export const watchActivity = () => dispatch => {
   }
 };
 
-// TODO: Make this method smarter
 async function parseInputsOutputs(net, tx) {
-  const correctOutput = tx.outputs.filter(({path}) => !path || !path.change)[0];
-  const covenant = correctOutput.covenant;
+  // Look for covenants. A TX with multiple covenant types is not supported
+  let covAction = null;
+  let covValue = 0;
+  let covData = {};
+  let count = 0;
+  let totalValue = 0;
+  for (let i = 0; i < tx.outputs.length; i++) {
+    const output = tx.outputs[i];
 
-  if (covenant && covenant.action !== 'NONE') {
-    const covData = await parseCovenant(net, covenant);
+    // Find outputs to the wallet's receive branch
+    if (!output.path || output.path.change)
+      continue;
+
+    const covenant = output.covenant;
+
+    // Track normal receive amounts for later
+    if (covenant.action === 'NONE') {
+      totalValue += output.value;
+      continue;
+    }
+    // Stay focused on the first non-NONE covenant type, ignore other types
+    if (covAction && covenant.action !== covAction)
+      continue;
+
+    covAction = covenant.action;
+
+    // Special case for reveals, indicate how much
+    // spendable balance is returning to the wallet
+    // as change from the mask on the bid.
+    if (covenant.action === 'REVEAL')
+      covValue += tx.inputs[i].value - output.value;
+    else
+      covValue += output.value;
+
+    // Renewals and Updates have a value, but it doesn't
+    // affect the spendable balance of the wallet.
+    // TODO: Transfer, Finalize, etc will eventually need to go here
+    if (covenant.action === 'RENEW'
+        || covenant.action === 'REGISTER'
+        || covenant.action === 'UPDATE'){
+      covValue = 0;
+    }
+
+    // May be called redundantly but should be handled by cache
+    covData = await parseCovenant(net, covenant);
+
+    // Identify this TX as having multiple actions
+    count++;
+    covData.meta.multiple = count > 1;
+  }
+
+  // This TX was a covenant, return.
+  if (covAction) {
     return {
       ...covData,
       fee: tx.fee,
-      value: getValueByConvenant(tx, covenant),
+      value: covValue,
     };
-  }
+  }  
 
-  if (!tx.outputs.length) {
+  // If there were outputs to the wallet's receive branch
+  // but no covenants, this was just a plain receive.
+  // Note: assuming input[0] is the "from" is not really helpful data.
+  if (totalValue > 0) {
     return {
-      type: 'UNKNOWN',
-      meta: {},
-      value: '0',
-    };
-  }
-
-  for (const input of tx.inputs) {
-    if (input.path) {
-      return {
-        type: 'SEND',
-        meta: {
-          to: correctOutput.address,
-        },
-        value: correctOutput.value,
-        fee: tx.fee,
-      };
-    }
-  }
-
-  // Handles odd transactions with null input data, such as coinbases with
-  // airdrops included in them. See tx
-  // hash 8bde704a5177f9ae3a0a091058119e4bf52a8c1cc218f0a6b9dad4346ec74fbd
-  // for an example.
-  // In HSD: lib/mining/template.js
-  let isCoinbase = true;
-  for (const input of tx.inputs) {
-    if (input.address) {
-      isCoinbase = false;
-      break;
-    }
-  }
-
-  let totalValue = 0;
-  let rec = false;
-  for (const output of tx.outputs) {
-    if (output.path) {
-      rec = true;
-      totalValue += output.value;
-    }
-  }
-
-  if (rec) {
-    return {
-      type: isCoinbase ? 'COINBASE' : 'RECEIVE',
+      type: tx.inputs[0].address === null ? 'COINBASE' : 'RECEIVE',
       meta: {
-        from: isCoinbase ? '' : tx.inputs[0].address,
+        from: tx.inputs[0].address,
       },
       value: totalValue,
       fee: tx.fee,
     };
   }
 
+  // This TX must have been a plain send from the wallet.
+  // Assume that the first non-wallet output of the TX is the "to".
+  const output = tx.outputs.filter(({path}) => !path)[0];
   return {
-    type: 'UNKNOWN',
-    meta: {},
-    value: '0',
+    type: 'SEND',
+    meta: {
+      to: output.address,
+    },
+    value: output.value,
+    fee: tx.fee,
   };
 }
 
@@ -340,23 +353,6 @@ async function parseCovenant(net, covenant) {
       };
     default:
       return {type: 'UNKNOWN', meta: {}};
-  }
-}
-
-function getValueByConvenant(tx, covenant) {
-  switch (covenant.action) {
-    case 'OPEN':
-      return 0;
-    case 'BID':
-      return tx.outputs[0].value;
-    case 'REVEAL':
-      return 0;
-    case 'UPDATE':
-      return 0;
-    case 'REGISTER':
-      return 0;
-    default:
-      return 0;
   }
 }
 

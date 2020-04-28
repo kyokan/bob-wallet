@@ -31,7 +31,7 @@ class OpenBid extends Component {
 
     try {
       await sendOpen();
-      this.props.showSuccess('Successfully opened bid! Check back in a few minutes to start bidding.');
+      this.props.showSuccess('Successfully opened auction! Check back in a few minutes to start bidding.');
       analytics.track('opened bid');
     } catch (e) {
       console.error(e);

@@ -20,8 +20,8 @@ import * as walletActions from '../../ducks/walletActions';
       isSynchronizing: isRunning && progress < 1,
       isSynchronized: isRunning && progress === 1,
       progress,
-      confirmedBalance: state.wallet.balance.confirmed,
       unconfirmedBalance: state.wallet.balance.unconfirmed,
+      spendableBalance: state.wallet.balance.spendable,
     };
   },
   dispatch => ({
@@ -42,8 +42,8 @@ class Topbar extends Component {
     isSynchronizing: PropTypes.bool.isRequired,
     isSynchronized: PropTypes.bool.isRequired,
     lockWallet: PropTypes.func.isRequired,
-    confirmedBalance: PropTypes.number,
     unconfirmedBalance: PropTypes.number,
+    spendableBalance: PropTypes.number,
   };
 
   state = {
@@ -122,7 +122,7 @@ class Topbar extends Component {
   }
 
   renderSettingIcon() {
-    const { confirmedBalance, unconfirmedBalance } = this.props;
+    const { unconfirmedBalance, spendableBalance } = this.props;
     const { isShowingSettingMenu } = this.state;
     return (
       <div
@@ -143,9 +143,9 @@ class Topbar extends Component {
                     </div>
                   </div>
                   <div className="setting-menu__balance-container__item">
-                    <div className="setting-menu__balance-container__item__label">Unlocked Balance</div>
+                    <div className="setting-menu__balance-container__item__label">Spendable Balance</div>
                     <div className="setting-menu__balance-container__item__amount">
-                      {`HNS ${displayBalance(confirmedBalance)}`}
+                      {`HNS ${displayBalance(spendableBalance)}`}
                     </div>
                   </div>
                 </div>

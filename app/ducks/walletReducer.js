@@ -22,8 +22,10 @@ export function getInitialState() {
     initialized: false,
     network: '',
     balance: {
-      confirmed: '0',
-      unconfirmed: '0'
+      confirmed: 0,
+      unconfirmed: 0,
+      lockedConfirmed: 0,
+      lockedUnconfirmed: 0,
     },
     transactions: [],
     idle: 0,
@@ -42,10 +44,11 @@ export default function walletReducer(state = getInitialState(), {type, payload}
         isLocked: payload.isLocked,
         balance: {
           ...state.balance,
-          confirmed: payload.balance.confirmed || 0,
-          unconfirmed: payload.balance.unconfirmed || 0,
-          lockedUnconfirmed: payload.balance.lockedUnconfirmed || 0,
-          lockedConfirmed: payload.balance.lockedConfirmed || 0,
+          confirmed: payload.balance.confirmed,
+          unconfirmed: payload.balance.unconfirmed,
+          lockedUnconfirmed: payload.balance.lockedUnconfirmed,
+          lockedConfirmed: payload.balance.lockedConfirmed,
+          spendable: payload.balance.unconfirmed - payload.balance.lockedUnconfirmed,
         },
         initialized: payload.initialized
       };
