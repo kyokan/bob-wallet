@@ -5,15 +5,15 @@ import { store } from '../store/configureStore';
 import { LOCK_WALLET, SET_PENDING_TRANSACTIONS } from './walletReducer';
 import { getInitializationState } from '../db/system';
 import isEqual from 'lodash.isequal';
-import { SET_NODE_INFO } from './nodeReducer';
+import { SET_NODE_INFO, SET_FEE_INFO, NEW_BLOCK_STATUS } from './nodeReducer';
 import { getNameInfo } from './names';
+import { getYourBids } from './bids';
 import { fetchTransactions, fetchWallet } from './walletActions';
 
 export function createBackgroundMonitor() {
   let isLocked;
   let timeout;
   let info;
-  let fees;
   let prevNamesWithPendingUpdates = new Set();
 
   const doPoll = async () => {
@@ -44,19 +44,18 @@ export function createBackgroundMonitor() {
       chain: infoRes.chain,
       network: infoRes.network,
     };
-
-    const newFees = await nodeClient.getFees();
-    if (!isEqual(info, newInfo) || !isEqual(fees, newFees)) {
+    if (!isEqual(info, newInfo)) {
       info = newInfo;
-      fees = newFees;
       store.dispatch({
         type: SET_NODE_INFO,
         payload: {
           info: newInfo,
-          fees: newFees,
         },
       });
     }
+
+    if (state.node.chain.tip !== infoRes.chain.tip)
+      await store.dispatch(onNewBlock());
 
     const newPendingTxns = await walletClient.getPendingTransactions();
     store.dispatch({
@@ -113,6 +112,42 @@ function difference(setA, setB) {
     d.delete(elem);
   }
   return d;
+}
+
+export const onNewBlock = () => async (dispatch, getState) => {
+  let state = getState();
+  const isInitialized = await getInitializationState(state.node.network);
+  if (!isInitialized) {
+    return;
+  }
+
+  if (!state.wallet.initialized || !state.node.isRunning) {
+    return;
+  }
+
+  dispatch({type: NEW_BLOCK_STATUS, payload: 'Updating fees...'});
+  const newFees = await nodeClient.getFees();
+  if (!isEqual(state.node.fees, newFees)) {
+    dispatch({
+      type: SET_FEE_INFO,
+      payload: {
+        fees: newFees,
+      },
+    });
+  }
+
+  dispatch({type: NEW_BLOCK_STATUS, payload: 'Loading bids...'});
+  await dispatch(getYourBids());
+  
+  state = getState();
+  const bids = state.bids.yourBids;
+  for (const bid of bids) {
+    const name = bid.name;
+    dispatch({type: NEW_BLOCK_STATUS, payload: `Loading name: ${name}`});
+    await dispatch(getNameInfo(name));
+  }
+
+  dispatch({type: NEW_BLOCK_STATUS, payload: ''});
 }
 
 export const monitor = createBackgroundMonitor();

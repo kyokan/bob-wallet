@@ -2,20 +2,14 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
-import * as nameActions from '../../ducks/names';
 import { isReveal, isBidding, isOpening } from '../../utils/nameHelpers';
 import { hoursToNow } from '../../utils/timeConverter';
 
 class BidTimeLeft extends Component {
   static propTypes = {
     name: PropTypes.string.isRequired,
-    getNameInfo: PropTypes.func.isRequired,
     domain: PropTypes.object,
   };
-
-  componentWillMount() {
-    this.props.getNameInfo();
-  }
 
   isReveal = () => isReveal(this.props.domain);
 
@@ -57,9 +51,6 @@ export default withRouter(
       return {
         domain: name,
       };
-    },
-    (dispatch, ownProps) => ({
-      getNameInfo: () => dispatch(nameActions.getNameInfo(ownProps.name)),
-    }),
+    }
   )(BidTimeLeft)
 );

@@ -7,7 +7,6 @@ import BidTimeLeft from './BidTimeLeft';
 import BidAction from './BidAction';
 import { HeaderItem, HeaderRow, Table, TableItem, TableRow } from '../../components/Table';
 import BidSearchInput from '../../components/BidSearchInput';
-import * as bidsActions from '../../ducks/bids';
 import { displayBalance } from '../../utils/balances';
 import Fuse from '../../vendor/fuse';
 import './your-bids.scss';
@@ -82,9 +81,6 @@ export default withRouter(
   connect(
     state => ({
       yourBids: state.bids.yourBids,
-    }),
-    dispatch => ({
-      getYourBids: dispatch(bidsActions.getYourBids()),
     })
   )(YourBids)
 );

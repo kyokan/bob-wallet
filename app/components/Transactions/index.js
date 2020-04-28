@@ -38,7 +38,7 @@ const ITEM_PER_DROPDOWN = [
 )
 export default class Transactions extends Component {
   static propTypes = {
-    transactions: PropTypes.array.isRequired
+    transactions: PropTypes.instanceOf(Map).isRequired
   };
 
   async componentDidMount() {
@@ -46,7 +46,7 @@ export default class Transactions extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (this.props.transactions.length !== nextProps.transactions.length) {
+    if (this.props.transactions.size !== nextProps.transactions.size) {
       this.fuse = null;
     }
   }
@@ -62,7 +62,7 @@ export default class Transactions extends Component {
 
   getTransactions() {
     const { sortBy, query } = this.state;
-    let transactions = this.props.transactions.slice();
+    let transactions = Array.from(this.props.transactions.values());
 
     if (!this.fuse) {
       this.fuse = new Fuse(transactions, {

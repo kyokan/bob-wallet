@@ -10,13 +10,8 @@ class BidAction extends Component {
   static propTypes = {
     address: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
-    getNameInfo: PropTypes.func.isRequired,
     domain: PropTypes.object,
   };
-
-  componentWillMount() {
-    this.props.getNameInfo();
-  }
 
   isReveal = () => isReveal(this.props.domain);
 
@@ -133,7 +128,6 @@ export default withRouter(
       };
     },
     (dispatch, ownProps) => ({
-      getNameInfo: () => dispatch(nameActions.getNameInfo(ownProps.name)),
       sendRedeem: () => dispatch(nameActions.sendRedeem(ownProps.name)),
       showError: (message) => dispatch(showError(message)),
       showSuccess: (message) => dispatch(showSuccess(message)),

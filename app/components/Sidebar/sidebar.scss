@@ -73,7 +73,8 @@
 
   &__footer {
     @extend %col-nowrap;
-    padding: 1rem 0;
+    bottom: 1rem;
+    position: relative;
 
     &__row {
       @extend %col-nowrap;
