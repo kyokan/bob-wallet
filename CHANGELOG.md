@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 with "spendable" balance which is total unconfirmed minus total locked coins
 - Covenants in portfolio view now display their value as it affects spendable balance
 - Improvements to maxSend based on spendable balance and cleaner fee estimation
+- Bob will ask user for passphrase whenever private key is needed (e.g. send TX)
+- Bob will no longer "logout" when underlying hsd wallet is locked, however
+Bob will still lock the hsd wallet on logout or idle timeout
 
 ## [0.2.8] - 2020-03-17
 ### Fixed

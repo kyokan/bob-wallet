@@ -13,6 +13,7 @@ export const SET_PENDING_TRANSACTIONS = 'app/wallet/setPendingTransactions';
 export const START_SYNC_WALLET = 'app/wallet/startSyncWallet';
 export const STOP_SYNC_WALLET = 'app/wallet/stopSyncWallet';
 export const SYNC_WALLET_PROGRESS = 'app/wallet/syncWalletProgress';
+export const GET_PASSPHRASE = 'app/wallet/getPassphrase';
 
 export function getInitialState() {
   return {
@@ -31,6 +32,7 @@ export function getInitialState() {
     idle: 0,
     walletSync: false,
     walletSyncProgress: 0,
+    getPassphrase: {get: false},
   };
 }
 
@@ -41,7 +43,6 @@ export default function walletReducer(state = getInitialState(), {type, payload}
         ...state,
         address: payload.address,
         type: payload.type,
-        isLocked: payload.isLocked,
         balance: {
           ...state.balance,
           confirmed: payload.balance.confirmed,
@@ -55,11 +56,7 @@ export default function walletReducer(state = getInitialState(), {type, payload}
     case LOCK_WALLET:
       return {
         ...state,
-        balance: {
-          ...state.balance
-        },
-        isLocked: true,
-        transactions: new Map()
+        isLocked: true
       };
     case UNLOCK_WALLET:
       return {
@@ -95,6 +92,11 @@ export default function walletReducer(state = getInitialState(), {type, payload}
       return {
         ...state,
         walletSyncProgress: payload,
+      };
+    case GET_PASSPHRASE:
+      return {
+        ...state,
+        getPassphrase: payload,
       };
     default:
       return state;

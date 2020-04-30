@@ -6,7 +6,7 @@ import {
   stopWalletSync,
   waitForWalletSync,
   fetchPendingTransactions,
-  SET_PENDING_TRANSACTIONS
+  getPassphrase,
 } from './walletActions';
 import { SET_NAME } from './namesReducer';
 
@@ -139,6 +139,10 @@ async function inflateReveals(nClient, walletClient, bids) {
 }
 
 export const sendOpen = name => async (dispatch) => {
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
+
   await walletClient.sendOpen(name);
   await namesDb.storeName(name);
   await dispatch(fetchPendingTransactions());
@@ -148,6 +152,9 @@ export const sendBid = (name, amount, lockup, height) => async (dispatch) => {
   if (!name) {
     return;
   }
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
 
   if (height) {
     try {
@@ -165,34 +172,46 @@ export const sendBid = (name, amount, lockup, height) => async (dispatch) => {
   await namesDb.storeName(name);
 };
 
-export const sendReveal = (name) => async () => {
+export const sendReveal = (name) => async (dispatch) => {
   if (!name) {
     return;
   }
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
 
   await namesDb.storeName(name);
   await walletClient.sendReveal(name);
 };
 
-export const sendRedeem = (name) => async () => {
+export const sendRedeem = (name) => async (dispatch) => {
   if (!name) {
     return;
   }
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
 
   await namesDb.storeName(name);
   await walletClient.sendRedeem(name);
 };
 
-export const sendRenewal = (name) => async () => {
+export const sendRenewal = (name) => async (dispatch) => {
   if (!name) {
     return;
   }
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
 
   await namesDb.storeName(name);
   await walletClient.sendRenewal(name);
 };
 
 export const sendUpdate = (name, json) => async (dispatch) => {
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
   await namesDb.storeName(name);
   await walletClient.sendUpdate(name, json);
   await dispatch(fetchPendingTransactions());
