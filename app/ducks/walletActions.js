@@ -268,20 +268,22 @@ async function parseInputsOutputs(net, tx) {
 
     covAction = covenant.action;
 
-    // Special case for reveals, indicate how much
+    // Special case for reveals and registers, indicate how much
     // spendable balance is returning to the wallet
-    // as change from the mask on the bid.
-    if (covenant.action === 'REVEAL')
+    // as change from the mask on the bid, or the difference
+    // between the highest and second-highest bid.
+    if (covenant.action === 'REVEAL'
+        || covenant.action === 'REGISTER') {
       covValue += tx.inputs[i].value - output.value;
-    else
+    } else {
       covValue += output.value;
+    }
 
     // Renewals and Updates have a value, but it doesn't
     // affect the spendable balance of the wallet.
     // TODO: Transfer, Finalize, etc will eventually need to go here
     if (covenant.action === 'RENEW'
-        || covenant.action === 'REGISTER'
-        || covenant.action === 'UPDATE'){
+        || covenant.action === 'UPDATE') {
       covValue = 0;
     }
 
@@ -347,7 +349,7 @@ async function parseCovenant(net, covenant) {
       };
     case 'REGISTER':
       return {
-        type: 'UPDATE',
+        type: 'REGISTER',
         meta: {
           domain: await nameByHash(net, covenant),
           data: covenant.items[2],

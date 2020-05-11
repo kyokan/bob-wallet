@@ -18,6 +18,7 @@ const UPDATE = 'UPDATE';
 const RENEW = 'RENEW';
 const REDEEM = 'REDEEM';
 const COINBASE = 'COINBASE';
+const REGISTER = 'REGISTER';
 
 class Transaction extends Component {
   static propTypes = {
@@ -45,7 +46,8 @@ class Transaction extends Component {
         (tx.type === RECEIVE
         || tx.type === COINBASE
         || tx.type === REVEAL
-        || tx.type === REDEEM)
+        || tx.type === REDEEM
+        || tx.type === REGISTER)
          && !tx.pending,
       'transaction__number--neutral':
         (tx.type === UPDATE
@@ -93,6 +95,9 @@ class Transaction extends Component {
     } else if (tx.type === UPDATE) {
       description = 'Updated Record';
       content = this.formatDomain(tx.meta.domain);
+    } else if (tx.type === REGISTER) {
+      description = 'Registered Name';
+      content = this.formatDomain(tx.meta.domain);
     } else if (tx.type === RENEW) {
       description = 'Renewed Domain';
       content = this.formatDomain(tx.meta.domain);
@@ -123,7 +128,7 @@ class Transaction extends Component {
         {tx.pending ? <em>(pending)</em> : null}
         {' '}
         {
-          tx.type === RECEIVE || tx.type === COINBASE || tx.type === REDEEM || tx.type === REVEAL ? '+'
+          tx.type === RECEIVE || tx.type === COINBASE || tx.type === REDEEM || tx.type === REVEAL || tx.type === REGISTER ? '+'
           : tx.type === UPDATE || tx.type === RENEW || tx.type === OPEN ? ''
           : '-'
         }
