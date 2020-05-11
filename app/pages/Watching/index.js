@@ -28,10 +28,6 @@ class Watching extends Component {
     analytics.screenView('Watching');
   }
 
-  componentWillMount() {
-    this.props.getWatching(this.props.network);
-  }
-
   handleOnChange = e => this.setState({query: e.target.value});
 
   onDownload = () => {
@@ -207,7 +203,6 @@ export default withRouter(
       network: state.node.network,
     }),
     dispatch => ({
-      getWatching: (network) => dispatch(watchingActions.getWatching(network)),
       addName: (name, network) => dispatch(watchingActions.addName(name, network)),
       removeName: (name, network) => dispatch(watchingActions.removeName(name, network)),
     }),
