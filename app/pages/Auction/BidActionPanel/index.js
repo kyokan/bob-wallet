@@ -26,7 +26,6 @@ class BidActionPanel extends Component {
       }),
     }),
     network: PropTypes.string.isRequired,
-    getWatching: PropTypes.func.isRequired,
     watchDomain: PropTypes.func.isRequired,
     unwatchDomain: PropTypes.func.isRequired,
   };
@@ -135,7 +134,6 @@ export default withRouter(
       network: state.node.network,
     }),
     dispatch => ({
-      getWatching: (network) => dispatch(watchingActions.getWatching(network)),
       watchDomain: (name, network) => dispatch(watchingActions.addName(name, network)),
       unwatchDomain: (name, network) => dispatch(watchingActions.removeName(name, network)),
     }),

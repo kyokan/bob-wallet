@@ -8,6 +8,7 @@ import isEqual from 'lodash.isequal';
 import { SET_NODE_INFO, SET_FEE_INFO, NEW_BLOCK_STATUS } from './nodeReducer';
 import { getNameInfo } from './names';
 import { getYourBids } from './bids';
+import { getWatching } from './watching';
 import { fetchTransactions, fetchWallet } from './walletActions';
 
 export function createBackgroundMonitor() {
@@ -103,14 +104,6 @@ function difference(setA, setB) {
 
 export const onNewBlock = () => async (dispatch, getState) => {
   let state = getState();
-  const isInitialized = await getInitializationState(state.node.network);
-  if (!isInitialized) {
-    return;
-  }
-
-  if (!state.wallet.initialized || !state.node.isRunning) {
-    return;
-  }
 
   dispatch({type: NEW_BLOCK_STATUS, payload: 'Updating fees...'});
   const newFees = await nodeClient.getFees();
@@ -130,7 +123,13 @@ export const onNewBlock = () => async (dispatch, getState) => {
   const bids = state.bids.yourBids;
   for (const bid of bids) {
     const name = bid.name;
-    dispatch({type: NEW_BLOCK_STATUS, payload: `Loading name: ${name}`});
+    dispatch({type: NEW_BLOCK_STATUS, payload: `Loading bids: ${name}`});
+    await dispatch(getNameInfo(name));
+  }
+
+  const watch = state.watching.names;
+  for (const name of watch) {
+    dispatch({type: NEW_BLOCK_STATUS, payload: `Loading watchlist: ${name}`});
     await dispatch(getNameInfo(name));
   }
 

@@ -36,7 +36,7 @@ class OpenBid extends Component {
     } catch (e) {
       console.error(e);
       logger.error(`Error received from OpenBid - sendOpen]\n\n${e.message}\n${e.stack}\n`);
-      this.props.showError(`Failed to open bid: ${e.message}`);
+      this.props.showError(`Failed to open auction: ${e.message}`);
     }
   };
 

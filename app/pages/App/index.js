@@ -52,7 +52,6 @@ class App extends Component {
   async componentDidMount() {
     this.setState({isLoading: true});
     await this.props.startNode();
-    await this.props.onNewBlock();
     this.props.watchActivity();
     setTimeout(() => this.setState({isLoading: false}), 1000)
   }

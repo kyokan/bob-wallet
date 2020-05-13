@@ -1,5 +1,6 @@
 import * as namesDb from '../db/names';
 import { getWatchlist, saveToWatchlist } from '../db/watching';
+import { getNameInfo } from './names';
 
 const SET_WATCHLIST = 'app/watching/setWatchlist';
 
@@ -10,7 +11,7 @@ const initialState = {
 export const getWatching = (network) => async dispatch => {
   const data = await getWatchlist(network);
 
-  dispatch({
+  await dispatch({
     type: SET_WATCHLIST,
     payload: Array.isArray(data) ? data : [],
   });
@@ -23,10 +24,12 @@ export const addName = (name, network) => async dispatch => {
   await namesDb.storeName(name);
   await saveToWatchlist(network, result);
 
-  dispatch({
+  await dispatch({
     type: SET_WATCHLIST,
     payload: result,
   });
+
+  await dispatch(getNameInfo(name));
 };
 
 export const removeName = (name, network) => async dispatch => {
@@ -35,7 +38,7 @@ export const removeName = (name, network) => async dispatch => {
   result = result.filter(n => n !== name);
   await saveToWatchlist(network, result);
   
-  dispatch({
+  await dispatch({
     type: SET_WATCHLIST,
     payload: result,
   })
