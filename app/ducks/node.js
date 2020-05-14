@@ -1,5 +1,5 @@
 import { clientStub } from '../background/node/client';
-import { getNetwork, setNetwork } from '../db/system';
+import { getNetwork, setNetwork, getInitializationState } from '../db/system';
 import { fetchWallet, fetchTransactions } from './walletActions';
 import { getWatching } from './watching';
 import * as logger from '../utils/logClient';
@@ -40,9 +40,11 @@ export const start = (network) => async (dispatch, getState) => {
     });
     await dispatch(setNodeInfo());
     await dispatch(fetchWallet());
-    await dispatch(fetchTransactions());
-    await dispatch(getWatching(network));
-    await dispatch(onNewBlock());
+    if (await getInitializationState(network)) {
+      await dispatch(fetchTransactions());
+      await dispatch(getWatching(network));
+      await dispatch(onNewBlock());
+    }
   } catch (error) {
     dispatch({
       type: START_ERROR,
