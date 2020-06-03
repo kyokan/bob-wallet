@@ -1,3 +1,7 @@
+if (process.platform === 'win32') {
+  process.env.NODE_BACKEND = 'js';
+}
+
 require('./sentry');
 
 import {app, dialog} from 'electron';
