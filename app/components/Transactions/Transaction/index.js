@@ -19,6 +19,8 @@ const RENEW = 'RENEW';
 const REDEEM = 'REDEEM';
 const COINBASE = 'COINBASE';
 const REGISTER = 'REGISTER';
+const TRANSFER = 'TRANSFER';
+const REVOKE = 'REVOKE';
 
 class Transaction extends Component {
   static propTypes = {
@@ -44,19 +46,20 @@ class Transaction extends Component {
       'transaction__number--pending': tx.pending,
       'transaction__number--positive':
         (tx.type === RECEIVE
-        || tx.type === COINBASE
-        || tx.type === REVEAL
-        || tx.type === REDEEM
-        || tx.type === REGISTER)
-         && !tx.pending,
+          || tx.type === COINBASE
+          || tx.type === REVEAL
+          || tx.type === REDEEM
+          || tx.type === REGISTER)
+        && !tx.pending,
       'transaction__number--neutral':
         (tx.type === UPDATE
-        || tx.type === RENEW
-        || tx.type === OPEN)
+          || tx.type === RENEW
+          || tx.type === OPEN
+          || tx.type === TRANSFER)
         && !tx.pending,
       'transaction__number--negative':
         (tx.type === SEND
-        || tx.type === BID)
+          || tx.type === BID)
         && !tx.pending,
     });
 
@@ -106,6 +109,12 @@ class Transaction extends Component {
       content = this.formatDomain(tx.meta.domain);
     } else if (tx.type === COINBASE) {
       description = 'Mining Reward';
+    } else if (tx.type === TRANSFER) {
+      description = 'Transferred Domain';
+      content = this.formatDomain(tx.meta.domain);
+    } else if (tx.type === REVOKE) {
+      description = 'Revoked Domain';
+      content = this.formatDomain(tx.meta.domain);
     } else {
       description = 'Unknown Transaction';
     }
@@ -129,8 +138,8 @@ class Transaction extends Component {
         {' '}
         {
           tx.type === RECEIVE || tx.type === COINBASE || tx.type === REDEEM || tx.type === REVEAL || tx.type === REGISTER ? '+'
-          : tx.type === UPDATE || tx.type === RENEW || tx.type === OPEN ? ''
-          : '-'
+            : tx.type === UPDATE || tx.type === RENEW || tx.type === OPEN ? ''
+            : '-'
         }
         {displayBalance(tx.value)} HNS
       </div>

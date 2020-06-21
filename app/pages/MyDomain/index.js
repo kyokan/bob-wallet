@@ -12,6 +12,7 @@ import BidHistory from '../Auction/BidHistory';
 import { showError, showSuccess } from '../../ducks/notifications';
 import { fetchPendingTransactions } from '../../ducks/walletActions';
 import { clientStub as aClientStub } from '../../background/analytics/client';
+import TransferDetails from './TransferDetails';
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -111,6 +112,9 @@ class MyDomain extends Component {
               : 'Loading...'
           }
         </Collapsible>
+        <Collapsible className="my-domain__info-panel" title="Transfer" defaultCollapsed>
+          <TransferDetails name={name} />
+        </Collapsible>
       </div>
     );
   }
@@ -125,7 +129,6 @@ class MyDomain extends Component {
     const expired = moment().add(domain.info.stats.daysUntilExpire, 'd').format('YYYY-MM-DD');
 
     return `Expires ${expired}`;
-
   }
 }
 

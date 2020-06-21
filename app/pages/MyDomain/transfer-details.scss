@@ -1,0 +1,55 @@
+@import '../../variables.scss';
+
+.transfer-details {
+  margin-top: 1rem;
+
+  &__form {
+    display: flex;
+  }
+
+  &__inputs {
+    flex: 1 1 100%;
+    margin-right: 1rem;
+  }
+
+  &__cta {
+    flex: 0 0 150px;
+
+    .extension_cta_button {
+      display: block;
+    }
+  }
+
+  input {
+    @extend %box-input;
+    @extend %row-nowrap;
+
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.67rem 0.75rem;
+    outline: none;
+    border: none;
+
+    &::placeholder {
+      color: #bbb;
+    }
+  }
+
+  .extension_cta_button {
+    display: inline;
+    width: auto;
+  }
+
+  &__danger {
+    background: $orange-red !important;
+    margin-right: 1rem;
+
+    &, &:focus, &:hover {
+      border: 0 !important;
+    }
+
+    &:hover {
+      background: rgba($orange-red, 0.90) !important;
+    }
+  }
+}
