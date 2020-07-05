@@ -43,7 +43,7 @@ export default class ImportSeedEnterMnemonic extends Component {
           <div className="backup-warning__header_text">Import your recovery phrase</div>
 
           <div className="import_warning_text">
-            Enter your 24 word seed phrase that was assigned to you when you
+            Enter your 12- or 24-word seed phrase that was assigned to you when you
             created your previous wallet.
           </div>
           <div className="import-enter__textarea-container">
@@ -75,6 +75,7 @@ export default class ImportSeedEnterMnemonic extends Component {
   }
 
   disableButton() {
-    return this.state.mnemonic.trim().split(' ').length !== 24;
+    const length = this.state.mnemonic.trim().split(' ').length;
+    return !(length === 12 || length === 24);
   }
 }
