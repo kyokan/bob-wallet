@@ -21,6 +21,7 @@ const COINBASE = 'COINBASE';
 const REGISTER = 'REGISTER';
 const TRANSFER = 'TRANSFER';
 const REVOKE = 'REVOKE';
+const FINALIZE = 'FINALIZE';
 
 class Transaction extends Component {
   static propTypes = {
@@ -55,7 +56,8 @@ class Transaction extends Component {
         (tx.type === UPDATE
           || tx.type === RENEW
           || tx.type === OPEN
-          || tx.type === TRANSFER)
+          || tx.type === TRANSFER
+          || tx.type === FINALIZE)
         && !tx.pending,
       'transaction__number--negative':
         (tx.type === SEND
@@ -114,6 +116,9 @@ class Transaction extends Component {
       content = this.formatDomain(tx.meta.domain);
     } else if (tx.type === REVOKE) {
       description = 'Revoked Domain';
+      content = this.formatDomain(tx.meta.domain);
+    } else if (tx.type === 'FINALIZE') {
+      description = 'Finalized Domain';
       content = this.formatDomain(tx.meta.domain);
     } else {
       description = 'Unknown Transaction';

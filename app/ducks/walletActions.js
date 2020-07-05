@@ -280,10 +280,10 @@ async function parseInputsOutputs(net, tx) {
 
     // Renewals and Updates have a value, but it doesn't
     // affect the spendable balance of the wallet.
-    // TODO: Transfer, Finalize, etc will eventually need to go here
-    if (covenant.action === 'RENEW'
-      || covenant.action === 'UPDATE' ||
-      covenant.action === 'TRANSFER') {
+    if (covenant.action === 'RENEW' ||
+      covenant.action === 'UPDATE' ||
+      covenant.action === 'TRANSFER' ||
+      covenant.action === 'FINALIZE') {
       covValue = 0;
     }
 
@@ -379,6 +379,13 @@ async function parseCovenant(net, covenant) {
     case 'REVOKE':
       return {
         type: 'REVOKE',
+        meta: {
+          domain: await nameByHash(net, covenant),
+        },
+      };
+    case 'FINALIZE':
+      return {
+        type: 'FINALIZE',
         meta: {
           domain: await nameByHash(net, covenant),
         },

@@ -119,53 +119,7 @@ class TransferDetails extends Component {
                 Finalize Transfer
               </button>
             </p>
-            <p>
-              <strong>For emergency use only:</strong> If someone has compromised your key or transferred this name
-              without
-              your permission, you can revoke the name. Revoking a name will release it back to the public.
-            </p>
-            <p>
-              To revoke this name, please acknowledge the following:
-            </p>
-            <div className="interstitial-warning-modal__checkbox">
-              <Checkbox
-                className="interstitial-warning-modal__checkbox-box"
-                onChange={this.toggleCheck(0)}
-                checked={this.state.acceptances[0]}
-              />
-              <div className="interstitial-warning-modal__checkbox-label">
-                The name will go back into the public auction pool.
-              </div>
-            </div>
-            <div className="interstitial-warning-modal__checkbox">
-              <Checkbox
-                className="interstitial-warning-modal__checkbox-box"
-                onChange={this.toggleCheck(1)}
-                checked={this.state.acceptances[1]}
-              />
-              <div className="interstitial-warning-modal__checkbox-label">
-                The only way to own this name again is to win it again at auction.
-              </div>
-            </div>
-            <div className="interstitial-warning-modal__checkbox">
-              <Checkbox
-                className="interstitial-warning-modal__checkbox-box"
-                onChange={this.toggleCheck(2)}
-                checked={this.state.acceptances[2]}
-              />
-              <div className="interstitial-warning-modal__checkbox-label">
-                There is no way to undo this action.
-              </div>
-            </div>
-            <p>
-              <button
-                className="extension_cta_button"
-                onClick={this.revokeName}
-                disabled={this.checkDisabled()}
-              >
-                Revoke Name
-              </button>
-            </p>
+            {this.renderRevoke()}
           </div>
         );
       }
@@ -180,6 +134,7 @@ class TransferDetails extends Component {
               Cancel Transfer
             </button>
           </p>
+          {this.renderRevoke()}
         </div>
       );
     }
@@ -208,6 +163,60 @@ class TransferDetails extends Component {
           </div>
         </div>
       </div>
+    );
+  }
+
+  renderRevoke() {
+    return (
+      <>
+        <p>
+          <strong>For emergency use only:</strong> If someone has compromised your key or transferred this name
+          without
+          your permission, you can revoke the name. Revoking a name will release it back to the public.
+        </p>
+        <p>
+          To revoke this name, please acknowledge the following:
+        </p>
+        <div className="interstitial-warning-modal__checkbox">
+          <Checkbox
+            className="interstitial-warning-modal__checkbox-box"
+            onChange={this.toggleCheck(0)}
+            checked={this.state.acceptances[0]}
+          />
+          <div className="interstitial-warning-modal__checkbox-label">
+            The name will go back into the public auction pool.
+          </div>
+        </div>
+        <div className="interstitial-warning-modal__checkbox">
+          <Checkbox
+            className="interstitial-warning-modal__checkbox-box"
+            onChange={this.toggleCheck(1)}
+            checked={this.state.acceptances[1]}
+          />
+          <div className="interstitial-warning-modal__checkbox-label">
+            The only way to own this name again is to win it again at auction.
+          </div>
+        </div>
+        <div className="interstitial-warning-modal__checkbox">
+          <Checkbox
+            className="interstitial-warning-modal__checkbox-box"
+            onChange={this.toggleCheck(2)}
+            checked={this.state.acceptances[2]}
+          />
+          <div className="interstitial-warning-modal__checkbox-label">
+            There is no way to undo this action.
+          </div>
+        </div>
+        <p>
+          <button
+            className="extension_cta_button"
+            onClick={this.revokeName}
+            disabled={this.checkDisabled()}
+          >
+            Revoke Name
+          </button>
+        </p>
+      </>
     );
   }
 }
