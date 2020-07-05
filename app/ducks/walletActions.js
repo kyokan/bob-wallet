@@ -1,9 +1,9 @@
 import walletClient from '../utils/walletClient';
 import nodeClient from '../utils/nodeClient';
-import BigNumber from 'bignumber.js';
 import throttle from 'lodash.throttle';
 import { getInitializationState, setInitializationState } from '../db/system';
 import {
+  GET_PASSPHRASE,
   getInitialState,
   INCREMENT_IDLE,
   LOCK_WALLET,
@@ -12,13 +12,12 @@ import {
   SET_PENDING_TRANSACTIONS,
   SET_TRANSACTIONS,
   SET_WALLET,
-  UNLOCK_WALLET,
   START_SYNC_WALLET,
   STOP_SYNC_WALLET,
   SYNC_WALLET_PROGRESS,
-  GET_PASSPHRASE,
+  UNLOCK_WALLET,
 } from './walletReducer';
-import {NEW_BLOCK_STATUS} from './nodeReducer';
+import { NEW_BLOCK_STATUS } from './nodeReducer';
 
 let idleInterval;
 
@@ -123,7 +122,7 @@ export const waitForWalletSync = () => async (dispatch, getState) => {
   let lastProgress = 0;
   let stall = 0;
 
-  for (;;) {
+  for (; ;) {
     const nodeInfo = await nodeClient.getInfo();
     const wdbInfo = await walletClient.rpcGetWalletInfo();
 
@@ -169,7 +168,7 @@ export const fetchTransactions = () => async (dispatch, getState) => {
     const tx = txs[i];
     const existing = currentTXs.get(tx.hash);
     if (existing) {
-      const isPending = tx.block === null; 
+      const isPending = tx.block === null;
       existing.date = isPending ? Date.now() : Date.parse(tx.date);
       existing.pending = isPending;
 
@@ -273,7 +272,7 @@ async function parseInputsOutputs(net, tx) {
     // as change from the mask on the bid, or the difference
     // between the highest and second-highest bid.
     if (covenant.action === 'REVEAL'
-        || covenant.action === 'REGISTER') {
+      || covenant.action === 'REGISTER') {
       covValue += tx.inputs[i].value - output.value;
     } else {
       covValue += output.value;
@@ -281,9 +280,10 @@ async function parseInputsOutputs(net, tx) {
 
     // Renewals and Updates have a value, but it doesn't
     // affect the spendable balance of the wallet.
-    // TODO: Transfer, Finalize, etc will eventually need to go here
-    if (covenant.action === 'RENEW'
-        || covenant.action === 'UPDATE') {
+    if (covenant.action === 'RENEW' ||
+      covenant.action === 'UPDATE' ||
+      covenant.action === 'TRANSFER' ||
+      covenant.action === 'FINALIZE') {
       covValue = 0;
     }
 
@@ -302,7 +302,7 @@ async function parseInputsOutputs(net, tx) {
       fee: tx.fee,
       value: covValue,
     };
-  }  
+  }
 
   // If there were outputs to the wallet's receive branch
   // but no covenants, this was just a plain receive.
@@ -365,6 +365,27 @@ async function parseCovenant(net, covenant) {
     case 'REDEEM':
       return {
         type: 'REDEEM',
+        meta: {
+          domain: await nameByHash(net, covenant),
+        },
+      };
+    case 'TRANSFER':
+      return {
+        type: 'TRANSFER',
+        meta: {
+          domain: await nameByHash(net, covenant),
+        },
+      };
+    case 'REVOKE':
+      return {
+        type: 'REVOKE',
+        meta: {
+          domain: await nameByHash(net, covenant),
+        },
+      };
+    case 'FINALIZE':
+      return {
+        type: 'FINALIZE',
         meta: {
           domain: await nameByHash(net, covenant),
         },

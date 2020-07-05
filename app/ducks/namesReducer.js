@@ -9,6 +9,8 @@ const ALLOWED_COVENANTS = new Set([
   'REGISTER',
   'RENEW',
   'REDEEM',
+  'TRANSFER',
+  'FINALIZE',
 ]);
 
 export const SET_NAME = 'app/names/setName';

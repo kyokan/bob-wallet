@@ -27,6 +27,7 @@ class Records extends Component {
     pendingData: PropTypes.object,
     showSuccess: PropTypes.func.isRequired,
     sendUpdate: PropTypes.func.isRequired,
+    transferring: PropTypes.bool.isRequired,
   };
 
   shouldComponentUpdate(nextProps, nextState, nextContext) {
@@ -176,6 +177,14 @@ class Records extends Component {
     );
   }
 
+  renderTransferringOverlay() {
+    return (
+      <div className="records-table__pending-overlay">
+        <div className="records-table__pending-overlay__content">Domain cannot be modified while a transfer is in progress.</div>
+      </div>
+    );
+  }
+
   render() {
     return (
       <div>
@@ -189,6 +198,7 @@ class Records extends Component {
           {!this.props.pendingData ? this.renderCreateRecord() : null}
           {!this.props.pendingData ? this.renderActionRow() : null}
           {this.props.pendingData ? this.renderPendingUpdateOverlay() : null}
+          {this.props.transferring || this.props.domain.pendingOperation === 'TRANSFER' ? this.renderTransferringOverlay() : null}
         </Table>
       </div>
     );
@@ -202,6 +212,7 @@ export default withRouter(
       const resource = getDecodedResource(domain);
 
       return {
+        domain,
         resource,
         pendingData: getPendingData(domain),
       };
