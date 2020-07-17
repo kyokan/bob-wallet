@@ -61,6 +61,8 @@ export default class RepairBid extends Component {
     if (dollarydoos > consensus.MAX_MONEY)
       return;
     this.setState({value: value});
+    if (val === "")
+      return;
     return this.verifyBid(dollarydoos);
   }
 
