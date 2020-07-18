@@ -9,12 +9,12 @@ import EventEmitter from 'events';
 import { NodeClient } from 'hs-client';
 import rimraf from 'rimraf';
 import { BigNumber } from 'bignumber.js';
+import {ConnectionTypes, getAPIKey, getConnection} from '../connections/service';
 
 const Network = require('hsd/lib/protocol/network');
 
 const MIN_FEE = new BigNumber(0.01);
 const DEFAULT_BLOCK_TIME = 10 * 60 * 1000;
-const API_KEY = crypto.randomBytes(20).toString('hex');
 
 export class NodeService extends EventEmitter {
   constructor() {
@@ -30,6 +30,20 @@ export class NodeService extends EventEmitter {
   }
 
   async start(networkName) {
+    const {type} = await getConnection();
+
+    console.log(type);
+    switch (type) {
+      case ConnectionTypes.P2P:
+        await this.startNode(networkName);
+        return;
+      case ConnectionTypes.Custom:
+        await this.startCustom(networkName);
+        return;
+    }
+  }
+
+  async startNode(networkName) {
     if (this.hsdWindow && this.networkName === networkName) {
       return;
     }
@@ -40,13 +54,14 @@ export class NodeService extends EventEmitter {
       throw new Error('Invalid network.');
     }
     const network = Network.get(networkName);
-    // const portsFree = await checkHSDPortsFree(network);
-    // if (!portsFree) {
-    //   throw new Error('hsd ports in use. Please make sure no other hsd instance is running, quit Bob, and try again.');
-    // }
+
+    const portsFree = await checkHSDPortsFree(network);
+    if (!portsFree) {
+      throw new Error('hsd ports in use. Please make sure no other hsd instance is running, quit Bob, and try again.');
+    }
 
     console.log(`Starting node on ${networkName} network.`);
-    const apiKey = API_KEY;
+    const apiKey = await getAPIKey();
     const hsdWindow = new BrowserWindow({
       width: 400,
       height: 400,
@@ -55,26 +70,26 @@ export class NodeService extends EventEmitter {
         nodeIntegration: true,
       },
     });
-    // await hsdWindow.loadURL(`file://${path.join(__dirname, '../../hsd.html')}`);
-    // hsdWindow.webContents.send('start', this.hsdPrefixDir, networkName, apiKey);
-    // await new Promise((resolve, reject) => {
-    //   const lis = (_, channel, ...args) => {
-    //     if (channel !== 'started' && channel !== 'error') {
-    //       return;
-    //     }
-    //
-    //     hsdWindow.webContents.removeListener('started', lis);
-    //     hsdWindow.webContents.removeListener('error', lis);
-    //
-    //     if (channel === 'error') {
-    //       console.error('Error opening hsd window:', args);
-    //       return reject(args[0]);
-    //     }
-    //
-    //     resolve();
-    //   };
-    //   hsdWindow.webContents.on('ipc-message', lis);
-    // });
+    await hsdWindow.loadURL(`file://${path.join(__dirname, '../../hsd.html')}`);
+    hsdWindow.webContents.send('start', this.hsdPrefixDir, networkName, apiKey);
+    await new Promise((resolve, reject) => {
+      const lis = (_, channel, ...args) => {
+        if (channel !== 'started' && channel !== 'error') {
+          return;
+        }
+
+        hsdWindow.webContents.removeListener('started', lis);
+        hsdWindow.webContents.removeListener('error', lis);
+
+        if (channel === 'error') {
+          console.error('Error opening hsd window:', args);
+          return reject(args[0]);
+        }
+
+        resolve();
+      };
+      hsdWindow.webContents.on('ipc-message', lis);
+    });
     hsdWindow.on('closed', () => {
       console.log('hsd window closed.');
       this.emit('stopped');
@@ -84,7 +99,7 @@ export class NodeService extends EventEmitter {
     const client = new NodeClient({
       network: network,
       port: network.rpcPort,
-      // apiKey,
+      apiKey,
     });
     await retry(() => client.getInfo(), 20, 200);
 
@@ -94,6 +109,46 @@ export class NodeService extends EventEmitter {
     this.apiKey = apiKey;
     this.client = client;
     this.emit('started', this.networkName, this.network, this.apiKey);
+  }
+
+  async startCustom(networkName) {
+    if (this.hsdWindow && this.networkName === networkName) {
+      return;
+    }
+    if (this.hsdWindow) {
+      throw new Error('hsd already started.');
+    }
+    if (!VALID_NETWORKS[networkName]) {
+      throw new Error('Invalid network.');
+    }
+    const network = Network.get(networkName);
+
+    console.log(`Starting node on ${networkName} network.`);
+    const hsdWindow = new BrowserWindow({
+      width: 400,
+      height: 400,
+      show: false,
+      webPreferences: {
+        nodeIntegration: true,
+      },
+    });
+    hsdWindow.on('closed', () => {
+      console.log('hsd window closed.');
+      this.emit('stopped');
+      this.hsdWindow = null;
+    });
+
+    const client = new NodeClient({
+      network: network,
+      port: network.rpcPort,
+    });
+    await retry(() => client.getInfo(), 20, 200);
+
+    this.networkName = networkName;
+    this.network = network;
+    this.hsdWindow = hsdWindow;
+    this.client = client;
+    this.emit('started', this.networkName, this.network);
   }
 
   async stop() {

@@ -13,26 +13,24 @@ ipc.on('start', (_, prefix, net, apiKey) => {
   }
 
   try {
-    // hsd = new FullNode({
-    //   config: true,
-    //   argv: true,
-    //   env: true,
-    //   logFile: true,
-    //   logConsole: false,
-    //   logLevel: 'debug',
-    //   memory: false,
-    //   workers: false,
-    //   network: net,
-    //   loader: require,
-    //   prefix: prefix,
-    //   listen: true,
-    //   bip37: true,
-    //   indexAddress: true,
-    //   indexTX: true,
-    //   apiKey,
-    // });
-
-    // hsd.use(WalletPlugin);
+    hsd = new FullNode({
+      config: true,
+      argv: true,
+      env: true,
+      logFile: true,
+      logConsole: false,
+      logLevel: 'debug',
+      memory: false,
+      workers: false,
+      network: net,
+      loader: require,
+      prefix: prefix,
+      listen: true,
+      bip37: true,
+      indexAddress: true,
+      indexTX: true,
+      apiKey,
+    });
   } catch (e) {
     ipc.send('error', e);
     return;
