@@ -1,8 +1,11 @@
 import { WalletClient } from 'hs-client';
+const WalletNode = require("hsd/lib/wallet/node");
 import { displayBalance, toBaseUnits, toDisplayUnits } from '../../utils/balances';
 import { service as nodeService } from '../node/service';
 import BigNumber from 'bignumber.js';
 import { NETWORKS } from '../../constants/networks';
+import path from "path";
+import {app} from "electron";
 
 const Sentry = require('@sentry/electron');
 
@@ -17,6 +20,8 @@ const randomAddrs = {
   [NETWORKS.SIMNET]: 'ss1qfrfg6pg7emnx5m53zf4fe24vdtt8thljhyekhj',
 };
 
+const HSD_DATA_DIR = path.join(app.getPath('userData'), 'hsd_data');
+
 class WalletService {
   constructor() {
     nodeService.on('started', this._onNodeStart);
@@ -24,18 +29,24 @@ class WalletService {
     this.nodeService = nodeService;
   }
 
+  reset = async () => {
+    await this._ensureClient();
+    await this.node.wdb.remove(WALLET_ID);
+  };
+
   getWalletInfo = async () => {
-    this._ensureClient();
+    await this._ensureClient();
     return this.client.getInfo(WALLET_ID);
   };
 
+
   getAccountInfo = async () => {
-    this._ensureClient();
+    await this._ensureClient();
     return this.client.getAccount(WALLET_ID, 'default');
   };
 
   getCoin = async (hash, index) => {
-    this._ensureClient();
+    await this._ensureClient();
     return this.client.getCoin(WALLET_ID, hash, index);
   };
 
@@ -45,10 +56,9 @@ class WalletService {
   };
 
   createNewWallet = async (passphraseOrXPub, isLedger) => {
-    this._ensureClient();
+    await this._ensureClient();
     this.didSelectWallet = false;
 
-    await this.nodeService.reset();
     if (isLedger) {
       return this.client.createWallet(WALLET_ID, {
         watchOnly: true,
@@ -67,9 +77,8 @@ class WalletService {
   };
 
   importSeed = async (passphrase, mnemonic) => {
-    this._ensureClient();
+    await this._ensureClient();
     this.didSelectWallet = false;
-    await this.nodeService.reset();
 
     const options = {
       passphrase,
@@ -83,7 +92,7 @@ class WalletService {
   };
 
   generateReceivingAddress = async () => {
-    this._ensureClient();
+    await this._ensureClient();
     return this.client.createAddress(WALLET_ID, 'default');
   };
 
@@ -92,12 +101,12 @@ class WalletService {
   };
 
   getTransactionHistory = async () => {
-    this._ensureClient();
+    await this._ensureClient();
     return this.client.getHistory(WALLET_ID, 'default');
   };
 
   getPendingTransactions = async () => {
-    this._ensureClient();
+    await this._ensureClient();
     return this.client.getPending(WALLET_ID, 'default');
   };
 
@@ -143,7 +152,7 @@ class WalletService {
   );
 
   estimateTxFee = async (to, amount, feeRate, subtractFee = false) => {
-    this._ensureClient();
+    await this._ensureClient();
     const feeRateBaseUnits = Number(toBaseUnits(feeRate));
     const createdTx = await this.client.createTX(WALLET_ID, {
       rate: feeRateBaseUnits,
@@ -260,7 +269,7 @@ class WalletService {
   );
 
   getNonce = async (options) => {
-    this._ensureClient();
+    await this._ensureClient();
     return this.client.getNonce(WALLET_ID, options.name, options);
   };
 
@@ -269,7 +278,7 @@ class WalletService {
   };
 
   zap = async () => {
-    this._ensureClient();
+    await this._ensureClient();
     return this.client.zap(WALLET_ID, 'default', 1);
   };
 
@@ -289,22 +298,42 @@ class WalletService {
       apiKey,
     };
 
+    const node = new WalletNode({
+      network: networkName,
+      nodeApiKey: apiKey,
+      httpPort: network.walletPort,
+      memory: false,
+      prefix: networkName === 'main'
+        ? HSD_DATA_DIR
+        : path.join(HSD_DATA_DIR, networkName),
+    });
+
+    await node.open();
+    this.node = node;
     this.client = new WalletClient(walletOptions);
   };
 
   _onNodeStop = async () => {
     this.client = null;
+    this.node = null;
     this.didSelectWallet = false;
   };
 
-  _ensureClient() {
-    if (!this.client) {
-      throw new Error('no wallet client configured');
-    }
+  async _ensureClient() {
+    return new Promise((resolve, reject) => {
+      if (this.client) {
+        resolve();
+      }
+
+      setTimeout(async () => {
+        await this._ensureClient();
+        resolve();
+      }, 500);
+    });
   }
 
   async _selectWallet() {
-    this._ensureClient();
+    await this._ensureClient();
 
     if (this.didSelectWallet) {
       return;
@@ -340,7 +369,7 @@ class WalletService {
   }
 }
 
-const service = new WalletService();
+export const service = new WalletService();
 service.createNewWallet.suppressLogging = true;
 service.importSeed.suppressLogging = true;
 service.getMasterHDKey.suppressLogging = true;
@@ -368,6 +397,7 @@ const methods = {
   revealSeed: service.revealSeed,
   estimateTxFee: service.estimateTxFee,
   estimateMaxSend: service.estimateMaxSend,
+  reset: service.reset,
   sendOpen: service.sendOpen,
   sendBid: service.sendBid,
   sendUpdate: service.sendUpdate,

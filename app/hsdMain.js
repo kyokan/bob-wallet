@@ -32,7 +32,7 @@ ipc.on('start', (_, prefix, net, apiKey) => {
       apiKey,
     });
 
-    hsd.use(WalletPlugin);
+    // hsd.use(WalletPlugin);
   } catch (e) {
     ipc.send('error', e);
     return;

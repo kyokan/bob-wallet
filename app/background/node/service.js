@@ -14,6 +14,7 @@ const Network = require('hsd/lib/protocol/network');
 
 const MIN_FEE = new BigNumber(0.01);
 const DEFAULT_BLOCK_TIME = 10 * 60 * 1000;
+const API_KEY = crypto.randomBytes(20).toString('hex');
 
 export class NodeService extends EventEmitter {
   constructor() {
@@ -45,7 +46,7 @@ export class NodeService extends EventEmitter {
     }
 
     console.log(`Starting node on ${networkName} network.`);
-    const apiKey = crypto.randomBytes(20).toString('hex');
+    const apiKey = API_KEY;
     const hsdWindow = new BrowserWindow({
       width: 400,
       height: 400,
@@ -105,26 +106,9 @@ export class NodeService extends EventEmitter {
   }
 
   async reset() {
-    await this.stop();
-
-    if (this.networkName === NETWORKS.MAINNET) {
-      await new Promise((resolve, reject) => rimraf(path.join(this.hsdPrefixDir, 'wallet'), error => {
-        if (error) {
-          return reject(error);
-        }
-        resolve();
-      }));
-    } else {
-      const walletDir = path.join(this.hsdPrefixDir, this.networkName, 'wallet');
-      await new Promise((resolve, reject) => rimraf(walletDir, error => {
-        if (error) {
-          return reject(error);
-        }
-        resolve();
-      }));
-    }
-
-    await this.start(this.networkName);
+    // await this.stop();
+    //
+    // await this.start(this.networkName);
   }
 
   async getAPIKey() {
@@ -227,7 +211,7 @@ async function checkHSDPortsFree(network) {
   const ports = [
     network.port,
     network.rpcPort,
-    network.walletPort,
+    // network.walletPort,
     network.nsPort,
   ];
 
