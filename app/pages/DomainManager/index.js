@@ -6,6 +6,9 @@ import * as myDomainsActions from '../../ducks/myDomains';
 import './domain-manager.scss';
 import { clientStub as aClientStub } from '../../background/analytics/client';
 
+const { dialog } = require("electron").remote;
+import fs from 'fs';
+
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
 class DomainManager extends Component {
@@ -22,9 +25,32 @@ class DomainManager extends Component {
     this.props.getMyNames();
   }
 
+  handleExportClick() {
+    let names = this.props.myDomains.map(({name}) => name);
+    let data = names.join("\n");
+
+    let savePath = dialog.showSaveDialogSync({
+      filters: [{ name: 'spreadsheet', extensions: ['csv'] }]
+    });
+
+    if(savePath) {
+      fs.writeFile(savePath, data, (err) => {
+        if (err) {
+          throw err;
+        }
+      });
+    }
+  }
+
   renderList() {
     return (
       <div className="domain-manager">
+        <button
+          className="extension_cta_button domain-manager__export-btn"
+          onClick={this.handleExportClick.bind(this)}
+        >
+          Export All Names
+        </button>
         {this.props.myDomains.map(({name, nameHash}) => (
           <div
             className="domain-manager__domain"
