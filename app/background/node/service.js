@@ -40,10 +40,10 @@ export class NodeService extends EventEmitter {
       throw new Error('Invalid network.');
     }
     const network = Network.get(networkName);
-    const portsFree = await checkHSDPortsFree(network);
-    if (!portsFree) {
-      throw new Error('hsd ports in use. Please make sure no other hsd instance is running, quit Bob, and try again.');
-    }
+    // const portsFree = await checkHSDPortsFree(network);
+    // if (!portsFree) {
+    //   throw new Error('hsd ports in use. Please make sure no other hsd instance is running, quit Bob, and try again.');
+    // }
 
     console.log(`Starting node on ${networkName} network.`);
     const apiKey = API_KEY;
@@ -55,26 +55,26 @@ export class NodeService extends EventEmitter {
         nodeIntegration: true,
       },
     });
-    await hsdWindow.loadURL(`file://${path.join(__dirname, '../../hsd.html')}`);
-    hsdWindow.webContents.send('start', this.hsdPrefixDir, networkName, apiKey);
-    await new Promise((resolve, reject) => {
-      const lis = (_, channel, ...args) => {
-        if (channel !== 'started' && channel !== 'error') {
-          return;
-        }
-
-        hsdWindow.webContents.removeListener('started', lis);
-        hsdWindow.webContents.removeListener('error', lis);
-
-        if (channel === 'error') {
-          console.error('Error opening hsd window:', args);
-          return reject(args[0]);
-        }
-
-        resolve();
-      };
-      hsdWindow.webContents.on('ipc-message', lis);
-    });
+    // await hsdWindow.loadURL(`file://${path.join(__dirname, '../../hsd.html')}`);
+    // hsdWindow.webContents.send('start', this.hsdPrefixDir, networkName, apiKey);
+    // await new Promise((resolve, reject) => {
+    //   const lis = (_, channel, ...args) => {
+    //     if (channel !== 'started' && channel !== 'error') {
+    //       return;
+    //     }
+    //
+    //     hsdWindow.webContents.removeListener('started', lis);
+    //     hsdWindow.webContents.removeListener('error', lis);
+    //
+    //     if (channel === 'error') {
+    //       console.error('Error opening hsd window:', args);
+    //       return reject(args[0]);
+    //     }
+    //
+    //     resolve();
+    //   };
+    //   hsdWindow.webContents.on('ipc-message', lis);
+    // });
     hsdWindow.on('closed', () => {
       console.log('hsd window closed.');
       this.emit('stopped');
@@ -84,7 +84,7 @@ export class NodeService extends EventEmitter {
     const client = new NodeClient({
       network: network,
       port: network.rpcPort,
-      apiKey,
+      // apiKey,
     });
     await retry(() => client.getInfo(), 20, 200);
 

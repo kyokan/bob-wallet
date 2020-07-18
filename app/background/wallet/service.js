@@ -294,20 +294,21 @@ class WalletService {
     this.networkName = networkName;
     const walletOptions = {
       network: network,
-      port: network.walletPort,
-      apiKey,
+      port: 7373,
+      // apiKey,
     };
 
     const node = new WalletNode({
       network: networkName,
       nodeApiKey: apiKey,
-      httpPort: network.walletPort,
+      httpPort: 7373,
       memory: false,
       prefix: networkName === 'main'
         ? HSD_DATA_DIR
         : path.join(HSD_DATA_DIR, networkName),
     });
 
+    console.log('startttt')
     await node.open();
     this.node = node;
     this.client = new WalletClient(walletOptions);
