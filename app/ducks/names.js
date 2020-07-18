@@ -2,11 +2,11 @@ import nodeClient from '../utils/nodeClient';
 import walletClient from '../utils/walletClient';
 import * as namesDb from '../db/names';
 import {
+  fetchPendingTransactions,
+  getPassphrase,
   startWalletSync,
   stopWalletSync,
   waitForWalletSync,
-  fetchPendingTransactions,
-  getPassphrase,
 } from './walletActions';
 import { SET_NAME } from './namesReducer';
 
@@ -206,6 +206,49 @@ export const sendRenewal = (name) => async (dispatch) => {
 
   await namesDb.storeName(name);
   await walletClient.sendRenewal(name);
+};
+
+export const sendTransfer = (name, recipient) => async (dispatch) => {
+  if (!name) {
+    return;
+  }
+  if (!recipient) {
+    return;
+  }
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
+  await walletClient.sendTransfer(name, recipient);
+};
+
+export const cancelTransfer = (name) => async (dispatch) => {
+  if (!name) {
+    return;
+  }
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
+  await walletClient.cancelTransfer(name);
+};
+
+export const finalizeTransfer = (name) => async (dispatch) => {
+  if (!name) {
+    return;
+  }
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
+  await walletClient.finalizeTransfer(name);
+};
+
+export const revokeName = (name) => async (dispatch) => {
+  if (!name) {
+    return;
+  }
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
+  await walletClient.revokeName(name);
 };
 
 export const sendUpdate = (name, json) => async (dispatch) => {

@@ -205,6 +205,26 @@ class WalletService {
     () => this._executeRPC('sendrenewal', [name]),
   );
 
+  sendTransfer = (name, recipient) => this._ledgerProxy(
+    () => this._executeRPC('createtransfer', [name, recipient]),
+    () => this._executeRPC('sendtransfer', [name, recipient]),
+  );
+
+  cancelTransfer = (name) => this._ledgerProxy(
+    () => this._executeRPC('createcancel', [name]),
+    () => this._executeRPC('sendcancel', [name]),
+  );
+
+  finalizeTransfer = (name) => this._ledgerProxy(
+    () => this._executeRPC('createfinalize', [name]),
+    () => this._executeRPC('sendfinalize', [name]),
+  );
+
+  revokeName = (name) => this._ledgerProxy(
+    () => this._executeRPC('createrevoke', [name]),
+    () => this._executeRPC('sendrevoke', [name]),
+  );
+
   send = (to, amount, fee) => this._ledgerProxy(
     () => this._executeRPC('createsendtoaddress', [to, Number(amount), '', '', false, 'default']),
     () => this.client.send(WALLET_ID, {
@@ -354,6 +374,10 @@ const methods = {
   sendReveal: service.sendReveal,
   sendRedeem: service.sendRedeem,
   sendRenewal: service.sendRenewal,
+  sendTransfer: service.sendTransfer,
+  cancelTransfer: service.cancelTransfer,
+  finalizeTransfer: service.finalizeTransfer,
+  revokeName: service.revokeName,
   send: service.send,
   lock: service.lock,
   unlock: service.unlock,

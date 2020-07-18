@@ -12,6 +12,7 @@ import BidHistory from '../Auction/BidHistory';
 import { showError, showSuccess } from '../../ducks/notifications';
 import { fetchPendingTransactions } from '../../ducks/walletActions';
 import { clientStub as aClientStub } from '../../background/analytics/client';
+import TransferDetails from './TransferDetails';
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -81,7 +82,7 @@ class MyDomain extends Component {
   }
 
   render() {
-    const {name, history} = this.props;
+    const {name, history, domain} = this.props;
 
     return (
       <div className="my-domain">
@@ -102,14 +103,17 @@ class MyDomain extends Component {
           <DomainDetails name={name} />
         </Collapsible>
         <Collapsible className="my-domain__info-panel" title="Records">
-          <Records name={name} />
+          <Records name={name} transferring={domain.info.transfer !== 0} />
         </Collapsible>
         <Collapsible className="my-domain__info-panel" title="Your Bids" defaultCollapsed>
           {
             this.props.domain
-              ? <BidHistory bids={this.props.domain.bids} reveals={this.props.domain.reveals} />
+              ? <BidHistory bids={domain.bids} reveals={domain.reveals} />
               : 'Loading...'
           }
+        </Collapsible>
+        <Collapsible className="my-domain__info-panel" title="Transfer" defaultCollapsed>
+          <TransferDetails name={name} />
         </Collapsible>
       </div>
     );
@@ -125,7 +129,6 @@ class MyDomain extends Component {
     const expired = moment().add(domain.info.stats.daysUntilExpire, 'd').format('YYYY-MM-DD');
 
     return `Expires ${expired}`;
-
   }
 }
 
