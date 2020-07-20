@@ -71,6 +71,11 @@ export class NodeService extends EventEmitter {
       },
     });
     await hsdWindow.loadURL(`file://${path.join(__dirname, '../../hsd.html')}`);
+    console.log({
+      hsdPrefixDir: this.hsdPrefixDir,
+      networkName,
+      apiKey,
+    });
     hsdWindow.webContents.send('start', this.hsdPrefixDir, networkName, apiKey);
     await new Promise((resolve, reject) => {
       const lis = (_, channel, ...args) => {

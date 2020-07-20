@@ -1,5 +1,52 @@
 @import '../../variables';
 
+.settings {
+  @extend %col-nowrap;
+  flex: 1 1 auto;
+  margin-top: 1px;
+
+  .content-area__title {
+    flex: 0 0 auto;
+    margin: 0;
+  }
+
+  .content-area__content {
+    @extend %row-nowrap;
+    flex: 1 1 auto;
+  }
+
+  &__nav {
+    flex: 0 0 auto;
+    width: 16rem;
+    padding: .5rem 0;
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
+
+    &__item {
+      padding: .5rem 1rem;
+      cursor: pointer;
+
+      &--selected {
+        color: $azure-blue;
+        font-weight: bold;
+      }
+
+      &:hover {
+        background-color: $athens-gray;
+      }
+
+      &:active {
+        background-color: $grey;
+      }
+
+    }
+  }
+
+  &__content {
+
+  }
+
+}
+
 .settings__label {
   color: rgba(0, 0, 0, 0.4);
   font-weight: 700;

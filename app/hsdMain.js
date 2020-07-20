@@ -11,7 +11,7 @@ ipc.on('start', (_, prefix, net, apiKey) => {
     ipc.send('started');
     return;
   }
-
+  console.log({apiKey})
   try {
     hsd = new FullNode({
       config: true,
@@ -40,6 +40,7 @@ ipc.on('start', (_, prefix, net, apiKey) => {
     .then(() => hsd.open())
     .then(() => ipc.send('started'))
     .then(() => hsd.connect())
+    .then(() => ipc.send('started'))
     .then(() => hsd.startSync())
     .catch((e) => {
       console.log(e);

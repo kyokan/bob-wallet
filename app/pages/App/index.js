@@ -162,7 +162,7 @@ class App extends Component {
         />
         <Route
           path="/settings"
-          render={this.routeRenderer('Settings', Settings)}
+          render={this.routeRenderer('Settings', Settings, false, false)}
         />
         <Route path="/bids" render={this.routeRenderer('Domains', YourBids)} />
         <Route
@@ -190,7 +190,7 @@ class App extends Component {
     );
   }
 
-  routeRenderer(title, Component, showSidebar = true) {
+  routeRenderer(title, Component, showSidebar = true, padded = true) {
     return () => (
       <React.Fragment>
         {showSidebar && (
@@ -200,9 +200,16 @@ class App extends Component {
         )}
         <div className="app__main-wrapper">
           <Topbar title={title} showLogo={!showSidebar} />
-          <div className="app__content">
-            <Component />
-          </div>
+          {
+            padded
+              ? (
+                <div className="app__content">
+                  <Component />
+                </div>
+              )
+              : <Component />
+          }
+
         </div>
       </React.Fragment>
     );

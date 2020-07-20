@@ -45,7 +45,7 @@ class RevealSeedModal extends Component {
   render() {
     return (
       <MiniModal
-        closeRoute="/settings"
+        closeRoute="/settings/wallet"
         title="Reveal your seed phrase"
         centered
       >
