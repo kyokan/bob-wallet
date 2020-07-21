@@ -418,7 +418,7 @@ function getTotalBids(domain) {
   for (const {bid} of domain.bids) {
     if (bid.own) {
       // This is our bid, but we don't know its value
-      if (!bid.value)
+      if (bid.value == null)
         return -1;
 
       total += bid.value;
