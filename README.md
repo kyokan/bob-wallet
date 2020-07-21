@@ -28,18 +28,7 @@ Bob supports all of the following features:
 ![Screen Shot 2020-02-13 at 1 33 32 PM](https://user-images.githubusercontent.com/8230144/74480849-87313080-4e66-11ea-8097-421592a9a55f.png)
 5. Name watchlists
 ![Screen Shot 2020-02-13 at 1 32 49 PM](https://user-images.githubusercontent.com/8230144/74480856-8ac4b780-4e66-11ea-90c0-48c5444d0745.png)
-
-## Reporting Issues
-
-**[DEPRECATED]** ~~Most discussion around Bob is on the [forum](https://forum.kyokan.io). Please go there to report issues and send feedback. The forum is also where we'll post announcements.~~
-
-### Non-Security Issues
-
-Please report issues on Github issues on this repo. Please file bugs with the provided template.
-
-### Security Issues
-
-Please don't report security issues on GitHub. Instead, send an e-mail to [security@kyokan.io](mailto:security@kyokan.io) describing your issue. Our PGP key's fingerprint is `9FDB 9D49 4A60 87E8 E61A 3F9E 2DCA AB4D D4B6 04F1`.
+6. Transferring names
 
 ## Contributing
 
@@ -49,8 +38,20 @@ Inquires to integrate with hardware wallets, ecosystem DNS/website infrastructur
 
 If you are an individual developer looking to add a feature, fix a bug, or create new documentation -- please feel free to reach out, even if just to say hello.  We are also exploring incentivization mechanisms, potentially ramping up from small bounties to ecosystem-funded full-time developers.
 
-**We have no officially sanctioned or administered support/development channels, so this list will be periodically updated as the community develops.**
-
 ### Building From Source
 
 Please see this [guide](https://gist.github.com/pinheadmz/314aed5123d29cb89bfc6a7db9f4d02e), with special thanks to [@pinheadz](https://github.com/pinheadmz).  It explains how to get set up in dev mode, and includes some helpful tips like (i) how to tail log output and (ii) how one can have a "personal mainnet" Bob while developing on a different Bob instance.
+
+## Reporting Issues
+
+**[DEPRECATED]** ~~Most discussion around Bob is on the [forum](https://forum.kyokan.io). Please go there to report issues and send feedback. The forum is also where we'll post announcements.~~
+
+**We have no officially sanctioned or administered support/development channels, so this list will be periodically updated as the community develops. For now, the [Telegram/bobwallet](https://t.me/bobwallet) is the best place for questions.**
+
+### Non-Security Issues
+
+Please report issues on Github issues on this repo. Please file bugs with the provided template.
+
+### Security Issues
+
+Please don't report security issues on GitHub. Instead, send an e-mail to [security@kyokan.io](mailto:security@kyokan.io) describing your issue. Our PGP key's fingerprint is `9FDB 9D49 4A60 87E8 E61A 3F9E 2DCA AB4D D4B6 04F1`.
