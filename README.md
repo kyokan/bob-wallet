@@ -3,10 +3,8 @@
 # Bob: A Handshake Wallet and Full Node
 
 Bob is a [Handshake](https://handshake.org) wallet with an integrated full node.
-
-Most discussion around Bob is on the [forum](https://forum.kyokan.io). Please go there to report issues and send feedback. The forum is also where we'll post announcements.
-
-**This is beta software, so use it at your own risk!** We expect to exit beta soon.
+This is beta software.
+(As with all wallet GUIs, please use with care, and at your own risk.)
 
 ## How to Install Bob
 
@@ -17,18 +15,6 @@ Most users (especially those who are unsure how to install Bob) should use the p
 Note: this screenshot is unlikely to age well but the filetypes are highlighted so you know what to install. It says 0.2.6 here but you should always look for the latest version.
 .dmg - mac
 .msi - windows
-
-
-
-
-Interested developers are welcome to build the app with:
-```
-npm install
-npm run package
-```
-contributions are very welcome.
-
-
 
 ## Features
 
@@ -45,18 +31,26 @@ Bob supports all of the following features:
 
 ## Reporting Issues
 
+**[DEPRECATED]** ~~Most discussion around Bob is on the [forum](https://forum.kyokan.io). Please go there to report issues and send feedback. The forum is also where we'll post announcements.~~
+
 ### Non-Security Issues
 
-Please report issues to the [#bob-support](https://forum.kyokan.io/c/bob/support/5) topic on our forum.  While this is preferred, the team sometimes responds to queries in our unofficial Telegram [channel](https://t.me/bobwallet).
+Please report issues on Github issues on this repo. Please file bugs with the provided template.
 
 ### Security Issues
 
-Please don't report security issues to GitHub. Instead, send an e-mail to [security@kyokan.io](mailto:security@kyokan.io) describing your issue. Our PGP key's fingerprint is `9FDB 9D49 4A60 87E8 E61A 3F9E 2DCA AB4D D4B6 04F1`.
+Please don't report security issues on GitHub. Instead, send an e-mail to [security@kyokan.io](mailto:security@kyokan.io) describing your issue. Our PGP key's fingerprint is `9FDB 9D49 4A60 87E8 E61A 3F9E 2DCA AB4D D4B6 04F1`.
 
 ## Contributing
 
+Contributions are most welcome.  Some contributor activity occurs on [Telegram/bobwallet](https://t.me/bobwallet).
+
+Inquires to integrate with hardware wallets, ecosystem DNS/website infrastructure, and offers to collaborate with other Handshake-aligned projects are also most welcome.  Please make inquiries via Telegram, to `[at]sdtsui`.
+
+If you are an individual developer looking to add a feature, fix a bug, or create new documentation -- please feel free to reach out, even if just to say hello.  We are also exploring incentivization mechanisms, potentially ramping up from small bounties to ecosystem-funded full-time developers.
+
+**We have no officially sanctioned or administered support/development channels, so this list will be periodically updated as the community develops.**
+
 ### Building From Source
 
-To build Bob from source, clone the repo and run `npm install`. Then, run `npm run dev` to start a local development server. Note that changes to code running in Electron's main process will require a restart of the development server.
-
-To package the application for Mac, run `npm run package`. This will create a DMG and app bundle. Similarly, to bundle for Windows or Linux run `npm run package-win` or `npm run package-linux`, respectively.
+Please see this [guide](https://gist.github.com/pinheadmz/314aed5123d29cb89bfc6a7db9f4d02e), with special thanks to [@pinheadz](https://github.com/pinheadmz).  It explains how to get set up in dev mode, and includes some helpful tips like (i) how to tail log output and (ii) how one can have a "personal mainnet" Bob while developing on a different Bob instance.
