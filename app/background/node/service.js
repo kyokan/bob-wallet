@@ -52,7 +52,9 @@ export class NodeService extends EventEmitter {
     if (!VALID_NETWORKS[networkName]) {
       throw new Error('Invalid network.');
     }
+
     const network = Network.get(networkName);
+    const apiKey = crypto.randomBytes(20).toString('hex');
 
     this.networkName = networkName;
     this.network = network;
@@ -65,7 +67,6 @@ export class NodeService extends EventEmitter {
     }
 
     console.log(`Starting node on ${networkName} network.`);
-    const apiKey = crypto.randomBytes(20).toString('hex');
     const hsdWindow = new BrowserWindow({
       width: 400,
       height: 400,
