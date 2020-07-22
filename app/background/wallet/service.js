@@ -33,7 +33,7 @@ class WalletService {
     await this._ensureClient();
 
     try {
-      await this.node.wdb.remove(WALLET_ID);
+      await this.node.wdb.wipe();
       return true;
     } catch(e) {
       console.error(e);

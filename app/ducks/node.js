@@ -55,10 +55,11 @@ export const stop = () => async (dispatch, getState) => {
 
     await dispatch(setNodeInfo());
     dispatch(setCustomRPCStatus(true));
-    hasAppStarted = true;
+
   } catch (e) {
     dispatch(setCustomRPCStatus(false));
   } finally {
+    hasAppStarted = true;
     dispatch({ type: END_RPC_TEST });
   }
 };

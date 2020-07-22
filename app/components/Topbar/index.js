@@ -217,12 +217,12 @@ class Topbar extends Component {
       return 'Synchronized';
     }
 
-    if (!isRunning && isCustomRPCConnected) {
-      return 'Connected to RPC'
-    }
-
     if (isChangingNodeStatus || isTestingCustomRPC) {
       return 'Please wait...'
+    }
+
+    if (!isRunning && isCustomRPCConnected) {
+      return 'Connected to RPC'
     }
 
     return 'No connection';
