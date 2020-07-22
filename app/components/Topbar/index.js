@@ -13,10 +13,12 @@ import * as walletActions from '../../ducks/walletActions';
 @withRouter
 @connect(
   state => {
-    const { chain, isRunning } = state.node;
+    const { chain, isRunning, isCustomRPCConnected } = state.node;
     const { progress } = chain || {};
 
     return {
+      isRunning,
+      isCustomRPCConnected,
       isSynchronizing: isRunning && progress < 1,
       isSynchronized: isRunning && progress === 1,
       progress,
@@ -99,6 +101,8 @@ class Topbar extends Component {
       title,
       isSynchronized,
       isSynchronizing,
+      isRunning,
+      isCustomRPCConnected,
       showLogo,
       location: { pathname }
     } = this.props;
@@ -109,8 +113,8 @@ class Topbar extends Component {
         {!/domains$/.test(pathname) && <TLDInput minimalErrorDisplay />}
         <div
           className={c('topbar__synced', {
-            'topbar__synced--success': isSynchronized,
-            'topbar__synced--failure': !isSynchronized && !isSynchronizing
+            'topbar__synced--success': isSynchronized || isCustomRPCConnected,
+            'topbar__synced--failure': !isRunning && !isCustomRPCConnected,
           })}
         >
           {this.getSyncText()}
@@ -180,7 +184,7 @@ class Topbar extends Component {
   }
 
   getSyncText() {
-    const { isSynchronized, isSynchronizing, progress } = this.props;
+    const { isSynchronized, isSynchronizing, progress, isRunning, isCustomRPCConnected } = this.props;
 
     if (isSynchronizing) {
       return `Synchronizing... ${
@@ -192,7 +196,11 @@ class Topbar extends Component {
       return 'Synchronized';
     }
 
-    return 'Not Synchronized';
+    if (!isRunning && isCustomRPCConnected) {
+      return 'Connected to RPC'
+    }
+
+    return 'No connection';
   }
 }
 

@@ -239,7 +239,7 @@ export default withRouter(
     }),
     dispatch => ({
       watchActivity: () => dispatch(walletActions.watchActivity()),
-      startNode: () => dispatch(node.start()),
+      startNode: () => dispatch(node.startApp()),
       onNewBlock: () => dispatch(onNewBlock()),
     })
   )(App)

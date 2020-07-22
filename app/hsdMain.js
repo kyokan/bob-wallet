@@ -6,12 +6,12 @@ const WalletPlugin = require('hsd/lib/wallet/plugin');
 const remote = require('electron').remote;
 
 let hsd = null;
-ipc.on('start', (_, prefix, net, apiKey) => {
+ipc.on('start', async (_, prefix, net, apiKey) => {
   if (hsd) {
     ipc.send('started');
     return;
   }
-  console.log({apiKey})
+
   try {
     hsd = new FullNode({
       config: true,

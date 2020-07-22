@@ -32,6 +32,7 @@ app.on('ready', async () => {
     await require('./background/node/service').start(server);
     await require('./background/wallet/service').start(server);
     await require('./background/analytics/service').start(server);
+    await require('./background/connections/service').start(server);
   } catch (e) {
     dialog.showMessageBox(null, {
       type: 'error',

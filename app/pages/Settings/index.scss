@@ -16,6 +16,7 @@
   }
 
   &__nav {
+    @extend %col-nowrap;
     flex: 0 0 auto;
     width: 16rem;
     padding: .5rem 0;
@@ -24,6 +25,7 @@
     &__item {
       padding: .5rem 1rem;
       cursor: pointer;
+      font-weight: 500;
 
       &--selected {
         color: $azure-blue;
@@ -42,9 +44,150 @@
   }
 
   &__content {
+    flex: 1 1 auto;
 
+    &__section {
+      @extend %row-nowrap;
+      cursor: default;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      align-items: center;
+
+      &--disabled {
+        background-color: $athens-gray;
+        color: $manatee-gray;
+      }
+
+      &__info {
+        @extend %col-nowrap;
+        flex: 1 1 auto;
+        padding: 1rem 1.5rem;
+
+        &__title {
+          font-size: 1.125rem;
+        }
+
+        &__description {
+          @extend %row-nowrap;
+          align-items: center;
+          font-size: .875rem;
+          font-weight: 400;
+          color: $manatee-gray;
+          margin-top: .25rem;
+        }
+      }
+
+      &__footer {
+        padding: 1rem 1.5rem;
+        flex: 0 0 auto;
+      }
+
+      &__cta {
+        @extend %btn-secondary;
+        padding: .5rem 1rem;
+      }
+    }
   }
 
+  &__row {
+    @extend %row-nowrap;
+
+    &--centered {
+      justify-content: center;
+    }
+  }
+
+  &__input-row {
+    @extend %col-nowrap;
+    align-items: flex-start;
+
+    .dropdown {
+      width: 100%;
+      margin: .3125rem 0 1rem;
+    }
+
+    .dropdown__current-item__text {
+      text-align: left;
+    }
+
+    .dropdown__current-item {
+      font-weight: 400;
+      padding: 6px;
+      border: 1px solid $grey;
+      font-size: 14px;
+      background-color: $white;
+    }
+
+    .dropdown__options {
+
+    }
+
+    .dropdown__option {
+      text-align: left;
+      font-weight: 400;
+      padding: 6px;
+      border: 1px solid $grey;
+      font-size: 14px;
+    }
+  }
+
+  &__input-title {
+    cursor: default;
+    font-size: .8125rem;
+    font-weight: bold;
+    margin-left: .25rem;
+    margin-bottom: .25rem;
+  }
+
+  &__input {
+    border: 1px solid $grey;
+    padding: 6px;
+    width: calc(100% - 12px);
+    font-family: "Courier New", monospace;
+    font-size: 14px;
+    border-radius: .5rem;
+    margin-bottom: 1rem;
+
+    &:focus {
+      border-color: $azure-blue;
+      outline: 0;
+    }
+  }
+
+  &__view-api-btn {
+    @extend %btn-secondary;
+    padding: .5rem 1rem;
+    margin-right: .375rem;
+  }
+
+  &__secondary-btn {
+    @extend %btn-secondary;
+    padding: .5rem 1rem;
+    margin-right: .5rem;
+  }
+
+  &__btn {
+    @extend %btn-primary;
+    padding: .5rem 1rem;
+  }
+}
+
+.node-status {
+  &--active,
+  &--inactive {
+    border-radius: 50%;
+    display: block;
+    width: .75rem;
+    height: .75rem;
+    margin-right: .3125rem;
+  }
+
+  &--active {
+    background-color: $caribbean-green;
+  }
+
+  &--inactive {
+    background-color: $manatee-gray;
+  }
 }
 
 .settings__label {
@@ -116,6 +259,7 @@
   font-family: "Courier New", monospace;
   font-size: 14px;
   border-radius: .5rem;
+  margin-bottom: 1rem;
 
   &:focus {
     border-color: $azure-blue;

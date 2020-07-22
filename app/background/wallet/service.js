@@ -31,7 +31,14 @@ class WalletService {
 
   reset = async () => {
     await this._ensureClient();
-    await this.node.wdb.remove(WALLET_ID);
+
+    try {
+      await this.node.wdb.remove(WALLET_ID);
+      return true;
+    } catch(e) {
+      console.error(e);
+      return false;
+    }
   };
 
   getWalletInfo = async () => {
@@ -57,6 +64,8 @@ class WalletService {
 
   createNewWallet = async (passphraseOrXPub, isLedger) => {
     await this._ensureClient();
+
+    await this.reset();
     this.didSelectWallet = false;
 
     if (isLedger) {
@@ -78,6 +87,8 @@ class WalletService {
 
   importSeed = async (passphrase, mnemonic) => {
     await this._ensureClient();
+
+    await this.reset();
     this.didSelectWallet = false;
 
     const options = {
@@ -308,15 +319,19 @@ class WalletService {
         : path.join(HSD_DATA_DIR, networkName),
     });
 
-    console.log('startttt')
     await node.open();
     this.node = node;
     this.client = new WalletClient(walletOptions);
   };
 
   _onNodeStop = async () => {
+    if (this.node) {
+      const node = this.node;
+      this.node = null;
+      await node.close();
+      console.log('close')
+    }
     this.client = null;
-    this.node = null;
     this.didSelectWallet = false;
   };
 
@@ -324,6 +339,7 @@ class WalletService {
     return new Promise((resolve, reject) => {
       if (this.client) {
         resolve();
+        return;
       }
 
       setTimeout(async () => {

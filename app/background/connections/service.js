@@ -3,7 +3,10 @@ import crypto from "crypto";
 
 const CONNECTION_TYPE_KEY = 'connection_type';
 const RPC_API_KEY = 'p2p_api_key';
-const CUSTOM_RPC = 'custom_rpc';
+const CUSTOM_RPC_HOST = 'custom_rpc_host';
+const CUSTOM_RPC_PORT = 'custom_rpc_port';
+const CUSTOM_RPC_NETWORK_TYPE = 'custom_rpc_network_type';
+const CUSTOM_RPC_API_KEY = 'custom_rpc_api_key';
 
 const Network = require('hsd/lib/protocol/network');
 
@@ -25,43 +28,38 @@ export async function getAPIKey() {
 }
 
 export async function getCustomRPC() {
-  const network = Network.get('main');
-  const customRPC = await get(CUSTOM_RPC);
+  const host = await get(CUSTOM_RPC_HOST);
+  const port = await get(CUSTOM_RPC_PORT);
+  const networkType = await get(CUSTOM_RPC_NETWORK_TYPE);
+  const apiKey = await get(CUSTOM_RPC_API_KEY);
 
-  try {
-    const { host, port, networkType, apiKey } = JSON.parse(customRPC);
-    return {
-      host,
-      port,
-      networkType,
-      apiKey,
-    };
-  } catch (e) {
-    return {
-      host: '127.0.0.1',
-      port: network.rpcPort,
-      networkType: network.type,
-    };
+  return {
+    host,
+    port,
+    networkType,
+    apiKey,
+  };
+}
+
+async function setConnection(opts) {
+  switch (opts.type) {
+    case ConnectionTypes.P2P:
+      await put(CONNECTION_TYPE_KEY, ConnectionTypes.P2P);
+      return;
+    case ConnectionTypes.Custom:
+      await put(CONNECTION_TYPE_KEY, ConnectionTypes.Custom);
+      await put(CUSTOM_RPC_HOST, opts.host || '');
+      await put(CUSTOM_RPC_PORT, opts.port || '');
+      await put(CUSTOM_RPC_NETWORK_TYPE, opts.networkType || '');
+      await put(CUSTOM_RPC_API_KEY, opts.apiKey || '');
+      return;
+    default:
+      throw new Error(`unknown connection type ${opts.type}`);
   }
 }
 
-async function setConnection(type, args = {}) {
-  switch (type) {
-    case ConnectionTypes.P2P:
-      await put(CONNECTION_TYPE_KEY, type);
-      return;
-    case ConnectionTypes.Custom:
-      await put(CONNECTION_TYPE_KEY, type);
-      await put(CUSTOM_RPC, JSON.stringify({
-        host: args.host,
-        port: args.port,
-        networkType: args.networkType,
-        apiKey: args.apiKey,
-      }));
-      return;
-    default:
-      throw new Error(`unknown connection type ${type}`);
-  }
+async function setConnectionType(connectionType) {
+  return await put(CONNECTION_TYPE_KEY, connectionType);
 }
 
 export async function getConnection() {
@@ -91,6 +89,8 @@ const sName = 'Connections';
 const methods = {
   getConnection,
   setConnection,
+  setConnectionType,
+  getCustomRPC,
 };
 
 export async function start(server) {
