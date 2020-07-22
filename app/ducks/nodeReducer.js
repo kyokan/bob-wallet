@@ -7,12 +7,18 @@ export const STOP = 'node/STOP';
 export const START_NETWORK_CHANGE = 'node/START_NETWORK_CHANGE';
 export const END_NETWORK_CHANGE = 'node/END_NETWORK_CHANGE';
 export const NEW_BLOCK_STATUS = 'node/NEW_BLOCK_STATUS';
+export const START_NODE_STATUS_CHANGE = 'node/START_NODE_STATUS_CHANGE';
+export const END_NODE_STATUS_CHANGE = 'node/END_NODE_STATUS_CHANGE';
+export const START_RPC_TEST = 'node/START_RPC_TEST';
+export const END_RPC_TEST = 'node/END_RPC_TEST';
 
 export function getInitialState() {
   return {
     error: '',
     isCustomRPCConnected: false,
     isRunning: false,
+    isChangingNodeStatus: false,
+    isTestingCustomRPC: false,
     isChangingNetworks: false,
     network: null,
     apiKey: null,
@@ -31,6 +37,14 @@ export function getInitialState() {
 
 export default function nodeReducer(state = getInitialState(), action = {}) {
   switch (action.type) {
+    case START_NODE_STATUS_CHANGE:
+      return { ...state, isChangingNodeStatus: true };
+    case END_NODE_STATUS_CHANGE:
+      return { ...state, isChangingNodeStatus: false };
+    case START_RPC_TEST:
+      return { ...state, isTestingCustomRPC: true };
+    case END_RPC_TEST:
+      return { ...state, isTestingCustomRPC: false };
     case START:
       return {...state, isRunning: true, network: action.payload.network, apiKey: action.payload.apiKey};
     case STOP:

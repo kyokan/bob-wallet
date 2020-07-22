@@ -54,6 +54,11 @@ export class NodeService extends EventEmitter {
     }
     const network = Network.get(networkName);
 
+    this.networkName = networkName;
+    this.network = network;
+    this.apiKey = apiKey;
+    this.emit('started', this.networkName, this.network, this.apiKey);
+
     const portsFree = await checkHSDPortsFree(network);
     if (!portsFree) {
       throw new Error('hsd ports in use. Please make sure no other hsd instance is running, quit Bob, and try again.');
@@ -69,6 +74,7 @@ export class NodeService extends EventEmitter {
         nodeIntegration: true,
       },
     });
+
     await hsdWindow.loadURL(`file://${path.join(__dirname, '../../hsd.html')}`);
     hsdWindow.webContents.send('start', this.hsdPrefixDir, networkName, apiKey);
     await new Promise((resolve, reject) => {
@@ -102,12 +108,9 @@ export class NodeService extends EventEmitter {
     });
     await retry(() => client.getInfo(), 20, 200);
 
-    this.networkName = networkName;
-    this.network = network;
+
     this.hsdWindow = hsdWindow;
-    this.apiKey = apiKey;
     this.client = client;
-    this.emit('started', this.networkName, this.network, this.apiKey);
   }
 
   async startCustom() {
@@ -118,19 +121,19 @@ export class NodeService extends EventEmitter {
       throw new Error('Invalid network.');
     }
 
-    const network = Network.get(networkType || 'main');
+    const network = Network.get(networkType);
+    this.networkName = networkType;
+    this.network = network;
+    this.emit('started', this.networkName, this.network);
 
     const client = new NodeClient({
       network: network,
-      port: rpc.port,
-      host: rpc.host,
+      port: rpc.port ? Number(rpc.port) : network.rpcPort,
+      host: rpc.host ? rpc.host : '127.0.0.1',
       apiKey: rpc.apiKey,
     });
 
-    this.networkName = networkType;
-    this.network = network;
     this.client = client;
-    this.emit('started', this.networkName, this.network);
   }
 
   async stop() {

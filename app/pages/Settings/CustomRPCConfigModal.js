@@ -62,6 +62,8 @@ export default class CustomRPCConfigModal extends Component {
       apiKey,
     });
 
+    this.props.history.push('/settings/connection');
+
     await this.props.stop();
 
     try {

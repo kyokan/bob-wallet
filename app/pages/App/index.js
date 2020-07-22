@@ -106,14 +106,14 @@ class App extends Component {
   }
 
   uninitializedWrapper(Component, isMainMenu = false, autoHeight = false) {
-    const { history } = this.props;
+    const { history, isRunning } = this.props;
     if (isMainMenu) {
       return () => (
         <div className="app__uninitialized-wrapper">
           <div className="app__header">
             <div className="app__logo"/>
             <div className="app__network-picker-wrapper">
-              <NetworkPicker />
+              { isRunning && <NetworkPicker /> }
             </div>
           </div>
           <div className={c("app__uninitialized", {
@@ -235,7 +235,8 @@ export default withRouter(
       error: state.node.error,
       isLocked: state.wallet.isLocked,
       isChangingNetworks: state.node.isChangingNetworks,
-      initialized: state.wallet.initialized
+      initialized: state.wallet.initialized,
+      isRunning: state.node.isRunning,
     }),
     dispatch => ({
       watchActivity: () => dispatch(walletActions.watchActivity()),

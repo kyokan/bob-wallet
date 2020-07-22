@@ -15,9 +15,15 @@ import {
   START_ERROR,
   START_NETWORK_CHANGE,
   STOP,
+  START_NODE_STATUS_CHANGE,
+  START_RPC_TEST,
+  END_NODE_STATUS_CHANGE,
+  END_RPC_TEST,
 } from './nodeReducer';
 import { VALID_NETWORKS } from '../constants/networks';
 import {ConnectionTypes} from "../background/connections/service";
+
+const Network = require('hsd/lib/protocol/network');
 
 const nodeClient = clientStub(() => require('electron').ipcRenderer);
 const connClient = connClientStub(() => require('electron').ipcRenderer);
@@ -25,34 +31,35 @@ const connClient = connClientStub(() => require('electron').ipcRenderer);
 let hasAppStarted = false;
 
 export const stop = () => async (dispatch, getState) => {
+  dispatch({ type: START_RPC_TEST });
+  const {networkType} = await connClient.getConnection();
+  const network = Network.get(networkType || 'main');
+
   try {
     await nodeClient.stop();
     await connClient.setConnectionType(ConnectionTypes.Custom);
-    const {networkType} = await connClient.getConnection();
     await nodeClient.start(networkType || 'main');
-    await nodeClient.getInfo();
 
-    dispatch(setCustomRPCStatus(true));
     dispatch({ type: STOP });
 
-    await dispatch(setNodeInfo());
     await dispatch(fetchWallet());
-    if (await getInitializationState(network)) {
-      await dispatch(fetchTransactions());
-      await dispatch(getWatching(network));
-      await dispatch(onNewBlock());
-    }
-  } catch (e) {
-    dispatch(setCustomRPCStatus(false));
+    await nodeClient.getInfo();
 
     if (!hasAppStarted) {
-      dispatch({
-        type: START_ERROR,
-        payload: {
-          error: error.message,
-        },
-      });
+      if (await getInitializationState(network)) {
+        await dispatch(fetchTransactions());
+        await dispatch(getWatching(network));
+        await dispatch(onNewBlock());
+      }
     }
+
+    await dispatch(setNodeInfo());
+    dispatch(setCustomRPCStatus(true));
+    hasAppStarted = true;
+  } catch (e) {
+    dispatch(setCustomRPCStatus(false));
+  } finally {
+    dispatch({ type: END_RPC_TEST });
   }
 };
 
@@ -67,8 +74,14 @@ export const startApp = () => async (dispatch) => {
 };
 
 export const start = (network) => async (dispatch, getState) => {
+  dispatch({ type: START_NODE_STATUS_CHANGE });
+
   if (hasAppStarted) {
-    await nodeClient.stop();
+    try {
+      await nodeClient.stop();
+    } finally {
+      //
+    }
   }
 
   if (network === getState().node.network) {
@@ -106,6 +119,8 @@ export const start = (network) => async (dispatch, getState) => {
         error: error.message,
       },
     });
+  } finally {
+    dispatch({ type: END_NODE_STATUS_CHANGE });
   }
 };
 

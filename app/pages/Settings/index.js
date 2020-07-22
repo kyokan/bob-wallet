@@ -29,6 +29,8 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
     network: state.node.network,
     apiKey: state.node.apiKey,
     isRunning: state.node.isRunning,
+    isChangingNodeStatus: state.node.isChangingNodeStatus,
+    isTestingCustomRPC: state.node.isTestingCustomRPC,
   }),
   dispatch => ({
     lockWallet: () => dispatch(walletActions.lockWallet()),
@@ -43,6 +45,7 @@ export default class Settings extends Component {
     network: PropTypes.string.isRequired,
     apiKey: PropTypes.string.isRequired,
     isRunning: PropTypes.bool.isRequired,
+    isChangingNodeStatus: PropTypes.bool.isRequired,
     lockWallet: PropTypes.func.isRequired,
     removeWallet: PropTypes.func.isRequired,
     stopNode: PropTypes.func.isRequired,
@@ -155,6 +158,8 @@ export default class Settings extends Component {
       stopNode,
       startNode,
       lockWallet,
+      isChangingNodeStatus,
+      isTestingCustomRPC,
     } = this.props;
 
     return (
@@ -181,11 +186,12 @@ export default class Settings extends Component {
                 isRunning ? stopNode : startNode,
                 <button
                   className="settings__view-api-btn"
-                  disabled={!isRunning}
+                  disabled={!isRunning || isChangingNodeStatus || isTestingCustomRPC}
                   onClick={() => history.push('/settings/connection/view-api-key')}
                 >
                   View API Key
-                </button>
+                </button>,
+                isChangingNodeStatus || isTestingCustomRPC,
               )}
               {this.renderSection(
                 'Custom RPC',
@@ -196,12 +202,12 @@ export default class Settings extends Component {
                 () => history.push("/settings/connection/configure"),
                 <button
                   className="settings__view-api-btn"
-                  disabled={isRunning}
+                  disabled={isRunning || isChangingNodeStatus || isTestingCustomRPC}
                   onClick={stopNode}
                 >
                   Test Connection
                 </button>,
-                isRunning,
+                isRunning || isTestingCustomRPC || isChangingNodeStatus,
               )}
               {this.renderSection(
                 'Network type',
@@ -209,7 +215,7 @@ export default class Settings extends Component {
                 null,
                 null,
                 isRunning ? <NetworkPicker /> : null,
-                !isRunning,
+                !isRunning || isTestingCustomRPC || isChangingNodeStatus,
               )}
             </>
           </Route>
