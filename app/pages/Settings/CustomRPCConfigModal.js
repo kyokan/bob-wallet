@@ -81,18 +81,6 @@ export default class CustomRPCConfigModal extends Component {
         centered
       >
         <div className="settings__input-row">
-          <div className="settings__input-title">Network Type</div>
-          <Dropdown
-            items={networks}
-            currentIndex={networksIndices[networkType]}
-            onChange={index => {
-              this.setState({
-                networkType: indicesNetworks[index],
-              });
-            }}
-          />
-        </div>
-        <div className="settings__input-row">
           <div className="settings__input-title">URL</div>
           <input
             type="text"
