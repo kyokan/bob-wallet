@@ -20,7 +20,7 @@ export function getInitialState() {
     isChangingNodeStatus: false,
     isTestingCustomRPC: false,
     isChangingNetworks: false,
-    network: null,
+    network: "main",
     apiKey: null,
     fees: {
       slow: 0,

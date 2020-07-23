@@ -68,13 +68,13 @@ export const stop = () => async (dispatch, getState) => {
   }
 };
 
-export const startApp = () => async (dispatch) => {
+export const startApp = (network) => async (dispatch) => {
   const {type} = await connClient.getConnection();
   switch (type) {
     case ConnectionTypes.P2P:
-      return dispatch(start());
+      return dispatch(start(network));
     case ConnectionTypes.Custom:
-      return dispatch(stop());
+      return dispatch(stop(network));
   }
 };
 
@@ -89,14 +89,15 @@ export const start = (network) => async (dispatch, getState) => {
     }
   }
 
-  if (network === getState().node.network) {
-    return;
-  }
-
   if (!network) {
     network = await getNetwork();
   }
+
   await setNetwork(network);
+
+  if (network === getState().node.network) {
+    return;
+  }
 
   try {
     await connClient.setConnectionType(ConnectionTypes.P2P);
