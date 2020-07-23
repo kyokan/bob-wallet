@@ -50,11 +50,13 @@ export class RepairBid extends Component {
 
   processValue = async (val) => {
     const value = val.match(/[0-9]*\.?[0-9]{0,6}/g)[0];
-    const dollarydoos = parseFloat(value) * consensus.COIN;
-    if (dollarydoos > consensus.MAX_MONEY)
-      return;
     this.setState({value: value});
-    return this.verifyBid(dollarydoos);
+    const parsed = parseFloat(value);
+
+    if (val === "" || Number.isNaN(parsed) || parsed * consensus.COIN > consensus.MAX_MONEY)
+      return;
+
+    return this.verifyBid(parsed);
   }
 
   async verifyBid(value) {
@@ -63,7 +65,7 @@ export class RepairBid extends Component {
       const attempt = await walletClient.getNonce({
         name: bid.name,
         address: bid.from,
-        bid: value
+        bid: value * consensus.COIN
       });
 
       if (attempt.blind === bid.blind) {
