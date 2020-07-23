@@ -30,8 +30,7 @@ export default class CustomRPCConfigModal extends Component {
   };
 
   state = {
-    host: '',
-    port: '',
+    url: '',
     networkType: '',
     apiKey: '',
   };
@@ -45,19 +44,17 @@ export default class CustomRPCConfigModal extends Component {
   async fetchCustomRPC() {
     const conn = await connClient.getCustomRPC();
     this.setState({
-      host: conn.host,
-      port: conn.port,
+      url: conn.url,
       networkType: conn.networkType,
       apiKey: conn.apiKey,
     });
   }
 
   saveCustomRPC = async () => {
-    const { host, port, networkType, apiKey } = this.state;
+    const { url, networkType, apiKey } = this.state;
     await connClient.setConnection({
       type: ConnectionTypes.Custom,
-      host,
-      port,
+      url,
       networkType,
       apiKey,
     });
@@ -75,7 +72,7 @@ export default class CustomRPCConfigModal extends Component {
   };
 
   render() {
-    const { host, port, networkType, apiKey } = this.state;
+    const { url, networkType, apiKey } = this.state;
 
     return (
       <MiniModal
@@ -96,21 +93,13 @@ export default class CustomRPCConfigModal extends Component {
           />
         </div>
         <div className="settings__input-row">
-          <div className="settings__input-title">Host</div>
+          <div className="settings__input-title">URL</div>
           <input
             type="text"
             className="settings__input"
-            value={host}
-            onChange={e => this.setState({ host: e.target.value })}
-          />
-        </div>
-        <div className="settings__input-row">
-          <div className="settings__input-title">Port</div>
-          <input
-            type="text"
-            className="settings__input"
-            value={port}
-            onChange={e => this.setState({ port: e.target.value })}
+            value={url}
+            placeholder="http://127.0.0.1:12037"
+            onChange={e => this.setState({ url: e.target.value })}
           />
         </div>
         <div className="settings__input-row">

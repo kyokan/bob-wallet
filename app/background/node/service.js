@@ -127,11 +127,12 @@ export class NodeService extends EventEmitter {
     this.network = network;
     this.emit('started', this.networkName, this.network);
 
+    console.log({ rpc })
+
     const client = new NodeClient({
       network: network,
-      port: rpc.port ? Number(rpc.port) : network.rpcPort,
-      host: rpc.host ? rpc.host : '127.0.0.1',
       apiKey: rpc.apiKey,
+      url: rpc.url || `http://127.0.0.1:${network.rpcPort}`,
     });
 
     this.client = client;

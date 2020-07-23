@@ -43,19 +43,23 @@ export const stop = () => async (dispatch, getState) => {
     dispatch({ type: STOP });
 
     await dispatch(fetchWallet());
-    await nodeClient.getInfo();
 
     if (!hasAppStarted) {
       if (await getInitializationState(network)) {
-        await dispatch(fetchTransactions());
-        await dispatch(getWatching(network));
-        await dispatch(onNewBlock());
+        setTimeout(async () => {
+          await dispatch(fetchTransactions());
+          await dispatch(getWatching(network));
+          await dispatch(onNewBlock());
+        }, 0);
       }
+    }
+
+    if (!await nodeClient.getInfo()) {
+      throw new Error('cannot get node info');
     }
 
     await dispatch(setNodeInfo());
     dispatch(setCustomRPCStatus(true));
-
   } catch (e) {
     dispatch(setCustomRPCStatus(false));
   } finally {
@@ -109,9 +113,11 @@ export const start = (network) => async (dispatch, getState) => {
     await dispatch(setNodeInfo());
     await dispatch(fetchWallet());
     if (await getInitializationState(network)) {
-      await dispatch(fetchTransactions());
-      await dispatch(getWatching(network));
-      await dispatch(onNewBlock());
+      setTimeout(async () => {
+        await dispatch(fetchTransactions());
+        await dispatch(getWatching(network));
+        await dispatch(onNewBlock());
+      }, 0);
     }
   } catch (error) {
     dispatch({
