@@ -109,7 +109,7 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "5.5.0",
     "@sentry/electron": "0.17.4",
-    "bdb": "1.1.7",
+    "bdb": "^1.2.2",
     "bignumber.js": "8.0.1",
     "classnames": "2.2.6",
     "copy-to-clipboard": "3.0.8",
