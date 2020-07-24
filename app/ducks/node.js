@@ -95,9 +95,10 @@ export const start = (network) => async (dispatch, getState) => {
 
   await setNetwork(network);
 
-  if (network === getState().node.network) {
-    return;
-  }
+  // console.log(network, getState().node.network);
+  // if (network === getState().node.network) {
+  //   return;
+  // }
 
   try {
     await connClient.setConnectionType(ConnectionTypes.P2P);

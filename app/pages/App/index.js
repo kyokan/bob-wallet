@@ -217,11 +217,15 @@ class App extends Component {
 
   renderDefault = () => {
     let {isLocked, initialized} = this.props;
+
+
     if (!initialized) {
       return <Redirect to="/funding-options" />;
     }
 
     if (isLocked) {
+      console.log('initialized', 'redirecting to /login', this.props)
+
       return <Redirect to="/login" />;
     }
 

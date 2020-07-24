@@ -38,6 +38,8 @@ export default class AccountLogin extends Component {
   render() {
     const { passphrase, showError } = this.state;
 
+    console.log('initialized', 'rendering');
+
     return (
       <div className="login">
         <div className="login_header_text">Log in to your wallet</div>

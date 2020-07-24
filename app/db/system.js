@@ -15,7 +15,8 @@ export async function setNetwork(network) {
 }
 
 export async function getInitializationState(network) {
-  return (await dbClient.get(initializationStateKey(network || 'main'))) === '1';
+  const initState = await dbClient.get(initializationStateKey(network));
+  return initState === '1' || initState === '"1"';
 }
 
 export async function setInitializationState(network, state) {
