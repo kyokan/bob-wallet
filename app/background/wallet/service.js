@@ -39,6 +39,7 @@ class WalletService {
 
     try {
       await this.node.wdb.remove(WALLET_ID);
+      await this.node.wdb.wipe();
       return true;
     } catch(e) {
       console.error(e);
@@ -90,14 +91,10 @@ class WalletService {
     return this.client.createWallet(WALLET_ID, options);
   };
 
-  rescan = async (startHeight) => {
+  rescan = async () => {
     await this._ensureClient();
     const wdb = this.node.wdb;
     const wallet = await wdb.get(WALLET_ID);
-
-    // const {chain: {height}} = await hw._nodeClient.getInfo();
-    // await wdb.rollback(0);
-    // await wdb.wipe();
 
     const hashes = await wallet.getAccountHashes('default');
     const addresses = hashes.map(h => Address.fromHash(h).toString());
@@ -125,7 +122,6 @@ class WalletService {
 
     await this.reset();
     this.didSelectWallet = false;
-
     const options = {
       passphrase,
       // hsd generates different keys for
