@@ -166,6 +166,11 @@ export class NodeService extends EventEmitter {
     return this.client.getInfo();
   }
 
+  async getTXByAddresses(addresses) {
+    await this._ensureStarted();
+    return this.client.getTXByAddresses(addresses);
+  }
+
   async getNameInfo(name) {
     return this._execRPC('getnameinfo', [name]);
   }
@@ -176,6 +181,10 @@ export class NodeService extends EventEmitter {
 
   async getAuctionInfo(name) {
     return this._execRPC('getauctioninfo', [name]);
+  }
+
+  async getBlock(height) {
+    return this.client.getBlock(height);
   }
 
   async getBlockByHeight(height, verbose, details) {
@@ -306,6 +315,8 @@ const methods = {
   getNameInfo: (name) => service.getNameInfo(name),
   getNameByHash: (hash) => service.getNameByHash(hash),
   getAuctionInfo: (name) => service.getAuctionInfo(name),
+  getBlock: (height) => service.getBlock(height),
+  getTXByAddresses: (addresses) => service.getTXByAddresses(addresses),
   getBlockByHeight: (height, verbose, details) => service.getBlockByHeight(height, verbose, details),
   getTx: (hash) => service.getTx(hash),
   broadcastRawTx: (tx) => service.broadcastRawTx(tx),

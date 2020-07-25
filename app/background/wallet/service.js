@@ -1,16 +1,21 @@
 import { WalletClient } from 'hs-client';
 const WalletNode = require("hsd/lib/wallet/node");
+const TX = require("hsd/lib/primitives/tx");
 import { displayBalance, toBaseUnits, toDisplayUnits } from '../../utils/balances';
 import { service as nodeService } from '../node/service';
 import BigNumber from 'bignumber.js';
 import { NETWORKS } from '../../constants/networks';
 import path from "path";
 import {app} from "electron";
+const {TXRecord} = require("hsd/lib/wallet/records");
 
 const Sentry = require('@sentry/electron');
 
 const MasterKey = require('hsd/lib/wallet/masterkey');
 const Mnemonic = require('hsd/lib/hd/mnemonic');
+const Network = require("hsd/lib/protocol/network");
+const Address = require("hsd/lib/primitives/address");
+const Covenant = require("hsd/lib/primitives/covenant");
 
 const WALLET_ID = 'allison';
 const randomAddrs = {
@@ -33,7 +38,7 @@ class WalletService {
     await this._ensureClient();
 
     try {
-      await this.node.wdb.wipe();
+      await this.node.wdb.remove(WALLET_ID);
       return true;
     } catch(e) {
       console.error(e);
@@ -85,6 +90,36 @@ class WalletService {
     return this.client.createWallet(WALLET_ID, options);
   };
 
+  rescan = async (startHeight) => {
+    await this._ensureClient();
+    const wdb = this.node.wdb;
+    const wallet = await wdb.get(WALLET_ID);
+
+    // const {chain: {height}} = await hw._nodeClient.getInfo();
+    // await wdb.rollback(0);
+    // await wdb.wipe();
+
+    const hashes = await wallet.getAccountHashes('default');
+    const addresses = hashes.map(h => Address.fromHash(h).toString());
+    const txs = await nodeService.getTXByAddresses(addresses);
+
+    const sorted = txs.sort((a, b) => {
+      if (a.height > b.height) return 1;
+      if (b.height > a.height) return -1;
+      return 0;
+    });
+
+    for (let j = 0; j < sorted.length; j++) {
+      const tx = mapOneTx(sorted[j]);
+      const blockData = {
+        height: sorted[j].height,
+        hash: tx.hash(),
+        time: sorted[j].time,
+      };
+      await wallet.txdb.insert(new TXRecord(tx, blockData), blockData);
+    }
+  };
+
   importSeed = async (passphrase, mnemonic) => {
     await this._ensureClient();
 
@@ -98,7 +133,7 @@ class WalletService {
       mnemonic: mnemonic.trim(),
     };
     const res = await this.client.createWallet(WALLET_ID, options);
-    await this.client.rescan(0);
+    await this.rescan(0);
     return res;
   };
 
@@ -322,6 +357,8 @@ class WalletService {
     await node.open();
     this.node = node;
     this.client = new WalletClient(walletOptions);
+    global.wdb = node.wdb;
+    global.testClient = this.client;
   };
 
   _onNodeStop = async () => {
@@ -414,6 +451,7 @@ const methods = {
   revealSeed: service.revealSeed,
   estimateTxFee: service.estimateTxFee,
   estimateMaxSend: service.estimateMaxSend,
+  rescan: service.rescan,
   reset: service.reset,
   sendOpen: service.sendOpen,
   sendBid: service.sendBid,
@@ -438,4 +476,41 @@ const methods = {
 
 export async function start(server) {
   server.withService(sName, methods);
+}
+
+function mapOneTx(txOptions) {
+  if (txOptions.witnessHash) {
+    txOptions.witnessHash = Buffer.from(txOptions.witnessHash, 'hex');
+  }
+
+  txOptions.inputs = txOptions.inputs.map(input => {
+    if (input.prevout.hash) {
+      input.prevout.hash = Buffer.from(input.prevout.hash, 'hex');
+    }
+
+    if (input.coin && input.coin.covenant) {
+      input.coin.covenant = new Covenant(
+        input.coin.covenant.type,
+        input.coin.covenant.items.map(item => Buffer.from(item, 'hex')),
+      );
+    }
+
+    if (input.witness) {
+      input.witness = input.witness.map(wit => Buffer.from(wit, 'hex'));
+    }
+
+    return input;
+  });
+
+  txOptions.outputs = txOptions.outputs.map(output => {
+    if (output.covenant) {
+      output.covenant = new Covenant(
+        output.covenant.type,
+        output.covenant.items.map(item => Buffer.from(item, 'hex')),
+      );
+
+    }
+    return output;
+  });
+  return new TX(txOptions);
 }
