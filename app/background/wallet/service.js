@@ -40,6 +40,7 @@ class WalletService {
     try {
       await this.node.wdb.remove(WALLET_ID);
       await this.node.wdb.wipe();
+      await this.node.wdb.rollback(0);
       return true;
     } catch(e) {
       console.error(e);
@@ -95,7 +96,6 @@ class WalletService {
     await this._ensureClient();
     const wdb = this.node.wdb;
     const wallet = await wdb.get(WALLET_ID);
-
     const hashes = await wallet.getAccountHashes('default');
     const addresses = hashes.map(h => Address.fromHash(h).toString());
     const txs = await nodeService.getTXByAddresses(addresses);
