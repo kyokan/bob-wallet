@@ -51,6 +51,13 @@ export default class CustomRPCConfigModal extends Component {
   }
 
   saveCustomRPC = async () => {
+    if (!this.state.confirming && this.isDangerousURL()) {
+      this.setState({
+        confirming: true,
+      });
+      return;
+    }
+
     const { url, networkType, apiKey } = this.state;
     await connClient.setConnection({
       type: ConnectionTypes.Custom,
@@ -72,6 +79,17 @@ export default class CustomRPCConfigModal extends Component {
       await this.props.setCustomRPCStatus(false);
     }
   };
+
+  isDangerousURL() {
+    try {
+      const { url } = this.state;
+      const {protocol, hostname} = new URL(url);
+      console.log(protocol, hostname, protocol === 'http:' && !['127.0.0.1', 'localhost'].includes(hostname))
+      return (protocol === 'http:' && !['127.0.0.1', 'localhost'].includes(hostname));
+    } catch (e) {
+      return false;
+    }
+  }
 
   render() {
     const { url, networkType, apiKey } = this.state;
@@ -101,6 +119,13 @@ export default class CustomRPCConfigModal extends Component {
             onChange={e => this.setState({ apiKey: e.target.value })}
           />
         </div>
+        {
+          this.state.confirming && (
+            <div className="rpc-modal-warning">
+              Remote connection over HTTP is not recommended. Are you sure you want to continue?
+            </div>
+          )
+        }
         <div className="settings__row settings__row--centered">
           <button
             className="settings__secondary-btn"
@@ -109,10 +134,12 @@ export default class CustomRPCConfigModal extends Component {
             Cancel
           </button>
           <button
-            className="settings__btn"
+            className={c('settings__btn', {
+              'settings__btn--confirm': this.state.confirming,
+            })}
             onClick={this.saveCustomRPC}
           >
-            Save
+            {this.state.confirming ? 'Confirm' : 'Save'}
           </button>
         </div>
       </MiniModal>

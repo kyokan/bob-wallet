@@ -171,6 +171,12 @@
   }
 }
 
+.rpc-modal-warning {
+  font-size: .8125rem;
+  color: $orange-red;
+  margin-bottom: .5rem;
+}
+
 .node-status {
   &--active,
   &--inactive {
