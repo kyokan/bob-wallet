@@ -64,7 +64,9 @@ export default class CustomRPCConfigModal extends Component {
     await this.props.stop();
 
     try {
-      await nodeClient.getInfo();
+      if (!await nodeClient.getInfo()) {
+        throw new Error('cannot get node info');
+      }
       await this.props.setCustomRPCStatus(true);
     } catch (e) {
       await this.props.setCustomRPCStatus(false);

@@ -13,8 +13,8 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
 
 @connect(
   (state) => ({
-    lockedConfirmed: state.wallet.balance.lockedConfirmed,
-    lockedUnconfirmed: state.wallet.balance.lockedUnconfirmed,
+    unconfirmedBalance: state.wallet.balance.unconfirmed,
+    spendableBalance: state.wallet.balance.spendable,
     height: state.node.chain.height,
   }),
 )
@@ -30,7 +30,7 @@ export default class Account extends Component {
   }
 
   render() {
-    const {lockedConfirmed, lockedUnconfirmed} = this.props;
+    const {unconfirmedBalance, spendableBalance} = this.props;
 
     return (
       <div className="account">
@@ -41,7 +41,7 @@ export default class Account extends Component {
               <div>Total Balance</div>
             </div>
             <div className="account__balance-wrapper">
-              <div className="account__balance-wrapper__amount">{`HNS ${displayBalance(lockedUnconfirmed)}`}</div>
+              <div className="account__balance-wrapper__amount">{`HNS ${displayBalance(unconfirmedBalance)}`}</div>
             </div>
           </div>
           <div className="account__header-section">
@@ -53,7 +53,7 @@ export default class Account extends Component {
               </Tooltipable>
             </div>
             <div className="account__balance-wrapper">
-              <div className="account__balance-wrapper__amount">{`HNS ${displayBalance(lockedConfirmed)}`}</div>
+              <div className="account__balance-wrapper__amount">{`HNS ${displayBalance(spendableBalance)}`}</div>
             </div>
           </div>
         </div>
@@ -77,4 +77,3 @@ export default class Account extends Component {
     );
   }
 }
-

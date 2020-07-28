@@ -1,3 +1,5 @@
+import "isomorphic-fetch";
+
 if (process.platform === 'win32') {
   process.env.NODE_BACKEND = 'js';
 }

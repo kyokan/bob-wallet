@@ -7,15 +7,19 @@ import BigNumber from 'bignumber.js';
 import { NETWORKS } from '../../constants/networks';
 import path from "path";
 import {app} from "electron";
-const {TXRecord} = require("hsd/lib/wallet/records");
+import rimraf from "rimraf";
+import {ConnectionTypes, getConnection} from "../connections/service";
+// const {TXRecord} = require("hsd/lib/wallet/records");
 
 const Sentry = require('@sentry/electron');
 
 const MasterKey = require('hsd/lib/wallet/masterkey');
 const Mnemonic = require('hsd/lib/hd/mnemonic');
-const Network = require("hsd/lib/protocol/network");
-const Address = require("hsd/lib/primitives/address");
+// const Network = require("hsd/lib/protocol/network");
+// const Address = require("hsd/lib/primitives/address");
 const Covenant = require("hsd/lib/primitives/covenant");
+
+// const walletHeightKey = 'wallet:lastSyncHeight';
 
 const WALLET_ID = 'allison';
 const randomAddrs = {
@@ -38,9 +42,25 @@ class WalletService {
     await this._ensureClient();
 
     try {
-      await this.node.wdb.remove(WALLET_ID);
-      await this.node.wdb.wipe();
-      await this.node.wdb.rollback(0);
+      await this._onNodeStop();
+
+      const walletDir = this.networkName === 'main'
+        ? HSD_DATA_DIR
+        : path.join(HSD_DATA_DIR, this.networkName);
+
+      await new Promise((resolve, reject) => rimraf(path.join(walletDir, 'wallet'), error => {
+        if (error) {
+          return reject(error);
+        }
+        resolve();
+      }));
+
+      await this._onNodeStart(
+        this.networkName,
+        this.network,
+        this.apiKey,
+      );
+
       return true;
     } catch(e) {
       console.error(e);
@@ -92,29 +112,10 @@ class WalletService {
     return this.client.createWallet(WALLET_ID, options);
   };
 
-  rescan = async () => {
+  rescan = async (height = 0) => {
     await this._ensureClient();
     const wdb = this.node.wdb;
-    const wallet = await wdb.get(WALLET_ID);
-    const hashes = await wallet.getAccountHashes('default');
-    const addresses = hashes.map(h => Address.fromHash(h).toString());
-    const txs = await nodeService.getTXByAddresses(addresses);
-
-    const sorted = txs.sort((a, b) => {
-      if (a.height > b.height) return 1;
-      if (b.height > a.height) return -1;
-      return 0;
-    });
-
-    for (let j = 0; j < sorted.length; j++) {
-      const tx = mapOneTx(sorted[j]);
-      const blockData = {
-        height: sorted[j].height,
-        hash: tx.hash(),
-        time: sorted[j].time,
-      };
-      await wallet.txdb.insert(new TXRecord(tx, blockData), blockData);
-    }
+    return wdb.rescan(height);
   };
 
   importSeed = async (passphrase, mnemonic) => {
@@ -129,7 +130,7 @@ class WalletService {
       mnemonic: mnemonic.trim(),
     };
     const res = await this.client.createWallet(WALLET_ID, options);
-    await this.rescan(0);
+    this.rescan(0);
     return res;
   };
 
@@ -232,8 +233,14 @@ class WalletService {
   );
 
   sendBid = (name, amount, lockup) => this._ledgerProxy(
-    () => this._executeRPC('createbid', [name, Number(displayBalance(amount)), Number(displayBalance(lockup))]),
-    () => this._executeRPC('sendbid', [name, Number(displayBalance(amount)), Number(displayBalance(lockup))]),
+    () => this._executeRPC(
+      'createbid',
+      [name, Number(displayBalance(amount)), Number(displayBalance(lockup))]
+    ),
+    () => this._executeRPC(
+      'sendbid',
+      [name, Number(displayBalance(amount)), Number(displayBalance(lockup))]
+    ),
   );
 
   sendUpdate = (name, json) => this._ledgerProxy(
@@ -328,21 +335,37 @@ class WalletService {
     return this._executeRPC('importname', [name, start]);
   };
 
-  rpcGetWalletInfo = () => {
-    return this._executeRPC('getwalletinfo', []);
+  rpcGetWalletInfo = async () => {
+    return await this._executeRPC('getwalletinfo', []);
   };
 
   _onNodeStart = async (networkName, network, apiKey) => {
+    const conn = await getConnection();
+
     this.networkName = networkName;
+    this.apiKey = apiKey;
+    this.network = network;
+
     const walletOptions = {
       network: network,
       port: 7373,
       // apiKey,
     };
 
-    const node = new WalletNode({
+    console.log({
       network: networkName,
-      nodeApiKey: apiKey,
+      nodeUrl: conn.type === ConnectionTypes.Custom
+        ? conn.url || 'http://127.0.0.1:12037'
+        : undefined,
+      nodeHost: conn.type === ConnectionTypes.Custom
+        ? getHost(conn.url || 'http://127.0.0.1:12037')
+        : undefined,
+      nodePort: conn.type === ConnectionTypes.Custom
+        ? getPort(conn.url || 'http://127.0.0.1:12037')
+        : undefined,
+      nodeApiKey: conn.type === ConnectionTypes.Custom
+        ? conn.apiKey
+        : apiKey,
       httpPort: 7373,
       memory: false,
       prefix: networkName === 'main'
@@ -350,11 +373,34 @@ class WalletService {
         : path.join(HSD_DATA_DIR, networkName),
     });
 
-    await node.open();
+    const node = new WalletNode({
+      network: networkName,
+      nodeUrl: conn.type === ConnectionTypes.Custom
+        ? conn.url || 'http://127.0.0.1:12037'
+        : undefined,
+      nodeHost: conn.type === ConnectionTypes.Custom
+        ? getHost(conn.url || 'http://127.0.0.1:12037')
+        : undefined,
+      nodePort: conn.type === ConnectionTypes.Custom
+        ? getPort(conn.url || 'http://127.0.0.1:12037')
+        : undefined,
+      nodeApiKey: conn.type === ConnectionTypes.Custom
+        ? conn.apiKey
+        : apiKey,
+      httpPort: 7373,
+      memory: false,
+      prefix: networkName === 'main'
+        ? HSD_DATA_DIR
+        : path.join(HSD_DATA_DIR, networkName),
+    });
+
+    await node.open()
+    node.wdb.on('error', d => {
+      console.log('wdb error', d);
+    });
     this.node = node;
     this.client = new WalletClient(walletOptions);
-    global.wdb = node.wdb;
-    global.testClient = this.client;
+    global.test = this;
   };
 
   _onNodeStop = async () => {
@@ -474,6 +520,16 @@ export async function start(server) {
   server.withService(sName, methods);
 }
 
+function mapTXs(txs) {
+  const ret = [];
+  for (let i = 0; i < txs.length; i++) {
+    const txOptions = txs[i];
+    const tx = mapOneTx(txOptions);
+    ret.push(tx);
+  }
+  return ret;
+}
+
 function mapOneTx(txOptions) {
   if (txOptions.witnessHash) {
     txOptions.witnessHash = Buffer.from(txOptions.witnessHash, 'hex');
@@ -509,4 +565,14 @@ function mapOneTx(txOptions) {
     return output;
   });
   return new TX(txOptions);
+}
+
+function getHost(url = '') {
+  const {host} = new URL(url);
+  return host;
+}
+
+function getPort(url = '') {
+  const {port} = new URL(url);
+  return Number(port) || 80;
 }

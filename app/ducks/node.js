@@ -61,6 +61,7 @@ export const stop = () => async (dispatch, getState) => {
     await dispatch(setNodeInfo());
     dispatch(setCustomRPCStatus(true));
   } catch (e) {
+    console.log(e);
     dispatch(setCustomRPCStatus(false));
   } finally {
     hasAppStarted = true;
