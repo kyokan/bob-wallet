@@ -40,9 +40,9 @@ ipc.on('start', (_, prefix, net, apiKey) => {
 
   hsd.ensure()
     .then(() => hsd.open())
+    .then(() => ipc.send('started'))
     .then(() => hsd.connect())
     .then(() => hsd.startSync())
-    .then(() => ipc.send('started'))
     .catch((e) => {
       console.log(e);
       ipc.send('error', e)
