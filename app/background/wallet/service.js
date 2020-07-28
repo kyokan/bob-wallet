@@ -9,6 +9,7 @@ import path from "path";
 import {app} from "electron";
 import rimraf from "rimraf";
 import {ConnectionTypes, getConnection} from "../connections/service";
+import crypto from "crypto";
 // const {TXRecord} = require("hsd/lib/wallet/records");
 
 const Sentry = require('@sentry/electron');
@@ -348,30 +349,9 @@ class WalletService {
 
     const walletOptions = {
       network: network,
-      port: 7373,
-      // apiKey,
+      port: 12137,
+      apiKey: crypto.randomBytes(20).toString('hex'),
     };
-
-    console.log({
-      network: networkName,
-      nodeUrl: conn.type === ConnectionTypes.Custom
-        ? conn.url || 'http://127.0.0.1:12037'
-        : undefined,
-      nodeHost: conn.type === ConnectionTypes.Custom
-        ? getHost(conn.url || 'http://127.0.0.1:12037')
-        : undefined,
-      nodePort: conn.type === ConnectionTypes.Custom
-        ? getPort(conn.url || 'http://127.0.0.1:12037')
-        : undefined,
-      nodeApiKey: conn.type === ConnectionTypes.Custom
-        ? conn.apiKey
-        : apiKey,
-      httpPort: 7373,
-      memory: false,
-      prefix: networkName === 'main'
-        ? HSD_DATA_DIR
-        : path.join(HSD_DATA_DIR, networkName),
-    });
 
     const node = new WalletNode({
       network: networkName,
@@ -387,20 +367,20 @@ class WalletService {
       nodeApiKey: conn.type === ConnectionTypes.Custom
         ? conn.apiKey
         : apiKey,
-      httpPort: 7373,
+      apiKey: walletOptions.apiKey,
+      httpPort: walletOptions.port,
       memory: false,
       prefix: networkName === 'main'
         ? HSD_DATA_DIR
         : path.join(HSD_DATA_DIR, networkName),
     });
 
-    await node.open()
-    node.wdb.on('error', d => {
-      console.log('wdb error', d);
+    await node.open();
+    node.wdb.on('error', e => {
+      console.error(e)
     });
     this.node = node;
     this.client = new WalletClient(walletOptions);
-    global.test = this;
   };
 
   _onNodeStop = async () => {
@@ -408,7 +388,6 @@ class WalletService {
       const node = this.node;
       this.node = null;
       await node.close();
-      console.log('close')
     }
     this.client = null;
     this.didSelectWallet = false;
