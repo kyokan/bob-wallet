@@ -38,6 +38,7 @@ ipc.on('start', async (_, prefix, net, apiKey) => {
 
   hsd.ensure()
     .then(() => hsd.open())
+    .then(() => ipc.send('started'))
     .then(() => hsd.connect())
     .then(() => hsd.startSync())
     .catch((e) => {
