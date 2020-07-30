@@ -224,8 +224,6 @@ class App extends Component {
     }
 
     if (isLocked) {
-      console.log('initialized', 'redirecting to /login', this.props)
-
       return <Redirect to="/login" />;
     }
 

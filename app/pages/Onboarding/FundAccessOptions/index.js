@@ -14,7 +14,6 @@ class FundAccessOptions extends Component {
   };
 
   render() {
-    console.log('initialized', this.props)
     return (
       <div className="extension_primary_section funding-options">
         <div className="funding-options__header">
