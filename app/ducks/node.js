@@ -61,7 +61,7 @@ export const stop = () => async (dispatch, getState) => {
     await dispatch(setNodeInfo());
     dispatch(setCustomRPCStatus(true));
   } catch (e) {
-    console.log(e);
+    logger.error(e);
     dispatch(setCustomRPCStatus(false));
   } finally {
     hasAppStarted = true;
@@ -95,11 +95,6 @@ export const start = (network) => async (dispatch, getState) => {
   }
 
   await setNetwork(network);
-
-  // console.log(network, getState().node.network);
-  // if (network === getState().node.network) {
-  //   return;
-  // }
 
   try {
     await connClient.setConnectionType(ConnectionTypes.P2P);

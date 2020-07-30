@@ -377,6 +377,7 @@ class WalletService {
 
     await node.open();
     node.wdb.on('error', e => {
+      logger
       console.error(e)
     });
     this.node = node;

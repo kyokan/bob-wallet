@@ -126,8 +126,6 @@ export class NodeService extends EventEmitter {
     this.network = network;
     this.emit('started', this.networkName, this.network);
 
-    console.log({ rpc })
-
     const client = new NodeClient({
       network: network,
       apiKey: rpc.apiKey,

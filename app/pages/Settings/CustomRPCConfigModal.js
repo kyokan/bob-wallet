@@ -83,7 +83,6 @@ export default class CustomRPCConfigModal extends Component {
     try {
       const { url } = this.state;
       const {protocol, hostname} = new URL(url);
-      console.log(protocol, hostname, protocol === 'http:' && !['127.0.0.1', 'localhost'].includes(hostname))
       return (protocol === 'http:' && !['127.0.0.1', 'localhost'].includes(hostname));
     } catch (e) {
       return false;
