@@ -2,8 +2,6 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import c from 'classnames';
 import MiniModal from "../../components/Modal/MiniModal";
-import Dropdown from "../../components/Dropdown";
-import {indicesNetworks, networks, networksIndices} from "../NetworkPicker";
 import {withRouter} from "react-router-dom";
 import {connect} from "react-redux";
 import * as nodeActions from "../../ducks/node";
@@ -11,6 +9,7 @@ import {setCustomRPCStatus} from "../../ducks/node";
 import {ConnectionTypes} from "../../background/connections/service";
 import {clientStub as cClientStub} from "../../background/connections/client";
 import {clientStub as nClientStub} from "../../background/node/client";
+const Network = require('hsd/lib/protocol/network');
 
 const connClient = cClientStub(() => require('electron').ipcRenderer);
 const nodeClient = nClientStub(() => require('electron').ipcRenderer);
@@ -93,6 +92,7 @@ export default class CustomRPCConfigModal extends Component {
 
   render() {
     const { url, networkType, apiKey } = this.state;
+    const network = Network.get(networkType || 'main');
 
     return (
       <MiniModal
@@ -106,7 +106,7 @@ export default class CustomRPCConfigModal extends Component {
             type="text"
             className="settings__input"
             value={url}
-            placeholder="http://127.0.0.1:12037"
+            placeholder={`http://127.0.0.1:${network.rpcPort}`}
             onChange={e => this.setState({ url: e.target.value })}
           />
         </div>

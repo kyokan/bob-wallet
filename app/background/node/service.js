@@ -1,15 +1,14 @@
 import pify from '../../utils/pify';
 import { app, BrowserWindow } from 'electron';
-import { NETWORKS, VALID_NETWORKS } from '../../constants/networks';
+import { VALID_NETWORKS } from '../../constants/networks';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
 import tcpPortUsed from 'tcp-port-used';
 import EventEmitter from 'events';
 import { NodeClient } from 'hs-client';
-import rimraf from 'rimraf';
 import { BigNumber } from 'bignumber.js';
-import {ConnectionTypes, getAPIKey, getConnection, getCustomRPC} from '../connections/service';
+import {ConnectionTypes, getConnection, getCustomRPC} from '../connections/service';
 
 const Network = require('hsd/lib/protocol/network');
 
