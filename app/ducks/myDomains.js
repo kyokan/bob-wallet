@@ -12,11 +12,6 @@ const initialState = {
 export const getMyNames = () => async (dispatch, getState) => {
   const {
     wallet: {address},
-    node: {
-      chain: {
-        height,
-      },
-    },
   } = getState();
 
   dispatch({type: FETCH_MY_NAMES_START});
@@ -29,13 +24,13 @@ export const getMyNames = () => async (dispatch, getState) => {
       await Promise.all(result.map(async domain => {
         const {owner} = domain;
         const coin = await walletClient.getCoin(owner.hash, owner.index);
-        if (coin && domain.height <= height) {
+
+        if (coin && domain.state === 'CLOSED') {
           ret.push(domain);
         }
       }));
     }
 
-    console.log(result, ret);
     dispatch({
       type: FETCH_MY_NAMES_STOP,
       payload: ret,
