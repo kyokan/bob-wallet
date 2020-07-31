@@ -10,7 +10,9 @@ const initialState = {
 };
 
 export const getMyNames = () => async (dispatch, getState) => {
-  const {address} = getState().wallet;
+  const {
+    wallet: {address},
+  } = getState();
 
   dispatch({type: FETCH_MY_NAMES_START});
 
@@ -22,6 +24,7 @@ export const getMyNames = () => async (dispatch, getState) => {
       await Promise.all(result.map(async domain => {
         const {owner} = domain;
         const coin = await walletClient.getCoin(owner.hash, owner.index);
+
         if (coin && domain.state === 'CLOSED') {
           ret.push(domain);
         }

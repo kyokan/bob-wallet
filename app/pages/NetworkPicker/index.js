@@ -13,7 +13,7 @@ const dummyItems = [
   },
 ];
 
-const networks = [
+export const networks = [
   {
     label: 'Mainnet',
   },
@@ -28,14 +28,14 @@ const networks = [
   },
 ];
 
-const networksIndices = {
+export const networksIndices = {
   [NETWORKS.MAINNET]: 0,
   [NETWORKS.TESTNET]: 1,
   [NETWORKS.SIMNET]: 2,
   [NETWORKS.REGTEST]: 3,
 };
 
-const indicesNetworks = [
+export const indicesNetworks = [
   NETWORKS.MAINNET,
   NETWORKS.TESTNET,
   NETWORKS.SIMNET,

@@ -56,7 +56,7 @@ export default class InterstitialWarningModal extends Component {
   render() {
     return (
       <MiniModal
-        closeRoute="/settings"
+        closeRoute="/settings/wallet"
         title="Are you sure you want to do this?"
       >
         <div className="interstitial-warning-modal__instructions">
