@@ -8,6 +8,7 @@ import moment from 'moment';
 import * as names from '../../ducks/names';
 import * as walletActions from '../../ducks/walletActions';
 import {
+  formatName,
   isAvailable,
   isBidding,
   isClosed,
@@ -139,7 +140,7 @@ export default class Auction extends Component {
     return (
       <React.Fragment>
         <div className="domains__content">
-          <div className="domains__content__title">{`${domainName}/`}</div>
+          <div className="domains__content__title">{formatName(domainName)}</div>
           <div className="domains__content__info-wrapper">
             <div className="domains__content__info-panel">
               {this.renderAuctionDetails()}

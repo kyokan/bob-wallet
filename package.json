@@ -125,6 +125,7 @@
     "mixpanel": "0.10.2",
     "moment": "2.23.0",
     "prop-types": "15.6.2",
+    "punycode": "^2.1.1",
     "qrcode.react": "0.8.0",
     "react": "16.6.3",
     "react-dom": "16.6.3",

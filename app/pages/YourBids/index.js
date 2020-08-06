@@ -8,6 +8,7 @@ import BidAction from './BidAction';
 import { HeaderItem, HeaderRow, Table, TableItem, TableRow } from '../../components/Table';
 import BidSearchInput from '../../components/BidSearchInput';
 import { displayBalance } from '../../utils/balances';
+import { formatName } from '../../utils/nameHelpers';
 import Fuse from '../../vendor/fuse';
 import './your-bids.scss';
 import { clientStub as aClientStub } from '../../background/analytics/client';
@@ -68,7 +69,7 @@ class YourBids extends Component {
     return bids.map((bid, i) => (
       <TableRow key={`${bid.name}-${i}`} onClick={() => history.push(`/domain/${bid.name}`)}>
         <TableItem><BidStatus name={bid.name} /></TableItem>
-        <TableItem>{`${bid.name}/`}</TableItem>
+        <TableItem>{formatName(bid.name)}</TableItem>
         <TableItem><BidTimeLeft name={bid.name} /></TableItem>
         <TableItem>{`${+displayBalance(bid.value)} HNS`}</TableItem>
         <TableItem><BidAction name={bid.name} /></TableItem>
