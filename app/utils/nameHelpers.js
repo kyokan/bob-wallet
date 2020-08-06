@@ -1,3 +1,5 @@
+import punycode from 'punycode';
+
 export const states = {
   OPENING: 'OPENING',
   BIDDING: 'BIDDING',
@@ -73,4 +75,12 @@ function checkState(name, expectedState) {
   }
 
   return info.state === expectedState;
+}
+
+export const decodePunycode = name => {
+  try {
+    return punycode.toASCII(name);
+  } catch(e) {}
+
+  return name;
 }
