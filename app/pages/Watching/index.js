@@ -10,6 +10,7 @@ import * as watchingActions from '../../ducks/watching';
 import BidSearchInput from '../../components/BidSearchInput';
 import Fuse from '../../vendor/fuse';
 import { verifyName } from '../../utils/nameChecker';
+import { formatName } from '../../utils/nameHelpers';
 import { clientStub as aClientStub } from '../../background/analytics/client';
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
@@ -175,7 +176,7 @@ class Watching extends Component {
         <TableItem>
           <BidStatus name={name} />
         </TableItem>
-        <TableItem>{`${name}/`}</TableItem>
+        <TableItem>{formatName(name)}</TableItem>
         <TableItem>
           <BidTimeLeft name={name} />
         </TableItem>

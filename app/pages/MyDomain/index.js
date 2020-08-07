@@ -9,6 +9,7 @@ import Collapsible from '../../components/Collapsible';
 import DomainDetails from './DomainDetails';
 import Records from './Records';
 import BidHistory from '../Auction/BidHistory';
+import { formatName } from '../../utils/nameHelpers';
 import { showError, showSuccess } from '../../ducks/notifications';
 import { fetchPendingTransactions } from '../../ducks/walletActions';
 import { clientStub as aClientStub } from '../../background/analytics/client';
@@ -93,7 +94,7 @@ class MyDomain extends Component {
           Back
         </div>
         <div className="my-domain__header">
-          <div className="my-domain__header__title">{`${name}/`}</div>
+          <div className="my-domain__header__title">{formatName(name)}</div>
           <div className="my-domain__header__expires-text">
             {this.renderExpireText()}
           </div>

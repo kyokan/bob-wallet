@@ -3,6 +3,7 @@ import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import * as myDomainsActions from '../../ducks/myDomains';
+import { formatName } from '../../utils/nameHelpers';
 import './domain-manager.scss';
 import { clientStub as aClientStub } from '../../background/analytics/client';
 
@@ -62,7 +63,7 @@ class DomainManager extends Component {
               style={{backgroundColor: getColor(name)}}
             />
             <div className="domain-manager__domain__name">
-              {`${name}/`}
+              {formatName(name)}
             </div>
           </div>
         ))}
