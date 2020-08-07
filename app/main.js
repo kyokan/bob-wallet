@@ -1,3 +1,5 @@
+import "isomorphic-fetch";
+
 if (process.platform === 'win32') {
   process.env.NODE_BACKEND = 'js';
 }
@@ -32,6 +34,7 @@ app.on('ready', async () => {
     await require('./background/node/service').start(server);
     await require('./background/wallet/service').start(server);
     await require('./background/analytics/service').start(server);
+    await require('./background/connections/service').start(server);
   } catch (e) {
     dialog.showMessageBox(null, {
       type: 'error',

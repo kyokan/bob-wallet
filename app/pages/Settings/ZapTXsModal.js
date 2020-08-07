@@ -35,7 +35,7 @@ class ZapTXsModal extends Component {
   };
 
   zapTXs = async () => {
-    this.props.history.push('/settings');
+    this.props.history.push('/settings/wallet');
     try {
       await walletClient.zap();
       this.props.showSuccess('All pending transactions have been deleted!');
@@ -82,7 +82,7 @@ class ZapTXsModal extends Component {
 
     return (
       <MiniModal
-        closeRoute="/settings"
+        closeRoute="/settings/wallet"
         title="Delete unconfirmed transactions"
         wide
         centered

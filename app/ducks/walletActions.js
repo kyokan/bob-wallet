@@ -153,7 +153,7 @@ export const waitForWalletSync = () => async (dispatch, getState) => {
       dispatch({type: SYNC_WALLET_PROGRESS, payload: progress});
     }
 
-    await new Promise((r) => setTimeout(r, 1000));
+    await new Promise((r) => setTimeout(r, 10000));
   }
 };
 

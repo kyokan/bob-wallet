@@ -186,19 +186,24 @@ class Records extends Component {
   }
 
   render() {
+    const {
+      pendingData,
+      transferring,
+      domain = {},
+    } = this.props;
     return (
       <div>
         <Table
           className={cn('records-table', {
-            'records-table--pending': this.props.pendingData,
+            'records-table--pending': pendingData,
           })}
         >
           {Records.renderHeaders()}
           {this.renderRows()}
-          {!this.props.pendingData ? this.renderCreateRecord() : null}
-          {!this.props.pendingData ? this.renderActionRow() : null}
-          {this.props.pendingData ? this.renderPendingUpdateOverlay() : null}
-          {this.props.transferring || this.props.domain.pendingOperation === 'TRANSFER' ? this.renderTransferringOverlay() : null}
+          {!pendingData ? this.renderCreateRecord() : null}
+          {!pendingData ? this.renderActionRow() : null}
+          {pendingData ? this.renderPendingUpdateOverlay() : null}
+          {transferring || domain.pendingOperation === 'TRANSFER' ? this.renderTransferringOverlay() : null}
         </Table>
       </div>
     );
