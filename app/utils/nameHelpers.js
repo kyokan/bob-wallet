@@ -77,6 +77,15 @@ function checkState(name, expectedState) {
   return info.state === expectedState;
 }
 
+
+export const decodePunycode = name => {
+  try {
+    return punycode.toASCII(name);
+  } catch(e) {}
+
+  return name;
+}
+
 export const formatName = name => {
   if (!name)
     return name;
