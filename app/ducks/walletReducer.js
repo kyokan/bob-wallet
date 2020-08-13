@@ -18,6 +18,7 @@ export const GET_PASSPHRASE = 'app/wallet/getPassphrase';
 export function getInitialState() {
   return {
     address: '',
+    apiKey: '',
     type: NONE,
     isLocked: true,
     initialized: false,
@@ -51,7 +52,8 @@ export default function walletReducer(state = getInitialState(), {type, payload}
           lockedConfirmed: payload.balance.lockedConfirmed,
           spendable: payload.balance.unconfirmed - payload.balance.lockedUnconfirmed,
         },
-        initialized: payload.initialized
+        initialized: payload.initialized,
+        apiKey: payload.apiKey,
       };
     case LOCK_WALLET:
       return {

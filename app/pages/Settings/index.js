@@ -28,6 +28,7 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
   (state) => ({
     network: state.node.network,
     apiKey: state.node.apiKey,
+    walletApiKey: state.wallet.apiKey,
     isRunning: state.node.isRunning,
     isChangingNodeStatus: state.node.isChangingNodeStatus,
     isTestingCustomRPC: state.node.isTestingCustomRPC,
@@ -245,6 +246,12 @@ export default class Settings extends Component {
                 'Remove Wallet ',
                 () => history.push('/settings/wallet/new-wallet'),
               )}
+              {this.renderSection(
+                'API Key',
+                'API key for hsw-cli and hsw-rpc. Please make sure you select the wallet "allison"',
+                'View API Key',
+                () => history.push('/settings/wallet/view-api-key'),
+              )}
             </>
           </Route>
           <Route>
@@ -274,6 +281,23 @@ export default class Settings extends Component {
           <Route path="/settings/wallet/reveal-seed" component={RevealSeedModal} />
           <Route path="/settings/wallet/zap-txs" component={ZapTXsModal} />
           <Route path="/settings/connection/configure" component={CustomRPCConfigModal}>
+          </Route>
+          <Route path="/settings/wallet/view-api-key">
+            <MiniModal
+              closeRoute="/settings/wallet"
+              title="Wallet API Key"
+              centered
+            >
+              <input
+                type="text"
+                className="settings__copy-api-key"
+                value={this.props.apiKey}
+                readOnly
+              />
+              <button className="settings__btn" onClick={() => copy(this.props.apiKey)}>
+                Copy
+              </button>
+            </MiniModal>
           </Route>
           <Route path="/settings/connection/view-api-key">
             <MiniModal

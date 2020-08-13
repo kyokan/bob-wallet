@@ -69,6 +69,11 @@ class WalletService {
     }
   };
 
+  getAPIKey = async () => {
+    await this._ensureClient();
+    return this.walletApiKey;
+  }
+
   getWalletInfo = async () => {
     await this._ensureClient();
     return this.client.getInfo(WALLET_ID);
@@ -345,12 +350,13 @@ class WalletService {
 
     this.networkName = networkName;
     this.apiKey = apiKey;
+    this.walletApiKey = apiKey || crypto.randomBytes(20).toString('hex');
     this.network = network;
 
     const walletOptions = {
       network: network,
-      port: 12137,
-      apiKey: crypto.randomBytes(20).toString('hex'),
+      port: network.walletPort,
+      apiKey: this.walletApiKey,
     };
 
     const node = new WalletNode({
@@ -458,6 +464,7 @@ const methods = {
   start: async () => null,
   getWalletInfo: service.getWalletInfo,
   getAccountInfo: service.getAccountInfo,
+  getAPIKey: service.getAPIKey,
   getCoin: service.getCoin,
   getNames: service.getNames,
   createNewWallet: service.createNewWallet,
