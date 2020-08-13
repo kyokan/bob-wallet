@@ -352,7 +352,6 @@ class WalletService {
     this.apiKey = apiKey;
     this.walletApiKey = apiKey || crypto.randomBytes(20).toString('hex');
     this.network = network;
-
     const walletOptions = {
       network: network,
       port: network.walletPort,

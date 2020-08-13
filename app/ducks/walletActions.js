@@ -16,6 +16,7 @@ import {
   STOP_SYNC_WALLET,
   SYNC_WALLET_PROGRESS,
   UNLOCK_WALLET,
+  SET_API_KEY,
 } from './walletReducer';
 import { NEW_BLOCK_STATUS } from './nodeReducer';
 
@@ -49,6 +50,14 @@ export const completeInitialization = (passphrase) => async (dispatch, getState)
   await dispatch(fetchWallet());
   dispatch({
     type: UNLOCK_WALLET,
+  });
+};
+
+export const fetchWalletAPIKey = () => async (dispatch) => {
+  const apiKey = await walletClient.getAPIKey();
+  dispatch({
+    type: SET_API_KEY,
+    payload: apiKey,
   });
 };
 

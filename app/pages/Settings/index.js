@@ -20,6 +20,7 @@ import MiniModal from "../../components/Modal/MiniModal";
 import copy from "copy-to-clipboard";
 import {setCustomRPCStatus} from "../../ducks/node";
 import CustomRPCConfigModal from "./CustomRPCConfigModal";
+import {fetchWalletAPIKey} from "../../ducks/walletActions";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -39,12 +40,14 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
     stopNode: () => dispatch(nodeActions.stop()),
     startNode: () => dispatch(nodeActions.start()),
     setCustomRPCStatus: isConnected => dispatch(setCustomRPCStatus(isConnected)),
+    fetchWalletAPIKey: () => dispatch(fetchWalletAPIKey()),
   }),
 )
 export default class Settings extends Component {
   static propTypes = {
     network: PropTypes.string.isRequired,
     apiKey: PropTypes.string.isRequired,
+    walletApiKey: PropTypes.string.isRequired,
     isRunning: PropTypes.bool.isRequired,
     isChangingNodeStatus: PropTypes.bool.isRequired,
     lockWallet: PropTypes.func.isRequired,
@@ -56,6 +59,7 @@ export default class Settings extends Component {
 
   componentDidMount() {
     analytics.screenView('Settings');
+    this.props.fetchWalletAPIKey();
   }
 
   onDownload = async () => {
@@ -291,10 +295,10 @@ export default class Settings extends Component {
               <input
                 type="text"
                 className="settings__copy-api-key"
-                value={this.props.apiKey}
+                value={this.props.walletApiKey}
                 readOnly
               />
-              <button className="settings__btn" onClick={() => copy(this.props.apiKey)}>
+              <button className="settings__btn" onClick={() => copy(this.props.walletApiKey)}>
                 Copy
               </button>
             </MiniModal>

@@ -14,6 +14,7 @@ export const START_SYNC_WALLET = 'app/wallet/startSyncWallet';
 export const STOP_SYNC_WALLET = 'app/wallet/stopSyncWallet';
 export const SYNC_WALLET_PROGRESS = 'app/wallet/syncWalletProgress';
 export const GET_PASSPHRASE = 'app/wallet/getPassphrase';
+export const SET_API_KEY = 'app/wallet/setApiKey';
 
 export function getInitialState() {
   return {
@@ -54,6 +55,11 @@ export default function walletReducer(state = getInitialState(), {type, payload}
         },
         initialized: payload.initialized,
         apiKey: payload.apiKey,
+      };
+    case SET_API_KEY:
+      return {
+        ...state,
+        apiKey: payload,
       };
     case LOCK_WALLET:
       return {
