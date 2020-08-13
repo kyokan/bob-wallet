@@ -32,7 +32,8 @@ ipc.on('start', (_, prefix, net, apiKey) => {
       apiKey,
     });
 
-    hsd.use(WalletPlugin);
+    const plugin = hsd.use(WalletPlugin);
+    plugin.wdb.options.migrate = 0;
   } catch (e) {
     ipc.send('error', e);
     return;
