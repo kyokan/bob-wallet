@@ -21,6 +21,7 @@ import copy from "copy-to-clipboard";
 import {setCustomRPCStatus} from "../../ducks/node";
 import CustomRPCConfigModal from "./CustomRPCConfigModal";
 import {fetchWalletAPIKey} from "../../ducks/walletActions";
+import Anchor from "../../components/Anchor";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -252,7 +253,9 @@ export default class Settings extends Component {
               )}
               {this.renderSection(
                 'API Key',
-                'API key for hsw-cli and hsw-rpc. Please make sure you select the wallet "allison"',
+                <span>
+                  API key for <Anchor href="https://hsd-dev.org/api-docs/#get-wallet-info">hsw-cli</Anchor> and <Anchor href="https://hsd-dev.org/api-docs/#selectwallet">hsw-rpc</Anchor>. Make sure you select the wallet id "allison".
+                </span>,
                 'View API Key',
                 () => history.push('/settings/wallet/view-api-key'),
               )}
