@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import cn from 'classnames';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
@@ -17,6 +16,7 @@ class BidStatus extends Component {
   static propTypes = {
     name: PropTypes.string.isRequired,
     address: PropTypes.string.isRequired,
+    inflateBid: PropTypes.func.isRequired,
   };
 
   isSold = () => isClosed(this.props.domain);
@@ -151,6 +151,6 @@ export default withRouter(
         domain: name,
         address: state.wallet.address,
       };
-    }
+    },
   )(BidStatus)
 );

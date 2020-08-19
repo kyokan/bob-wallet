@@ -82,7 +82,7 @@ export default withRouter(
   connect(
     state => ({
       yourBids: state.bids.yourBids,
-    })
+    }),
   )(YourBids)
 );
 
