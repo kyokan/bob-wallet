@@ -16,6 +16,7 @@ import {
   STOP_SYNC_WALLET,
   SYNC_WALLET_PROGRESS,
   UNLOCK_WALLET,
+  SET_API_KEY,
 } from './walletReducer';
 import { NEW_BLOCK_STATUS } from './nodeReducer';
 
@@ -27,6 +28,7 @@ export const setWallet = opts => {
     address = '',
     type = NONE,
     balance = {},
+    apiKey = '',
   } = opts;
 
   return {
@@ -36,6 +38,7 @@ export const setWallet = opts => {
       address,
       type,
       balance,
+      apiKey,
     },
   };
 };
@@ -50,8 +53,17 @@ export const completeInitialization = (passphrase) => async (dispatch, getState)
   });
 };
 
+export const fetchWalletAPIKey = () => async (dispatch) => {
+  const apiKey = await walletClient.getAPIKey();
+  dispatch({
+    type: SET_API_KEY,
+    payload: apiKey,
+  });
+};
+
 export const fetchWallet = () => async (dispatch, getState) => {
   const network = getState().node.network;
+
   const isInitialized = await getInitializationState(network);
 
   if (!isInitialized) {
@@ -66,6 +78,7 @@ export const fetchWallet = () => async (dispatch, getState) => {
   }
 
   const accountInfo = await walletClient.getAccountInfo();
+  const apiKey = await walletClient.getAPIKey();
   dispatch(setWallet({
     initialized: isInitialized,
     address: accountInfo && accountInfo.receiveAddress,
@@ -73,6 +86,7 @@ export const fetchWallet = () => async (dispatch, getState) => {
     balance: (accountInfo && accountInfo.balance) || {
       ...getInitialState().balance,
     },
+    apiKey,
   }));
 };
 

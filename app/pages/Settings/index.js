@@ -20,6 +20,8 @@ import MiniModal from "../../components/Modal/MiniModal";
 import copy from "copy-to-clipboard";
 import {setCustomRPCStatus} from "../../ducks/node";
 import CustomRPCConfigModal from "./CustomRPCConfigModal";
+import {fetchWalletAPIKey} from "../../ducks/walletActions";
+import Anchor from "../../components/Anchor";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -28,6 +30,7 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
   (state) => ({
     network: state.node.network,
     apiKey: state.node.apiKey,
+    walletApiKey: state.wallet.apiKey,
     isRunning: state.node.isRunning,
     isChangingNodeStatus: state.node.isChangingNodeStatus,
     isTestingCustomRPC: state.node.isTestingCustomRPC,
@@ -38,12 +41,14 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
     stopNode: () => dispatch(nodeActions.stop()),
     startNode: () => dispatch(nodeActions.start()),
     setCustomRPCStatus: isConnected => dispatch(setCustomRPCStatus(isConnected)),
+    fetchWalletAPIKey: () => dispatch(fetchWalletAPIKey()),
   }),
 )
 export default class Settings extends Component {
   static propTypes = {
     network: PropTypes.string.isRequired,
     apiKey: PropTypes.string.isRequired,
+    walletApiKey: PropTypes.string.isRequired,
     isRunning: PropTypes.bool.isRequired,
     isChangingNodeStatus: PropTypes.bool.isRequired,
     lockWallet: PropTypes.func.isRequired,
@@ -55,6 +60,7 @@ export default class Settings extends Component {
 
   componentDidMount() {
     analytics.screenView('Settings');
+    this.props.fetchWalletAPIKey();
   }
 
   onDownload = async () => {
@@ -245,6 +251,14 @@ export default class Settings extends Component {
                 'Remove Wallet ',
                 () => history.push('/settings/wallet/new-wallet'),
               )}
+              {this.renderSection(
+                'API Key',
+                <span>
+                  API key for <Anchor href="https://hsd-dev.org/api-docs/#get-wallet-info">hsw-cli</Anchor> and <Anchor href="https://hsd-dev.org/api-docs/#selectwallet">hsw-rpc</Anchor>. Make sure you select the wallet id "allison".
+                </span>,
+                'View API Key',
+                () => history.push('/settings/wallet/view-api-key'),
+              )}
             </>
           </Route>
           <Route>
@@ -274,6 +288,23 @@ export default class Settings extends Component {
           <Route path="/settings/wallet/reveal-seed" component={RevealSeedModal} />
           <Route path="/settings/wallet/zap-txs" component={ZapTXsModal} />
           <Route path="/settings/connection/configure" component={CustomRPCConfigModal}>
+          </Route>
+          <Route path="/settings/wallet/view-api-key">
+            <MiniModal
+              closeRoute="/settings/wallet"
+              title="Wallet API Key"
+              centered
+            >
+              <input
+                type="text"
+                className="settings__copy-api-key"
+                value={this.props.walletApiKey}
+                readOnly
+              />
+              <button className="settings__btn" onClick={() => copy(this.props.walletApiKey)}>
+                Copy
+              </button>
+            </MiniModal>
           </Route>
           <Route path="/settings/connection/view-api-key">
             <MiniModal
