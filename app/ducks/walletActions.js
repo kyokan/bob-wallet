@@ -265,7 +265,7 @@ async function parseInputsOutputs(net, tx) {
     const output = tx.outputs[i];
 
     // Find outputs to the wallet's receive branch
-    if (!output.path || output.path.change)
+    if (output.path && output.path.change)
       continue;
 
     const covenant = output.covenant;
@@ -287,7 +287,9 @@ async function parseInputsOutputs(net, tx) {
     // between the highest and second-highest bid.
     if (covenant.action === 'REVEAL'
       || covenant.action === 'REGISTER') {
-      covValue += tx.inputs[i].value - output.value;
+      covValue += !output.path
+        ? output.value
+        : tx.inputs[i].value - output.value;
     } else {
       covValue += output.value;
     }
