@@ -10,6 +10,9 @@ import {app} from "electron";
 import rimraf from "rimraf";
 import {ConnectionTypes, getConnection} from "../connections/service";
 import crypto from "crypto";
+import {dispatchToMainWindow, getMainWindow} from "../../mainWindow";
+import {START_SYNC_WALLET, STOP_SYNC_WALLET, SYNC_WALLET_PROGRESS} from "../../ducks/walletReducer";
+import {startWalletSync, stopWalletSync} from "../../ducks/walletActions";
 // const {TXRecord} = require("hsd/lib/wallet/records");
 
 const Sentry = require('@sentry/electron');
@@ -121,7 +124,33 @@ class WalletService {
   rescan = async (height = 0) => {
     await this._ensureClient();
     const wdb = this.node.wdb;
-    return wdb.rescan(height);
+    const {chain: { height: chainHeight}} = await nodeService.getInfo();
+
+    dispatchToMainWindow({type: START_SYNC_WALLET});
+    let resetting = true;
+
+    return new Promise(async (resolve, reject) => {
+      const intv = setInterval(async () => {
+        const { height: walletHeight } = await wdb.getTip();
+        dispatchToMainWindow({
+          type: SYNC_WALLET_PROGRESS,
+          payload: resetting
+            ? 0
+            : parseInt(walletHeight / chainHeight * 100),
+        });
+      }, 1000);
+
+      resetting = false;
+      await wdb.rescan(height);
+
+      clearInterval(intv);
+      resolve();
+      dispatchToMainWindow({
+        type: SYNC_WALLET_PROGRESS,
+        payload: 100,
+      });
+      dispatchToMainWindow({ type: STOP_SYNC_WALLET });
+    });
   };
 
   importSeed = async (passphrase, mnemonic) => {
