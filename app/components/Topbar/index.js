@@ -32,6 +32,8 @@ import * as walletActions from '../../ducks/walletActions';
       progress,
       unconfirmedBalance: state.wallet.balance.unconfirmed,
       spendableBalance: state.wallet.balance.spendable,
+      walletSync: state.wallet.walletSync,
+      walletSyncProgress: state.wallet.walletSyncProgress,
     };
   },
   dispatch => ({
@@ -56,6 +58,8 @@ class Topbar extends Component {
     spendableBalance: PropTypes.number,
     isChangingNodeStatus: PropTypes.bool.isRequired,
     isTestingCustomRPC: PropTypes.bool.isRequired,
+    walletSync: PropTypes.bool.isRequired,
+    walletSyncProgress: PropTypes.number.isRequired,
   };
 
   state = {
@@ -116,7 +120,8 @@ class Topbar extends Component {
       isRunning,
       isCustomRPCConnected,
       showLogo,
-      location: { pathname }
+      location: { pathname },
+      walletSync,
     } = this.props;
 
     return (
@@ -127,7 +132,7 @@ class Topbar extends Component {
           className={c('topbar__synced', {
             'topbar__synced--success': isSynchronized || isCustomRPCConnected,
             'topbar__synced--failure': !isRunning && !isCustomRPCConnected,
-            'topbar__synced--loading': isChangingNodeStatus || isTestingCustomRPC || isSynchronizing,
+            'topbar__synced--loading': walletSync || isChangingNodeStatus || isTestingCustomRPC || isSynchronizing,
           })}
         >
           {this.getSyncText()}
@@ -205,12 +210,18 @@ class Topbar extends Component {
       isCustomRPCConnected,
       isChangingNodeStatus,
       isTestingCustomRPC,
+      walletSync,
+      walletSyncProgress,
     } = this.props;
 
     if (isSynchronizing) {
       return `Synchronizing... ${
         progress ? '(' + (progress * 100).toFixed(2) + '%)' : ''
       }`;
+    }
+
+    if (walletSync) {
+      return `Rescanning... (${walletSyncProgress}%)`;
     }
 
     if (isSynchronized) {

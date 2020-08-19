@@ -121,6 +121,33 @@ class WalletService {
     return this.client.createWallet(WALLET_ID, options);
   };
 
+  checkRescanStatus = async () => {
+    await this._ensureClient();
+    const wdb = this.node.wdb;
+    const {chain: { height: chainHeight}} = await nodeService.getInfo();
+    const { height: walletHeight } = await wdb.getTip();
+
+    if (walletHeight < chainHeight) {
+      this.rescanStatusIntv = setInterval(async () => {
+        const { height: walletHeight } = await wdb.getTip();
+        if (walletHeight === chainHeight) {
+          clearInterval(this.rescanStatusIntv);
+          dispatchToMainWindow({type: STOP_SYNC_WALLET});
+          dispatchToMainWindow({
+            type: SYNC_WALLET_PROGRESS,
+            payload: 100,
+          });
+          return;
+        }
+        dispatchToMainWindow({type: START_SYNC_WALLET});
+        dispatchToMainWindow({
+          type: SYNC_WALLET_PROGRESS,
+          payload: parseInt(walletHeight / chainHeight * 100),
+        });
+      }, 2500);
+    }
+  };
+
   rescan = async (height = 0) => {
     await this._ensureClient();
     const wdb = this.node.wdb;
@@ -138,7 +165,7 @@ class WalletService {
             ? 0
             : parseInt(walletHeight / chainHeight * 100),
         });
-      }, 1000);
+      }, 2500);
 
       resetting = false;
       await wdb.rescan(height);
@@ -415,6 +442,7 @@ class WalletService {
     });
     this.node = node;
     this.client = new WalletClient(walletOptions);
+    await this.checkRescanStatus();
   };
 
   _onNodeStop = async () => {
@@ -425,6 +453,9 @@ class WalletService {
     }
     this.client = null;
     this.didSelectWallet = false;
+    if (this.rescanStatusIntv) {
+      clearInterval(this.rescanStatusIntv);
+    }
   };
 
   async _ensureClient() {

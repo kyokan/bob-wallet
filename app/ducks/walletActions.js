@@ -133,42 +133,42 @@ export const stopWalletSync = () => async (dispatch) => {
 };
 
 export const waitForWalletSync = () => async (dispatch, getState) => {
-  // let lastProgress = 0;
-  // let stall = 0;
-  //
-  // for (; ;) {
-  //   const nodeInfo = await nodeClient.getInfo();
-  //   const wdbInfo = await walletClient.rpcGetWalletInfo();
-  //
-  //   if (nodeInfo.chain.height === 0) {
-  //     dispatch({type: STOP_SYNC_WALLET});
-  //     break;
-  //   }
-  //
-  //   const progress = parseInt(wdbInfo.height / nodeInfo.chain.height * 100);
-  //
-  //   // If we go 5 seconds without any progress, throw an error
-  //   if (lastProgress === progress) {
-  //     stall++;
-  //   } else {
-  //     lastProgress = progress;
-  //     stall = 0;
-  //   }
-  //
-  //   if (stall >= 5) {
-  //     dispatch({type: STOP_SYNC_WALLET});
-  //     throw new Error('Wallet sync progress has stalled.');
-  //   }
-  //
-  //   if (progress === 100) {
-  //     dispatch({type: STOP_SYNC_WALLET});
-  //     break;
-  //   } else {
-  //     dispatch({type: SYNC_WALLET_PROGRESS, payload: progress});
-  //   }
-  //
-  //   await new Promise((r) => setTimeout(r, 10000));
-  // }
+  let lastProgress = 0;
+  let stall = 0;
+
+  for (; ;) {
+    const nodeInfo = await nodeClient.getInfo();
+    const wdbInfo = await walletClient.rpcGetWalletInfo();
+
+    if (nodeInfo.chain.height === 0) {
+      dispatch({type: STOP_SYNC_WALLET});
+      break;
+    }
+
+    const progress = parseInt(wdbInfo.height / nodeInfo.chain.height * 100);
+
+    // If we go 5 seconds without any progress, throw an error
+    if (lastProgress === progress) {
+      stall++;
+    } else {
+      lastProgress = progress;
+      stall = 0;
+    }
+
+    if (stall >= 5) {
+      dispatch({type: STOP_SYNC_WALLET});
+      throw new Error('Wallet sync progress has stalled.');
+    }
+
+    if (progress === 100) {
+      dispatch({type: STOP_SYNC_WALLET});
+      break;
+    } else {
+      dispatch({type: SYNC_WALLET_PROGRESS, payload: progress});
+    }
+
+    await new Promise((r) => setTimeout(r, 10000));
+  }
 };
 
 export const fetchTransactions = () => async (dispatch, getState) => {

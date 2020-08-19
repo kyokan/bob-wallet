@@ -175,6 +175,24 @@ export default class Settings extends Component {
           'Logout',
           lockWallet,
         )}
+
+        {this.renderSection(
+          'Rescan Wallet',
+          <div>
+            <div>{`${transactions.size} transactions found in walletdb`}</div>
+          </div>,
+          'Rescan',
+          () => walletClient.rescan(0),
+        )}
+
+        {this.renderSection(
+          'API Key',
+          <span>
+                  API key for <Anchor href="https://hsd-dev.org/api-docs/#get-wallet-info">hsw-cli</Anchor> and <Anchor href="https://hsd-dev.org/api-docs/#selectwallet">hsw-rpc</Anchor>. Make sure you select the wallet id "allison".
+                </span>,
+          'View API Key',
+          () => history.push('/settings/wallet/view-api-key'),
+        )}
         {this.renderSection(
           'Delete unconfirmed transactions',
           'This will only remove pending tx from the wallet',
@@ -192,22 +210,6 @@ export default class Settings extends Component {
           'This will remove all data from Bob. Proceed with caution.',
           'Remove Wallet ',
           () => history.push('/settings/wallet/new-wallet'),
-        )}
-        {this.renderSection(
-          'API Key',
-          <span>
-                  API key for <Anchor href="https://hsd-dev.org/api-docs/#get-wallet-info">hsw-cli</Anchor> and <Anchor href="https://hsd-dev.org/api-docs/#selectwallet">hsw-rpc</Anchor>. Make sure you select the wallet id "allison".
-                </span>,
-          'View API Key',
-          () => history.push('/settings/wallet/view-api-key'),
-        )}
-        {this.renderSection(
-          'Rescan Wallet',
-          <div>
-            <div>{`${transactions.size} transactions found in walletdb`}</div>
-          </div>,
-          'Rescan',
-          () => walletClient.rescan(0),
         )}
       </>
     );
