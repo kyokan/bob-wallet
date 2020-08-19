@@ -8,7 +8,6 @@ import isEqual from 'lodash.isequal';
 import { SET_NODE_INFO, SET_FEE_INFO, NEW_BLOCK_STATUS } from './nodeReducer';
 import { getNameInfo } from './names';
 import { getYourBids } from './bids';
-import { getWatching } from './watching';
 import { fetchTransactions, fetchWallet } from './walletActions';
 
 export function createBackgroundMonitor() {
@@ -33,48 +32,48 @@ export function createBackgroundMonitor() {
       return;
     }
 
-    // const infoRes = await nodeClient.getInfo();
-    // const newInfo = {
-    //   chain: infoRes.chain,
-    //   network: infoRes.network,
-    // };
-    //
-    // if (!isEqual(info, newInfo)) {
-    //   info = newInfo;
-    //   store.dispatch({
-    //     type: SET_NODE_INFO,
-    //     payload: {
-    //       info: newInfo,
-    //     },
-    //   });
-    // }
-    //
-    // if (state.node.chain.tip !== infoRes.chain.tip)
-    //   await store.dispatch(onNewBlock());
-    //
-    // const newPendingTxns = await walletClient.getPendingTransactions();
-    // store.dispatch({
-    //   type: SET_PENDING_TRANSACTIONS,
-    //   payload: newPendingTxns,
-    // });
-    //
-    // await store.dispatch(fetchWallet());
-    // await store.dispatch(fetchTransactions());
-    //
-    // // once a pending name operation is no longer pending,
-    // // refresh that name's state.
-    // state = store.getState();
-    // const currentNamesWithPendingUpdates = new Set();
-    // Object.keys(state.names).filter((k) => {
-    //   const domain = state.names[k];
-    //   return domain.pendingOperation === 'UPDATE' || domain.pendingOperation === 'REGISTER';
-    // }).forEach((name) => currentNamesWithPendingUpdates.add(name));
-    //
-    // const noLongerPending = difference(prevNamesWithPendingUpdates, currentNamesWithPendingUpdates);
-    // for (const name of noLongerPending) {
-    //   await store.dispatch(getNameInfo(name));
-    // }
-    // prevNamesWithPendingUpdates = currentNamesWithPendingUpdates;
+    const infoRes = await nodeClient.getInfo();
+    const newInfo = {
+      chain: infoRes.chain,
+      network: infoRes.network,
+    };
+
+    if (!isEqual(info, newInfo)) {
+      info = newInfo;
+      store.dispatch({
+        type: SET_NODE_INFO,
+        payload: {
+          info: newInfo,
+        },
+      });
+    }
+
+    if (state.node.chain.tip !== infoRes.chain.tip)
+      await store.dispatch(onNewBlock());
+
+    const newPendingTxns = await walletClient.getPendingTransactions();
+    store.dispatch({
+      type: SET_PENDING_TRANSACTIONS,
+      payload: newPendingTxns,
+    });
+
+    await store.dispatch(fetchWallet());
+    await store.dispatch(fetchTransactions());
+
+    // once a pending name operation is no longer pending,
+    // refresh that name's state.
+    state = store.getState();
+    const currentNamesWithPendingUpdates = new Set();
+    Object.keys(state.names).filter((k) => {
+      const domain = state.names[k];
+      return domain.pendingOperation === 'UPDATE' || domain.pendingOperation === 'REGISTER';
+    }).forEach((name) => currentNamesWithPendingUpdates.add(name));
+
+    const noLongerPending = difference(prevNamesWithPendingUpdates, currentNamesWithPendingUpdates);
+    for (const name of noLongerPending) {
+      await store.dispatch(getNameInfo(name));
+    }
+    prevNamesWithPendingUpdates = currentNamesWithPendingUpdates;
   };
 
   const poll = async () => {
@@ -110,46 +109,46 @@ function difference(setA, setB) {
 }
 
 export const onNewBlock = () => async (dispatch, getState) => {
-  // let state = getState();
-  //
-  // dispatch({type: NEW_BLOCK_STATUS, payload: 'Updating fees...'});
-  // const newFees = await nodeClient.getFees();
-  // if (!isEqual(state.node.fees, newFees)) {
-  //   dispatch({
-  //     type: SET_FEE_INFO,
-  //     payload: {
-  //       fees: newFees,
-  //     },
-  //   });
-  // }
-  //
-  // dispatch({type: NEW_BLOCK_STATUS, payload: 'Loading bids...'});
-  // await dispatch(getYourBids());
-  // state = getState();
-  //
-  // const names = {};
-  // const bids = state.bids.yourBids;
-  //
-  // for (const bid of bids) {
-  //   const name = bid.name;
-  //   names[name] = name;
-  // }
-  //
-  // const watch = state.watching.names;
-  // for (const name of watch) {
-  //   names[name] = name;
-  // }
-  //
-  // const namesList = Object.keys(names);
-  // for (let i = 0; i < namesList.length; i++) {
-  //   await dispatch(getNameInfo(namesList[i]));
-  //   dispatch({
-  //     type: NEW_BLOCK_STATUS,
-  //     payload: `Loading ${i} of ${namesList.length} names`,
-  //   });
-  // }
-  //
-  // dispatch({type: NEW_BLOCK_STATUS, payload: ''});
-}
+  let state = getState();
+
+  dispatch({type: NEW_BLOCK_STATUS, payload: 'Updating fees...'});
+  const newFees = await nodeClient.getFees();
+  if (!isEqual(state.node.fees, newFees)) {
+    dispatch({
+      type: SET_FEE_INFO,
+      payload: {
+        fees: newFees,
+      },
+    });
+  }
+
+  dispatch({type: NEW_BLOCK_STATUS, payload: 'Loading bids...'});
+  await dispatch(getYourBids());
+  state = getState();
+
+  const names = {};
+  const bids = state.bids.yourBids;
+
+  for (const bid of bids) {
+    const name = bid.name;
+    names[name] = name;
+  }
+
+  const watch = state.watching.names;
+  for (const name of watch) {
+    names[name] = name;
+  }
+
+  const namesList = Object.keys(names);
+  for (let i = 0; i < namesList.length; i++) {
+    await dispatch(getNameInfo(namesList[i]));
+    dispatch({
+      type: NEW_BLOCK_STATUS,
+      payload: `Loading ${i} of ${namesList.length} names`,
+    });
+  }
+
+  dispatch({type: NEW_BLOCK_STATUS, payload: ''});
+};
 
 export const monitor = createBackgroundMonitor();

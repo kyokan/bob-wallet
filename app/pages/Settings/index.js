@@ -167,8 +167,6 @@ export default class Settings extends Component {
       transactions,
     } = this.props;
 
-    console.log({ transactions })
-
     return (
       <>
         {this.renderSection(
