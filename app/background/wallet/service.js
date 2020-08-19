@@ -159,6 +159,11 @@ class WalletService {
     return new Promise(async (resolve, reject) => {
       const intv = setInterval(async () => {
         const { height: walletHeight } = await wdb.getTip();
+
+        if (walletHeight < chainHeight) {
+          resetting = false;
+        }
+
         dispatchToMainWindow({
           type: SYNC_WALLET_PROGRESS,
           payload: resetting
