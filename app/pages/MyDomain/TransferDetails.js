@@ -7,6 +7,7 @@ import { showError, showSuccess } from '../../ducks/notifications';
 import { clientStub as aClientStub } from '../../background/analytics/client';
 import * as networks from 'hsd/lib/protocol/networks';
 import Checkbox from '../../components/Checkbox';
+import FinalizeWithPaymentModal from './FinalizeWithPaymentModal';
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -80,6 +81,13 @@ class TransferDetails extends Component {
       .catch(e => this.props.showError(e.message));
   };
 
+  finalizeWithPayment = () => {
+    // node.finalizeWithPayment(this.props.name, '', '', 100);
+    this.setState({
+      isShowingFinalizeWithPayment: true,
+    });
+  };
+
   render() {
     const domain = this.props.domain || {};
     const {info} = domain;
@@ -118,7 +126,18 @@ class TransferDetails extends Component {
               <button className="extension_cta_button" onClick={this.finalizeTransfer}>
                 Finalize Transfer
               </button>
+              <button className="extension_cta_button" onClick={this.finalizeWithPayment}>
+                Finalize With Payment
+              </button>
             </p>
+            {this.state.isShowingFinalizeWithPayment && (
+              <FinalizeWithPaymentModal
+                onClose={() => this.setState({
+                  isShowingFinalizeWithPayment: false,
+                })}
+                name={this.props.name}
+              />
+            )}
             {this.renderRevoke()}
           </div>
         );

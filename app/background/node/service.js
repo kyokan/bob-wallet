@@ -211,6 +211,40 @@ export class NodeService extends EventEmitter {
     return Math.floor((sum / count) * 1000);
   }
 
+  async finalizeWithPayment(name, fundingAddr, nameReceiveAddr, price) {
+    this._ensureStarted();
+    const ret = new Promise((resolve, reject) => {
+      this.hsdWindow.webContents.once('ipc-message', (_, channel, reply) => {
+        if (channel !== 'finalize-with-payment-reply') {
+          return;
+        }
+        if (reply.error) {
+          return reject(reply.error);
+        }
+        resolve(reply);
+      });
+    });
+    this.hsdWindow.webContents.send('finalize-with-payment', name, fundingAddr, nameReceiveAddr, price);
+    return ret;
+  }
+
+  async claimPaidTransfer(txHex) {
+    this._ensureStarted();
+    const ret = new Promise((resolve, reject) => {
+      this.hsdWindow.webContents.once('ipc-message', (_, channel, reply) => {
+        if (channel !== 'claim-paid-transfer-reply') {
+          return;
+        }
+        if (reply.error) {
+          return reject(reply.error);
+        }
+        resolve(reply);
+      });
+    });
+    this.hsdWindow.webContents.send('claim-paid-transfer', txHex);
+    return ret;
+  }
+
   _ensureStarted() {
     if (!this.hsdWindow) {
       throw new Error('hsd not started.');
@@ -275,6 +309,8 @@ const methods = {
   sendRawAirdrop: (data) => service.sendRawAirdrop(data),
   getFees: () => service.getFees(),
   getAverageBlockTime: () => service.getAverageBlockTime(),
+  finalizeWithPayment: (name, fundingAddr, nameReceiveAddr, price) => service.finalizeWithPayment(name, fundingAddr, nameReceiveAddr, price),
+  claimPaidTransfer: (txHex) => service.claimPaidTransfer(txHex),
 };
 
 export async function start(server) {

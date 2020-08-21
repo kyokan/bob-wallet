@@ -40,9 +40,12 @@
     width: auto;
   }
 
+  button {
+    margin-right: 1rem;
+  }
+
   &__danger {
     background: $orange-red !important;
-    margin-right: 1rem;
 
     &, &:focus, &:hover {
       border: 0 !important;

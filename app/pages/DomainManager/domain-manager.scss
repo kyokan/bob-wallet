@@ -3,6 +3,14 @@
 .domain-manager {
   @extend %col-nowrap;
 
+  &__buttons {
+    button {
+      display: inline-block;
+      width: auto;
+      margin-right: 1rem;
+    }
+  }
+
   &__domain {
     @extend %row-nowrap;
 
@@ -40,4 +48,54 @@
   &__export-btn {
     margin-bottom: 2rem;
   }
+}
+
+.claim-name-for-payment-verification {
+  dt {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+
+  dd {
+    margin-left: 0;
+    margin-bottom: 0.9rem;
+  }
+}
+
+.claim-name-for-payment__verification-buttons {
+  display: flex;
+
+  button {
+    flex: 0 1 50%;
+  }
+
+  .abort {
+    margin-right: 0.5rem;
+    @extend %btn-primary;
+    background: $orange-red;
+    border-color: $orange-red;
+
+    &:hover,
+    &:active,
+    &:focus {
+      $hover-color: lighten($orange-red, 10%);
+      background-color: $hover-color;
+      border-color: lighten($orange-red, 10%);
+    }
+
+    &:disabled {
+      background-color: $orange-red;
+      opacity: 0.3;
+      color: white;
+    }
+  }
+
+  .pay-and-transfer {
+    margin-left: 0.5rem;
+    @extend %btn-primary;
+  }
+}
+
+.claim-name-for-payment-invalid {
+  color: $orange-red;
 }
