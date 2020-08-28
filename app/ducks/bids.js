@@ -1,4 +1,6 @@
 import walletClient from '../utils/walletClient';
+import {NEW_BLOCK_STATUS} from "./nodeReducer";
+import {getNameInfo} from "./names";
 
 const SET_YOUR_BIDS = 'app/bids/setYourBids';
 

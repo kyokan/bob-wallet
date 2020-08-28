@@ -16,7 +16,7 @@ import {
   STOP_SYNC_WALLET,
   SYNC_WALLET_PROGRESS,
   UNLOCK_WALLET,
-  SET_API_KEY,
+  SET_API_KEY, SET_FETCHING,
 } from './walletReducer';
 import { NEW_BLOCK_STATUS } from './nodeReducer';
 
@@ -175,6 +175,12 @@ export const fetchTransactions = () => async (dispatch, getState) => {
   const state = getState();
   const net = state.node.network;
   const currentTXs = state.wallet.transactions;
+
+  dispatch({
+    type: SET_FETCHING,
+    payload: true,
+  });
+
   const txs = await walletClient.getTransactionHistory();
   let payload = new Map();
 
@@ -205,6 +211,11 @@ export const fetchTransactions = () => async (dispatch, getState) => {
 
   // Sort all TXs by date without losing the hash->tx mapping
   payload = new Map([...payload.entries()].sort((a, b) => b[1].date - a[1].date));
+
+  dispatch({
+    type: SET_FETCHING,
+    payload: false,
+  });
 
   dispatch({
     type: SET_TRANSACTIONS,
@@ -265,7 +276,7 @@ async function parseInputsOutputs(net, tx) {
     const output = tx.outputs[i];
 
     // Find outputs to the wallet's receive branch
-    if (!output.path || output.path.change)
+    if (output.path && output.path.change)
       continue;
 
     const covenant = output.covenant;
@@ -287,7 +298,9 @@ async function parseInputsOutputs(net, tx) {
     // between the highest and second-highest bid.
     if (covenant.action === 'REVEAL'
       || covenant.action === 'REGISTER') {
-      covValue += tx.inputs[i].value - output.value;
+      covValue += !output.path
+        ? output.value
+        : tx.inputs[i].value - output.value;
     } else {
       covValue += output.value;
     }

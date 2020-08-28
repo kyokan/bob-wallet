@@ -22,6 +22,7 @@ import {setCustomRPCStatus} from "../../ducks/node";
 import CustomRPCConfigModal from "./CustomRPCConfigModal";
 import {fetchWalletAPIKey} from "../../ducks/walletActions";
 import Anchor from "../../components/Anchor";
+import walletClient from "../../utils/walletClient";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -34,6 +35,7 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
     isRunning: state.node.isRunning,
     isChangingNodeStatus: state.node.isChangingNodeStatus,
     isTestingCustomRPC: state.node.isTestingCustomRPC,
+    transactions: state.wallet.transactions,
   }),
   dispatch => ({
     lockWallet: () => dispatch(walletActions.lockWallet()),
@@ -56,6 +58,7 @@ export default class Settings extends Component {
     stopNode: PropTypes.func.isRequired,
     startNode: PropTypes.func.isRequired,
     setCustomRPCStatus: PropTypes.func.isRequired,
+    transactions: PropTypes.object.isRequired,
   };
 
   componentDidMount() {
@@ -157,13 +160,67 @@ export default class Settings extends Component {
     )
   }
 
+  renderWallet() {
+    const {
+      history,
+      lockWallet,
+      transactions,
+    } = this.props;
+
+    return (
+      <>
+        {this.renderSection(
+          'Lock Wallet',
+          'Log out and lock wallet',
+          'Logout',
+          lockWallet,
+        )}
+
+        {this.renderSection(
+          'Rescan Wallet',
+          <div>
+            <div>{`${transactions.size} transactions found in walletdb`}</div>
+          </div>,
+          'Rescan',
+          () => walletClient.rescan(0),
+        )}
+
+        {this.renderSection(
+          'API Key',
+          <span>
+                  API key for <Anchor href="https://hsd-dev.org/api-docs/#get-wallet-info">hsw-cli</Anchor> and <Anchor href="https://hsd-dev.org/api-docs/#selectwallet">hsw-rpc</Anchor>. Make sure you select the wallet id "allison".
+                </span>,
+          'View API Key',
+          () => history.push('/settings/wallet/view-api-key'),
+        )}
+        {this.renderSection(
+          'Delete unconfirmed transactions',
+          'This will only remove pending tx from the wallet',
+          'Zap',
+          () => history.push('/settings/wallet/zap-txs'),
+        )}
+        {this.renderSection(
+          'Reveal recovery seed phrase',
+          'This will display my unencrypted seed phrase',
+          'Reveal',
+          () => history.push('/settings/wallet/reveal-seed'),
+        )}
+        {this.renderSection(
+          'Remove wallet',
+          'This will remove all data from Bob. Proceed with caution.',
+          'Remove Wallet ',
+          () => history.push('/settings/wallet/new-wallet'),
+        )}
+      </>
+    );
+  }
+
   renderContent() {
     const {
       isRunning,
       history,
       stopNode,
       startNode,
-      lockWallet,
       isChangingNodeStatus,
       isTestingCustomRPC,
     } = this.props;
@@ -226,40 +283,7 @@ export default class Settings extends Component {
             </>
           </Route>
           <Route path="/settings/wallet">
-            <>
-              {this.renderSection(
-                'Lock Wallet',
-                'Log out and lock wallet',
-                'Logout',
-                lockWallet,
-              )}
-              {this.renderSection(
-                'Delete unconfirmed transactions',
-                'This will only remove pending tx from the wallet',
-                'Zap',
-                () => history.push('/settings/wallet/zap-txs'),
-              )}
-              {this.renderSection(
-                'Reveal recovery seed phrase',
-                'This will display my unencrypted seed phrase',
-                'Reveal',
-                () => history.push('/settings/wallet/reveal-seed'),
-              )}
-              {this.renderSection(
-                'Remove wallet',
-                'This will remove all data from Bob. Proceed with caution.',
-                'Remove Wallet ',
-                () => history.push('/settings/wallet/new-wallet'),
-              )}
-              {this.renderSection(
-                'API Key',
-                <span>
-                  API key for <Anchor href="https://hsd-dev.org/api-docs/#get-wallet-info">hsw-cli</Anchor> and <Anchor href="https://hsd-dev.org/api-docs/#selectwallet">hsw-rpc</Anchor>. Make sure you select the wallet id "allison".
-                </span>,
-                'View API Key',
-                () => history.push('/settings/wallet/view-api-key'),
-              )}
-            </>
+            {this.renderWallet()}
           </Route>
           <Route>
             <Redirect to="/settings/general" />

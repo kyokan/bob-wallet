@@ -68,7 +68,7 @@ class App extends Component {
 
     return (
       <div className="app">
-        <WalletSync />
+        {/*<WalletSync />*/}
         <IdleModal />
         <PassphraseModal />
         {this.renderContent()}

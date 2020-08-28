@@ -16,6 +16,7 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
     unconfirmedBalance: state.wallet.balance.unconfirmed,
     spendableBalance: state.wallet.balance.spendable,
     height: state.node.chain.height,
+    isFetching: state.wallet.isFetching,
   }),
 )
 export default class Account extends Component {
@@ -23,6 +24,7 @@ export default class Account extends Component {
     unconfirmedBalance: PropTypes.number.isRequired,
     spendableBalance: PropTypes.number.isRequired,
     height: PropTypes.number.isRequired,
+    isFetching: PropTypes.bool.isRequired,
   };
 
   componentDidMount() {
@@ -30,7 +32,7 @@ export default class Account extends Component {
   }
 
   render() {
-    const {unconfirmedBalance, spendableBalance} = this.props;
+    const {unconfirmedBalance, spendableBalance, isFetching} = this.props;
 
     return (
       <div className="account">
@@ -58,7 +60,16 @@ export default class Account extends Component {
           </div>
         </div>
         <div className="account__transactions">
-          <div className="account__panel-title">Transaction History</div>
+          <div className="account__panel-title">
+            Transaction History
+            {
+              isFetching && (
+                <div className="account__transactions__loading">
+                  Loading transactions...
+                </div>
+              )
+            }
+          </div>
           <Transactions />
         </div>
       </div>
