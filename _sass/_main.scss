@@ -60,17 +60,16 @@ body {
     text-align: center;
   }
 
+  &__social-link {
+    margin: 2.5% 0;
+  }
+
   &__buttons {
 
     &__wrapper {
       margin: 2.5% 0;
       display: flex;
       align-items: center;
-      justify-content: center;
-    }
-
-    &__socials {
-      display: flex;
       justify-content: center;
     }
 
@@ -95,14 +94,13 @@ body {
     }
 
     &__vernum {
-      margin-left: 1%;
+      margin-left: 3.5%;
       width: 7.5%;
     }
 
     &__link {
       margin-left: 2.5%;
       width: 7.5%;
-      text-decoration: underline;
     }
 
     .outline span {
