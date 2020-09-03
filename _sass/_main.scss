@@ -1,0 +1,205 @@
+$base: 12px;
+$red: #e2583f;
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Anonymous Pro", monospace;
+}
+
+.section-container {
+  margin: 0 auto;
+  max-width: 960px;
+}
+
+.hero {
+  color: white;
+  background: #1d242d;
+  padding: ($base * 6) 0;
+
+  h1 {
+    font-family: "Roboto", sans-serif;
+    font-weight: 700;
+    font-size: $base * 5;
+    margin-top: 0;
+  }
+
+  p {
+    font-size: 24px;
+    line-height: 1.2;
+    margin-bottom: $base * 4;
+  }
+
+  &__grid {
+    display: flex;
+  }
+
+  &__logo {
+    width: 150px;
+  }
+
+  &__left {
+    flex: 1 1 60%;
+  }
+
+  &__right {
+    flex: 0 0 40%;
+    text-align: center;
+  }
+
+  &__buttons {
+    a {
+      color: white;
+      display: flex;
+      text-decoration: none;
+      align-items: center;
+      margin-bottom: $base;
+    }
+
+    span {
+      background: $red;;
+      display: block;
+      width: 100px;
+      padding: $base 0;
+      margin-right: $base;
+      text-align: center;
+      border-radius: 3px;
+    }
+
+    .outline span {
+      background: transparent;
+      border: 1px solid $red;
+      color: $red;;
+    }
+  }
+}
+
+.download-cta {
+  border: 3px solid $red;
+  padding: $base 0;
+  width: 200px;
+  margin: 0 auto;
+  display: block;
+  border-radius: 3px;
+  color: $red;
+  text-decoration: none;
+  transition: background 100ms ease-in-out;
+
+  &:hover {
+    background: $red;
+    text-decoration: underline;
+    color: white;
+  }
+}
+
+.bob {
+  padding-top: $base * 6;
+  background: #f0f0f0;
+
+  &__centered {
+    text-align: center;
+    margin-bottom: $base * 6;
+
+    h2 {
+      margin-top: 0;
+      margin-bottom: $base * 2;
+      font-size: $base * 4;
+      font-family: "Roboto", sans-serif;
+      font-weight: 700;
+    }
+
+    h3 {
+      margin-bottom: $base * 3;
+    }
+  }
+
+  &__benefits {
+    display: flex;
+    align-items: center;
+    padding-bottom: $base * 6;
+  }
+
+  &__benefit-copy {
+    line-height: 1.2;
+
+    p {
+      margin-bottom: 0;
+    }
+  }
+
+  &__screenshot {
+    flex: 1 0 60%;
+    text-align: center;
+
+    img {
+      max-width: 100%;
+      border-radius: 3px;
+      box-shadow: 0 1px 16px rgba(0,0,0,0.15);
+    }
+
+    .bob__bidding {
+      width: 353px !important;
+    }
+  }
+
+  &__screenshot + &__benefit-copy {
+    margin-left: $base * 4;
+  }
+
+  &__benefit-copy + &__screenshot{
+    margin-left: $base * 4;
+  }
+
+  &__additional-features {
+    display: flex;
+    padding-bottom: $base * 6;
+  }
+
+  &__feature {
+    width: 33%;
+    text-align: center;
+    margin-right: $base * 2;
+
+    &:last-child {
+      margin-right: 0;
+    }
+
+    img {
+      width: 50%;
+    }
+  }
+}
+
+.apex {
+  padding: ($base * 6) 0;
+
+  h2 {
+    margin-top: 0;
+    margin-bottom: $base * 2;
+    font-size: $base * 4;
+    font-family: "Roboto", sans-serif;
+    font-weight: 700;
+  }
+
+  .download-cta {
+    margin-top: $base * 2;
+  }
+
+  &__centered {
+    text-align: center;
+    margin-bottom: $base * 4;
+  }
+
+  &__screenshot {
+    text-align: center;
+
+    img {
+      border-bottom: 1px solid rgba(0,0,0,0.25);
+      padding: 0 ($base);
+      max-width: 80%;
+    }
+  }
+}
