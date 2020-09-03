@@ -37,35 +37,39 @@ body {
   .hero__right {
     flex: 0 0 40%;
     text-align: center; }
-  .hero__buttons {
-    margin-top: 7.5%; }
-    .hero__buttons a {
-      color: white;
-      display: flex;
-      text-decoration: none;
-      align-items: center;
-      justify-content: center;
-      margin-top: 2.5%;
-      margin-bottom: 12px; }
-    .hero__buttons span {
-      background: #e2583f;
-      display: block;
-      width: 10%;
-      padding: 12px 0;
-      margin-right: 12px;
-      text-align: center;
-      border-radius: 3px; }
-    .hero__buttons__vernum {
-      margin-left: 1%;
-      width: 7.5%; }
-    .hero__buttons__link {
-      margin-left: 2.5%;
-      width: 7.5%;
-      text-decoration: underline; }
-    .hero__buttons .outline span {
-      background: transparent;
-      border: 1px solid #e2583f;
-      color: #e2583f; }
+  .hero__buttons__wrapper {
+    margin: 2.5% 0;
+    display: flex;
+    align-items: center;
+    justify-content: center; }
+  .hero__buttons__socials {
+    display: flex;
+    justify-content: center; }
+  .hero__buttons a {
+    color: white;
+    text-decoration: none;
+    justify-content: center;
+    display: flex; }
+  .hero__buttons__red-wrapper {
+    width: 10%; }
+  .hero__buttons span {
+    background: #e2583f;
+    display: block;
+    width: 80%;
+    padding: 12px 10px;
+    text-align: center;
+    border-radius: 3px; }
+  .hero__buttons__vernum {
+    margin-left: 1%;
+    width: 7.5%; }
+  .hero__buttons__link {
+    margin-left: 2.5%;
+    width: 7.5%;
+    text-decoration: underline; }
+  .hero__buttons .outline span {
+    background: transparent;
+    border: 1px solid #e2583f;
+    color: #e2583f; }
 
 .download-cta {
   border: 3px solid #e2583f;

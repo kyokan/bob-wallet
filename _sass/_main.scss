@@ -61,24 +61,35 @@ body {
   }
 
   &__buttons {
-    margin-top: 7.5%;
+
+    &__wrapper {
+      margin: 2.5% 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    &__socials {
+      display: flex;
+      justify-content: center;
+    }
 
     a {
       color: white;
-      display: flex;
       text-decoration: none;
-      align-items: center;
       justify-content: center;
-      margin-top: 2.5%;
-      margin-bottom: $base;
+      display: flex;
+    }
+
+    &__red-wrapper {
+      width: 10%;
     }
 
     span {
       background: $red;
       display: block;
-      width: 10%;
-      padding: $base 0;
-      margin-right: $base;
+      width: 80%;
+      padding: 12px 10px;
       text-align: center;
       border-radius: 3px;
     }
