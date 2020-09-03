@@ -1,0 +1,154 @@
+html, body {
+  margin: 0;
+  padding: 0; }
+
+body {
+  font-family: "Anonymous Pro", monospace; }
+
+.section-container {
+  margin: 0 auto;
+  max-width: 960px; }
+
+.hero {
+  color: white;
+  background: #1d242d;
+  padding: 72px 0; }
+  .hero h1 {
+    font-family: "Roboto", sans-serif;
+    font-weight: 700;
+    font-size: 60px;
+    margin-top: 0; }
+  .hero p {
+    font-size: 24px;
+    line-height: 1.2;
+    margin-bottom: 48px; }
+  .hero__grid {
+    display: flex; }
+  .hero__logo {
+    width: 150px; }
+  .hero__center {
+    align-items: center;
+    justify-content: center; }
+  .hero__image {
+    width: 25%;
+    height: 25%; }
+  .hero__left {
+    flex: 1 1 60%; }
+  .hero__right {
+    flex: 0 0 40%;
+    text-align: center; }
+  .hero__buttons {
+    margin-top: 7.5%; }
+    .hero__buttons a {
+      color: white;
+      display: flex;
+      text-decoration: none;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2.5%;
+      margin-bottom: 12px; }
+    .hero__buttons span {
+      background: #e2583f;
+      display: block;
+      width: 10%;
+      padding: 12px 0;
+      margin-right: 12px;
+      text-align: center;
+      border-radius: 3px; }
+    .hero__buttons__vernum {
+      margin-left: 1%;
+      width: 7.5%; }
+    .hero__buttons__link {
+      margin-left: 2.5%;
+      width: 7.5%;
+      text-decoration: underline; }
+    .hero__buttons .outline span {
+      background: transparent;
+      border: 1px solid #e2583f;
+      color: #e2583f; }
+
+.download-cta {
+  border: 3px solid #e2583f;
+  padding: 12px 0;
+  width: 200px;
+  margin: 0 auto;
+  display: block;
+  border-radius: 3px;
+  color: #e2583f;
+  text-decoration: none;
+  transition: background 100ms ease-in-out; }
+  .download-cta:hover {
+    background: #e2583f;
+    text-decoration: underline;
+    color: white; }
+
+.bob-github-link {
+  text-decoration: underline; }
+
+.bob {
+  padding-top: 72px;
+  background: #f0f0f0; }
+  .bob__centered {
+    margin-top: 5%;
+    text-align: center;
+    margin-bottom: 72px; }
+    .bob__centered h2 {
+      margin-top: 0;
+      margin-bottom: 24px;
+      font-size: 48px;
+      font-family: "Roboto", sans-serif;
+      font-weight: 700; }
+    .bob__centered h3 {
+      margin-bottom: 36px; }
+  .bob__benefits {
+    display: flex;
+    align-items: center;
+    padding-bottom: 72px; }
+  .bob__benefit-copy {
+    line-height: 1.2; }
+    .bob__benefit-copy p {
+      margin-bottom: 0; }
+  .bob__screenshot {
+    flex: 1 0 60%;
+    text-align: center; }
+    .bob__screenshot img {
+      max-width: 100%;
+      border-radius: 3px;
+      box-shadow: 0 1px 16px rgba(0, 0, 0, 0.15); }
+    .bob__screenshot .bob__bidding {
+      width: 353px !important; }
+  .bob__screenshot + .bob__benefit-copy {
+    margin-left: 48px; }
+  .bob__benefit-copy + .bob__screenshot {
+    margin-left: 48px; }
+  .bob__additional-features {
+    display: flex;
+    padding-bottom: 72px; }
+  .bob__feature {
+    width: 33%;
+    text-align: center;
+    margin-right: 24px; }
+    .bob__feature:last-child {
+      margin-right: 0; }
+    .bob__feature img {
+      width: 50%; }
+
+.apex {
+  padding: 72px 0; }
+  .apex h2 {
+    margin-top: 0;
+    margin-bottom: 24px;
+    font-size: 48px;
+    font-family: "Roboto", sans-serif;
+    font-weight: 700; }
+  .apex .download-cta {
+    margin-top: 24px; }
+  .apex__centered {
+    text-align: center;
+    margin-bottom: 48px; }
+  .apex__screenshot {
+    text-align: center; }
+    .apex__screenshot img {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+      padding: 0 12px;
+      max-width: 80%; }

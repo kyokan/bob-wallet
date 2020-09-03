@@ -41,6 +41,16 @@ body {
     width: 150px;
   }
 
+  &__center {
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__image {
+    width: 25%;
+    height: 25%;
+  }
+
   &__left {
     flex: 1 1 60%;
   }
@@ -51,22 +61,37 @@ body {
   }
 
   &__buttons {
+    margin-top: 7.5%;
+
     a {
       color: white;
       display: flex;
       text-decoration: none;
       align-items: center;
+      justify-content: center;
+      margin-top: 2.5%;
       margin-bottom: $base;
     }
 
     span {
-      background: $red;;
+      background: $red;
       display: block;
-      width: 100px;
+      width: 10%;
       padding: $base 0;
       margin-right: $base;
       text-align: center;
       border-radius: 3px;
+    }
+
+    &__vernum {
+      margin-left: 1%;
+      width: 7.5%;
+    }
+
+    &__link {
+      margin-left: 2.5%;
+      width: 7.5%;
+      text-decoration: underline;
     }
 
     .outline span {
@@ -95,11 +120,16 @@ body {
   }
 }
 
+.bob-github-link {
+  text-decoration: underline;
+}
+
 .bob {
   padding-top: $base * 6;
   background: #f0f0f0;
 
   &__centered {
+    margin-top: 5%;
     text-align: center;
     margin-bottom: $base * 6;
 

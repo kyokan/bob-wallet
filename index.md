@@ -1,4 +1,4 @@
 ---
 layout: default
-title: Bob
+title: Bob Wallet
 ---
