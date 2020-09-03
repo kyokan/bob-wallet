@@ -17,8 +17,8 @@ title: Bob
 email: dtsui@kyokan.io
 description: >- # this means to ignore newlines until "baseurl:"
   Bob is a GUI for DNS Record Management and Name Auctions on Handshake. It includes an integrated full node: hsd.
-baseurl: "bob-wallet" # the subpath of your site, e.g. /blog
-url: "http://kyokan.github.io" # the base hostname & protocol for your site, e.g. http://example.com
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "http://kyokan.github.io/bob-wallet" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: kyokan_io
 github_username:  kyokan
 
