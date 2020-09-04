@@ -1,7 +1,7 @@
 import "isomorphic-fetch";
 
 if (process.platform === 'win32') {
-  process.env.NODE_BACKEND = 'js';
+  //process.env.NODE_BACKEND = 'js';
 }
 
 require('./sentry');
