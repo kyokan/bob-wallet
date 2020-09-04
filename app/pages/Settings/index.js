@@ -35,6 +35,7 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
     isRunning: state.node.isRunning,
     isChangingNodeStatus: state.node.isChangingNodeStatus,
     isTestingCustomRPC: state.node.isTestingCustomRPC,
+    isCustomRPCConnected: state.node.isCustomRPCConnected,
     transactions: state.wallet.transactions,
   }),
   dispatch => ({
@@ -223,6 +224,8 @@ export default class Settings extends Component {
       startNode,
       isChangingNodeStatus,
       isTestingCustomRPC,
+      isCustomRPCConnected,
+      network
     } = this.props;
 
     return (
@@ -260,7 +263,12 @@ export default class Settings extends Component {
                 'Custom RPC',
                 isRunning
                   ? 'Disabled while HSD is running'
-                  : 'Set custom rpc to a Handshake node',
+                  : (
+                    isCustomRPCConnected ?
+                      <><span className="node-status--active" /><span>Custom RPC Connected</span></>
+                      :
+                      'Set custom rpc to a Handshake node'
+                  ),
                 'Configure',
                 () => history.push("/settings/connection/configure"),
                 <button
@@ -274,7 +282,13 @@ export default class Settings extends Component {
               )}
               {this.renderSection(
                 'Network type',
-                'Switch network type',
+                (
+                  isCustomRPCConnected
+                  ?
+                    `Cannot change custom RPC network. RPC network set to: ${network || 'main'}`
+                    :
+                    'Switch network type'
+                ),
                 null,
                 null,
                 isRunning ? <NetworkPicker /> : null,
