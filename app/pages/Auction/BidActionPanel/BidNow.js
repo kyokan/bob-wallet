@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import {consensus} from 'hsd/lib/protocol';
 import {
   AuctionPanel,
   AuctionPanelFooter,
@@ -105,6 +106,15 @@ class BidNow extends Component {
     }
   }
 
+  processValue = (val, field) => {
+    const value = val.match(/[0-9]*\.?[0-9]{0,6}/g)[0];
+    if (Number.isNaN(parseFloat(value)))
+      return;
+    if (value * consensus.COIN > consensus.MAX_MONEY)
+      return;
+    this.setState({[field]: value});
+  }
+
   render() {
     const {domain} = this.props;
 
@@ -162,6 +172,7 @@ class BidNow extends Component {
   renderBiddingView() {
     const {
       bidAmount,
+      disguiseAmount
     } = this.state;
 
     const {spendableBalance} = this.props;
@@ -174,9 +185,8 @@ class BidNow extends Component {
               <div className="domains__bid-now__form__row__label">Bid Amount:</div>
               <div className="domains__bid-now__form__row__input">
                 <input
-                  type="number"
                   placeholder="0.00"
-                  onChange={e => this.setState({bidAmount: e.target.value})}
+                  onChange={e => this.processValue(e.target.value, 'bidAmount')}
                   value={bidAmount}
                 />
               </div>
@@ -186,7 +196,8 @@ class BidNow extends Component {
           <button
             className="domains__bid-now__action__cta"
             onClick={() => this.setState({isReviewing: true})}
-            disabled={!(bidAmount > 0)}
+            // bid amount of zero is allowed as long as a disguise is used
+            disabled={bidAmount > 0 ? false : (disguiseAmount > 0 ? false : true)}
           >
             Review Bid
           </button>
@@ -225,9 +236,8 @@ class BidNow extends Component {
           </div>
           <div className="domains__bid-now__form__row__input">
             <input
-              type="number"
               placeholder="Optional"
-              onChange={e => this.setState({disguiseAmount: e.target.value})}
+              onChange={e => this.processValue(e.target.value, 'disguiseAmount')}
               value={disguiseAmount}
             />
           </div>
@@ -408,7 +418,7 @@ function getTotalBids(domain) {
   for (const {bid} of domain.bids) {
     if (bid.own) {
       // This is our bid, but we don't know its value
-      if (!bid.value)
+      if (bid.value == null)
         return -1;
 
       total += bid.value;

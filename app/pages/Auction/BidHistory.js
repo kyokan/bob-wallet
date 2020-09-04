@@ -61,12 +61,12 @@ export default class BidHistory extends Component {
               const bid = map[fromAddress];
               const {month, day, year} = bid.date;
               let bidValue = 'Hidden Until Reveal';
-              if (!bid.bid && bid.own) {
+              if (bid.bid == null && bid.own) {
                 bidValue = <RepairBid
                   bid={bid}
                 />;
               }
-              if (bid.bid)
+              if (bid.bid != null)
                 bidValue = displayBalance(bid.bid, true);
               return (
                 <tr key={fromAddress}>
