@@ -12,7 +12,6 @@ import {ConnectionTypes, getConnection} from "../connections/service";
 import crypto from "crypto";
 import {dispatchToMainWindow, getMainWindow} from "../../mainWindow";
 import {START_SYNC_WALLET, STOP_SYNC_WALLET, SYNC_WALLET_PROGRESS} from "../../ducks/walletReducer";
-import {startWalletSync, stopWalletSync} from "../../ducks/walletActions";
 // const {TXRecord} = require("hsd/lib/wallet/records");
 
 const Sentry = require('@sentry/electron');
