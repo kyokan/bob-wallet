@@ -91,7 +91,7 @@
     "cross-env": "5.2.0",
     "css-loader": "1.0.1",
     "electron": "9.1.1",
-    "electron-builder": "21.2.0",
+    "electron-builder": "22.7.0",
     "electron-devtools-installer": "2.2.4",
     "file-loader": "2.0.0",
     "mini-css-extract-plugin": "0.4.4",
