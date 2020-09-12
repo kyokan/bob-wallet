@@ -177,7 +177,7 @@ class TransferDetails extends Component {
               disabled={!this.state.recipient}
               onClick={this.sendTransfer}
             >
-              Execute Transfer
+              Transfer
             </button>
           </div>
         </div>

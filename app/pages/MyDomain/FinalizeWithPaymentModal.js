@@ -75,13 +75,22 @@ export default class FinalizeWithPaymentModal extends Component {
   }
 
   renderForm() {
-    const isValid = !!this.state.recipient && !!this.state.price;
+    const isValid = !!this.state.recipient && !!this.state.price && (
+      !!this.state.price && Number(this.state.price) <= 2000
+    );
 
     return (
       <>
         <p>
           To require payment to finalize this transfer, please
           fill out the steps below.
+        </p>
+
+        <p>
+          <strong>
+            As a precaution, transfers are limited to 2000 HNS
+            until this feature has been sufficiently tested.
+          </strong>
         </p>
 
         <div className="send__to">

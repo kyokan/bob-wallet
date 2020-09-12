@@ -39,6 +39,10 @@ ipc.on('start', async (_, prefix, net, apiKey) => {
     return;
   }
 
+  if (!hsd.has('walletdb')) {
+    hsd.use(WalletPlugin);
+  }
+
   hsd.ensure()
     .then(() => hsd.open())
     .then(() => ipc.send('started'))
@@ -68,6 +72,11 @@ ipc.on('finalize-with-payment', (event, name, fundingAddr, nameReceiveAddr, pric
     const coin = await wallet.getCoin(owner.hash, owner.index);
     const nameHash = hashName(name);
 
+    let flags = 0;
+    if (ns.weak) {
+      flags = flags |= 1;
+    }
+
     const output0 = new Output();
     output0.value = coin.value;
     output0.address = new Address().fromString(nameReceiveAddr);
@@ -75,7 +84,7 @@ ipc.on('finalize-with-payment', (event, name, fundingAddr, nameReceiveAddr, pric
     output0.covenant.pushHash(nameHash);
     output0.covenant.pushU32(ns.height);
     output0.covenant.push(Buffer.from(name, 'ascii'));
-    output0.covenant.pushU8(0); // flags, may be required if name was CLAIMed
+    output0.covenant.pushU8(flags); // flags, may be required if name was CLAIMed
     output0.covenant.pushU32(ns.claimed);
     output0.covenant.pushU32(ns.renewals);
     output0.covenant.pushHash(await wdb.getRenewalBlock());
@@ -144,7 +153,9 @@ ipc.on('claim-paid-transfer', (event, txHex) => {
     // input 1: Bob's funds   --- output 1: payment to Alice
     //                 (null) --- output 2: change to Bob
     const outputs = mtx.outputs.slice();
-    mtx.outputs = [outputs[0], outputs[2], outputs[1]];
+    if (outputs.length === 3) {
+      mtx.outputs = [outputs[0], outputs[2], outputs[1]];
+    }
 
     // Prepare to wait for mempool acceptance (race condition)
     const waiter = new Promise((resolve, reject) => {
