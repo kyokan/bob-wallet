@@ -9,7 +9,7 @@ const {hashName, types} = require('hsd/lib/covenants/rules');
 const {Output, MTX, Address} = require('hsd/lib/primitives');
 
 let hsd = null;
-ipc.on('start', (_, prefix, net, apiKey) => {
+ipc.on('start', async (_, prefix, net, apiKey) => {
   if (hsd) {
     ipc.send('started');
     return;
@@ -34,8 +34,6 @@ ipc.on('start', (_, prefix, net, apiKey) => {
       indexTX: true,
       apiKey,
     });
-
-    hsd.use(WalletPlugin);
   } catch (e) {
     ipc.send('error', e);
     return;

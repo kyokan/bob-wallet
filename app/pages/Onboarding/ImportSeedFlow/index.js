@@ -122,8 +122,6 @@ class ImportSeedFlow extends Component {
     try {
       await walletClient.importSeed(this.state.passphrase, mnemonic);
       await this.props.completeInitialization(this.state.passphrase);
-      await this.props.startWalletSync();
-      await this.props.waitForWalletSync();
       await this.props.fetchWallet();
       await this.props.fetchTransactions();
     } catch (e) {

@@ -38,7 +38,7 @@ const ITEM_PER_DROPDOWN = [
 )
 export default class Transactions extends Component {
   static propTypes = {
-    transactions: PropTypes.instanceOf(Map).isRequired
+    transactions: PropTypes.instanceOf(Map).isRequired,
   };
 
   async componentDidMount() {

@@ -10,7 +10,9 @@ const initialState = {
 };
 
 export const getMyNames = () => async (dispatch, getState) => {
-  const {address} = getState().wallet;
+  const {
+    wallet: {address},
+  } = getState();
 
   dispatch({type: FETCH_MY_NAMES_START});
 
@@ -18,20 +20,25 @@ export const getMyNames = () => async (dispatch, getState) => {
     const result = await walletClient.getNames();
     const ret = [];
 
-    if (address) {
-      await Promise.all(result.map(async domain => {
-        const {owner} = domain;
-        const coin = await walletClient.getCoin(owner.hash, owner.index);
-        if (coin && domain.state === 'CLOSED') {
-          ret.push(domain);
-        }
-      }));
+    for (let i = 0; i < result.length; i++) {
+      const domain = result[i];
+      const {owner} = domain;
+      const coin = await walletClient.getCoin(owner.hash, owner.index);
+
+      if (coin && domain.state === 'CLOSED') {
+        ret.push(domain);
+        dispatch({
+          type: FETCH_MY_NAMES_STOP,
+          payload: ret.slice(),
+        });
+      }
     }
 
-    dispatch({
-      type: FETCH_MY_NAMES_STOP,
-      payload: ret,
-    });
+    // console.log(ret);
+    // dispatch({
+    //   type: FETCH_MY_NAMES_STOP,
+    //   payload: ret,
+    // });
   } catch (error) {
     dispatch({
       type: FETCH_MY_NAMES_STOP,

@@ -1,13 +1,28 @@
 import { WalletClient } from 'hs-client';
+const WalletNode = require("hsd/lib/wallet/node");
+const TX = require("hsd/lib/primitives/tx");
 import { displayBalance, toBaseUnits, toDisplayUnits } from '../../utils/balances';
 import { service as nodeService } from '../node/service';
 import BigNumber from 'bignumber.js';
 import { NETWORKS } from '../../constants/networks';
+import path from "path";
+import {app} from "electron";
+import rimraf from "rimraf";
+import {ConnectionTypes, getConnection} from "../connections/service";
+import crypto from "crypto";
+import {dispatchToMainWindow, getMainWindow} from "../../mainWindow";
+import {START_SYNC_WALLET, STOP_SYNC_WALLET, SYNC_WALLET_PROGRESS} from "../../ducks/walletReducer";
+// const {TXRecord} = require("hsd/lib/wallet/records");
 
 const Sentry = require('@sentry/electron');
 
 const MasterKey = require('hsd/lib/wallet/masterkey');
 const Mnemonic = require('hsd/lib/hd/mnemonic');
+// const Network = require("hsd/lib/protocol/network");
+// const Address = require("hsd/lib/primitives/address");
+const Covenant = require("hsd/lib/primitives/covenant");
+
+// const walletHeightKey = 'wallet:lastSyncHeight';
 
 const WALLET_ID = 'allison';
 const randomAddrs = {
@@ -17,6 +32,8 @@ const randomAddrs = {
   [NETWORKS.SIMNET]: 'ss1qfrfg6pg7emnx5m53zf4fe24vdtt8thljhyekhj',
 };
 
+const HSD_DATA_DIR = path.join(app.getPath('userData'), 'hsd_data');
+
 class WalletService {
   constructor() {
     nodeService.on('started', this._onNodeStart);
@@ -24,18 +41,54 @@ class WalletService {
     this.nodeService = nodeService;
   }
 
+  reset = async () => {
+    await this._ensureClient();
+
+    try {
+      await this._onNodeStop();
+
+      const walletDir = this.networkName === 'main'
+        ? HSD_DATA_DIR
+        : path.join(HSD_DATA_DIR, this.networkName);
+
+      await new Promise((resolve, reject) => rimraf(path.join(walletDir, 'wallet'), error => {
+        if (error) {
+          return reject(error);
+        }
+        resolve();
+      }));
+
+      await this._onNodeStart(
+        this.networkName,
+        this.network,
+        this.apiKey,
+      );
+
+      return true;
+    } catch(e) {
+      console.error(e);
+      return false;
+    }
+  };
+
+  getAPIKey = async () => {
+    await this._ensureClient();
+    return this.walletApiKey;
+  }
+
   getWalletInfo = async () => {
-    this._ensureClient();
+    await this._ensureClient();
     return this.client.getInfo(WALLET_ID);
   };
 
+
   getAccountInfo = async () => {
-    this._ensureClient();
+    await this._ensureClient();
     return this.client.getAccount(WALLET_ID, 'default');
   };
 
   getCoin = async (hash, index) => {
-    this._ensureClient();
+    await this._ensureClient();
     return this.client.getCoin(WALLET_ID, hash, index);
   };
 
@@ -45,10 +98,11 @@ class WalletService {
   };
 
   createNewWallet = async (passphraseOrXPub, isLedger) => {
-    this._ensureClient();
+    await this._ensureClient();
+
+    await this.reset();
     this.didSelectWallet = false;
 
-    await this.nodeService.reset();
     if (isLedger) {
       return this.client.createWallet(WALLET_ID, {
         watchOnly: true,
@@ -66,11 +120,75 @@ class WalletService {
     return this.client.createWallet(WALLET_ID, options);
   };
 
-  importSeed = async (passphrase, mnemonic) => {
-    this._ensureClient();
-    this.didSelectWallet = false;
-    await this.nodeService.reset();
+  checkRescanStatus = async () => {
+    await this._ensureClient();
+    const wdb = this.node.wdb;
+    const {chain: { height: chainHeight}} = await nodeService.getInfo();
+    const { height: walletHeight } = await wdb.getTip();
 
+    if (walletHeight < chainHeight) {
+      this.rescanStatusIntv = setInterval(async () => {
+        const { height: walletHeight } = await wdb.getTip();
+        if (walletHeight === chainHeight) {
+          clearInterval(this.rescanStatusIntv);
+          dispatchToMainWindow({type: STOP_SYNC_WALLET});
+          dispatchToMainWindow({
+            type: SYNC_WALLET_PROGRESS,
+            payload: 100,
+          });
+          return;
+        }
+        dispatchToMainWindow({type: START_SYNC_WALLET});
+        dispatchToMainWindow({
+          type: SYNC_WALLET_PROGRESS,
+          payload: parseInt(walletHeight / chainHeight * 100),
+        });
+      }, 2500);
+    }
+  };
+
+  rescan = async (height = 0) => {
+    await this._ensureClient();
+    const wdb = this.node.wdb;
+    const {chain: { height: chainHeight}} = await nodeService.getInfo();
+
+    dispatchToMainWindow({type: START_SYNC_WALLET});
+    let resetting = true;
+
+    return new Promise(async (resolve, reject) => {
+      const intv = setInterval(async () => {
+        const { height: walletHeight } = await wdb.getTip();
+
+        if (walletHeight < chainHeight) {
+          resetting = false;
+        }
+
+        dispatchToMainWindow({
+          type: SYNC_WALLET_PROGRESS,
+          payload: resetting
+            ? 0
+            : parseInt(walletHeight / chainHeight * 100),
+        });
+      }, 2500);
+
+      resetting = false;
+      await wdb.rescan(height);
+
+      clearInterval(intv);
+      resolve();
+      dispatchToMainWindow({
+        type: SYNC_WALLET_PROGRESS,
+        payload: 100,
+      });
+      dispatchToMainWindow({ type: STOP_SYNC_WALLET });
+    });
+  };
+
+  importSeed = async (passphrase, mnemonic) => {
+    await this._ensureClient();
+
+    await this.reset();
+    this.didSelectWallet = false;
     const options = {
       passphrase,
       // hsd generates different keys for
@@ -78,12 +196,12 @@ class WalletService {
       mnemonic: mnemonic.trim(),
     };
     const res = await this.client.createWallet(WALLET_ID, options);
-    await this.client.rescan(0);
+    this.rescan(0);
     return res;
   };
 
   generateReceivingAddress = async () => {
-    this._ensureClient();
+    await this._ensureClient();
     return this.client.createAddress(WALLET_ID, 'default');
   };
 
@@ -92,12 +210,12 @@ class WalletService {
   };
 
   getTransactionHistory = async () => {
-    this._ensureClient();
+    await this._ensureClient();
     return this.client.getHistory(WALLET_ID, 'default');
   };
 
   getPendingTransactions = async () => {
-    this._ensureClient();
+    await this._ensureClient();
     return this.client.getPending(WALLET_ID, 'default');
   };
 
@@ -143,7 +261,7 @@ class WalletService {
   );
 
   estimateTxFee = async (to, amount, feeRate, subtractFee = false) => {
-    this._ensureClient();
+    await this._ensureClient();
     const feeRateBaseUnits = Number(toBaseUnits(feeRate));
     const createdTx = await this.client.createTX(WALLET_ID, {
       rate: feeRateBaseUnits,
@@ -181,8 +299,14 @@ class WalletService {
   );
 
   sendBid = (name, amount, lockup) => this._ledgerProxy(
-    () => this._executeRPC('createbid', [name, Number(displayBalance(amount)), Number(displayBalance(lockup))]),
-    () => this._executeRPC('sendbid', [name, Number(displayBalance(amount)), Number(displayBalance(lockup))]),
+    () => this._executeRPC(
+      'createbid',
+      [name, Number(displayBalance(amount)), Number(displayBalance(lockup))]
+    ),
+    () => this._executeRPC(
+      'sendbid',
+      [name, Number(displayBalance(amount)), Number(displayBalance(lockup))]
+    ),
   );
 
   sendUpdate = (name, json) => this._ledgerProxy(
@@ -260,7 +384,7 @@ class WalletService {
   );
 
   getNonce = async (options) => {
-    this._ensureClient();
+    await this._ensureClient();
     return this.client.getNonce(WALLET_ID, options.name, options);
   };
 
@@ -269,7 +393,7 @@ class WalletService {
   };
 
   zap = async () => {
-    this._ensureClient();
+    await this._ensureClient();
     return this.client.zap(WALLET_ID, 'default', 1);
   };
 
@@ -277,34 +401,83 @@ class WalletService {
     return this._executeRPC('importname', [name, start]);
   };
 
-  rpcGetWalletInfo = () => {
-    return this._executeRPC('getwalletinfo', []);
+  rpcGetWalletInfo = async () => {
+    return await this._executeRPC('getwalletinfo', []);
   };
 
   _onNodeStart = async (networkName, network, apiKey) => {
+    const conn = await getConnection();
+
     this.networkName = networkName;
+    this.apiKey = apiKey;
+    this.walletApiKey = apiKey || crypto.randomBytes(20).toString('hex');
+    this.network = network;
     const walletOptions = {
       network: network,
       port: network.walletPort,
-      apiKey,
+      apiKey: this.walletApiKey,
     };
 
+    const node = new WalletNode({
+      network: networkName,
+      nodeUrl: conn.type === ConnectionTypes.Custom
+        ? conn.url || 'http://127.0.0.1:12037'
+        : undefined,
+      nodeHost: conn.type === ConnectionTypes.Custom
+        ? getHost(conn.url || 'http://127.0.0.1:12037')
+        : undefined,
+      nodePort: conn.type === ConnectionTypes.Custom
+        ? getPort(conn.url || 'http://127.0.0.1:12037')
+        : undefined,
+      nodeApiKey: conn.type === ConnectionTypes.Custom
+        ? conn.apiKey
+        : apiKey,
+      apiKey: walletOptions.apiKey,
+      httpPort: walletOptions.port,
+      memory: false,
+      prefix: networkName === 'main'
+        ? HSD_DATA_DIR
+        : path.join(HSD_DATA_DIR, networkName),
+    });
+
+    await node.open();
+    node.wdb.on('error', e => {
+      console.error(e)
+    });
+    this.node = node;
     this.client = new WalletClient(walletOptions);
+    await this.checkRescanStatus();
   };
 
   _onNodeStop = async () => {
+    if (this.node) {
+      const node = this.node;
+      this.node = null;
+      await node.close();
+    }
     this.client = null;
     this.didSelectWallet = false;
+    if (this.rescanStatusIntv) {
+      clearInterval(this.rescanStatusIntv);
+    }
   };
 
-  _ensureClient() {
-    if (!this.client) {
-      throw new Error('no wallet client configured');
-    }
+  async _ensureClient() {
+    return new Promise((resolve, reject) => {
+      if (this.client) {
+        resolve();
+        return;
+      }
+
+      setTimeout(async () => {
+        await this._ensureClient();
+        resolve();
+      }, 500);
+    });
   }
 
   async _selectWallet() {
-    this._ensureClient();
+    await this._ensureClient();
 
     if (this.didSelectWallet) {
       return;
@@ -340,7 +513,7 @@ class WalletService {
   }
 }
 
-const service = new WalletService();
+export const service = new WalletService();
 service.createNewWallet.suppressLogging = true;
 service.importSeed.suppressLogging = true;
 service.getMasterHDKey.suppressLogging = true;
@@ -354,6 +527,7 @@ const methods = {
   start: async () => null,
   getWalletInfo: service.getWalletInfo,
   getAccountInfo: service.getAccountInfo,
+  getAPIKey: service.getAPIKey,
   getCoin: service.getCoin,
   getNames: service.getNames,
   createNewWallet: service.createNewWallet,
@@ -368,6 +542,8 @@ const methods = {
   revealSeed: service.revealSeed,
   estimateTxFee: service.estimateTxFee,
   estimateMaxSend: service.estimateMaxSend,
+  rescan: service.rescan,
+  reset: service.reset,
   sendOpen: service.sendOpen,
   sendBid: service.sendBid,
   sendUpdate: service.sendUpdate,
@@ -391,4 +567,61 @@ const methods = {
 
 export async function start(server) {
   server.withService(sName, methods);
+}
+
+function mapTXs(txs) {
+  const ret = [];
+  for (let i = 0; i < txs.length; i++) {
+    const txOptions = txs[i];
+    const tx = mapOneTx(txOptions);
+    ret.push(tx);
+  }
+  return ret;
+}
+
+function mapOneTx(txOptions) {
+  if (txOptions.witnessHash) {
+    txOptions.witnessHash = Buffer.from(txOptions.witnessHash, 'hex');
+  }
+
+  txOptions.inputs = txOptions.inputs.map(input => {
+    if (input.prevout.hash) {
+      input.prevout.hash = Buffer.from(input.prevout.hash, 'hex');
+    }
+
+    if (input.coin && input.coin.covenant) {
+      input.coin.covenant = new Covenant(
+        input.coin.covenant.type,
+        input.coin.covenant.items.map(item => Buffer.from(item, 'hex')),
+      );
+    }
+
+    if (input.witness) {
+      input.witness = input.witness.map(wit => Buffer.from(wit, 'hex'));
+    }
+
+    return input;
+  });
+
+  txOptions.outputs = txOptions.outputs.map(output => {
+    if (output.covenant) {
+      output.covenant = new Covenant(
+        output.covenant.type,
+        output.covenant.items.map(item => Buffer.from(item, 'hex')),
+      );
+
+    }
+    return output;
+  });
+  return new TX(txOptions);
+}
+
+function getHost(url = '') {
+  const {host} = new URL(url);
+  return host;
+}
+
+function getPort(url = '') {
+  const {port} = new URL(url);
+  return Number(port) || 80;
 }

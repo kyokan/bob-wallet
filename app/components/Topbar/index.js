@@ -13,15 +13,27 @@ import * as walletActions from '../../ducks/walletActions';
 @withRouter
 @connect(
   state => {
-    const { chain, isRunning } = state.node;
+    const {
+      chain,
+      isRunning,
+      isCustomRPCConnected,
+      isChangingNodeStatus,
+      isTestingCustomRPC,
+    } = state.node;
     const { progress } = chain || {};
 
     return {
+      isRunning,
+      isCustomRPCConnected,
+      isChangingNodeStatus,
+      isTestingCustomRPC,
       isSynchronizing: isRunning && progress < 1,
       isSynchronized: isRunning && progress === 1,
       progress,
       unconfirmedBalance: state.wallet.balance.unconfirmed,
       spendableBalance: state.wallet.balance.spendable,
+      walletSync: state.wallet.walletSync,
+      walletSyncProgress: state.wallet.walletSyncProgress,
     };
   },
   dispatch => ({
@@ -44,6 +56,10 @@ class Topbar extends Component {
     lockWallet: PropTypes.func.isRequired,
     unconfirmedBalance: PropTypes.number,
     spendableBalance: PropTypes.number,
+    isChangingNodeStatus: PropTypes.bool.isRequired,
+    isTestingCustomRPC: PropTypes.bool.isRequired,
+    walletSync: PropTypes.bool.isRequired,
+    walletSyncProgress: PropTypes.number.isRequired,
   };
 
   state = {
@@ -99,8 +115,13 @@ class Topbar extends Component {
       title,
       isSynchronized,
       isSynchronizing,
+      isChangingNodeStatus,
+      isTestingCustomRPC,
+      isRunning,
+      isCustomRPCConnected,
       showLogo,
-      location: { pathname }
+      location: { pathname },
+      walletSync,
     } = this.props;
 
     return (
@@ -109,8 +130,9 @@ class Topbar extends Component {
         {!/domains$/.test(pathname) && <TLDInput minimalErrorDisplay />}
         <div
           className={c('topbar__synced', {
-            'topbar__synced--success': isSynchronized,
-            'topbar__synced--failure': !isSynchronized && !isSynchronizing
+            'topbar__synced--success': isSynchronized || isCustomRPCConnected,
+            'topbar__synced--failure': !isRunning && !isCustomRPCConnected,
+            'topbar__synced--loading': walletSync || isChangingNodeStatus || isTestingCustomRPC || isSynchronizing,
           })}
         >
           {this.getSyncText()}
@@ -180,7 +202,17 @@ class Topbar extends Component {
   }
 
   getSyncText() {
-    const { isSynchronized, isSynchronizing, progress } = this.props;
+    const {
+      isSynchronized,
+      isSynchronizing,
+      progress,
+      isRunning,
+      isCustomRPCConnected,
+      isChangingNodeStatus,
+      isTestingCustomRPC,
+      walletSync,
+      walletSyncProgress,
+    } = this.props;
 
     if (isSynchronizing) {
       return `Synchronizing... ${
@@ -188,11 +220,23 @@ class Topbar extends Component {
       }`;
     }
 
+    if (walletSync) {
+      return `Rescanning... (${walletSyncProgress}%)`;
+    }
+
     if (isSynchronized) {
       return 'Synchronized';
     }
 
-    return 'Not Synchronized';
+    if (isChangingNodeStatus || isTestingCustomRPC) {
+      return 'Please wait...'
+    }
+
+    if (!isRunning && isCustomRPCConnected) {
+      return 'Connected to RPC'
+    }
+
+    return 'No connection';
   }
 }
 

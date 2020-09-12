@@ -1,4 +1,5 @@
 import { clientStub } from '../background/node/client';
+import { clientStub as connClientStub } from '../background/connections/client';
 import { getNetwork, setNetwork, getInitializationState } from '../db/system';
 import { fetchWallet, fetchTransactions } from './walletActions';
 import { getWatching } from './watching';
@@ -9,27 +10,96 @@ import {
   END_NETWORK_CHANGE,
   SET_NODE_INFO,
   SET_FEE_INFO,
+  SET_CUSTOM_RPC_STATUS,
   START,
   START_ERROR,
   START_NETWORK_CHANGE,
   STOP,
+  START_NODE_STATUS_CHANGE,
+  START_RPC_TEST,
+  END_NODE_STATUS_CHANGE,
+  END_RPC_TEST,
 } from './nodeReducer';
 import { VALID_NETWORKS } from '../constants/networks';
+import {ConnectionTypes} from "../background/connections/service";
+
+const Network = require('hsd/lib/protocol/network');
 
 const nodeClient = clientStub(() => require('electron').ipcRenderer);
+const connClient = connClientStub(() => require('electron').ipcRenderer);
+
+let hasAppStarted = false;
+
+export const stop = () => async (dispatch, getState) => {
+  dispatch({ type: START_RPC_TEST });
+  const {networkType} = await connClient.getConnection();
+  const network = Network.get(networkType || 'main');
+
+  try {
+    await nodeClient.stop();
+    await connClient.setConnectionType(ConnectionTypes.Custom);
+    await nodeClient.start(networkType || 'main');
+
+    dispatch({ type: STOP });
+
+    await dispatch(fetchWallet());
+
+    if (!hasAppStarted) {
+      if (await getInitializationState(network)) {
+        setTimeout(async () => {
+          await dispatch(fetchTransactions());
+          await dispatch(getWatching(network));
+          await dispatch(onNewBlock());
+        }, 0);
+      }
+    }
+
+    if (!await nodeClient.getInfo()) {
+      throw new Error('cannot get node info');
+    }
+
+    await dispatch(setNodeInfo());
+    dispatch(setCustomRPCStatus(true));
+  } catch (e) {
+    logger.error(e);
+    dispatch(setCustomRPCStatus(false));
+  } finally {
+    hasAppStarted = true;
+    dispatch({ type: END_RPC_TEST });
+  }
+};
+
+export const startApp = (network) => async (dispatch) => {
+  const {type} = await connClient.getConnection();
+  switch (type) {
+    case ConnectionTypes.P2P:
+      return dispatch(start(network));
+    case ConnectionTypes.Custom:
+      return dispatch(stop(network));
+  }
+};
 
 export const start = (network) => async (dispatch, getState) => {
-  if (network === getState().node.network) {
-    return;
+  dispatch({ type: START_NODE_STATUS_CHANGE });
+
+  if (hasAppStarted) {
+    try {
+      await nodeClient.stop();
+    } finally {
+      //
+    }
   }
 
   if (!network) {
     network = await getNetwork();
   }
+
   await setNetwork(network);
 
   try {
+    await connClient.setConnectionType(ConnectionTypes.P2P);
     await nodeClient.start(network);
+    hasAppStarted = true;
     const apiKey = await nodeClient.getAPIKey();
     dispatch({
       type: START,
@@ -41,9 +111,11 @@ export const start = (network) => async (dispatch, getState) => {
     await dispatch(setNodeInfo());
     await dispatch(fetchWallet());
     if (await getInitializationState(network)) {
-      await dispatch(fetchTransactions());
-      await dispatch(getWatching(network));
-      await dispatch(onNewBlock());
+      setTimeout(async () => {
+        await dispatch(fetchTransactions());
+        await dispatch(getWatching(network));
+        await dispatch(onNewBlock());
+      }, 0);
     }
   } catch (error) {
     dispatch({
@@ -52,8 +124,15 @@ export const start = (network) => async (dispatch, getState) => {
         error: error.message,
       },
     });
+  } finally {
+    dispatch({ type: END_NODE_STATUS_CHANGE });
   }
 };
+
+export const setCustomRPCStatus = (status = false) => ({
+  type: SET_CUSTOM_RPC_STATUS,
+  payload: status,
+});
 
 const setNodeInfo = () => async (dispatch) => {
   try {

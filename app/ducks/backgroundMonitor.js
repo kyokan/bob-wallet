@@ -8,7 +8,6 @@ import isEqual from 'lodash.isequal';
 import { SET_NODE_INFO, SET_FEE_INFO, NEW_BLOCK_STATUS } from './nodeReducer';
 import { getNameInfo } from './names';
 import { getYourBids } from './bids';
-import { getWatching } from './watching';
 import { fetchTransactions, fetchWallet } from './walletActions';
 
 export function createBackgroundMonitor() {
@@ -19,11 +18,17 @@ export function createBackgroundMonitor() {
   const doPoll = async () => {
     let state = store.getState();
     const isInitialized = await getInitializationState(state.node.network);
+
     if (!isInitialized) {
       return;
     }
 
-    if (!state.wallet.initialized || !state.node.isRunning) {
+    const {
+      wallet: { initialized },
+      node: { isRunning, isCustomRPCConnected },
+    } = state;
+
+    if (!initialized || (!isRunning && !isCustomRPCConnected)) {
       return;
     }
 
@@ -32,6 +37,7 @@ export function createBackgroundMonitor() {
       chain: infoRes.chain,
       network: infoRes.network,
     };
+
     if (!isEqual(info, newInfo)) {
       info = newInfo;
       store.dispatch({
@@ -78,7 +84,7 @@ export function createBackgroundMonitor() {
       logger.error(`[Error received from backgroundMonitor.js - poll\n\n${e.message}\n${e.stack}\n`);
     }
 
-    timeout = setTimeout(poll, 10000);
+    timeout = setTimeout(poll, 60000);
   };
 
   return {
@@ -118,22 +124,31 @@ export const onNewBlock = () => async (dispatch, getState) => {
 
   dispatch({type: NEW_BLOCK_STATUS, payload: 'Loading bids...'});
   await dispatch(getYourBids());
-  
   state = getState();
+
+  const names = {};
   const bids = state.bids.yourBids;
+
   for (const bid of bids) {
     const name = bid.name;
-    dispatch({type: NEW_BLOCK_STATUS, payload: `Loading bids: ${name}`});
-    await dispatch(getNameInfo(name));
+    names[name] = name;
   }
 
   const watch = state.watching.names;
   for (const name of watch) {
-    dispatch({type: NEW_BLOCK_STATUS, payload: `Loading watchlist: ${name}`});
-    await dispatch(getNameInfo(name));
+    names[name] = name;
+  }
+
+  const namesList = Object.keys(names);
+  for (let i = 0; i < namesList.length; i++) {
+    await dispatch(getNameInfo(namesList[i]));
+    dispatch({
+      type: NEW_BLOCK_STATUS,
+      payload: `Loading ${i} of ${namesList.length} names`,
+    });
   }
 
   dispatch({type: NEW_BLOCK_STATUS, payload: ''});
-}
+};
 
 export const monitor = createBackgroundMonitor();

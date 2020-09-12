@@ -16,6 +16,7 @@ import {
   STOP_SYNC_WALLET,
   SYNC_WALLET_PROGRESS,
   UNLOCK_WALLET,
+  SET_API_KEY, SET_FETCHING,
 } from './walletReducer';
 import { NEW_BLOCK_STATUS } from './nodeReducer';
 
@@ -27,6 +28,7 @@ export const setWallet = opts => {
     address = '',
     type = NONE,
     balance = {},
+    apiKey = '',
   } = opts;
 
   return {
@@ -36,6 +38,7 @@ export const setWallet = opts => {
       address,
       type,
       balance,
+      apiKey,
     },
   };
 };
@@ -50,8 +53,17 @@ export const completeInitialization = (passphrase) => async (dispatch, getState)
   });
 };
 
+export const fetchWalletAPIKey = () => async (dispatch) => {
+  const apiKey = await walletClient.getAPIKey();
+  dispatch({
+    type: SET_API_KEY,
+    payload: apiKey,
+  });
+};
+
 export const fetchWallet = () => async (dispatch, getState) => {
   const network = getState().node.network;
+
   const isInitialized = await getInitializationState(network);
 
   if (!isInitialized) {
@@ -66,6 +78,7 @@ export const fetchWallet = () => async (dispatch, getState) => {
   }
 
   const accountInfo = await walletClient.getAccountInfo();
+  const apiKey = await walletClient.getAPIKey();
   dispatch(setWallet({
     initialized: isInitialized,
     address: accountInfo && accountInfo.receiveAddress,
@@ -73,6 +86,7 @@ export const fetchWallet = () => async (dispatch, getState) => {
     balance: (accountInfo && accountInfo.balance) || {
       ...getInitialState().balance,
     },
+    apiKey,
   }));
 };
 
@@ -153,7 +167,7 @@ export const waitForWalletSync = () => async (dispatch, getState) => {
       dispatch({type: SYNC_WALLET_PROGRESS, payload: progress});
     }
 
-    await new Promise((r) => setTimeout(r, 1000));
+    await new Promise((r) => setTimeout(r, 10000));
   }
 };
 
@@ -161,6 +175,12 @@ export const fetchTransactions = () => async (dispatch, getState) => {
   const state = getState();
   const net = state.node.network;
   const currentTXs = state.wallet.transactions;
+
+  dispatch({
+    type: SET_FETCHING,
+    payload: true,
+  });
+
   const txs = await walletClient.getTransactionHistory();
   let payload = new Map();
 
@@ -191,6 +211,11 @@ export const fetchTransactions = () => async (dispatch, getState) => {
 
   // Sort all TXs by date without losing the hash->tx mapping
   payload = new Map([...payload.entries()].sort((a, b) => b[1].date - a[1].date));
+
+  dispatch({
+    type: SET_FETCHING,
+    payload: false,
+  });
 
   dispatch({
     type: SET_TRANSACTIONS,
@@ -251,7 +276,7 @@ async function parseInputsOutputs(net, tx) {
     const output = tx.outputs[i];
 
     // Find outputs to the wallet's receive branch
-    if (!output.path || output.path.change)
+    if (output.path && output.path.change)
       continue;
 
     const covenant = output.covenant;
@@ -273,7 +298,9 @@ async function parseInputsOutputs(net, tx) {
     // between the highest and second-highest bid.
     if (covenant.action === 'REVEAL'
       || covenant.action === 'REGISTER') {
-      covValue += tx.inputs[i].value - output.value;
+      covValue += !output.path
+        ? output.value
+        : tx.inputs[i].value - output.value;
     } else {
       covValue += output.value;
     }

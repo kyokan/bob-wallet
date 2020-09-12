@@ -63,6 +63,29 @@
 
   &__transactions {
     margin-bottom: 3rem;
+
+    &__loading {
+      @extend %row-nowrap;
+      color: rgba($black, 0.5);
+      font-weight: bold;
+      font-size: 0.8rem;
+      z-index: 100;
+      align-items: center;
+      justify-content: flex-end;
+      flex: 1 1 auto;
+
+
+      &:before {
+        content: '';
+        display: block;
+        height: 0.8rem;
+        width: 0.8rem;
+        background-size: cover;
+        background-position: center;
+        margin-right: 4px;
+        background-image: url('../../assets/images/brick-loader.svg');
+      }
+    }
   }
 
   &__domains {
@@ -70,6 +93,7 @@
   }
 
   &__panel-title {
+    @extend %row-nowrap;
     font-size: 1.2rem;
     font-weight: 500;
     margin-bottom: 1rem;
