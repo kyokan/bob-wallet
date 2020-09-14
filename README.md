@@ -16,6 +16,30 @@ Note: this screenshot is unlikely to age well but the filetypes are highlighted 
 .dmg - mac
 .msi - windows
 
+### Linux
+
+While not officially supported, you may wish to create a production build for your Linux machine.
+
+```bash
+git clone https://github.com/kyokan/bob-wallet
+cd bob-wallet; npm install
+```
+
+Optionaly, Test it works before building
+
+```bash
+npm run dev
+```
+
+Latsly build the app package
+
+```bash
+npm run package-linux
+``` 
+
+The output app will be created in `/release` folder. Open `Bob-x.x.x.AppImage` to start the wallet.
+
+
 ## Features
 
 Bob supports all of the following features:
