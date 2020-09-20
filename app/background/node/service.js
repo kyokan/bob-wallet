@@ -246,6 +246,14 @@ export class NodeService extends EventEmitter {
     return Math.floor((sum / count) * 1000);
   }
 
+  async getCoin(hash, index) {
+    return this.client.getCoin(hash, index)
+  }
+
+  async getRawMempool(verbose=false) {
+    return this._execRPC('getrawmempool', [verbose ? 1 : 0]);
+  }
+
   async _ensureStarted() {
     return new Promise((resolve, reject) => {
       if (this.client) {

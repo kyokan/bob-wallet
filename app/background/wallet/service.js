@@ -1,18 +1,23 @@
 import { WalletClient } from 'hs-client';
-const WalletNode = require("hsd/lib/wallet/node");
-const TX = require("hsd/lib/primitives/tx");
 import { displayBalance, toBaseUnits, toDisplayUnits } from '../../utils/balances';
 import { service as nodeService } from '../node/service';
 import BigNumber from 'bignumber.js';
 import { NETWORKS } from '../../constants/networks';
-import path from "path";
-import {app} from "electron";
-import rimraf from "rimraf";
-import {ConnectionTypes, getConnection} from "../connections/service";
-import crypto from "crypto";
-import {dispatchToMainWindow, getMainWindow} from "../../mainWindow";
-import {START_SYNC_WALLET, STOP_SYNC_WALLET, SYNC_WALLET_PROGRESS} from "../../ducks/walletReducer";
+import path from 'path';
+import { app } from 'electron';
+import rimraf from 'rimraf';
+import { ConnectionTypes, getConnection } from '../connections/service';
+import crypto from 'crypto';
+import { dispatchToMainWindow } from '../../mainWindow';
+import { START_SYNC_WALLET, STOP_SYNC_WALLET, SYNC_WALLET_PROGRESS } from '../../ducks/walletReducer';
+
+const WalletNode = require('hsd/lib/wallet/node');
+const TX = require('hsd/lib/primitives/tx');
 // const {TXRecord} = require("hsd/lib/wallet/records");
+const {Output, MTX, Address, Coin} = require('hsd/lib/primitives');
+const Script = require('hsd/lib/script/script');
+const {hashName, types} = require('hsd/lib/covenants/rules');
+
 
 const Sentry = require('@sentry/electron');
 
@@ -20,7 +25,7 @@ const MasterKey = require('hsd/lib/wallet/masterkey');
 const Mnemonic = require('hsd/lib/hd/mnemonic');
 // const Network = require("hsd/lib/protocol/network");
 // const Address = require("hsd/lib/primitives/address");
-const Covenant = require("hsd/lib/primitives/covenant");
+const Covenant = require('hsd/lib/primitives/covenant');
 
 // const walletHeightKey = 'wallet:lastSyncHeight';
 
@@ -65,7 +70,7 @@ class WalletService {
       );
 
       return true;
-    } catch(e) {
+    } catch (e) {
       console.error(e);
       return false;
     }
@@ -74,7 +79,7 @@ class WalletService {
   getAPIKey = async () => {
     await this._ensureClient();
     return this.walletApiKey;
-  }
+  };
 
   getWalletInfo = async () => {
     await this._ensureClient();
@@ -123,12 +128,12 @@ class WalletService {
   checkRescanStatus = async () => {
     await this._ensureClient();
     const wdb = this.node.wdb;
-    const {chain: { height: chainHeight}} = await nodeService.getInfo();
-    const { height: walletHeight } = await wdb.getTip();
+    const {chain: {height: chainHeight}} = await nodeService.getInfo();
+    const {height: walletHeight} = await wdb.getTip();
 
     if (walletHeight < chainHeight) {
       this.rescanStatusIntv = setInterval(async () => {
-        const { height: walletHeight } = await wdb.getTip();
+        const {height: walletHeight} = await wdb.getTip();
         if (walletHeight === chainHeight) {
           clearInterval(this.rescanStatusIntv);
           dispatchToMainWindow({type: STOP_SYNC_WALLET});
@@ -150,14 +155,14 @@ class WalletService {
   rescan = async (height = 0) => {
     await this._ensureClient();
     const wdb = this.node.wdb;
-    const {chain: { height: chainHeight}} = await nodeService.getInfo();
+    const {chain: {height: chainHeight}} = await nodeService.getInfo();
 
     dispatchToMainWindow({type: START_SYNC_WALLET});
     let resetting = true;
 
     return new Promise(async (resolve, reject) => {
       const intv = setInterval(async () => {
-        const { height: walletHeight } = await wdb.getTip();
+        const {height: walletHeight} = await wdb.getTip();
 
         if (walletHeight < chainHeight) {
           resetting = false;
@@ -180,7 +185,7 @@ class WalletService {
         type: SYNC_WALLET_PROGRESS,
         payload: 100,
       });
-      dispatchToMainWindow({ type: STOP_SYNC_WALLET });
+      dispatchToMainWindow({type: STOP_SYNC_WALLET});
     });
   };
 
@@ -301,11 +306,11 @@ class WalletService {
   sendBid = (name, amount, lockup) => this._ledgerProxy(
     () => this._executeRPC(
       'createbid',
-      [name, Number(displayBalance(amount)), Number(displayBalance(lockup))]
+      [name, Number(displayBalance(amount)), Number(displayBalance(lockup))],
     ),
     () => this._executeRPC(
       'sendbid',
-      [name, Number(displayBalance(amount)), Number(displayBalance(lockup))]
+      [name, Number(displayBalance(amount)), Number(displayBalance(lockup))],
     ),
   );
 
@@ -405,6 +410,121 @@ class WalletService {
     return await this._executeRPC('getwalletinfo', []);
   };
 
+  // price is in WHOLE HNS!
+  finalizeWithPayment = async (name, fundingAddr, nameReceiveAddr, price) => {
+    if (price > 2000) {
+      throw new Error('Refusing to create a transfer for more than 2000 HNS.');
+    }
+
+    const {wdb} = this.node;
+    const wallet = await wdb.get('allison');
+    const ns = await wallet.getNameStateByName(name);
+    const owner = ns.owner;
+    const coin = await wallet.getCoin(owner.hash, owner.index);
+    const nameHash = hashName(name);
+
+    let flags = 0;
+    if (ns.weak) {
+      flags = flags |= 1;
+    }
+
+    const output0 = new Output();
+    output0.value = coin.value;
+    output0.address = new Address().fromString(nameReceiveAddr);
+    output0.covenant.type = types.FINALIZE;
+    output0.covenant.pushHash(nameHash);
+    output0.covenant.pushU32(ns.height);
+    output0.covenant.push(Buffer.from(name, 'ascii'));
+    output0.covenant.pushU8(flags); // flags, may be required if name was CLAIMed
+    output0.covenant.pushU32(ns.claimed);
+    output0.covenant.pushU32(ns.renewals);
+    output0.covenant.pushHash(await wdb.getRenewalBlock());
+
+    const output1 = new Output();
+    output1.address = new Address().fromString(fundingAddr);
+    output1.value = price * 1e6;
+
+    const mtx = new MTX();
+    mtx.addCoin(coin);
+    mtx.outputs.push(output0);
+    mtx.outputs.push(output1);
+
+    // Sign
+    const rings = await wallet.deriveInputs(mtx);
+    assert(rings.length === 1);
+    const signed = await mtx.sign(
+      rings,
+      Script.hashType.SINGLEREVERSE | Script.hashType.ANYONECANPAY,
+    );
+    assert(signed === 1);
+    assert(mtx.verify());
+    return mtx.encode().toString('hex');
+  };
+
+  claimPaidTransfer = async (txHex) => {
+    const {wdb} = this.node;
+    const wallet = await wdb.get('allison');
+    const mtx = MTX.decode(Buffer.from(txHex, 'hex'));
+
+    // Bob should verify all the data in the MTX to ensure everything is valid,
+    // but this is the minimum.
+    const input0 = mtx.input(0).clone(); // copy input with Alice's signature
+    const prevoutJSON = input0.prevout.toJSON();
+    const coinData = await this.nodeService.getCoin(prevoutJSON.hash, prevoutJSON.index);
+    assert(coinData); // ensures that coin exists and is still unspent
+    const coin = new Coin();
+    coin.fromJSON(coinData, this.networkName);
+    assert(coin.covenant.type === types.TRANSFER);
+
+    // Fund the TX.
+    // The hsd wallet is not designed to handle partially-signed TXs
+    // or coins from outside the wallet, so a little hacking is needed.
+    const changeAddress = await wallet.changeAddress();
+    const rate = await wdb.estimateFee();
+    const coins = await wallet.getSmartCoins();
+    // Add the external coin to the coin selector so we don't fail assertions
+    coins.push(coin);
+    await mtx.fund(coins, {changeAddress, rate});
+    // The funding mechanism starts by wiping out existing inputs
+    // which for us includes Alice's signature. Replace it from our backup.
+    mtx.inputs[0].inject(input0);
+
+    // Rearrange outputs.
+    // Since we added a change output, the SINGELREVERSE is now broken:
+    //
+    // input 0: TRANSFER UTXO --> output 0: FINALIZE covenant
+    // input 1: Bob's funds   --- output 1: payment to Alice
+    //                 (null) --- output 2: change to Bob
+    const outputs = mtx.outputs.slice();
+    if (outputs.length === 3) {
+      mtx.outputs = [outputs[0], outputs[2], outputs[1]];
+    }
+
+    // Sign & Broadcast
+    // Bob uses SIGHASHALL. The final TX looks like this:
+    //
+    // input 0: TRANSFER UTXO --> output 0: FINALIZE covenant
+    // input 1: Bob's funds   --- output 1: change to Bob
+    //                 (null) --- output 2: payment to Alice
+    const tx = await wallet.sendMTX(mtx);
+    assert(tx.verify(mtx.view));
+
+    const hash = tx.hash();
+    // Wait for mempool and check
+    for (let i = 0; i < 10; i++) {
+      const mp = await this.nodeService.getRawMempool(false);
+      if (!mp[hash]) {
+        console.log('Transaction did not appear in the mempool, retrying...');
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        continue;
+      }
+
+      return;
+    }
+
+    throw new Error('Transaction never appeared in the mempool.');
+  };
+
   _onNodeStart = async (networkName, network, apiKey) => {
     const conn = await getConnection();
 
@@ -442,7 +562,7 @@ class WalletService {
 
     await node.open();
     node.wdb.on('error', e => {
-      console.error(e)
+      console.error(e);
     });
     this.node = node;
     this.client = new WalletClient(walletOptions);
@@ -553,6 +673,8 @@ const methods = {
   sendTransfer: service.sendTransfer,
   cancelTransfer: service.cancelTransfer,
   finalizeTransfer: service.finalizeTransfer,
+  finalizeWithPayment: service.finalizeWithPayment,
+  claimPaidTransfer: service.claimPaidTransfer,
   revokeName: service.revokeName,
   send: service.send,
   lock: service.lock,
@@ -624,4 +746,10 @@ function getHost(url = '') {
 function getPort(url = '') {
   const {port} = new URL(url);
   return Number(port) || 80;
+}
+
+function assert(value) {
+  if (!value) {
+    throw new Error('Assertion failed.');
+  }
 }

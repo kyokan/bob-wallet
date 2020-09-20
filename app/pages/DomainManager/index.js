@@ -6,9 +6,10 @@ import * as myDomainsActions from '../../ducks/myDomains';
 import { formatName } from '../../utils/nameHelpers';
 import './domain-manager.scss';
 import { clientStub as aClientStub } from '../../background/analytics/client';
-
-const { dialog } = require("electron").remote;
 import fs from 'fs';
+import ClaimNameForPayment from './ClaimNameForPayment';
+
+const {dialog} = require('electron').remote;
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -17,6 +18,14 @@ class DomainManager extends Component {
     getMyNames: PropTypes.func.isRequired,
     myDomains: PropTypes.array.isRequired,
   };
+
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      isShowingNameClaimForPayment: false,
+    };
+  }
 
   componentDidMount() {
     analytics.screenView('Domain Manager');
@@ -28,13 +37,13 @@ class DomainManager extends Component {
 
   handleExportClick() {
     let names = this.props.myDomains.map(({name}) => name);
-    let data = names.join("\n");
+    let data = names.join('\n');
 
     let savePath = dialog.showSaveDialogSync({
-      filters: [{ name: 'spreadsheet', extensions: ['csv'] }]
+      filters: [{name: 'spreadsheet', extensions: ['csv']}],
     });
 
-    if(savePath) {
+    if (savePath) {
       fs.writeFile(savePath, data, (err) => {
         if (err) {
           throw err;
@@ -46,12 +55,22 @@ class DomainManager extends Component {
   renderList() {
     return (
       <div className="domain-manager">
-        <button
-          className="extension_cta_button domain-manager__export-btn"
-          onClick={this.handleExportClick.bind(this)}
-        >
-          Export All Names
-        </button>
+        <div className="domain-manager__buttons">
+          <button
+            className="extension_cta_button domain-manager__export-btn"
+            onClick={this.handleExportClick.bind(this)}
+          >
+            Export All Names
+          </button>
+          <button
+            className="extension_cta_button domain-manager__export-btn"
+            onClick={() => this.setState({
+              isShowingNameClaimForPayment: true,
+            })}
+          >
+            Claim Name For Payment
+          </button>
+        </div>
         {this.props.myDomains.map(({name, nameHash}) => (
           <div
             className="domain-manager__domain"
@@ -74,6 +93,16 @@ class DomainManager extends Component {
   renderEmpty() {
     return (
       <div className="domain-manager">
+        <div className="domain-manager__buttons">
+          <button
+            className="extension_cta_button domain-manager__export-btn"
+            onClick={() => this.setState({
+              isShowingNameClaimForPayment: true,
+            })}
+          >
+            Claim Name For Payment
+          </button>
+        </div>
         <div className="domain-manager__empty-text">
           You do not own any domains.
         </div>
@@ -82,9 +111,20 @@ class DomainManager extends Component {
   }
 
   render() {
-    return this.props.myDomains.length
-      ? this.renderList()
-      : this.renderEmpty();
+    return (
+      <>
+        {this.props.myDomains.length
+          ? this.renderList()
+          : this.renderEmpty()}
+        {this.state.isShowingNameClaimForPayment && (
+          <ClaimNameForPayment
+            onClose={() => this.setState({
+              isShowingNameClaimForPayment: false,
+            })}
+          />
+        )}
+      </>
+    );
   }
 }
 
