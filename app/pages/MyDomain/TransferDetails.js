@@ -82,7 +82,6 @@ class TransferDetails extends Component {
   };
 
   finalizeWithPayment = () => {
-    // node.finalizeWithPayment(this.props.name, '', '', 100);
     this.setState({
       isShowingFinalizeWithPayment: true,
     });

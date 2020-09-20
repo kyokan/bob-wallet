@@ -2,10 +2,8 @@ import React, { Component } from 'react';
 import { MiniModal } from '../../components/Modal/MiniModal';
 import { MTX } from 'hsd/lib/primitives';
 import { connect } from 'react-redux';
-import { clientStub as nClientStub } from '../../background/node/client';
 import { showSuccess } from '../../ducks/notifications';
-
-const node = nClientStub(() => require('electron').ipcRenderer);
+import { claimPaidTransfer } from '../../ducks/names';
 
 @connect(
   (state) => ({
@@ -13,6 +11,7 @@ const node = nClientStub(() => require('electron').ipcRenderer);
   }),
   (dispatch) => ({
     showSuccess: (message) => dispatch(showSuccess(message)),
+    claimPaidTransfer: (hex) => dispatch(claimPaidTransfer(hex)),
   }),
 )
 export default class ClaimNameForPayment extends Component {
@@ -51,12 +50,16 @@ export default class ClaimNameForPayment extends Component {
 
   onClickTransfer = async () => {
     try {
-      await node.claimPaidTransfer(this.state.hex);
+      this.setState({
+        isLoading: true,
+      });
+      await this.props.claimPaidTransfer(this.state.hex);
       this.props.onClose();
       this.props.showSuccess('Successfully claimed paid transfer. Please wait 1 block for the name to appear.');
     } catch (e) {
       this.setState({
         transferError: e.message,
+        isLoading: false,
       });
     }
   };
@@ -139,7 +142,7 @@ export default class ClaimNameForPayment extends Component {
           <dt>Address Receiving Funds</dt>
           <dd>{this.state.fundingAddr}</dd>
           <dt>Price</dt>
-          <dd>{this.state.price} HNS</dd>
+          <dd>{Math.floor(this.state.price / 1e6)} HNS</dd>
         </dl>
 
         <div className="claim-name-for-payment__verification-buttons">
@@ -152,8 +155,9 @@ export default class ClaimNameForPayment extends Component {
           <button
             className="pay-and-transfer"
             onClick={this.onClickTransfer}
+            disabled={this.state.isLoading}
           >
-            Pay and Transfer
+            {this.state.isLoading ? 'Creating...' : 'Pay and Transfer'}
           </button>
         </div>
       </>

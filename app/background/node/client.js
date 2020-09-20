@@ -16,6 +16,4 @@ export const clientStub = ipcRendererInjector => makeClient(ipcRendererInjector,
   'sendRawAirdrop',
   'getFees',
   'getAverageBlockTime',
-  'finalizeWithPayment',
-  'claimPaidTransfer'
 ]);

@@ -348,6 +348,15 @@ async function parseInputsOutputs(net, tx) {
   // This TX must have been a plain send from the wallet.
   // Assume that the first non-wallet output of the TX is the "to".
   const output = tx.outputs.filter(({path}) => !path)[0];
+  if (!output) {
+    return {
+      type: 'UNKNOWN',
+      meta: {},
+      fee: tx.fee,
+      value: 0
+    };
+  }
+
   return {
     type: 'SEND',
     meta: {

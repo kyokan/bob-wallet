@@ -241,6 +241,20 @@ export const finalizeTransfer = (name) => async (dispatch) => {
   await walletClient.finalizeTransfer(name);
 };
 
+export const finalizeWithPayment = (name, fundingAddr, recipient, price) => async (dispatch) => {
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
+  return walletClient.finalizeWithPayment(name, fundingAddr, recipient, price);
+};
+
+export const claimPaidTransfer = (hex) => async (dispatch) => {
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
+  await walletClient.claimPaidTransfer(hex);
+};
+
 export const revokeName = (name) => async (dispatch) => {
   if (!name) {
     return;

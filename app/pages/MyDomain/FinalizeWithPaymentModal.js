@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
 import { MiniModal } from '../../components/Modal/MiniModal';
-import { clientStub as nClientStub } from '../../background/node/client';
 import { clientStub as wClientStub } from '../../background/wallet/client';
+import { finalizeWithPayment } from '../../ducks/names';
+import { connect } from 'react-redux';
 
-const node = nClientStub(() => require('electron').ipcRenderer);
 const wallet = wClientStub(() => require('electron').ipcRenderer);
 
-export default class FinalizeWithPaymentModal extends Component {
+export class FinalizeWithPaymentModal extends Component {
   constructor(props) {
     super(props);
 
@@ -21,7 +21,7 @@ export default class FinalizeWithPaymentModal extends Component {
   onClickFinalize = async () => {
     try {
       const fundingAddr = (await wallet.generateReceivingAddress()).address;
-      const hex = await node.finalizeWithPayment(
+      const hex = await this.props.finalizeWithPayment(
         this.props.name,
         fundingAddr,
         this.state.recipient,
@@ -38,7 +38,7 @@ export default class FinalizeWithPaymentModal extends Component {
   };
 
   render() {
-    const { hex } = this.state;
+    const {hex} = this.state;
 
     return (
       <MiniModal title="Finalize With Payment" onClose={this.props.onClose}>
@@ -131,3 +131,10 @@ export default class FinalizeWithPaymentModal extends Component {
     );
   }
 }
+
+export default connect(
+  () => ({}),
+  (dispatch) => ({
+    finalizeWithPayment: (name, fundingAddr, recipient, price) => dispatch(finalizeWithPayment(name, fundingAddr, recipient, price)),
+  }),
+)(FinalizeWithPaymentModal);

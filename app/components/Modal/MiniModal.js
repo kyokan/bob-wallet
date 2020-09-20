@@ -13,6 +13,7 @@ export class MiniModal extends Component {
     title: PropTypes.string.isRequired,
     centered: PropTypes.bool,
     wide: PropTypes.bool,
+    top: PropTypes.bool
   };
 
   onClose = () => {
@@ -28,6 +29,7 @@ export class MiniModal extends Component {
     const names = classnames('mini-modal', {
       'mini-modal--centered': this.props.centered,
       'mini-modal--wide': this.props.wide,
+      'mini-modal--tip': this.props.top
     });
 
     return (
