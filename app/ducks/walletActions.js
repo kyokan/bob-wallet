@@ -19,6 +19,8 @@ import {
   SET_API_KEY, SET_FETCHING,
 } from './walletReducer';
 import { NEW_BLOCK_STATUS } from './nodeReducer';
+import {getName} from "../background/db/service";
+import dbClient from "../utils/dbClient";
 
 let idleInterval;
 
@@ -184,34 +186,31 @@ export const fetchTransactions = () => async (dispatch, getState) => {
   const txs = await walletClient.getTransactionHistory();
   let payload = new Map();
 
-
-
   for (let i = 0; i < txs.length; i++) {
     const {tx} = txs[i];
     const existing = currentTXs.get(tx.hash);
 
     if (existing) {
       const isPending = tx.block === null;
-      existing.date = isPending ? Date.now() : tx.mtime;
+      existing.date = isPending ? Date.now() : tx.mtime * 1000;
       existing.pending = isPending;
 
       payload.set(existing.id, existing);
       continue;
     }
 
-    if (!(i % 50)) {
+    if (!(i % 100)) {
       dispatch({
         type: NEW_BLOCK_STATUS,
         payload: `Processing TX: ${i}/${txs.length}`,
       });
     }
 
-
     const ios = await parseInputsOutputs(net, tx);
     const isPending = tx.block === null;
     const txData = {
       id: tx.hash,
-      date: isPending ? Date.now() : tx.mtime,
+      date: isPending ? Date.now() : tx.mtime * 1000,
       pending: isPending,
       ...ios,
     };
@@ -450,19 +449,14 @@ const nameCache = {
 };
 
 async function nameByHash(net, covenant) {
-  if (nameCache.currNet !== net) {
-    nameCache.currNet = net;
-    nameCache.cache = {};
-  }
-  if (Object.keys(nameCache.cache) > MAX_NAME_CACHE_SIZE) {
-    nameCache.cache = {};
+  const hash = covenant.items[0];
+  let name = await dbClient.getName(net, hash);
+
+  if (name) {
+    return name;
   }
 
-  const hash = covenant.items[0];
-  if (nameCache.cache[hash]) {
-    return nameCache.cache[hash];
-  }
-  let name = await nodeClient.getNameByHash(hash);
+  name = await nodeClient.getNameByHash(hash);
 
   if (!name && covenant.action === 'OPEN') {
     // Before an OPEN is confirmed, the name->hash mapping will not be present
@@ -472,7 +466,7 @@ async function nameByHash(net, covenant) {
   }
 
   if (name) {
-    nameCache.cache[hash] = name;
+    await dbClient.addName(net, hash, name);
   }
 
   return name;

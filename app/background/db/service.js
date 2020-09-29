@@ -3,6 +3,7 @@ import bdb from 'bdb';
 import path from 'path';
 
 let db;
+let nameDB;
 
 export async function open() {
   if (db) {
@@ -10,9 +11,14 @@ export async function open() {
   }
 
   const loc = path.join(app.getPath('userData'), 'db');
-  let tdb = bdb.create(loc);
+  const nameDBloc = path.join(app.getPath('userData'), 'namedb');
+  const tdb = bdb.create(loc);
   await tdb.open();
   db = tdb;
+
+  const ndb = bdb.create(nameDBloc);
+  await ndb.open();
+  nameDB = ndb;
 }
 
 export async function close() {
@@ -41,9 +47,33 @@ export async function del(key) {
   return db.del(Buffer.from(key, 'utf-8'));
 }
 
+export async function addName(net, hash, name) {
+  ensureDB();
+  const hashBuf = Buffer.from(`${net}:${hash}`, 'utf-8');
+  const nameBuf = Buffer.from(name, 'utf-8');
+
+  return nameDB.put(hashBuf, nameBuf);
+}
+
+export async function getName(net, hash) {
+  ensureDB();
+  const hashBuf = Buffer.from(`${net}:${hash}`, 'utf-8');
+  const data = await nameDB.get(hashBuf);
+
+  if (data === null) {
+    return null;
+  }
+
+  return data.toString('utf-8');
+}
+
 function ensureDB() {
   if (!db) {
     throw new Error('db not open');
+  }
+
+  if (!nameDB) {
+    throw new Error('nameDB not open');
   }
 }
 
@@ -53,7 +83,9 @@ const methods = {
   close,
   put,
   get,
-  del
+  del,
+  addName,
+  getName,
 };
 
 export async function start(server) {

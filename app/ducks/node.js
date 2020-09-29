@@ -49,7 +49,7 @@ export const stop = () => async (dispatch, getState) => {
         setTimeout(async () => {
           await dispatch(fetchTransactions());
           await dispatch(getWatching(network));
-          await dispatch(onNewBlock());
+          // await dispatch(onNewBlock());
         }, 0);
       }
     }
@@ -114,7 +114,7 @@ export const start = (network) => async (dispatch, getState) => {
       setTimeout(async () => {
         await dispatch(fetchTransactions());
         await dispatch(getWatching(network));
-        await dispatch(onNewBlock());
+        // await dispatch(onNewBlock());
       }, 0);
     }
   } catch (error) {
