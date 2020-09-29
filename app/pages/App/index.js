@@ -149,7 +149,7 @@ class App extends Component {
       <Switch>
         <Route
           path="/account"
-          render={this.routeRenderer('Portfolio', Account)}
+          render={this.routeRenderer('Portfolio', Account, true, false)}
         />
         <Route path="/send" render={this.routeRenderer('Send', SendModal)} />
         <Route

@@ -43,7 +43,7 @@ export default class Account extends Component {
               <div>Total Balance</div>
             </div>
             <div className="account__balance-wrapper">
-              <div className="account__balance-wrapper__amount">{`HNS ${displayBalance(unconfirmedBalance)}`}</div>
+              <div className="account__balance-wrapper__amount">{`${displayBalance(unconfirmedBalance)} HNS`}</div>
             </div>
           </div>
           <div className="account__header-section">
@@ -55,7 +55,7 @@ export default class Account extends Component {
               </Tooltipable>
             </div>
             <div className="account__balance-wrapper">
-              <div className="account__balance-wrapper__amount">{`HNS ${displayBalance(spendableBalance)}`}</div>
+              <div className="account__balance-wrapper__amount">{`${displayBalance(spendableBalance)} HNS`}</div>
             </div>
           </div>
         </div>
