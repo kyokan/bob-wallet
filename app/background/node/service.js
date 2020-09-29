@@ -9,6 +9,7 @@ import EventEmitter from 'events';
 import { NodeClient } from 'hs-client';
 import { BigNumber } from 'bignumber.js';
 import {ConnectionTypes, getConnection, getCustomRPC} from '../connections/service';
+const FullNode = require('hsd/lib/node/fullnode');
 
 const Network = require('hsd/lib/protocol/network');
 
@@ -42,10 +43,10 @@ export class NodeService extends EventEmitter {
   }
 
   async startNode(networkName) {
-    if (this.hsdWindow && this.networkName === networkName) {
+    if (this.hsd && this.networkName === networkName) {
       return;
     }
-    if (this.hsdWindow) {
+    if (this.hsd) {
       throw new Error('hsd already started.');
     }
     if (!VALID_NETWORKS[networkName]) {
@@ -58,48 +59,50 @@ export class NodeService extends EventEmitter {
     this.networkName = networkName;
     this.network = network;
     this.apiKey = apiKey;
-    this.emit('started', this.networkName, this.network, this.apiKey);
 
     const portsFree = await checkHSDPortsFree(network);
+
     if (!portsFree) {
       throw new Error('hsd ports in use. Please make sure no other hsd instance is running, quit Bob, and try again.');
     }
 
     console.log(`Starting node on ${networkName} network.`);
-    const hsdWindow = new BrowserWindow({
-      width: 400,
-      height: 400,
-      show: false,
-      webPreferences: {
-        nodeIntegration: true,
-      },
+    // const hsdWindow = new BrowserWindow({
+    //   width: 400,
+    //   height: 400,
+    //   show: false,
+    //   webPreferences: {
+    //     nodeIntegration: true,
+    //   },
+    // });
+
+    const hsd = new FullNode({
+      config: true,
+      argv: true,
+      env: true,
+      logFile: true,
+      logConsole: false,
+      logLevel: 'debug',
+      memory: false,
+      workers: false,
+      network: networkName,
+      loader: require,
+      prefix: this.hsdPrefixDir,
+      listen: true,
+      bip37: true,
+      indexAddress: true,
+      indexTX: true,
+      apiKey,
     });
 
-    await hsdWindow.loadURL(`file://${path.join(__dirname, '../../hsd.html')}`);
-    hsdWindow.webContents.send('start', this.hsdPrefixDir, networkName, apiKey);
-    await new Promise((resolve, reject) => {
-      const lis = (_, channel, ...args) => {
-        if (channel !== 'started' && channel !== 'error') {
-          return;
-        }
+    this.hsd = hsd;
 
-        hsdWindow.webContents.removeListener('started', lis);
-        hsdWindow.webContents.removeListener('error', lis);
+    this.emit('started', this.networkName, this.network, this.apiKey);
 
-        if (channel === 'error') {
-          console.error('Error opening hsd window:', args);
-          return reject(args[0]);
-        }
-
-        resolve();
-      };
-      hsdWindow.webContents.on('ipc-message', lis);
-    });
-    hsdWindow.on('closed', () => {
-      console.log('hsd window closed.');
-      this.emit('stopped');
-      this.hsdWindow = null;
-    });
+    await hsd.ensure()
+      .then(() => hsd.open())
+      .then(() => hsd.connect())
+      .then(() => hsd.startSync());
 
     const client = new NodeClient({
       network: network,
@@ -109,12 +112,11 @@ export class NodeService extends EventEmitter {
 
     await retry(() => client.getInfo(), 20, 200);
 
-
-    this.hsdWindow = hsdWindow;
     this.client = client;
   }
 
   async startCustom() {
+    this.hsd = null;
     const rpc = await getCustomRPC();
     const networkType = rpc.networkType || 'main';
 
@@ -257,10 +259,7 @@ export class NodeService extends EventEmitter {
 
   async getEntriesByBlocks(blocks = []) {
     await this._ensureStarted();
-    const {
-      apiKey,
-      url,
-    } = await getCustomRPC();
+    const {apiKey, url} = await getCustomRPC();
     const {
       protocol,
       host,

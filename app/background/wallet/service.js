@@ -10,6 +10,7 @@ import { ConnectionTypes, getConnection } from '../connections/service';
 import crypto from 'crypto';
 import { dispatchToMainWindow } from '../../mainWindow';
 import { START_SYNC_WALLET, STOP_SYNC_WALLET, SYNC_WALLET_PROGRESS } from '../../ducks/walletReducer';
+import {SET_FEE_INFO, SET_NODE_INFO} from "../../ducks/nodeReducer";
 const WalletNode = require('hsd/lib/wallet/node');
 const TX = require('hsd/lib/primitives/tx');
 const {Output, MTX, Address, Coin} = require('hsd/lib/primitives');
@@ -132,6 +133,7 @@ class WalletService {
     if (walletHeight < chainHeight) {
       this.rescanStatusIntv = setInterval(async () => {
         const {chain: {height: chainHeight}} = await nodeService.getInfo();
+
         const {height: walletHeight} = await wdb.getTip();
         if (walletHeight === chainHeight) {
           clearInterval(this.rescanStatusIntv);
@@ -142,6 +144,7 @@ class WalletService {
           });
           return;
         }
+
         dispatchToMainWindow({type: START_SYNC_WALLET});
         dispatchToMainWindow({
           type: SYNC_WALLET_PROGRESS,
@@ -186,6 +189,29 @@ class WalletService {
     return txs;
   };
 
+  rescanBlock = async (entryOption, txs) => {
+    await this._ensureClient();
+    const wdb = this.node.wdb;
+    wdb.rescanning = true;
+    const entry = entryOption instanceof ChainEntry
+      ? entryOption
+      : new ChainEntry({
+        ...entryOption,
+        hash: Buffer.from(entryOption.hash, 'hex'),
+        prevBlock: Buffer.from(entryOption.prevBlock, 'hex'),
+        merkleRoot: Buffer.from(entryOption.merkleRoot, 'hex'),
+        witnessRoot: Buffer.from(entryOption.witnessRoot, 'hex'),
+        treeRoot: Buffer.from(entryOption.treeRoot, 'hex'),
+        reservedRoot: Buffer.from(entryOption.reservedRoot, 'hex'),
+        extraNonce: Buffer.from(entryOption.extraNonce, 'hex'),
+        mask: Buffer.from(entryOption.mask, 'hex'),
+        chainwork: entryOption.chainwork && BN.from(entryOption.chainwork, 16, 'be'),
+      });
+    const res = await wdb.rescanBlock(entry, txs);
+    wdb.rescanning = false;
+    return res;
+  };
+
   oldrescan = async (height = 0) => {
     await this._ensureClient();
     const wdb = this.node.wdb;
@@ -216,22 +242,9 @@ class WalletService {
 
     await loadEntries(height);
 
-    wdb.rescanning = true;
     for (let i = 0; i < entries.length; i++) {
       const entryOption = entries[i];
-      const entry = new ChainEntry({
-        ...entryOption,
-        hash: Buffer.from(entryOption.hash, 'hex'),
-        prevBlock: Buffer.from(entryOption.prevBlock, 'hex'),
-        merkleRoot: Buffer.from(entryOption.merkleRoot, 'hex'),
-        witnessRoot: Buffer.from(entryOption.witnessRoot, 'hex'),
-        treeRoot: Buffer.from(entryOption.treeRoot, 'hex'),
-        reservedRoot: Buffer.from(entryOption.reservedRoot, 'hex'),
-        extraNonce: Buffer.from(entryOption.extraNonce, 'hex'),
-        mask: Buffer.from(entryOption.mask, 'hex'),
-        chainwork: entryOption.chainwork && BN.from(entryOption.chainwork, 16, 'be'),
-      });
-      await wdb.rescanBlock(entry, bmap[entry.height] || []);
+      await this.rescanBlock(entryOption, bmap[entry.height] || []);
 
       if (!(i % 1000)) {
         dispatchToMainWindow({
@@ -241,7 +254,6 @@ class WalletService {
       }
     }
 
-    wdb.rescanning = false;
     dispatchToMainWindow({
       type: SYNC_WALLET_PROGRESS,
       payload: 100,
@@ -643,6 +655,27 @@ class WalletService {
   };
 
   _onNodeStart = async (networkName, network, apiKey) => {
+    if (nodeService.hsd) {
+      nodeService.hsd.chain.on('block', async (block, chainEntry) => {
+        const info = await nodeService.getInfo();
+        const fees = await nodeService.getFees();
+        dispatchToMainWindow({
+          type: SET_NODE_INFO,
+          payload: {
+            info,
+          },
+        });
+        dispatchToMainWindow({
+          type: SET_FEE_INFO,
+          payload: {
+            fees,
+          },
+        });
+        await this.rescanBlock(chainEntry, block.txs);
+      });
+    }
+
+
     const conn = await getConnection();
 
     this.networkName = networkName;
