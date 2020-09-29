@@ -44,6 +44,8 @@ ipc.on('start', async (_, prefix, net, apiKey) => {
       console.log(e);
       ipc.send('error', e);
     });
+
+  hsd.chain.on('block', (block) => console.log('block', block));
 });
 
 ipc.on('close', () => {

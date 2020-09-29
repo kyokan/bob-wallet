@@ -126,10 +126,12 @@ class WalletService {
     await this._ensureClient();
     const wdb = this.node.wdb;
     const {chain: {height: chainHeight}} = await nodeService.getInfo();
+
     const {height: walletHeight} = await wdb.getTip();
 
     if (walletHeight < chainHeight) {
       this.rescanStatusIntv = setInterval(async () => {
+        const {chain: {height: chainHeight}} = await nodeService.getInfo();
         const {height: walletHeight} = await wdb.getTip();
         if (walletHeight === chainHeight) {
           clearInterval(this.rescanStatusIntv);
@@ -184,7 +186,7 @@ class WalletService {
     return txs;
   };
 
-  rescan = async (height = 0) => {
+  oldrescan = async (height = 0) => {
     await this._ensureClient();
     const wdb = this.node.wdb;
 
@@ -208,11 +210,11 @@ class WalletService {
       bmap[transactions[j].height].push(tx);
     }
 
-    await wdb.rollback(0);
+    await wdb.rollback(height);
 
     let entries = [];
 
-    await loadEntries(0);
+    await loadEntries(height);
 
     wdb.rescanning = true;
     for (let i = 0; i < entries.length; i++) {
@@ -263,7 +265,7 @@ class WalletService {
 
   };
 
-  oldrescan = async (height = 0) => {
+  rescan = async (height = 0) => {
     await this._ensureClient();
     const wdb = this.node.wdb;
     const {chain: {height: chainHeight}} = await nodeService.getInfo();

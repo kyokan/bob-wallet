@@ -106,6 +106,7 @@ export class NodeService extends EventEmitter {
       port: network.rpcPort,
       apiKey,
     });
+
     await retry(() => client.getInfo(), 20, 200);
 
 

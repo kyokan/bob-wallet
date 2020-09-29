@@ -55,7 +55,7 @@ export async function addName(net, hash, name) {
   return nameDB.put(hashBuf, nameBuf);
 }
 
-export async function getName(net, hash) {
+export async function getName(net = 'main', hash) {
   ensureDB();
   const hashBuf = Buffer.from(`${net}:${hash}`, 'utf-8');
   const data = await nameDB.get(hashBuf);
