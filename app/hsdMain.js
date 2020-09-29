@@ -2,11 +2,7 @@ require('./sentry');
 
 const ipc = require('electron').ipcRenderer;
 const FullNode = require('hsd/lib/node/fullnode');
-const WalletPlugin = require('hsd/lib/wallet/plugin');
-const Script = require('hsd/lib/script/script');
 const remote = require('electron').remote;
-const {hashName, types} = require('hsd/lib/covenants/rules');
-const {Output, MTX, Address} = require('hsd/lib/primitives');
 
 let hsd = null;
 ipc.on('start', async (_, prefix, net, apiKey) => {

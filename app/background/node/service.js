@@ -254,6 +254,30 @@ export class NodeService extends EventEmitter {
     return this._execRPC('getrawmempool', [verbose ? 1 : 0]);
   }
 
+  async getEntriesByBlocks(blocks = []) {
+    await this._ensureStarted();
+    const {
+      apiKey,
+      url,
+    } = await getCustomRPC();
+    const {
+      protocol,
+      host,
+      pathname,
+    } = new URL(url);
+
+    const res = await fetch(
+      `${protocol}//x:${apiKey}@${host}${pathname}/entry`,
+      {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({blocks}),
+      },
+    );
+    const json = await res.json();
+    return json;
+  }
+
   async _ensureStarted() {
     return new Promise((resolve, reject) => {
       if (this.client) {

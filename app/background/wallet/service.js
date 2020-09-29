@@ -10,24 +10,17 @@ import { ConnectionTypes, getConnection } from '../connections/service';
 import crypto from 'crypto';
 import { dispatchToMainWindow } from '../../mainWindow';
 import { START_SYNC_WALLET, STOP_SYNC_WALLET, SYNC_WALLET_PROGRESS } from '../../ducks/walletReducer';
-
 const WalletNode = require('hsd/lib/wallet/node');
 const TX = require('hsd/lib/primitives/tx');
-// const {TXRecord} = require("hsd/lib/wallet/records");
 const {Output, MTX, Address, Coin} = require('hsd/lib/primitives');
 const Script = require('hsd/lib/script/script');
 const {hashName, types} = require('hsd/lib/covenants/rules');
-
-
-const Sentry = require('@sentry/electron');
-
 const MasterKey = require('hsd/lib/wallet/masterkey');
 const Mnemonic = require('hsd/lib/hd/mnemonic');
-// const Network = require("hsd/lib/protocol/network");
-// const Address = require("hsd/lib/primitives/address");
 const Covenant = require('hsd/lib/primitives/covenant');
+const ChainEntry = require("hsd/lib/blockchain/chainentry");
+const BN = require('bcrypto/lib/bn.js');
 
-// const walletHeightKey = 'wallet:lastSyncHeight';
 
 const WALLET_ID = 'allison';
 const randomAddrs = {
@@ -122,7 +115,11 @@ class WalletService {
       watchOnly: false,
       mnemonic: mnemonic.getPhrase(),
     };
-    return this.client.createWallet(WALLET_ID, options);
+
+    await this.client.createWallet(WALLET_ID, options);
+
+    const wallet = await this.node.wdb.get(WALLET_ID);
+    await wallet.setLookahead('default', 10000);
   };
 
   checkRescanStatus = async () => {
@@ -152,7 +149,121 @@ class WalletService {
     }
   };
 
+  getAddresses = async (depth = 10000) => {
+    await this._ensureClient();
+    const wdb = this.node.wdb;
+    const wallet = await wdb.get(WALLET_ID);
+    const account = await wallet.getAccount('default');
+
+    const addresses = Array(depth)
+      .fill(0)
+      .map((_, i) => {
+        const receive = account.deriveReceive(i).getAddress().toString();
+        const change = account.deriveChange(i).getAddress().toString();
+        return [receive, change];
+      })
+      .reduce((acc, [receive, change]) => {
+        acc.push(receive);
+        acc.push(change);
+        return acc;
+      }, []);
+
+    return addresses;
+  };
+
+  getTXByAddresses = async () => {
+    await this._ensureClient();
+    const addresses = await this.getAddresses();
+    let txs = [];
+
+    for (let i = 0; i < 20000; i = i + 1000) {
+      const transactions = await nodeService.getTXByAddresses(addresses.slice(i, i+1000));
+      txs = txs.concat(transactions);
+    }
+
+    return txs;
+  };
+
   rescan = async (height = 0) => {
+    await this._ensureClient();
+    const wdb = this.node.wdb;
+
+    dispatchToMainWindow({type: START_SYNC_WALLET});
+    dispatchToMainWindow({
+      type: SYNC_WALLET_PROGRESS,
+      payload: parseInt(0),
+    });
+
+    let transactions = await this.getTXByAddresses();
+    transactions = transactions.sort((a, b) => {
+      if (a.index > b.index) return 1;
+      if (b.index > a.index) return -1;
+      return 0;
+    });
+    const bmap = {};
+
+    for (let j = 0; j < transactions.length; j++) {
+      const tx = mapOneTx(transactions[j]);
+      bmap[transactions[j].height] = bmap[transactions[j].height] || [];
+      bmap[transactions[j].height].push(tx);
+    }
+
+    await wdb.rollback(0);
+
+    let entries = [];
+
+    await loadEntries(0);
+
+    wdb.rescanning = true;
+    for (let i = 0; i < entries.length; i++) {
+      const entryOption = entries[i];
+      const entry = new ChainEntry({
+        ...entryOption,
+        hash: Buffer.from(entryOption.hash, 'hex'),
+        prevBlock: Buffer.from(entryOption.prevBlock, 'hex'),
+        merkleRoot: Buffer.from(entryOption.merkleRoot, 'hex'),
+        witnessRoot: Buffer.from(entryOption.witnessRoot, 'hex'),
+        treeRoot: Buffer.from(entryOption.treeRoot, 'hex'),
+        reservedRoot: Buffer.from(entryOption.reservedRoot, 'hex'),
+        extraNonce: Buffer.from(entryOption.extraNonce, 'hex'),
+        mask: Buffer.from(entryOption.mask, 'hex'),
+        chainwork: entryOption.chainwork && BN.from(entryOption.chainwork, 16, 'be'),
+      });
+      await wdb.rescanBlock(entry, bmap[entry.height] || []);
+
+      if (!(i % 1000)) {
+        dispatchToMainWindow({
+          type: SYNC_WALLET_PROGRESS,
+          payload: parseInt(i / entries.length * 100),
+        });
+      }
+    }
+
+    wdb.rescanning = false;
+    dispatchToMainWindow({
+      type: SYNC_WALLET_PROGRESS,
+      payload: 100,
+    });
+    dispatchToMainWindow({type: STOP_SYNC_WALLET});
+
+    return;
+
+    async function loadEntries(startHeight = 0) {
+      const blocks = [];
+
+      for (let i = startHeight; i < startHeight + 1000; i++) {
+        blocks.push(i);
+      }
+      const res = await nodeService.getEntriesByBlocks(blocks);
+      entries = entries.concat(res);
+      if (res.length === 1000) {
+        await loadEntries(startHeight + 1000);
+      }
+    }
+
+  };
+
+  oldrescan = async (height = 0) => {
     await this._ensureClient();
     const wdb = this.node.wdb;
     const {chain: {height: chainHeight}} = await nodeService.getInfo();
@@ -201,6 +312,8 @@ class WalletService {
       mnemonic: mnemonic.trim(),
     };
     const res = await this.client.createWallet(WALLET_ID, options);
+    const wallet = await this.node.wdb.get(WALLET_ID);
+    await wallet.setLookahead('default', 10000);
     this.rescan(0);
     return res;
   };
@@ -216,7 +329,9 @@ class WalletService {
 
   getTransactionHistory = async () => {
     await this._ensureClient();
-    return this.client.getHistory(WALLET_ID, 'default');
+    const wallet = await this.node.wdb.get(WALLET_ID);
+    return wallet.getHistory('default');
+    // return this.client.getHistory(WALLET_ID, 'default');
   };
 
   getPendingTransactions = async () => {
@@ -564,6 +679,7 @@ class WalletService {
     node.wdb.on('error', e => {
       console.error(e);
     });
+    node.wdb.client.socket.unhook('block rescan');
     this.node = node;
     this.client = new WalletClient(walletOptions);
     await this.checkRescanStatus();
@@ -691,14 +807,20 @@ export async function start(server) {
   server.withService(sName, methods);
 }
 
-function mapTXs(txs) {
-  const ret = [];
-  for (let i = 0; i < txs.length; i++) {
-    const txOptions = txs[i];
-    const tx = mapOneTx(txOptions);
-    ret.push(tx);
+function getHost(url = '') {
+  const {host} = new URL(url);
+  return host;
+}
+
+function getPort(url = '') {
+  const {port} = new URL(url);
+  return Number(port) || 80;
+}
+
+function assert(value) {
+  if (!value) {
+    throw new Error('Assertion failed.');
   }
-  return ret;
 }
 
 function mapOneTx(txOptions) {
@@ -735,21 +857,6 @@ function mapOneTx(txOptions) {
     }
     return output;
   });
-  return new TX(txOptions);
-}
-
-function getHost(url = '') {
-  const {host} = new URL(url);
-  return host;
-}
-
-function getPort(url = '') {
-  const {port} = new URL(url);
-  return Number(port) || 80;
-}
-
-function assert(value) {
-  if (!value) {
-    throw new Error('Assertion failed.');
-  }
+  const tx = new TX(txOptions);
+  return tx;
 }

@@ -184,23 +184,34 @@ export const fetchTransactions = () => async (dispatch, getState) => {
   const txs = await walletClient.getTransactionHistory();
   let payload = new Map();
 
+
+
   for (let i = 0; i < txs.length; i++) {
-    const tx = txs[i];
+    const {tx} = txs[i];
     const existing = currentTXs.get(tx.hash);
+
     if (existing) {
       const isPending = tx.block === null;
-      existing.date = isPending ? Date.now() : Date.parse(tx.date);
+      existing.date = isPending ? Date.now() : tx.mtime;
       existing.pending = isPending;
 
       payload.set(existing.id, existing);
       continue;
     }
-    dispatch({type: NEW_BLOCK_STATUS, payload: `Processing TX: ${i}/${txs.length}`});
+
+    if (!(i % 50)) {
+      dispatch({
+        type: NEW_BLOCK_STATUS,
+        payload: `Processing TX: ${i}/${txs.length}`,
+      });
+    }
+
+
     const ios = await parseInputsOutputs(net, tx);
     const isPending = tx.block === null;
     const txData = {
       id: tx.hash,
-      date: isPending ? Date.now() : Date.parse(tx.date),
+      date: isPending ? Date.now() : tx.mtime,
       pending: isPending,
       ...ios,
     };
