@@ -94,12 +94,14 @@ class WalletService {
 
   getCoin = async (hash, index) => {
     await this._ensureClient();
-    return this.client.getCoin(WALLET_ID, hash, index);
+    const wallet = await this.node.wdb.get(WALLET_ID);
+    return wallet.getCoin(Buffer.from(hash, 'hex'), index);
   };
 
   getNames = async () => {
     await this._selectWallet();
-    return this.client.execute('getnames');
+    const wallet = await this.node.wdb.get(WALLET_ID);
+    return wallet.getNames();
   };
 
   createNewWallet = async (passphraseOrXPub, isLedger) => {
@@ -406,7 +408,6 @@ class WalletService {
     await this._ensureClient();
     const wallet = await this.node.wdb.get(WALLET_ID);
     return wallet.getHistory('default');
-    // return this.client.getHistory(WALLET_ID, 'default');
   };
 
   getPendingTransactions = async () => {

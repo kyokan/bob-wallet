@@ -123,7 +123,6 @@ export default function walletReducer(state = getInitialState(), {type, payload}
         isFetching: payload,
       };
     case SET_WALLET_HEIGHT:
-      console.log({payload})
       return {
         ...state,
         height: payload,

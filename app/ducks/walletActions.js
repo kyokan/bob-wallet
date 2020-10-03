@@ -205,12 +205,12 @@ export const fetchTransactions = () => async (dispatch, getState) => {
   let payload = new Map();
 
   for (let i = 0; i < txs.length; i++) {
-    const {tx} = txs[i];
+    const {tx, time} = txs[i];
     const existing = currentTXs.get(tx.hash);
 
     if (existing) {
       const isPending = tx.block === null;
-      existing.date = isPending ? Date.now() : tx.mtime;
+      existing.date = isPending ? Date.now() : time * 1000;
       existing.pending = isPending;
 
       payload.set(existing.id, existing);
@@ -228,7 +228,7 @@ export const fetchTransactions = () => async (dispatch, getState) => {
     const isPending = tx.block === null;
     const txData = {
       id: tx.hash,
-      date: isPending ? Date.now() : tx.mtime,
+      date: isPending ? Date.now() : time * 1000,
       pending: isPending,
       ...ios,
     };

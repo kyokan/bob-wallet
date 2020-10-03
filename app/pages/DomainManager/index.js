@@ -8,6 +8,9 @@ import './domain-manager.scss';
 import { clientStub as aClientStub } from '../../background/analytics/client';
 import fs from 'fs';
 import ClaimNameForPayment from './ClaimNameForPayment';
+import {HeaderItem, HeaderRow, Table, TableItem, TableRow} from "../../components/Table";
+import Blocktime from "../../components/Blocktime";
+import {displayBalance} from "../../utils/balances";
 
 const {dialog} = require('electron').remote;
 
@@ -16,7 +19,8 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
 class DomainManager extends Component {
   static propTypes = {
     getMyNames: PropTypes.func.isRequired,
-    myDomains: PropTypes.array.isRequired,
+    namesList: PropTypes.object.isRequired,
+    names: PropTypes.object.isRequired,
   };
 
   constructor(props) {
@@ -25,6 +29,11 @@ class DomainManager extends Component {
     this.state = {
       isShowingNameClaimForPayment: false,
     };
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    return this.props.namesList.join('') !== nextProps.namesList.join('')
+      || this.state.isShowingNameClaimForPayment !== nextState.isShowingNameClaimForPayment;
   }
 
   componentDidMount() {
@@ -36,7 +45,7 @@ class DomainManager extends Component {
   }
 
   handleExportClick() {
-    let names = this.props.myDomains.map(({name}) => name);
+    let names = this.props.namesList;
     let data = names.join('\n');
 
     let savePath = dialog.showSaveDialogSync({
@@ -53,6 +62,7 @@ class DomainManager extends Component {
   }
 
   renderList() {
+    const {namesList, names, history} = this.props;
     return (
       <div className="domain-manager">
         <div className="domain-manager__buttons">
@@ -71,21 +81,22 @@ class DomainManager extends Component {
             Claim Name For Payment
           </button>
         </div>
-        {this.props.myDomains.map(({name, nameHash}) => (
-          <div
-            className="domain-manager__domain"
-            key={nameHash}
-            onClick={() => this.props.history.push(`/domain_manager/${name}`)}
-          >
-            <div
-              className="domain-manager__domain__icon"
-              style={{backgroundColor: getColor(name)}}
-            />
-            <div className="domain-manager__domain__name">
-              {formatName(name)}
-            </div>
-          </div>
-        ))}
+        <Table className="domain-manager__table">
+          <HeaderRow>
+            <HeaderItem>TLD</HeaderItem>
+            <HeaderItem>Expiry</HeaderItem>
+            <HeaderItem>HNS Paid</HeaderItem>
+          </HeaderRow>
+          {namesList.map((name) => {
+            return (
+              <DomainRow
+                key={`${name}`}
+                name={name}
+                onClick={() => history.push(`/domain_manager/${name}`)}
+              />
+            );
+          })}
+        </Table>
       </div>
     );
   }
@@ -113,9 +124,7 @@ class DomainManager extends Component {
   render() {
     return (
       <>
-        {this.props.myDomains.length
-          ? this.renderList()
-          : this.renderEmpty()}
+        {this.props.namesList.length ? this.renderList() : this.renderEmpty()}
         {this.state.isShowingNameClaimForPayment && (
           <ClaimNameForPayment
             onClose={() => this.setState({
@@ -131,7 +140,8 @@ class DomainManager extends Component {
 export default withRouter(
   connect(
     state => ({
-      myDomains: state.myDomains.names,
+      names: state.myDomains.names,
+      namesList: Object.keys(state.myDomains.names),
     }),
     dispatch => ({
       getMyNames: () => dispatch(myDomainsActions.getMyNames()),
@@ -139,15 +149,25 @@ export default withRouter(
   )(DomainManager),
 );
 
-function getColor(str) {
-  var hash = 0;
-  for (var i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  var colour = '#';
-  for (var i = 0; i < 3; i++) {
-    var value = (hash >> (i * 8)) & 0xFF;
-    colour += ('00' + value.toString(16)).substr(-2);
-  }
-  return colour;
+
+const DomainRow = connect(
+  state => ({
+    names: state.myDomains.names,
+  }),
+)(_DomainRow);
+function _DomainRow(props) {
+  const { name, names, onClick } = props;
+  return (
+    <TableRow key={`${name}`} onClick={onClick}>
+      <TableItem>{formatName(name)}</TableItem>
+      <TableItem>
+        <Blocktime
+          height={names[name].height + 105120}
+          format="ll"
+          fromNow
+        />
+      </TableItem>
+      <TableItem>{displayBalance(names[name].highest, true)}</TableItem>
+    </TableRow>
+  )
 }
