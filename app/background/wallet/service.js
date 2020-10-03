@@ -6,11 +6,12 @@ import { NETWORKS } from '../../constants/networks';
 import path from 'path';
 import { app } from 'electron';
 import rimraf from 'rimraf';
-import { ConnectionTypes, getConnection } from '../connections/service';
+import {ConnectionTypes, getConnection, getCustomRPC} from '../connections/service';
 import crypto from 'crypto';
 import { dispatchToMainWindow } from '../../mainWindow';
 import { START_SYNC_WALLET, STOP_SYNC_WALLET, SYNC_WALLET_PROGRESS } from '../../ducks/walletReducer';
 import {SET_FEE_INFO, SET_NODE_INFO} from "../../ducks/nodeReducer";
+import {setSyncWalletText} from "../../ducks/walletActions";
 const WalletNode = require('hsd/lib/wallet/node');
 const TX = require('hsd/lib/primitives/tx');
 const {Output, MTX, Address, Coin} = require('hsd/lib/primitives');
@@ -129,29 +130,6 @@ class WalletService {
     const {chain: {height: chainHeight}} = await nodeService.getInfo();
 
     const {height: walletHeight} = await wdb.getTip();
-
-    if (walletHeight < chainHeight) {
-      this.rescanStatusIntv = setInterval(async () => {
-        const {chain: {height: chainHeight}} = await nodeService.getInfo();
-
-        const {height: walletHeight} = await wdb.getTip();
-        if (walletHeight === chainHeight) {
-          clearInterval(this.rescanStatusIntv);
-          dispatchToMainWindow({type: STOP_SYNC_WALLET});
-          dispatchToMainWindow({
-            type: SYNC_WALLET_PROGRESS,
-            payload: 100,
-          });
-          return;
-        }
-
-        dispatchToMainWindow({type: START_SYNC_WALLET});
-        dispatchToMainWindow({
-          type: SYNC_WALLET_PROGRESS,
-          payload: parseInt(walletHeight / chainHeight * 100),
-        });
-      }, 2500);
-    }
   };
 
   getAddresses = async (depth = 10000) => {
@@ -176,13 +154,72 @@ class WalletService {
     return addresses;
   };
 
+  async getEntry(hash) {
+    const wdb = this.node.wdb;
+    return wdb.client.getEntry(hash);
+  }
+
+  async getHashes(start, end) {
+    const wdb = this.node.wdb;
+    return wdb.client.getHashes(start, end);
+  }
+
+  async getEntriesByBlocks(blocks = []) {
+    const {type} = await getConnection();
+    const {apiKey, url} = await getCustomRPC();
+
+    const {protocol, host, pathname} = new URL(url);
+
+    if (type === ConnectionTypes.Custom) {
+      try {
+        const res = await fetch(
+          `${protocol}//x:${apiKey}@${host}${pathname}/entry`,
+          {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({blocks}),
+          },
+        );
+        return await res.json();
+      } catch(e) {
+        const blockHashes = await this.getHashes(blocks[0], blocks[blocks.length - 1]);
+        const entries = [];
+        for (let i = 0; i < blockHashes.length; i++) {
+          const entry = await this.getEntry(blockHashes[i].toString('hex'));
+
+          if (entry) {
+            entries.push(ChainEntry.fromRaw(entry).format());
+          }
+        }
+
+        return entries;
+      }
+    } else if (type === ConnectionTypes.P2P) {
+      const entries = [];
+      const len = blocks[blocks.length - 1] + 1;
+
+      for (let i = blocks[0]; i < len; i++) {
+        const chainEntry = await nodeService.getEntryByHeight(i);
+
+        if (chainEntry) {
+          entries.push(chainEntry.toJSON());
+        }
+      }
+
+      return entries;
+    }
+  }
+
   getTXByAddresses = async () => {
     await this._ensureClient();
     const addresses = await this.getAddresses();
     let txs = [];
+    const {type} = await getConnection();
+    const range = type === ConnectionTypes.Custom ? 200 : 2000;
 
-    for (let i = 0; i < 20000; i = i + 1000) {
-      const transactions = await nodeService.getTXByAddresses(addresses.slice(i, i+1000));
+    for (let i = 0; i < 20000; i = i + range) {
+      dispatchToMainWindow(setSyncWalletText(`Fetching transactions (${(i/200).toFixed(0)}%)...`));
+      const transactions = await nodeService.getTXByAddresses(addresses.slice(i, i + range));
       txs = txs.concat(transactions);
     }
 
@@ -191,12 +228,16 @@ class WalletService {
 
   rescanBlock = async (entryOption, txs) => {
     await this._ensureClient();
+
     const wdb = this.node.wdb;
+
     wdb.rescanning = true;
+
     const entry = entryOption instanceof ChainEntry
       ? entryOption
       : new ChainEntry({
         ...entryOption,
+        version: Number(entryOption.version),
         hash: Buffer.from(entryOption.hash, 'hex'),
         prevBlock: Buffer.from(entryOption.prevBlock, 'hex'),
         merkleRoot: Buffer.from(entryOption.merkleRoot, 'hex'),
@@ -207,27 +248,37 @@ class WalletService {
         mask: Buffer.from(entryOption.mask, 'hex'),
         chainwork: entryOption.chainwork && BN.from(entryOption.chainwork, 16, 'be'),
       });
+
+    console.log(wdb.height);
     const res = await wdb.rescanBlock(entry, txs);
+
     wdb.rescanning = false;
+
     return res;
   };
 
-  oldrescan = async (height = 0) => {
+  rescan = async (height = 0) => {
+    if (this.isWalletRescanning) return;
+
+    this.isWalletRescanning = true;
+
     await this._ensureClient();
+
     const wdb = this.node.wdb;
 
     dispatchToMainWindow({type: START_SYNC_WALLET});
-    dispatchToMainWindow({
-      type: SYNC_WALLET_PROGRESS,
-      payload: parseInt(0),
-    });
+    dispatchToMainWindow(setSyncWalletText('Fetching transactions...'));
 
     let transactions = await this.getTXByAddresses();
+
+    dispatchToMainWindow(setSyncWalletText(`Processing ${transactions.length} TXs...`));
+
     transactions = transactions.sort((a, b) => {
       if (a.index > b.index) return 1;
       if (b.index > a.index) return -1;
       return 0;
     });
+
     const bmap = {};
 
     for (let j = 0; j < transactions.length; j++) {
@@ -238,15 +289,18 @@ class WalletService {
 
     await wdb.rollback(height);
 
-    let entries = [];
+    dispatchToMainWindow(setSyncWalletText(`Fetching block entries...`));
 
-    await loadEntries(height);
+    const entries = [];
+
+    await this.loadEntries(height, entries);
 
     for (let i = 0; i < entries.length; i++) {
       const entryOption = entries[i];
-      await this.rescanBlock(entryOption, bmap[entry.height] || []);
+      await this.rescanBlock(entryOption, bmap[entryOption.height] || []);
 
       if (!(i % 1000)) {
+        dispatchToMainWindow(setSyncWalletText(''));
         dispatchToMainWindow({
           type: SYNC_WALLET_PROGRESS,
           payload: parseInt(i / entries.length * 100),
@@ -258,60 +312,32 @@ class WalletService {
       type: SYNC_WALLET_PROGRESS,
       payload: 100,
     });
+
     dispatchToMainWindow({type: STOP_SYNC_WALLET});
 
-    return;
+    this.isWalletRescanning = false;
 
-    async function loadEntries(startHeight = 0) {
-      const blocks = [];
-
-      for (let i = startHeight; i < startHeight + 1000; i++) {
-        blocks.push(i);
-      }
-      const res = await nodeService.getEntriesByBlocks(blocks);
-      entries = entries.concat(res);
-      if (res.length === 1000) {
-        await loadEntries(startHeight + 1000);
-      }
-    }
-
+    return null;
   };
 
-  rescan = async (height = 0) => {
-    await this._ensureClient();
-    const wdb = this.node.wdb;
-    const {chain: {height: chainHeight}} = await nodeService.getInfo();
+  loadEntries = async (startHeight = 0, entries = []) => {
+    const blocks = [];
 
-    dispatchToMainWindow({type: START_SYNC_WALLET});
-    let resetting = true;
+    for (let i = startHeight; i < startHeight + 1000; i++) {
+      blocks.push(i);
+    }
 
-    return new Promise(async (resolve, reject) => {
-      const intv = setInterval(async () => {
-        const {height: walletHeight} = await wdb.getTip();
+    const res = await this.getEntriesByBlocks(blocks);
 
-        if (walletHeight < chainHeight) {
-          resetting = false;
-        }
+    for (let entry of res) {
+      entries.push(entry);
+    }
 
-        dispatchToMainWindow({
-          type: SYNC_WALLET_PROGRESS,
-          payload: resetting
-            ? 0
-            : parseInt(walletHeight / chainHeight * 100),
-        });
-      }, 2500);
+    dispatchToMainWindow(setSyncWalletText(`Scanning ${entries.length} blocks...`));
 
-      resetting = false;
-      await wdb.rescan(height);
-
-      clearInterval(intv);
-      resolve();
-      dispatchToMainWindow({
-        type: SYNC_WALLET_PROGRESS,
-        payload: 100,
-      });
-      dispatchToMainWindow({type: STOP_SYNC_WALLET});
-    });
+    if (res.length === 1000) {
+      await this.loadEntries(startHeight + 1000, entries);
+    }
   };
 
   importSeed = async (passphrase, mnemonic) => {
@@ -659,22 +685,20 @@ class WalletService {
       nodeService.hsd.chain.on('block', async (block, chainEntry) => {
         const info = await nodeService.getInfo();
         const fees = await nodeService.getFees();
+
         dispatchToMainWindow({
           type: SET_NODE_INFO,
-          payload: {
-            info,
-          },
+          payload: { info },
         });
+
         dispatchToMainWindow({
           type: SET_FEE_INFO,
-          payload: {
-            fees,
-          },
+          payload: { fees },
         });
+
         await this.rescanBlock(chainEntry, block.txs);
       });
     }
-
 
     const conn = await getConnection();
 
@@ -682,6 +706,7 @@ class WalletService {
     this.apiKey = apiKey;
     this.walletApiKey = apiKey || crypto.randomBytes(20).toString('hex');
     this.network = network;
+
     const walletOptions = {
       network: network,
       port: network.walletPort,
@@ -711,10 +736,25 @@ class WalletService {
     });
 
     await node.open();
+
     node.wdb.on('error', e => {
       console.error(e);
     });
+
+    // node.wdb.client.socket.unhook('connect');
+    // node.wdb.client.socket.unhook('disconnect');
+    node.wdb.client.socket.unhook('block connect');
+    node.wdb.client.socket.unhook('block disconnect');
     node.wdb.client.socket.unhook('block rescan');
+    node.wdb.client.socket.unhook('tx');
+    node.wdb.client.socket.unhook('chain reset');
+    // node.wdb.client.hook('connect', () => console.log('block rescan'));
+    // node.wdb.client.hook('disconnect', () => console.log('block rescan'));
+    node.wdb.client.hook('block connect', () => console.log('block rescan'));
+    node.wdb.client.hook('block disconnect', () => console.log('block rescan'));
+    // node.wdb.client.hook('block rescan', () => console.log('block rescan'));
+    node.wdb.client.hook('tx', () => console.log('block rescan'));
+    node.wdb.client.hook('chain reset', () => console.log('block rescan'));
     this.node = node;
     this.client = new WalletClient(walletOptions);
     await this.checkRescanStatus();
@@ -894,4 +934,10 @@ function mapOneTx(txOptions) {
   });
   const tx = new TX(txOptions);
   return tx;
+}
+
+async function wait(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }

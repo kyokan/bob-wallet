@@ -9,7 +9,10 @@ import EventEmitter from 'events';
 import { NodeClient } from 'hs-client';
 import { BigNumber } from 'bignumber.js';
 import {ConnectionTypes, getConnection, getCustomRPC} from '../connections/service';
+import {dispatchToMainWindow} from "../../mainWindow";
+import {setSyncWalletText} from "../../ducks/walletActions";
 const FullNode = require('hsd/lib/node/fullnode');
+const Address = require("hsd/lib/primitives/address");
 
 const Network = require('hsd/lib/protocol/network');
 
@@ -67,14 +70,6 @@ export class NodeService extends EventEmitter {
     }
 
     console.log(`Starting node on ${networkName} network.`);
-    // const hsdWindow = new BrowserWindow({
-    //   width: 400,
-    //   height: 400,
-    //   show: false,
-    //   webPreferences: {
-    //     nodeIntegration: true,
-    //   },
-    // });
 
     const hsd = new FullNode({
       config: true,
@@ -124,9 +119,12 @@ export class NodeService extends EventEmitter {
       throw new Error('Invalid network.');
     }
 
+    // const apiKey = crypto.randomBytes(20).toString('hex');
+
     const network = Network.get(networkType);
     this.networkName = networkType;
     this.network = network;
+
     this.emit('started', this.networkName, this.network);
 
     const client = new NodeClient({
@@ -139,16 +137,12 @@ export class NodeService extends EventEmitter {
   }
 
   async stop() {
-    if (!this.hsdWindow) {
+    if (this.hsd) {
+      await this.hsd.close();
+      this.hsd = null;
+      this.client = null;
       this.emit('stopped');
-      return;
     }
-
-    const closed = new Promise((resolve) => this.hsdWindow.on('closed', resolve));
-    this.hsdWindow.send('close');
-    await closed;
-    this.hsdWindow = null;
-    this.client = null;
   }
 
   async reset() {
@@ -166,9 +160,46 @@ export class NodeService extends EventEmitter {
     return this.client.getInfo();
   }
 
-  async getTXByAddresses(addresses) {
+  async getTXByAddresses(addresses, retry = 5) {
     await this._ensureStarted();
-    return this.client.getTXByAddresses(addresses);
+
+    return new Promise(async (resolve, reject) => {
+      try {
+        let res;
+
+        if (this.hsd) {
+          const addrs = [];
+
+          for (const address of addresses) {
+            addrs.push(Address.fromString(address, this.network));
+          }
+
+          const metas = await this.hsd.getMetaByAddress(addrs);
+
+          const result = [];
+
+          for (const meta of metas) {
+            const view = await this.hsd.getMetaView(meta);
+            result.push(meta.getJSON(this.network, view, this.hsd.chain.height));
+          }
+
+          res = result;
+        } else {
+          res = await this.client.getTXByAddresses(addresses)
+        }
+
+        resolve(res);
+      } catch (e) {
+        if (/Request timed out/gi.test(e.message) && retry) {
+          setTimeout(async () => {
+            const res = await this.getTXByAddresses(addresses, retry - 1);
+            resolve(res);
+          }, 5000);
+        } else {
+          reject(e);
+        }
+      }
+    });
   }
 
   async getNameInfo(name) {
@@ -257,25 +288,10 @@ export class NodeService extends EventEmitter {
     return this._execRPC('getrawmempool', [verbose ? 1 : 0]);
   }
 
-  async getEntriesByBlocks(blocks = []) {
-    await this._ensureStarted();
-    const {apiKey, url} = await getCustomRPC();
-    const {
-      protocol,
-      host,
-      pathname,
-    } = new URL(url);
-
-    const res = await fetch(
-      `${protocol}//x:${apiKey}@${host}${pathname}/entry`,
-      {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({blocks}),
-      },
-    );
-    const json = await res.json();
-    return json;
+  async getEntryByHeight(height) {
+    if (this.hsd) {
+      return await this.hsd.chain.db.getEntryByHeight(height);
+    }
   }
 
   async _ensureStarted() {

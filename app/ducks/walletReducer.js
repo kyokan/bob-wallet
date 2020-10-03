@@ -13,6 +13,7 @@ export const SET_PENDING_TRANSACTIONS = 'app/wallet/setPendingTransactions';
 export const START_SYNC_WALLET = 'app/wallet/startSyncWallet';
 export const STOP_SYNC_WALLET = 'app/wallet/stopSyncWallet';
 export const SYNC_WALLET_PROGRESS = 'app/wallet/syncWalletProgress';
+export const SYNC_WALLET_TEXT = 'app/wallet/setWalletSyncText';
 export const GET_PASSPHRASE = 'app/wallet/getPassphrase';
 export const SET_API_KEY = 'app/wallet/setApiKey';
 export const SET_FETCHING = 'app/wallet/setFetching';
@@ -36,6 +37,7 @@ export function getInitialState() {
     idle: 0,
     walletSync: false,
     walletSyncProgress: 0,
+    walletSyncText: '',
     getPassphrase: {get: false},
   };
 }
@@ -102,6 +104,11 @@ export default function walletReducer(state = getInitialState(), {type, payload}
       return {
         ...state,
         walletSyncProgress: payload,
+      };
+    case SYNC_WALLET_TEXT:
+      return {
+        ...state,
+        walletSyncText: payload,
       };
     case GET_PASSPHRASE:
       return {

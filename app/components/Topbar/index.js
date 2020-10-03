@@ -34,6 +34,7 @@ import * as walletActions from '../../ducks/walletActions';
       spendableBalance: state.wallet.balance.spendable,
       walletSync: state.wallet.walletSync,
       walletSyncProgress: state.wallet.walletSyncProgress,
+      walletSyncText: state.wallet.walletSyncText,
     };
   },
   dispatch => ({
@@ -59,6 +60,7 @@ class Topbar extends Component {
     isChangingNodeStatus: PropTypes.bool.isRequired,
     isTestingCustomRPC: PropTypes.bool.isRequired,
     walletSync: PropTypes.bool.isRequired,
+    walletSyncText: PropTypes.string.isRequired,
     walletSyncProgress: PropTypes.number.isRequired,
   };
 
@@ -212,12 +214,13 @@ class Topbar extends Component {
       isTestingCustomRPC,
       walletSync,
       walletSyncProgress,
+      walletSyncText,
     } = this.props;
 
-    if (isSynchronizing) {
-      return `Synchronizing... ${
-        progress ? '(' + (progress * 100).toFixed(2) + '%)' : ''
-      }`;
+    console.log(isSynchronizing, isSynchronized, progress)
+
+    if (walletSync && walletSyncText) {
+      return walletSyncText;
     }
 
     if (walletSync) {
@@ -235,6 +238,14 @@ class Topbar extends Component {
     if (!isRunning && isCustomRPCConnected) {
       return 'Connected to RPC'
     }
+
+    if (isSynchronizing) {
+      return `Synchronizing... ${
+        progress ? '(' + (progress * 100).toFixed(2) + '%)' : ''
+      }`;
+    }
+
+
 
     return 'No connection';
   }

@@ -17,9 +17,9 @@ import {
   SYNC_WALLET_PROGRESS,
   UNLOCK_WALLET,
   SET_API_KEY, SET_FETCHING,
+  SYNC_WALLET_TEXT,
 } from './walletReducer';
 import { NEW_BLOCK_STATUS } from './nodeReducer';
-import {getName} from "../background/db/service";
 import dbClient from "../utils/dbClient";
 
 let idleInterval;
@@ -126,6 +126,13 @@ export const send = (to, amount, fee) => async (dispatch) => {
   return res;
 };
 
+export const setSyncWalletText = (text) => {
+  return {
+    type: SYNC_WALLET_TEXT,
+    payload: text || '',
+  };
+};
+
 export const startWalletSync = () => async (dispatch) => {
   await dispatch({type: START_SYNC_WALLET});
 };
@@ -178,6 +185,10 @@ export const fetchTransactions = () => async (dispatch, getState) => {
   const net = state.node.network;
   const currentTXs = state.wallet.transactions;
 
+  if (state.wallet.isFetching) {
+    return;
+  }
+
   dispatch({
     type: SET_FETCHING,
     payload: true,
@@ -192,7 +203,7 @@ export const fetchTransactions = () => async (dispatch, getState) => {
 
     if (existing) {
       const isPending = tx.block === null;
-      existing.date = isPending ? Date.now() : tx.mtime * 1000;
+      existing.date = isPending ? Date.now() : tx.mtime;
       existing.pending = isPending;
 
       payload.set(existing.id, existing);
@@ -210,7 +221,7 @@ export const fetchTransactions = () => async (dispatch, getState) => {
     const isPending = tx.block === null;
     const txData = {
       id: tx.hash,
-      date: isPending ? Date.now() : tx.mtime * 1000,
+      date: isPending ? Date.now() : tx.mtime,
       pending: isPending,
       ...ios,
     };
