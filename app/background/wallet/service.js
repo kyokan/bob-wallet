@@ -12,6 +12,7 @@ import { dispatchToMainWindow } from '../../mainWindow';
 import {SET_WALLET_HEIGHT, START_SYNC_WALLET, STOP_SYNC_WALLET, SYNC_WALLET_PROGRESS} from '../../ducks/walletReducer';
 import {SET_FEE_INFO, SET_NODE_INFO} from "../../ducks/nodeReducer";
 import {setSyncWalletText} from "../../ducks/walletActions";
+import {addHeader, getAddresses, getHeader, setAddresses} from "../db/service";
 const WalletNode = require('hsd/lib/wallet/node');
 const TX = require('hsd/lib/primitives/tx');
 const {Output, MTX, Address, Coin} = require('hsd/lib/primitives');
@@ -83,7 +84,7 @@ class WalletService {
 
   getWalletHeight = async () => {
     await this._ensureClient();
-    return this.node.wdb.height;
+    return (await this.node.wdb.getState()).height;
   };
 
   getAccountInfo = async () => {
@@ -138,6 +139,11 @@ class WalletService {
 
   getAddresses = async (depth = 10000) => {
     await this._ensureClient();
+
+    const cache = await getAddresses(this.networkName, WALLET_ID);
+
+    if (cache) return cache;
+
     const wdb = this.node.wdb;
     const wallet = await wdb.get(WALLET_ID);
     const account = await wallet.getAccount('default');
@@ -154,6 +160,8 @@ class WalletService {
         acc.push(change);
         return acc;
       }, []);
+
+    await setAddresses(this.networkName, WALLET_ID, addresses);
 
     return addresses;
   };
@@ -189,10 +197,16 @@ class WalletService {
         const blockHashes = await this.getHashes(blocks[0], blocks[blocks.length - 1]);
         const entries = [];
         for (let i = 0; i < blockHashes.length; i++) {
-          const entry = await this.getEntry(blockHashes[i].toString('hex'));
+          let entry = await getHeader(this.networkName, i);
+
+          if (!entry) {
+            entry = await this.getEntry(blockHashes[i].toString('hex'));
+            entry = entry && ChainEntry.fromRaw(entry).format();
+          }
 
           if (entry) {
-            entries.push(ChainEntry.fromRaw(entry).format());
+            entries.push(entry);
+            await addHeader(this.networkName, i, entry);
           }
         }
 
@@ -203,10 +217,17 @@ class WalletService {
       const len = blocks[blocks.length - 1] + 1;
 
       for (let i = blocks[0]; i < len; i++) {
-        const chainEntry = await nodeService.getEntryByHeight(i);
+        let entry = await getHeader(this.networkName, i);
 
-        if (chainEntry) {
-          entries.push(chainEntry.toJSON());
+        if (!entry) {
+          console.log('query');
+          entry = await nodeService.getEntryByHeight(i);
+          entry = entry && entry.toJSON();
+        }
+
+        if (entry) {
+          entries.push(entry);
+          await addHeader(this.networkName, i, entry);
         }
       }
 
@@ -254,8 +275,6 @@ class WalletService {
       });
 
     const res = await wdb.rescanBlock(entry, txs);
-
-    dispatchToMainWindow({ type: SET_WALLET_HEIGHT, payload: entry.height});
 
     wdb.rescanning = false;
 
@@ -306,12 +325,23 @@ class WalletService {
 
       if (!(i % 1000)) {
         dispatchToMainWindow(setSyncWalletText(''));
+
+        dispatchToMainWindow({
+          type: SET_WALLET_HEIGHT,
+          payload: i,
+        });
+
         dispatchToMainWindow({
           type: SYNC_WALLET_PROGRESS,
           payload: parseInt(i / entries.length * 100),
         });
       }
     }
+
+    dispatchToMainWindow({
+      type: SET_WALLET_HEIGHT,
+      payload: entries.length,
+    });
 
     dispatchToMainWindow({
       type: SYNC_WALLET_PROGRESS,
@@ -743,7 +773,7 @@ class WalletService {
 
     dispatchToMainWindow({
       type: SET_WALLET_HEIGHT,
-      payload: node.wdb.height,
+      payload: await this.getWalletHeight(),
     });
 
     if (nodeService.hsd) {

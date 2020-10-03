@@ -8,4 +8,8 @@ export const clientStub = (ipcRendererInjector) => makeClient(ipcRendererInjecto
   'del',
   'addName',
   'getName',
+  'addHeader',
+  'getHeader',
+  'setAddresses',
+  'getAddresses',
 ]);

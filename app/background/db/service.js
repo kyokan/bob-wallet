@@ -1,9 +1,11 @@
 import { app } from 'electron';
 import bdb from 'bdb';
-import path from 'path';
+const path = require('path');
+import fs from 'fs';
 
 let db;
 let nameDB;
+let headerDB;
 
 export async function open() {
   if (db) {
@@ -12,6 +14,8 @@ export async function open() {
 
   const loc = path.join(app.getPath('userData'), 'db');
   const nameDBloc = path.join(app.getPath('userData'), 'namedb');
+  const headerDBloc = path.join(app.getPath('userData'), 'headerdb');
+
   const tdb = bdb.create(loc);
   await tdb.open();
   db = tdb;
@@ -19,6 +23,10 @@ export async function open() {
   const ndb = bdb.create(nameDBloc);
   await ndb.open();
   nameDB = ndb;
+
+  const hdb = bdb.create(headerDBloc);
+  await hdb.open();
+  headerDB = hdb;
 }
 
 export async function close() {
@@ -67,6 +75,47 @@ export async function getName(net = 'main', hash) {
   return data.toString('utf-8');
 }
 
+export async function addHeader(net = 'main', height, entry) {
+  ensureDB();
+  const keyBuf = Buffer.from(`${net}:${height}`, 'utf-8');
+  const valBuf = Buffer.from(JSON.stringify(entry), 'utf-8');
+  return headerDB.put(keyBuf, valBuf);
+}
+
+export async function getHeader(net = 'main', height) {
+  ensureDB();
+  const keyBuf = Buffer.from(`${net}:${height}`, 'utf-8');
+  const data = await headerDB.get(keyBuf);
+
+  if (data === null) {
+    return null;
+  }
+
+  return JSON.parse(data.toString('utf-8'));
+}
+
+export async function setAddresses(net = 'main', walletId, addresses) {
+  const addressesPath = path.join(app.getPath('userData'), `${walletId}-${net}`);
+  return await fs.promises.writeFile(addressesPath, Buffer.from(addresses.join('\n'), 'utf-8'));
+}
+
+export async function getAddresses(net = 'main', walletId) {
+  try {
+    const addressesPath = path.join(app.getPath('userData'), `${walletId}-${net}`);
+    const buf =  await fs.promises.readFile(addressesPath);
+
+    if (!buf) return null;
+
+    const addresses = buf.toString('utf-8').split('\n');
+
+    if (addresses.length !== 20000) return null;
+
+    return addresses;
+  } catch (e) {
+    return null;
+  }
+}
+
 function ensureDB() {
   if (!db) {
     throw new Error('db not open');
@@ -74,6 +123,10 @@ function ensureDB() {
 
   if (!nameDB) {
     throw new Error('nameDB not open');
+  }
+
+  if (!headerDB) {
+    throw new Error('headerDB not open');
   }
 }
 
@@ -86,6 +139,10 @@ const methods = {
   del,
   addName,
   getName,
+  addHeader,
+  getHeader,
+  setAddresses,
+  getAddresses,
 };
 
 export async function start(server) {
