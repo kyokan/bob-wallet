@@ -17,6 +17,7 @@ export const SYNC_WALLET_TEXT = 'app/wallet/setWalletSyncText';
 export const GET_PASSPHRASE = 'app/wallet/getPassphrase';
 export const SET_API_KEY = 'app/wallet/setApiKey';
 export const SET_FETCHING = 'app/wallet/setFetching';
+export const SET_WALLET_HEIGHT = 'app/wallet/setWalletHeight';
 
 export function getInitialState() {
   return {
@@ -27,6 +28,7 @@ export function getInitialState() {
     isFetching: false,
     initialized: false,
     network: '',
+    height: 0,
     balance: {
       confirmed: 0,
       unconfirmed: 0,
@@ -119,6 +121,12 @@ export default function walletReducer(state = getInitialState(), {type, payload}
       return {
         ...state,
         isFetching: payload,
+      };
+    case SET_WALLET_HEIGHT:
+      console.log({payload})
+      return {
+        ...state,
+        height: payload,
       };
     default:
       return state;

@@ -9,7 +9,7 @@ import rimraf from 'rimraf';
 import {ConnectionTypes, getConnection, getCustomRPC} from '../connections/service';
 import crypto from 'crypto';
 import { dispatchToMainWindow } from '../../mainWindow';
-import { START_SYNC_WALLET, STOP_SYNC_WALLET, SYNC_WALLET_PROGRESS } from '../../ducks/walletReducer';
+import {SET_WALLET_HEIGHT, START_SYNC_WALLET, STOP_SYNC_WALLET, SYNC_WALLET_PROGRESS} from '../../ducks/walletReducer';
 import {SET_FEE_INFO, SET_NODE_INFO} from "../../ducks/nodeReducer";
 import {setSyncWalletText} from "../../ducks/walletActions";
 const WalletNode = require('hsd/lib/wallet/node');
@@ -81,6 +81,10 @@ class WalletService {
     return this.client.getInfo(WALLET_ID);
   };
 
+  getWalletHeight = async () => {
+    await this._ensureClient();
+    return this.node.wdb.height;
+  };
 
   getAccountInfo = async () => {
     await this._ensureClient();
@@ -249,8 +253,9 @@ class WalletService {
         chainwork: entryOption.chainwork && BN.from(entryOption.chainwork, 16, 'be'),
       });
 
-    console.log(wdb.height);
     const res = await wdb.rescanBlock(entry, txs);
+
+    dispatchToMainWindow({ type: SET_WALLET_HEIGHT, payload: entry.height});
 
     wdb.rescanning = false;
 
@@ -681,25 +686,6 @@ class WalletService {
   };
 
   _onNodeStart = async (networkName, network, apiKey) => {
-    if (nodeService.hsd) {
-      nodeService.hsd.chain.on('block', async (block, chainEntry) => {
-        const info = await nodeService.getInfo();
-        const fees = await nodeService.getFees();
-
-        dispatchToMainWindow({
-          type: SET_NODE_INFO,
-          payload: { info },
-        });
-
-        dispatchToMainWindow({
-          type: SET_FEE_INFO,
-          payload: { fees },
-        });
-
-        await this.rescanBlock(chainEntry, block.txs);
-      });
-    }
-
     const conn = await getConnection();
 
     this.networkName = networkName;
@@ -741,22 +727,47 @@ class WalletService {
       console.error(e);
     });
 
-    // node.wdb.client.socket.unhook('connect');
-    // node.wdb.client.socket.unhook('disconnect');
     node.wdb.client.socket.unhook('block connect');
     node.wdb.client.socket.unhook('block disconnect');
     node.wdb.client.socket.unhook('block rescan');
     node.wdb.client.socket.unhook('tx');
     node.wdb.client.socket.unhook('chain reset');
-    // node.wdb.client.hook('connect', () => console.log('block rescan'));
-    // node.wdb.client.hook('disconnect', () => console.log('block rescan'));
+
     node.wdb.client.hook('block connect', () => console.log('block rescan'));
     node.wdb.client.hook('block disconnect', () => console.log('block rescan'));
-    // node.wdb.client.hook('block rescan', () => console.log('block rescan'));
     node.wdb.client.hook('tx', () => console.log('block rescan'));
     node.wdb.client.hook('chain reset', () => console.log('block rescan'));
+
     this.node = node;
     this.client = new WalletClient(walletOptions);
+
+    dispatchToMainWindow({
+      type: SET_WALLET_HEIGHT,
+      payload: node.wdb.height,
+    });
+
+    if (nodeService.hsd) {
+      nodeService.hsd.chain.on('block', async (block, chainEntry) => {
+        const info = await nodeService.getInfo();
+        const fees = await nodeService.getFees();
+
+        dispatchToMainWindow({
+          type: SET_NODE_INFO,
+          payload: { info },
+        });
+
+        dispatchToMainWindow({
+          type: SET_FEE_INFO,
+          payload: { fees },
+        });
+
+        const wdb = node.wdb;
+        if (chainEntry.height === wdb.height + 1) {
+          await this.rescanBlock(chainEntry, block.txs);
+        }
+      });
+    }
+
     await this.checkRescanStatus();
   };
 
@@ -768,9 +779,6 @@ class WalletService {
     }
     this.client = null;
     this.didSelectWallet = false;
-    if (this.rescanStatusIntv) {
-      clearInterval(this.rescanStatusIntv);
-    }
   };
 
   async _ensureClient() {
@@ -837,6 +845,7 @@ const methods = {
   // stub the start method in case we need it later
   start: async () => null,
   getWalletInfo: service.getWalletInfo,
+  getWalletHeight: service.getWalletHeight,
   getAccountInfo: service.getAccountInfo,
   getAPIKey: service.getAPIKey,
   getCoin: service.getCoin,

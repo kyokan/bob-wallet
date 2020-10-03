@@ -17,7 +17,7 @@ import {
   SYNC_WALLET_PROGRESS,
   UNLOCK_WALLET,
   SET_API_KEY, SET_FETCHING,
-  SYNC_WALLET_TEXT,
+  SYNC_WALLET_TEXT, SET_WALLET_HEIGHT,
 } from './walletReducer';
 import { NEW_BLOCK_STATUS } from './nodeReducer';
 import dbClient from "../utils/dbClient";
@@ -81,6 +81,13 @@ export const fetchWallet = () => async (dispatch, getState) => {
 
   const accountInfo = await walletClient.getAccountInfo();
   const apiKey = await walletClient.getAPIKey();
+  const height =  await walletClient.getWalletHeight();
+
+  dispatch({
+    type: SET_WALLET_HEIGHT,
+    payload: height,
+  });
+
   dispatch(setWallet({
     initialized: isInitialized,
     address: accountInfo && accountInfo.receiveAddress,

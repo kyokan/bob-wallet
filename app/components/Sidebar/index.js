@@ -14,6 +14,7 @@ import { Logo } from '../Logo';
     newBlockStatus: state.node.newBlockStatus,
     walletSync: state.wallet.walletSync,
     walletSyncProgress: state.wallet.walletSyncProgress,
+    walletHeight: state.wallet.height,
   }),
   dispatch => ({})
 )
@@ -30,6 +31,7 @@ class Sidebar extends Component {
     newBlockStatus: PropTypes.string.isRequired,
     walletSync: PropTypes.bool.isRequired,
     walletSyncProgress: PropTypes.number.isRequired,
+    walletHeight: PropTypes.number.isRequired,
   };
 
   render() {
@@ -125,6 +127,7 @@ class Sidebar extends Component {
     const {
       walletSync,
       walletSyncProgress,
+      walletHeight,
     } = this.props;
 
     return (
@@ -136,8 +139,8 @@ class Sidebar extends Component {
           <div className="sidebar__footer__title">Current Height</div>
           <div className="sidebar__footer__text">
             {
-              walletSync
-                ? `${Math.floor((walletSyncProgress/100) * this.props.height)}/${this.props.height}`
+              walletHeight < this.props.height
+                ? `${walletHeight}/${this.props.height}`
                 : this.props.height || '--'
             }
           </div>
