@@ -41,13 +41,6 @@ export const getMyNames = () => async (dispatch, getState) => {
           len++;
         }
       }
-
-      if (!(i % 100) && len) {
-        dispatch({
-          type: ADD_NAMES,
-          payload: ret,
-        });
-      }
     }
 
     dispatch({

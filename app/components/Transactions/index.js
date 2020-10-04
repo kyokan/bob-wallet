@@ -6,7 +6,7 @@ import c from 'classnames';
 import Transaction from './Transaction';
 import './index.scss';
 // Dummy transactions state until we have ducks
-import { fetchTransactions } from '../../ducks/walletActions';
+import {fetchPendingTransactions, fetchTransactions} from '../../ducks/walletActions';
 import Dropdown from '../Dropdown';
 import BidSearchInput from '../BidSearchInput';
 import Fuse from '../../vendor/fuse';
@@ -33,7 +33,8 @@ const ITEM_PER_DROPDOWN = [
     transactions: state.wallet.transactions,
   }),
   (dispatch) => ({
-    fetchTransactions: () => dispatch(fetchTransactions())
+    fetchTransactions: () => dispatch(fetchTransactions()),
+    fetchPendingTransactions: () => dispatch(fetchPendingTransactions())
   })
 )
 export default class Transactions extends Component {
@@ -42,7 +43,8 @@ export default class Transactions extends Component {
   };
 
   async componentDidMount() {
-    await this.props.fetchTransactions()
+    await this.props.fetchTransactions();
+    await this.props.fetchPendingTransactions();
   }
 
   componentWillReceiveProps(nextProps) {
@@ -213,7 +215,6 @@ export default class Transactions extends Component {
 }
 
 //TODO: Connect component to Redux and grab transactionsOrder directly
-
 function getPageIndices(transactions, itemsPerPage, currentPageIndex) {
   const totals = Math.ceil(transactions.length / itemsPerPage);
   const results = [];

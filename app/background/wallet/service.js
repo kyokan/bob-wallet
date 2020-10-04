@@ -21,6 +21,7 @@ const {hashName, types} = require('hsd/lib/covenants/rules');
 const MasterKey = require('hsd/lib/wallet/masterkey');
 const Mnemonic = require('hsd/lib/hd/mnemonic');
 const Covenant = require('hsd/lib/primitives/covenant');
+const rules = require('hsd/lib/covenants/rules');
 const ChainEntry = require("hsd/lib/blockchain/chainentry");
 const BN = require('bcrypto/lib/bn.js');
 
@@ -168,17 +169,43 @@ class WalletService {
     return addresses;
   };
 
-  async getEntry(hash) {
+  getNameStateByName = async (name)  => {
+    const wallet = await this.node.wdb.get(WALLET_ID);
+    const height = this.node.wdb.height;
+    const network = this.network;
+    const ns = await wallet.getNameStateByName(name);
+    const nameHash = rules.hashName(name);
+    const reserved = rules.isReserved(nameHash, height + 1, network);
+    const [start, week] = rules.getRollout(nameHash, network);
+    let info;
+
+    return {
+      start: {
+        reserved: reserved,
+        week: week,
+        start: start
+      },
+      info: ns.getJSON(height, network),
+    };
+  };
+
+  getEntry = async (hash) => {
     const wdb = this.node.wdb;
     return wdb.client.getEntry(hash);
-  }
+  };
 
-  async getHashes(start, end) {
+  getHashes = async (start, end) => {
     const wdb = this.node.wdb;
     return wdb.client.getHashes(start, end);
-  }
+  };
 
-  async getEntriesByBlocks(blocks = []) {
+  getTX = async (txHash) => {
+    await this._ensureClient();
+    const wallet = await this.node.wdb.get(WALLET_ID);
+    return wallet.getTX(Buffer.from(txHash, 'hex'));
+  };
+
+  getEntriesByBlocks = async (blocks = []) => {
     const {type} = await getConnection();
     const {apiKey, url} = await getCustomRPC();
 
@@ -222,7 +249,6 @@ class WalletService {
         let entry = await getHeader(this.networkName, i);
 
         if (!entry) {
-          console.log('query');
           entry = await nodeService.getEntryByHeight(i);
           entry = entry && entry.toJSON();
         }
@@ -235,7 +261,7 @@ class WalletService {
 
       return entries;
     }
-  }
+  };
 
   getTXByAddresses = async () => {
     await this._ensureClient();
@@ -416,7 +442,9 @@ class WalletService {
   };
 
   getBids = async () => {
-    return this._executeRPC('getbids');
+    await this._ensureClient();
+    const wallet = await this.node.wdb.get(WALLET_ID);
+    return wallet.getBids();
   };
 
   getMasterHDKey = () => this._ledgerDisabled(
@@ -881,11 +909,13 @@ const methods = {
   getAPIKey: service.getAPIKey,
   getCoin: service.getCoin,
   getNames: service.getNames,
+  getNameStateByName: service.getNameStateByName,
   createNewWallet: service.createNewWallet,
   importSeed: service.importSeed,
   generateReceivingAddress: service.generateReceivingAddress,
   getAuctionInfo: service.getAuctionInfo,
   getTransactionHistory: service.getTransactionHistory,
+  getTX: service.getTX,
   getPendingTransactions: service.getPendingTransactions,
   getBids: service.getBids,
   getMasterHDKey: service.getMasterHDKey,

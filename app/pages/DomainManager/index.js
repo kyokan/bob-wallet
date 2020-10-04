@@ -11,29 +11,41 @@ import ClaimNameForPayment from './ClaimNameForPayment';
 import {HeaderItem, HeaderRow, Table, TableItem, TableRow} from "../../components/Table";
 import Blocktime from "../../components/Blocktime";
 import {displayBalance} from "../../utils/balances";
+import {getPageIndices} from "../../utils/pageable";
+import c from "classnames";
+import Dropdown from "../../components/Dropdown";
 
 const {dialog} = require('electron').remote;
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
+const ITEM_PER_DROPDOWN = [
+  { label: '5', value: 5 },
+  { label: '10', value: 10 },
+  { label: '20', value: 20 },
+  { label: '50', value: 50 },
+];
+
 class DomainManager extends Component {
   static propTypes = {
+    isFetching: PropTypes.bool.isRequired,
     getMyNames: PropTypes.func.isRequired,
     namesList: PropTypes.object.isRequired,
     names: PropTypes.object.isRequired,
   };
 
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      isShowingNameClaimForPayment: false,
-    };
-  }
+  state = {
+    isShowingNameClaimForPayment: false,
+    currentPageIndex: 0,
+    itemsPerPage: 10,
+  };
 
   shouldComponentUpdate(nextProps, nextState) {
     return this.props.namesList.join('') !== nextProps.namesList.join('')
-      || this.state.isShowingNameClaimForPayment !== nextState.isShowingNameClaimForPayment;
+      || this.props.isFetching !== nextProps.isFetching
+      || this.state.isShowingNameClaimForPayment !== nextState.isShowingNameClaimForPayment
+      || this.state.currentPageIndex !== nextState.currentPageIndex
+      || this.state.itemsPerPage !== nextState.itemsPerPage;
   }
 
   componentDidMount() {
@@ -61,8 +73,100 @@ class DomainManager extends Component {
     }
   }
 
+  renderGoTo(namesList) {
+    const { currentPageIndex, itemsPerPage } = this.state;
+    const totalPages = Math.ceil(namesList.length / itemsPerPage);
+    return (
+      <div className="domain-manager__page-control__dropdowns">
+        <div className="domain-manager__go-to">
+          <div className="domain-manager__go-to__text">Items per Page:</div>
+          <Dropdown
+            className="domain-manager__go-to__dropdown transactions__items-per__dropdown"
+            items={ITEM_PER_DROPDOWN}
+            onChange={itemsPerPage => this.setState({
+              itemsPerPage,
+              currentPageIndex: 0,
+            })}
+            currentIndex={ITEM_PER_DROPDOWN.findIndex(({ value }) => value === this.state.itemsPerPage)}
+          />
+        </div>
+        <div className="domain-manager__go-to">
+          <div className="domain-manager__go-to__text">Page</div>
+          <Dropdown
+            className="domain-manager__go-to__dropdown"
+            items={Array(totalPages).fill(0).map((_, i) => ({ label: `${i + 1}` }))}
+            onChange={currentPageIndex => this.setState({ currentPageIndex })}
+            currentIndex={currentPageIndex}
+          />
+          <div className="domain-manager__go-to__total">of {totalPages}</div>
+        </div>
+      </div>
+    )
+  }
+
+  renderControls() {
+    const {
+      currentPageIndex,
+      itemsPerPage,
+    } = this.state;
+    const {
+      namesList,
+    } = this.props;
+
+    const totalPages = Math.ceil(namesList.length / itemsPerPage);
+    const pageIndices = getPageIndices(namesList, itemsPerPage, currentPageIndex);
+
+    return (
+      <div className="domain-manager__page-control">
+        <div className="domain-manager__page-control__numbers">
+          <div
+            className="domain-manager__page-control__start"
+            onClick={() => this.setState({
+              currentPageIndex: Math.max(currentPageIndex - 1, 0),
+            })}
+          />
+          {pageIndices.map((pageIndex, i) => {
+            if (pageIndex === '...') {
+              return (
+                <div key={`${pageIndex}-${i}`} className="domain-manager__page-control__ellipsis">...</div>
+              );
+            }
+
+            return (
+              <div
+                key={`${pageIndex}-${i}`}
+                className={c('domain-manager__page-control__page', {
+                  'domain-manager__page-control__page--active': currentPageIndex === pageIndex,
+                })}
+                onClick={() => this.setState({ currentPageIndex: pageIndex })}
+              >
+                {pageIndex + 1}
+              </div>
+            )
+          })}
+          <div
+            className="domain-manager__page-control__end"
+            onClick={() => this.setState({
+              currentPageIndex: Math.min(currentPageIndex + 1, totalPages - 1),
+            })}
+          />
+        </div>
+        {this.renderGoTo(namesList)}
+      </div>
+    )
+  }
+
+  renderDomains() {
+
+  }
+
   renderList() {
-    const {namesList, names, history} = this.props;
+    const {namesList, history} = this.props;
+    const {
+      currentPageIndex: i,
+      itemsPerPage: n,
+    } = this.state;
+
     return (
       <div className="domain-manager">
         <div className="domain-manager__buttons">
@@ -87,7 +191,7 @@ class DomainManager extends Component {
             <HeaderItem>Expiry</HeaderItem>
             <HeaderItem>HNS Paid</HeaderItem>
           </HeaderRow>
-          {namesList.map((name) => {
+          {namesList.slice(i, i + n).map((name) => {
             return (
               <DomainRow
                 key={`${name}`}
@@ -121,10 +225,31 @@ class DomainManager extends Component {
     );
   }
 
+  renderBody() {
+    const { namesList, isFetching } = this.props;
+
+    if (isFetching) {
+      return (
+        <div className="domain-manager">
+          <div className="domain-manager__loading">
+            {`Loading ${namesList.length} domains...`}
+          </div>
+        </div>
+      )
+    }
+
+    if (namesList.length) {
+      return this.renderList();
+    }
+
+    return this.renderEmpty();
+  }
+
   render() {
     return (
       <>
-        {this.props.namesList.length ? this.renderList() : this.renderEmpty()}
+        {this.renderBody()}
+        {this.renderControls()}
         {this.state.isShowingNameClaimForPayment && (
           <ClaimNameForPayment
             onClose={() => this.setState({
@@ -141,6 +266,7 @@ export default withRouter(
   connect(
     state => ({
       names: state.myDomains.names,
+      isFetching: state.myDomains.isFetching,
       namesList: Object.keys(state.myDomains.names),
     }),
     dispatch => ({
@@ -155,6 +281,7 @@ const DomainRow = connect(
     names: state.myDomains.names,
   }),
 )(_DomainRow);
+
 function _DomainRow(props) {
   const { name, names, onClick } = props;
   return (

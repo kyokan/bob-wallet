@@ -1,6 +1,5 @@
 import walletClient from '../utils/walletClient';
-import {NEW_BLOCK_STATUS} from "./nodeReducer";
-import {getNameInfo} from "./names";
+import {fetchName} from "./names";
 
 const SET_YOUR_BIDS = 'app/bids/setYourBids';
 
@@ -17,6 +16,12 @@ export const getYourBids = () => async (dispatch) => {
       payload: result,
     });
   }
+
+  // setTimeout(async () => {
+  //   for (let bid of result) {
+  //     await dispatch(fetchName(bid.name));
+  //   }
+  // }, 0);
 };
 
 export default function bidsReducer(state = initialState, action) {

@@ -11,13 +11,23 @@ import {
 } from '../../utils/nameHelpers';
 import Hash from '../../components/Hash';
 import Blocktime from '../../components/Blocktime';
+import * as namesActions from "../../ducks/names";
+
 
 class BidStatus extends Component {
   static propTypes = {
     name: PropTypes.string.isRequired,
+    domain: PropTypes.object,
     address: PropTypes.string.isRequired,
-    inflateBid: PropTypes.func.isRequired,
+    fetchName: PropTypes.func.isRequired,
   };
+
+  componentDidMount() {
+    if (!this.props.domain) {
+      console.log('fetch!');
+      this.props.fetchName();
+    }
+  }
 
   isSold = () => isClosed(this.props.domain);
   isReveal = () => isReveal(this.props.domain);
@@ -91,18 +101,19 @@ class BidStatus extends Component {
     }
 
     if (this.isSold()) {
-      return (
-        <span>
-          <span>SOLD</span>
-          <span className="bid-status__text__paren">
-            <span>(</span>
-            <span className="bid-status__text__link">
-              <Hash value={domain.winner.address} start={4} end={-4} />
-            </span>
-            <span>)</span>
-          </span>
-        </span>
-      );
+      return 'SOLD';
+      // return (
+      //   <span>
+      //     <span>SOLD</span>
+      //     <span className="bid-status__text__paren">
+      //       <span>(</span>
+      //       <span className="bid-status__text__link">
+      //         <Hash value={domain.winner && domain.winner.address} start={4} end={-4} />
+      //       </span>
+      //       <span>)</span>
+      //     </span>
+      //   </span>
+      // );
     }
 
     if (this.isOpening()) {
@@ -146,11 +157,13 @@ export default withRouter(
   connect(
     (state, ownProps) => {
       const name = state.names[ownProps.name];
-
       return {
         domain: name,
         address: state.wallet.address,
       };
     },
+    (dispatch, ownProps) => ({
+      fetchName: () => dispatch(namesActions.fetchName(ownProps.name)),
+    }),
   )(BidStatus)
 );

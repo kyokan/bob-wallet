@@ -73,11 +73,11 @@ export function makeServer(ipcMain) {
         Sentry.captureException(err);
         return event.sender.send(SIGIL, makeError(err.code || -1, err.message, data.id));
       }
-      log('Sending IPC method response.', sanitizeData(data, method), sanitizeRes(res, method));
+      // log('Sending IPC method response.', sanitizeData(data, method), sanitizeRes(res, method));
       return event.sender.send(SIGIL, makeResponse(res, data.id));
     };
 
-    log('Executing IPC method.', sanitizeData(data, method));
+    // log('Executing IPC method.', sanitizeData(data, method));
     const maybePromise = method.apply(null, [...params, cb]);
     if (maybePromise.then) {
       maybePromise.then((res) => cb(null, res))
