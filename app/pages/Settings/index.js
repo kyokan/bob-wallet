@@ -32,7 +32,10 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
     network: state.node.network,
     apiKey: state.node.apiKey,
     walletApiKey: state.wallet.apiKey,
+    walletHeight: state.wallet.height,
+    walletSync: state.wallet.walletSync,
     isRunning: state.node.isRunning,
+    chainHeight: state.node.chain.height,
     isChangingNodeStatus: state.node.isChangingNodeStatus,
     isTestingCustomRPC: state.node.isTestingCustomRPC,
     isCustomRPCConnected: state.node.isCustomRPCConnected,
@@ -52,6 +55,9 @@ export default class Settings extends Component {
     network: PropTypes.string.isRequired,
     apiKey: PropTypes.string.isRequired,
     walletApiKey: PropTypes.string.isRequired,
+    walletHeight: PropTypes.number.isRequired,
+    chainHeight: PropTypes.number.isRequired,
+    walletSync: PropTypes.bool.isRequired,
     isRunning: PropTypes.bool.isRequired,
     isChangingNodeStatus: PropTypes.bool.isRequired,
     lockWallet: PropTypes.func.isRequired,
@@ -166,6 +172,9 @@ export default class Settings extends Component {
       history,
       lockWallet,
       transactions,
+      walletHeight,
+      chainHeight,
+      walletSync,
     } = this.props;
 
     return (
@@ -182,15 +191,22 @@ export default class Settings extends Component {
           <div>
             <div>{`${transactions.size} transactions found in walletdb`}</div>
           </div>,
-          'Rescan',
+          `Rescan from 0`,
           () => walletClient.rescan(0),
+          <button
+            className="settings__rescan-btn"
+            onClick={() => walletClient.rescan(walletHeight)}
+            disabled={chainHeight <= walletHeight}
+          >
+            {`Rescan from ${walletHeight}`}
+          </button>,
         )}
 
         {this.renderSection(
           'API Key',
           <span>
-                  API key for <Anchor href="https://hsd-dev.org/api-docs/#get-wallet-info">hsw-cli</Anchor> and <Anchor href="https://hsd-dev.org/api-docs/#selectwallet">hsw-rpc</Anchor>. Make sure you select the wallet id "allison".
-                </span>,
+            API key for <Anchor href="https://hsd-dev.org/api-docs/#get-wallet-info">hsw-cli</Anchor> and <Anchor href="https://hsd-dev.org/api-docs/#selectwallet">hsw-rpc</Anchor>. Make sure you select the wallet id "allison".
+          </span>,
           'View API Key',
           () => history.push('/settings/wallet/view-api-key'),
         )}

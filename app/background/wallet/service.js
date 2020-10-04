@@ -24,6 +24,7 @@ const Covenant = require('hsd/lib/primitives/covenant');
 const rules = require('hsd/lib/covenants/rules');
 const ChainEntry = require("hsd/lib/blockchain/chainentry");
 const BN = require('bcrypto/lib/bn.js');
+const layout = require('hsd/lib/wallet/layout').txdb;
 
 
 const WALLET_ID = 'allison';
@@ -309,7 +310,38 @@ class WalletService {
     return res;
   };
 
+  rescanFrom = async (height) => {
+    if (this.isWalletRescanning) return;
+
+    this.isWalletRescanning = true;
+
+    await this._ensureClient();
+
+
+    dispatchToMainWindow({type: START_SYNC_WALLET});
+
+    // get blocks
+    const {chain: {height: chainHeight}} = await nodeService.getInfo();
+
+    for (let i = height; i <= chainHeight; i++) {
+      const block = await nodeService.getBlock(i);
+      await this.rescanBlock(block, block.txs.map(txJSON => TX.fromJSON(txJSON)));
+      dispatchToMainWindow({
+        type: SET_WALLET_HEIGHT,
+        payload: block.height,
+      });
+    }
+    // scan blocks
+
+
+    dispatchToMainWindow({type: STOP_SYNC_WALLET});
+
+    this.isWalletRescanning = false;
+  };
+
   rescan = async (height = 0) => {
+    if (height) return this.rescanFrom(height);
+
     if (this.isWalletRescanning) return;
 
     this.isWalletRescanning = true;
@@ -356,31 +388,36 @@ class WalletService {
 
         dispatchToMainWindow({
           type: SET_WALLET_HEIGHT,
-          payload: i,
-        });
-
-        dispatchToMainWindow({
-          type: SYNC_WALLET_PROGRESS,
-          payload: parseInt(i / entries.length * 100),
+          payload: entryOption.height,
         });
       }
     }
 
     dispatchToMainWindow({
       type: SET_WALLET_HEIGHT,
-      payload: entries.length,
+      payload: entries[entries.length - 1].height,
     });
 
-    dispatchToMainWindow({
-      type: SYNC_WALLET_PROGRESS,
-      payload: 100,
-    });
+    await this.connectNames();
 
     dispatchToMainWindow({type: STOP_SYNC_WALLET});
 
     this.isWalletRescanning = false;
 
     return null;
+  };
+
+  connectNames = async () => {
+    const names = await this.getNames();
+    const wallet = await this.node.wdb.get(WALLET_ID);
+    const b = wallet.txdb.bucket.batch();
+
+    for (let nameState of names) {
+      const ns = await this.node.wdb.client.getNameStatus(nameState.nameHash);
+      b.put(layout.A.encode(nameState.nameHash), ns.encode())
+    }
+
+    await b.write();
   };
 
   loadEntries = async (startHeight = 0, entries = []) => {
@@ -792,13 +829,17 @@ class WalletService {
     node.wdb.client.socket.unhook('tx');
     node.wdb.client.socket.unhook('chain reset');
 
-    node.wdb.client.hook('block connect', () => console.log('block rescan'));
-    node.wdb.client.hook('block disconnect', () => console.log('block rescan'));
-    node.wdb.client.hook('tx', () => console.log('block rescan'));
-    node.wdb.client.hook('chain reset', () => console.log('block rescan'));
+    node.wdb.client.hook('block rescan', () => null);
+    node.wdb.client.hook('block connect', () => null);
+    node.wdb.client.hook('block disconnect', () => null);
+    node.wdb.client.hook('tx', () => null);
+    node.wdb.client.hook('chain reset', () => null);
 
     this.node = node;
     this.client = new WalletClient(walletOptions);
+
+    global.walletNode = node;
+    global.svc = this;
 
     dispatchToMainWindow({
       type: SET_WALLET_HEIGHT,
@@ -820,10 +861,9 @@ class WalletService {
           payload: { fees },
         });
 
-        const wdb = node.wdb;
-        if (chainEntry.height === wdb.height + 1) {
-          await this.rescanBlock(chainEntry, block.txs);
-        }
+        const walletHeight = await this.getWalletHeight();
+
+        await this.rescanFrom(walletHeight);
       });
     }
 

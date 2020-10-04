@@ -35,6 +35,8 @@ import * as walletActions from '../../ducks/walletActions';
       walletSync: state.wallet.walletSync,
       walletSyncProgress: state.wallet.walletSyncProgress,
       walletSyncText: state.wallet.walletSyncText,
+      walletHeight: state.wallet.height,
+      chainHeight: state.node.chain.height,
     };
   },
   dispatch => ({
@@ -215,16 +217,16 @@ class Topbar extends Component {
       walletSync,
       walletSyncProgress,
       walletSyncText,
+      walletHeight,
+      chainHeight,
     } = this.props;
-
-    console.log(isSynchronizing, isSynchronized, progress)
 
     if (walletSync && walletSyncText) {
       return walletSyncText;
     }
 
     if (walletSync) {
-      return `Rescanning... (${walletSyncProgress}%)`;
+      return `Rescanning... (${((walletHeight / chainHeight) * 100).toFixed(2)}%)`;
     }
 
     if (isSynchronized) {

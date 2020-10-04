@@ -153,6 +153,12 @@
     }
   }
 
+  &__rescan-btn {
+    @extend %btn-secondary;
+    padding: .5rem 1rem;
+    margin-right: .375rem;
+  }
+
   &__view-api-btn {
     @extend %btn-secondary;
     padding: .5rem 1rem;

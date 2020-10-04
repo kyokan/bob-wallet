@@ -24,7 +24,6 @@ class BidStatus extends Component {
 
   componentDidMount() {
     if (!this.props.domain) {
-      console.log('fetch!');
       this.props.fetchName();
     }
   }

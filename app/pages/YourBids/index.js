@@ -167,7 +167,10 @@ class YourBids extends Component {
       return <EmptyResult />;
     }
 
-    return bids.slice(s, s + n).map((bid, i) => (
+    const start = s * n;
+    const end = start + n;
+
+    return bids.slice(start, end).map((bid, i) => (
       <TableRow key={`${bid.name}-${i}`} onClick={() => history.push(`/domain/${bid.name}`)}>
         <TableItem><BidStatus name={bid.name} /></TableItem>
         <TableItem>{formatName(bid.name)}</TableItem>

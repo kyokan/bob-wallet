@@ -167,6 +167,9 @@ class DomainManager extends Component {
       itemsPerPage: n,
     } = this.state;
 
+    const start = i * n;
+    const end = start + n;
+
     return (
       <div className="domain-manager">
         <div className="domain-manager__buttons">
@@ -191,7 +194,7 @@ class DomainManager extends Component {
             <HeaderItem>Expiry</HeaderItem>
             <HeaderItem>HNS Paid</HeaderItem>
           </HeaderRow>
-          {namesList.slice(i, i + n).map((name) => {
+          {namesList.slice(start, end).map((name) => {
             return (
               <DomainRow
                 key={`${name}`}

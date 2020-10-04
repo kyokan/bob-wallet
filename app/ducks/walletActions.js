@@ -205,11 +205,11 @@ export const fetchTransactions = () => async (dispatch, getState) => {
   let payload = new Map();
 
   for (let i = 0; i < txs.length; i++) {
-    const {tx, time} = txs[i];
+    const {tx, time, block} = txs[i];
     const existing = currentTXs.get(tx.hash);
 
     if (existing) {
-      const isPending = tx.block === null;
+      const isPending = !block;
       existing.date = isPending ? Date.now() : time * 1000;
       existing.pending = isPending;
 
@@ -225,14 +225,13 @@ export const fetchTransactions = () => async (dispatch, getState) => {
     }
 
     const ios = await parseInputsOutputs(net, tx);
-    const isPending = tx.block === null;
+    const isPending = !block;
     const txData = {
       id: tx.hash,
       date: isPending ? Date.now() : time * 1000,
       pending: isPending,
       ...ios,
     };
-
     payload.set(tx.hash, txData);
   }
   dispatch({type: NEW_BLOCK_STATUS, payload: ''});
