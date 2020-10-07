@@ -12,4 +12,5 @@ export const clientStub = (ipcRendererInjector) => makeClient(ipcRendererInjecto
   'getHeader',
   'setAddresses',
   'getAddresses',
+  'deleteAddresses',
 ]);

@@ -185,6 +185,7 @@ export class NodeService extends EventEmitter {
 
           res = result;
         } else {
+          this.client.timeout = 60000;
           res = await this.client.getTXByAddresses(addresses)
         }
 

@@ -26,10 +26,8 @@ import './app.scss';
 import AccountLogin from '../AcountLogin';
 import PassphraseModal from '../AcountLogin/PassphraseModal';
 import * as node from '../../ducks/node';
-import { onNewBlock } from '../../ducks/backgroundMonitor';
 import Notification from '../../components/Notification';
 import SplashScreen from "../../components/SplashScreen";
-import WalletSync from "../../components/WalletSync";
 import NetworkPicker from '../NetworkPicker';
 import IdleModal from '../../components/IdleModal';
 import { LedgerModal } from '../../components/LedgerModal';
@@ -40,7 +38,6 @@ class App extends Component {
     isLocked: PropTypes.bool.isRequired,
     initialized: PropTypes.bool.isRequired,
     startNode: PropTypes.func.isRequired,
-    onNewBlock: PropTypes.func.isRequired,
     watchActivity: PropTypes.func.isRequired,
     isChangingNetworks: PropTypes.bool.isRequired,
   };
@@ -68,7 +65,6 @@ class App extends Component {
 
     return (
       <div className="app">
-        {/*<WalletSync />*/}
         <IdleModal />
         <PassphraseModal />
         {this.renderContent()}
@@ -243,7 +239,6 @@ export default withRouter(
     dispatch => ({
       watchActivity: () => dispatch(walletActions.watchActivity()),
       startNode: () => dispatch(node.startApp()),
-      onNewBlock: () => dispatch(onNewBlock()),
     })
   )(App)
 );

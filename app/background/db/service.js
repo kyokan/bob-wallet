@@ -95,13 +95,18 @@ export async function getHeader(net = 'main', height) {
 }
 
 export async function setAddresses(net = 'main', walletId, addresses) {
-  const addressesPath = path.join(app.getPath('userData'), `${walletId}-${net}`);
+  const addressesPath = path.join(app.getPath('userData'), 'hsd_data', 'wallet', `${walletId}-${net}`);
   return await fs.promises.writeFile(addressesPath, Buffer.from(addresses.join('\n'), 'utf-8'));
+}
+
+export async function deleteAddresses(net = 'main', walletId) {
+  const addressesPath = path.join(app.getPath('userData'), 'hsd_data', 'wallet', `${walletId}-${net}`);
+  return await fs.promises.unlink(addressesPath);
 }
 
 export async function getAddresses(net = 'main', walletId) {
   try {
-    const addressesPath = path.join(app.getPath('userData'), `${walletId}-${net}`);
+    const addressesPath = path.join(app.getPath('userData'), 'hsd_data', 'wallet', `${walletId}-${net}`);
     const buf =  await fs.promises.readFile(addressesPath);
 
     if (!buf) return null;
@@ -143,6 +148,7 @@ const methods = {
   getHeader,
   setAddresses,
   getAddresses,
+  deleteAddresses,
 };
 
 export async function start(server) {

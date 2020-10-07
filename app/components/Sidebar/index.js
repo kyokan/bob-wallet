@@ -16,7 +16,6 @@ import { Logo } from '../Logo';
     walletSyncProgress: state.wallet.walletSyncProgress,
     walletHeight: state.wallet.height,
   }),
-  dispatch => ({})
 )
 class Sidebar extends Component {
   static propTypes = {
@@ -125,23 +124,23 @@ class Sidebar extends Component {
 
   renderFooter() {
     const {
-      walletSync,
-      walletSyncProgress,
+      newBlockStatus,
       walletHeight,
+      height: chainHeight,
     } = this.props;
 
     return (
       <div className="sidebar__footer">
         <div className="sidebar__footer__row">
-          <div className="sidebar__footer__title">{this.props.newBlockStatus}</div>
+          <div className="sidebar__footer__title">{newBlockStatus}</div>
         </div>
         <div className="sidebar__footer__row">
           <div className="sidebar__footer__title">Current Height</div>
           <div className="sidebar__footer__text">
             {
-              walletHeight < this.props.height
-                ? `${walletHeight}/${this.props.height}`
-                : this.props.height || '--'
+              walletHeight < chainHeight
+                ? `${walletHeight}/${chainHeight}`
+                : chainHeight || '--'
             }
           </div>
         </div>

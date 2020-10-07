@@ -61,6 +61,8 @@ class WalletService {
         resolve();
       }));
 
+      await wait(5000);
+
       await this._onNodeStart(
         this.networkName,
         this.network,
@@ -86,7 +88,8 @@ class WalletService {
 
   getWalletHeight = async () => {
     await this._ensureClient();
-    return (await this.node.wdb.getState()).height;
+    const state = await this.node.wdb.getState();
+    return state && state.height;
   };
 
   getAccountInfo = async () => {
@@ -131,14 +134,7 @@ class WalletService {
 
     const wallet = await this.node.wdb.get(WALLET_ID);
     await wallet.setLookahead('default', 10000);
-  };
-
-  checkRescanStatus = async () => {
-    await this._ensureClient();
-    const wdb = this.node.wdb;
-    const {chain: {height: chainHeight}} = await nodeService.getInfo();
-
-    const {height: walletHeight} = await wdb.getTip();
+    setTimeout(() => this.rescan(0), 1000);
   };
 
   getAddresses = async (depth = 10000) => {
@@ -190,9 +186,14 @@ class WalletService {
     };
   };
 
-  getEntry = async (hash) => {
-    const wdb = this.node.wdb;
-    return wdb.client.getEntry(hash);
+  getBlockHeader = async (hash) => {
+    try {
+      const wdb = this.node.wdb;
+      const res = await wdb.client.getBlockHeader(hash);
+      return res;
+    } catch (e) {
+      return null;
+    }
   };
 
   getHashes = async (start, end) => {
@@ -210,38 +211,42 @@ class WalletService {
     const {type} = await getConnection();
     const {apiKey, url} = await getCustomRPC();
 
-    const {protocol, host, pathname} = new URL(url);
-
     if (type === ConnectionTypes.Custom) {
-      try {
-        const res = await fetch(
-          `${protocol}//x:${apiKey}@${host}${pathname}/entry`,
-          {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({blocks}),
-          },
-        );
-        return await res.json();
-      } catch(e) {
-        const blockHashes = await this.getHashes(blocks[0], blocks[blocks.length - 1]);
+      // try {
+      //   throw new Error('yo')
+      //   const {protocol, host, pathname} = new URL(url);
+      //
+      //   const res = await fetch(
+      //     `${protocol}//x:${apiKey}@${host}${pathname}/entry`,
+      //     {
+      //       method: 'POST',
+      //       headers: {'Content-Type': 'application/json'},
+      //       body: JSON.stringify({blocks}),
+      //     },
+      //   );
+      //   return await res.json();
+      // } catch(e) {
+      //   const blockHashes = await this.getHashes(blocks[0], blocks[blocks.length - 1]);
         const entries = [];
-        for (let i = 0; i < blockHashes.length; i++) {
-          let entry = await getHeader(this.networkName, i);
+
+        for (let i = 0; i < blocks.length; i++) {
+          let entry = await getHeader(this.networkName, blocks[i]);
 
           if (!entry) {
-            entry = await this.getEntry(blockHashes[i].toString('hex'));
-            entry = entry && ChainEntry.fromRaw(entry).format();
+            entry = await this.getBlockHeader(blocks[i]);
+            entry = entry && ChainEntry.fromJSON(entry).format();
           }
 
           if (entry) {
             entries.push(entry);
-            await addHeader(this.networkName, i, entry);
+            await addHeader(this.networkName, blocks[i], entry);
+          } else {
+            return entries;
           }
         }
 
         return entries;
-      }
+      // }
     } else if (type === ConnectionTypes.P2P) {
       const entries = [];
       const len = blocks[blocks.length - 1] + 1;
@@ -340,6 +345,16 @@ class WalletService {
   };
 
   rescan = async (height = 0) => {
+    try {
+      return await this._rescan(height);
+    } catch (e) {
+      this.isWalletRescanning = false;
+      console.log(e);
+      dispatchToMainWindow({type: STOP_SYNC_WALLET});
+    }
+  };
+
+  _rescan = async (height = 0) => {
     if (height) return this.rescanFrom(height);
 
     if (this.isWalletRescanning) return;
@@ -423,7 +438,7 @@ class WalletService {
   loadEntries = async (startHeight = 0, entries = []) => {
     const blocks = [];
 
-    for (let i = startHeight; i < startHeight + 1000; i++) {
+    for (let i = startHeight; i < startHeight + 250; i++) {
       blocks.push(i);
     }
 
@@ -435,15 +450,14 @@ class WalletService {
 
     dispatchToMainWindow(setSyncWalletText(`Scanning ${entries.length} blocks...`));
 
-    if (res.length === 1000) {
-      await this.loadEntries(startHeight + 1000, entries);
+    if (res.length === 250) {
+      await this.loadEntries(startHeight + 250, entries);
     }
   };
 
   importSeed = async (passphrase, mnemonic) => {
     await this._ensureClient();
 
-    await this.reset();
     this.didSelectWallet = false;
     const options = {
       passphrase,
@@ -454,7 +468,7 @@ class WalletService {
     const res = await this.client.createWallet(WALLET_ID, options);
     const wallet = await this.node.wdb.get(WALLET_ID);
     await wallet.setLookahead('default', 10000);
-    this.rescan(0);
+    setTimeout(() => this.rescan(0), 1000);
     return res;
   };
 
@@ -816,11 +830,9 @@ class WalletService {
         ? HSD_DATA_DIR
         : path.join(HSD_DATA_DIR, networkName),
     });
-
     await node.open();
-
     node.wdb.on('error', e => {
-      console.error(e);
+      console.error('walletdb error', e);
     });
 
     node.wdb.client.socket.unhook('block connect');
@@ -838,12 +850,11 @@ class WalletService {
     this.node = node;
     this.client = new WalletClient(walletOptions);
 
-    global.walletNode = node;
-    global.svc = this;
+    const walletHeight = await this.getWalletHeight();
 
     dispatchToMainWindow({
       type: SET_WALLET_HEIGHT,
-      payload: await this.getWalletHeight(),
+      payload: walletHeight,
     });
 
     if (nodeService.hsd) {
@@ -861,23 +872,30 @@ class WalletService {
           payload: { fees },
         });
 
-        const walletHeight = await this.getWalletHeight();
+        const wh = await this.getWalletHeight();
 
-        await this.rescanFrom(walletHeight);
+        if (chainEntry.height === wh + 1) {
+          await this.rescanBlock(chainEntry, block.txs);
+        } else if (chainEntry.height < wh + 100) {
+          await this.rescanFrom(wh);
+        }
       });
     }
 
-    await this.checkRescanStatus();
+    // const {chain: {height: chainHeight}} = await nodeService.getInfo();
+    // if (chainHeight < walletHeight + 100) {
+    //   await this.rescanFrom(walletHeight);
+    // }
   };
 
   _onNodeStop = async () => {
+    this.client = null;
+    this.didSelectWallet = false;
     if (this.node) {
       const node = this.node;
       this.node = null;
       await node.close();
     }
-    this.client = null;
-    this.didSelectWallet = false;
   };
 
   async _ensureClient() {
@@ -1014,35 +1032,37 @@ function mapOneTx(txOptions) {
   }
 
   txOptions.inputs = txOptions.inputs.map(input => {
-    if (input.prevout.hash) {
+    if (input?.prevout.hash) {
       input.prevout.hash = Buffer.from(input.prevout.hash, 'hex');
     }
 
-    if (input.coin && input.coin.covenant) {
+    if (input?.coin && input.coin.covenant) {
       input.coin.covenant = new Covenant(
         input.coin.covenant.type,
         input.coin.covenant.items.map(item => Buffer.from(item, 'hex')),
       );
     }
 
-    if (input.witness) {
+    if (input?.witness) {
       input.witness = input.witness.map(wit => Buffer.from(wit, 'hex'));
     }
 
     return input;
   });
 
-  txOptions.outputs = txOptions.outputs.map(output => {
-    if (output.covenant) {
+  txOptions.outputs = txOptions.outputs.map((output, i) => {
+    if (output?.covenant) {
       output.covenant = new Covenant(
         output.covenant.type,
         output.covenant.items.map(item => Buffer.from(item, 'hex')),
       );
-
     }
+
     return output;
   });
+
   const tx = new TX(txOptions);
+
   return tx;
 }
 

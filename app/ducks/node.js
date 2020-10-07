@@ -4,7 +4,6 @@ import { getNetwork, setNetwork, getInitializationState } from '../db/system';
 import { fetchWallet, fetchTransactions } from './walletActions';
 import { getWatching } from './watching';
 import * as logger from '../utils/logClient';
-import { onNewBlock } from './backgroundMonitor';
 
 import {
   END_NETWORK_CHANGE,

@@ -120,7 +120,7 @@
     "electron-updater": "4.1.2",
     "history": "4.7.2",
     "hs-client": "https://github.com/handshake-org/hs-client.git",
-    "hsd": "2.2.0",
+    "hsd": "https://github.com/kyokan/hsd.git",
     "isomorphic-fetch": "^2.2.1",
     "lodash.isequal": "4.5.0",
     "lodash.throttle": "4.1.1",

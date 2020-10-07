@@ -225,6 +225,12 @@ class Topbar extends Component {
       return walletSyncText;
     }
 
+    if (isSynchronizing) {
+      return `Synchronizing... ${
+        progress ? '(' + (progress * 100).toFixed(2) + '%)' : ''
+      }`;
+    }
+
     if (walletSync) {
       return `Rescanning... (${((walletHeight / chainHeight) * 100).toFixed(2)}%)`;
     }
@@ -240,14 +246,6 @@ class Topbar extends Component {
     if (!isRunning && isCustomRPCConnected) {
       return 'Connected to RPC'
     }
-
-    if (isSynchronizing) {
-      return `Synchronizing... ${
-        progress ? '(' + (progress * 100).toFixed(2) + '%)' : ''
-      }`;
-    }
-
-
 
     return 'No connection';
   }
