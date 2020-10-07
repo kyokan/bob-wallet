@@ -18,8 +18,9 @@
     "start-main-dev": "cross-env HOT=1 NODE_ENV=development electron --inspect=5858 -r @babel/register -r @babel/polyfill ./app/main.js",
     "start-renderer-dev": "cross-env NODE_ENV=development webpack-dev-server --config configs/webpack.config.renderer.dev.babel.js",
     "test-watch": "npm run test --watch",
-    "postinstall": "electron-builder install-app-deps",
-    "clean": "./scripts/clean.sh"
+    "postinstall": "electron-builder install-app-deps && npm run copy-resource",
+    "clean": "./scripts/clean.sh",
+    "copy-resource": "cp ./resources/names.json node_modules/hsd/lib/convenants"
   },
   "main": "./dist/main.js",
   "build": {
@@ -120,7 +121,7 @@
     "electron-updater": "4.1.2",
     "history": "4.7.2",
     "hs-client": "https://github.com/handshake-org/hs-client.git",
-    "hsd": "https://github.com/kyokan/hsd.git",
+    "hsd": "https://github.com/kyokan/hsd/tarball/master",
     "isomorphic-fetch": "^2.2.1",
     "lodash.isequal": "4.5.0",
     "lodash.throttle": "4.1.1",
