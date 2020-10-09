@@ -22,18 +22,24 @@ import YourBids from '../YourBids';
 import Watching from '../Watching';
 import SearchTLD from '../SearchTLD';
 import * as walletActions from '../../ducks/walletActions';
+import { listWallets } from '../../ducks/walletActions';
 import './app.scss';
 import AccountLogin from '../AcountLogin';
 import PassphraseModal from '../AcountLogin/PassphraseModal';
 import * as node from '../../ducks/node';
 import { onNewBlock } from '../../ducks/backgroundMonitor';
-import Notification from '../../components/Notification';
-import SplashScreen from "../../components/SplashScreen";
-import WalletSync from "../../components/WalletSync";
+import SplashScreen from '../../components/SplashScreen';
 import NetworkPicker from '../NetworkPicker';
 import IdleModal from '../../components/IdleModal';
-import { LedgerModal } from '../../components/LedgerModal';
 
+@connect(
+  (state) => ({
+    wallets: state.wallet.wallets,
+  }),
+  (dispatch) => ({
+    listWallets: () => dispatch(listWallets()),
+  }),
+)
 class App extends Component {
   static propTypes = {
     error: PropTypes.string.isRequired,
@@ -46,20 +52,21 @@ class App extends Component {
   };
 
   state = {
-    isLoading: true
+    isLoading: true,
   };
 
   async componentDidMount() {
     this.setState({isLoading: true});
     await this.props.startNode();
     this.props.watchActivity();
-    setTimeout(() => this.setState({isLoading: false}), 1000)
+    await this.props.listWallets();
+    setTimeout(() => this.setState({isLoading: false}), 1000);
   }
 
   render() {
     // TODO: Confirm that error shows properly
     if (this.props.error) {
-      return <SplashScreen error={this.props.error} />
+      return <SplashScreen error={this.props.error} />;
     }
 
     if (this.state.isLoading || this.props.isChangingNetworks) {
@@ -77,52 +84,40 @@ class App extends Component {
   }
 
   renderContent() {
-    const { isLocked, initialized } = this.props;
-
-    if (isLocked || !initialized) {
-      return (
-        <Switch>
-          <Route
-            path="/login"
-            render={this.uninitializedWrapper(() => <AccountLogin className="app__login" />, true, true)}
-          />
-          <Route path="/funding-options" render={this.uninitializedWrapper(FundAccessOptions, true)} />
-          <Route path="/existing-options" render={this.uninitializedWrapper(ExistingAccountOptions)} />
-          <Route path="/new-wallet" render={this.uninitializedWrapper(CreateNewAccount)} />
-          <Route path="/import-seed" render={this.uninitializedWrapper(ImportSeedFlow)} />
-          <Route path="/connect-ledger" render={this.uninitializedWrapper(ConnectLedgerFlow)} />
-          {this.renderDefault()}
-        </Switch>
-      );
-    }
-
     return (
-      <React.Fragment>
-        <LedgerModal/>
-        <Notification />
+      <Switch>
+        <Route
+          path="/login"
+          render={this.uninitializedWrapper(() => <AccountLogin className="app__login" />, true, true)}
+        />
+        <Route path="/funding-options" render={this.uninitializedWrapper(FundAccessOptions, true)} />
+        <Route path="/existing-options" render={this.uninitializedWrapper(ExistingAccountOptions)} />
+        <Route path="/new-wallet" render={this.uninitializedWrapper(CreateNewAccount)} />
+        <Route path="/import-seed" render={this.uninitializedWrapper(ImportSeedFlow)} />
+        <Route path="/connect-ledger" render={this.uninitializedWrapper(ConnectLedgerFlow)} />
         {this.renderRoutes()}
-      </React.Fragment>
+      </Switch>
     );
   }
 
   uninitializedWrapper(Component, isMainMenu = false, autoHeight = false) {
-    const { history, isRunning } = this.props;
+    const {history, isRunning} = this.props;
     if (isMainMenu) {
       return () => (
         <div className="app__uninitialized-wrapper">
           <div className="app__header">
-            <div className="app__logo"/>
+            <div className="app__logo" />
             <div className="app__network-picker-wrapper">
-              { isRunning && <NetworkPicker /> }
+              {isRunning && <NetworkPicker />}
             </div>
           </div>
-          <div className={c("app__uninitialized", {
-          "app__uninitialized--auto-height": autoHeight,
+          <div className={c('app__uninitialized', {
+            'app__uninitialized--auto-height': autoHeight,
           })}>
             <Component />
           </div>
         </div>
-      )
+      );
     }
 
     return () => (
@@ -135,18 +130,18 @@ class App extends Component {
             </div>
           </div>
         </div>
-        <div className={c("app__uninitialized", {
-          "app__uninitialized--auto-height": autoHeight,
+        <div className={c('app__uninitialized', {
+          'app__uninitialized--auto-height': autoHeight,
         })}>
           <Component />
         </div>
       </div>
-      )
+    );
   }
 
   renderRoutes() {
     return (
-      <Switch>
+      <>
         <Route
           path="/account"
           render={this.routeRenderer('Portfolio', Account)}
@@ -186,7 +181,7 @@ class App extends Component {
           render={this.routeRenderer('Browse Domains', Auction, false)}
         />
         {this.renderDefault()}
-      </Switch>
+      </>
     );
   }
 
@@ -216,10 +211,10 @@ class App extends Component {
   }
 
   renderDefault = () => {
-    let {isLocked, initialized} = this.props;
+    let {isLocked, wallets} = this.props;
 
 
-    if (!initialized) {
+    if (!wallets.length) {
       return <Redirect to="/funding-options" />;
     }
 
@@ -244,6 +239,6 @@ export default withRouter(
       watchActivity: () => dispatch(walletActions.watchActivity()),
       startNode: () => dispatch(node.startApp()),
       onNewBlock: () => dispatch(onNewBlock()),
-    })
-  )(App)
+    }),
+  )(App),
 );

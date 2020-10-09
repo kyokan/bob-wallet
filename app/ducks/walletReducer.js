@@ -16,6 +16,7 @@ export const SYNC_WALLET_PROGRESS = 'app/wallet/syncWalletProgress';
 export const GET_PASSPHRASE = 'app/wallet/getPassphrase';
 export const SET_API_KEY = 'app/wallet/setApiKey';
 export const SET_FETCHING = 'app/wallet/setFetching';
+export const SET_WALLETS = 'app/wallet/setWallets';
 
 export function getInitialState() {
   return {
@@ -37,6 +38,7 @@ export function getInitialState() {
     walletSync: false,
     walletSyncProgress: 0,
     getPassphrase: {get: false},
+    wallets: [],
   };
 }
 
@@ -66,17 +68,17 @@ export default function walletReducer(state = getInitialState(), {type, payload}
     case LOCK_WALLET:
       return {
         ...state,
-        isLocked: true
+        isLocked: true,
       };
     case UNLOCK_WALLET:
       return {
         ...state,
-        isLocked: false
+        isLocked: false,
       };
     case SET_TRANSACTIONS:
       return {
         ...state,
-        transactions: payload
+        transactions: payload,
       };
     case INCREMENT_IDLE:
       return {
@@ -112,6 +114,11 @@ export default function walletReducer(state = getInitialState(), {type, payload}
       return {
         ...state,
         isFetching: payload,
+      };
+    case SET_WALLETS:
+      return {
+        ...state,
+        wallets: payload,
       };
     default:
       return state;

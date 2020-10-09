@@ -40,7 +40,7 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
   }),
   dispatch => ({
     lockWallet: () => dispatch(walletActions.lockWallet()),
-    removeWallet: () => dispatch(walletActions.removeWallet()),
+    reset: () => dispatch(walletActions.reset()),
     stopNode: () => dispatch(nodeActions.stop()),
     startNode: () => dispatch(nodeActions.start()),
     setCustomRPCStatus: isConnected => dispatch(setCustomRPCStatus(isConnected)),
@@ -55,7 +55,7 @@ export default class Settings extends Component {
     isRunning: PropTypes.bool.isRequired,
     isChangingNodeStatus: PropTypes.bool.isRequired,
     lockWallet: PropTypes.func.isRequired,
-    removeWallet: PropTypes.func.isRequired,
+    reset: PropTypes.func.isRequired,
     stopNode: PropTypes.func.isRequired,
     startNode: PropTypes.func.isRequired,
     setCustomRPCStatus: PropTypes.func.isRequired,
@@ -207,9 +207,9 @@ export default class Settings extends Component {
           () => history.push('/settings/wallet/reveal-seed'),
         )}
         {this.renderSection(
-          'Remove wallet',
+          'Reset',
           'This will remove all data from Bob. Proceed with caution.',
-          'Remove Wallet ',
+          'Reset ',
           () => history.push('/settings/wallet/new-wallet'),
         )}
       </>
@@ -318,7 +318,7 @@ export default class Settings extends Component {
             path="/settings/wallet/new-wallet"
             render={() => (
               <InterstitialWarningModal
-                nextAction={() => this.props.removeWallet()}
+                nextAction={() => this.props.reset()}
                 nextRoute="/"
               />
             )}

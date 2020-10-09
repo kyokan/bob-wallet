@@ -6,51 +6,66 @@ import * as walletActions from '../../ducks/walletActions';
 import './login.scss';
 import Submittable from '../../components/Submittable';
 import { Link } from 'react-router-dom';
+import Dropdown from '../../components/Dropdown';
+import { withRouter } from 'react-router';
 
 @connect(
-  () => ({}),
+  (state) => ({
+    wallets: state.wallet.wallets,
+  }),
   dispatch => ({
-    unlockWallet: passphrase => dispatch(walletActions.unlockWallet(passphrase))
-  })
+    unlockWallet: (name, passphrase) => dispatch(walletActions.unlockWallet(name, passphrase)),
+  }),
 )
+@withRouter
 export default class AccountLogin extends Component {
   static propTypes = {
-    unlockWallet: PropTypes.func.isRequired
+    unlockWallet: PropTypes.func.isRequired,
   };
 
   static defaultProps = {
-    className: ''
+    className: '',
   };
 
   state = {
     passphrase: '',
-    showError: false
+    showError: false,
+    chosenWallet: 0,
   };
 
   async handleLogin(passphrase) {
     try {
-      await this.props.unlockWallet(passphrase);
+      await this.props.unlockWallet(
+        this.props.wallets[this.state.chosenWallet],
+        passphrase,
+      );
+      this.props.history.push('/account');
     } catch (error) {
-      return this.setState({ showError: true });
+      return this.setState({showError: true});
     }
   }
 
   render() {
-    const { passphrase, showError } = this.state;
+    const {passphrase, showError} = this.state;
 
     return (
       <div className="login">
         <div className="login_header_text">Log in to your wallet</div>
         <Submittable onSubmit={() => this.handleLogin(passphrase)}>
+          <Dropdown
+            items={this.props.wallets.map(w => ({label: w}))}
+            currentIndex={this.state.chosenWallet}
+            onChange={(i) => this.setState({chosenWallet: i})}
+          />
           <div>
             <input
               className={c('login_password_input', {
-                'login_password_input--error': showError
+                'login_password_input--error': showError,
               })}
               type="password"
               placeholder="Your password"
               onChange={e =>
-                this.setState({ passphrase: e.target.value, showError: false })
+                this.setState({passphrase: e.target.value, showError: false})
               }
               value={passphrase}
               autoFocus

@@ -16,7 +16,9 @@ import {
   STOP_SYNC_WALLET,
   SYNC_WALLET_PROGRESS,
   UNLOCK_WALLET,
-  SET_API_KEY, SET_FETCHING,
+  SET_API_KEY,
+  SET_FETCHING,
+  SET_WALLETS,
 } from './walletReducer';
 import { NEW_BLOCK_STATUS } from './nodeReducer';
 
@@ -94,8 +96,8 @@ export const revealSeed = (passphrase) => async () => {
   return walletClient.revealSeed(passphrase);
 };
 
-export const unlockWallet = passphrase => async (dispatch) => {
-  await walletClient.unlock(passphrase);
+export const unlockWallet = (name, passphrase) => async (dispatch) => {
+  await walletClient.unlock(name, passphrase);
   dispatch({
     type: UNLOCK_WALLET,
   });
@@ -108,7 +110,7 @@ export const lockWallet = () => async (dispatch) => {
   });
 };
 
-export const removeWallet = () => async (dispatch, getState) => {
+export const reset = () => async (dispatch, getState) => {
   const network = getState().node.network;
   await walletClient.reset();
   await setInitializationState(network, false);
@@ -265,6 +267,15 @@ export const watchActivity = () => dispatch => {
   }
 };
 
+export const listWallets = () => async (dispatch) => {
+  const wallets = await walletClient.listWallets();
+
+  dispatch({
+    type: SET_WALLETS,
+    payload: wallets,
+  });
+};
+
 async function parseInputsOutputs(net, tx) {
   // Look for covenants. A TX with multiple covenant types is not supported
   let covAction = null;
@@ -353,7 +364,7 @@ async function parseInputsOutputs(net, tx) {
       type: 'UNKNOWN',
       meta: {},
       fee: tx.fee,
-      value: 0
+      value: 0,
     };
   }
 
