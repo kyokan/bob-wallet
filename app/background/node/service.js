@@ -35,7 +35,7 @@ export class NodeService extends EventEmitter {
     switch (conn.type) {
       case ConnectionTypes.P2P:
         await this.setNetworkAndAPIKey(networkName);
-        await this.startNode(networkName);
+        await this.startNode();
         await this.setHSDLocalClient();
         return;
       case ConnectionTypes.Custom:
@@ -45,15 +45,6 @@ export class NodeService extends EventEmitter {
   }
 
   async setNetworkAndAPIKey(networkName) {
-    const network = Network.get(networkName);
-    const apiKey = crypto.randomBytes(20).toString('hex');
-
-    this.networkName = networkName;
-    this.network = network;
-    this.apiKey = apiKey;
-  }
-
-  async startNode(networkName) {
     if (this.hsd) {
       return;
     }
@@ -62,8 +53,17 @@ export class NodeService extends EventEmitter {
       throw new Error('Invalid network.');
     }
 
-    this.emit('started', this.networkName, this.network, this.apiKey);
+    const network = Network.get(networkName);
+    const apiKey = crypto.randomBytes(20).toString('hex');
 
+    this.networkName = networkName;
+    this.network = network;
+    this.apiKey = apiKey;
+
+    this.emit('started', this.networkName, this.network, this.apiKey);
+  }
+
+  async startNode() {
     const portsFree = await checkHSDPortsFree(this.network);
 
     if (!portsFree) {

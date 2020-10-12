@@ -178,6 +178,10 @@ export const fetchTransactions = () => async (dispatch, getState) => {
   const net = state.node.network;
   const currentTXs = state.wallet.transactions;
 
+  if (state.wallet.isFetching) {
+    return;
+  }
+
   dispatch({
     type: SET_FETCHING,
     payload: true,
@@ -187,22 +191,30 @@ export const fetchTransactions = () => async (dispatch, getState) => {
   let payload = new Map();
 
   for (let i = 0; i < txs.length; i++) {
-    const tx = txs[i];
+    const {tx, time, block} = txs[i];
     const existing = currentTXs.get(tx.hash);
+
     if (existing) {
-      const isPending = tx.block === null;
-      existing.date = isPending ? Date.now() : Date.parse(tx.date);
+      const isPending = !block;
+      existing.date = isPending ? Date.now() : time * 1000;
       existing.pending = isPending;
 
       payload.set(existing.id, existing);
       continue;
     }
-    dispatch({type: NEW_BLOCK_STATUS, payload: `Processing TX: ${i}/${txs.length}`});
+
+    if (!(i % 100)) {
+      dispatch({
+        type: NEW_BLOCK_STATUS,
+        payload: `Processing TX: ${i}/${txs.length}`,
+      });
+    }
+
     const ios = await parseInputsOutputs(net, tx);
-    const isPending = tx.block === null;
+    const isPending = !block;
     const txData = {
       id: tx.hash,
-      date: isPending ? Date.now() : Date.parse(tx.date),
+      date: isPending ? Date.now() : time * 1000,
       pending: isPending,
       ...ios,
     };
