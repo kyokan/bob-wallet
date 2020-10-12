@@ -33,7 +33,8 @@ import * as walletActions from '../../ducks/walletActions';
       unconfirmedBalance: state.wallet.balance.unconfirmed,
       spendableBalance: state.wallet.balance.spendable,
       walletSync: state.wallet.walletSync,
-      walletSyncProgress: state.wallet.walletSyncProgress,
+      walletHeight: state.wallet.walletHeight,
+      chainHeight: state.node.chain.height,
     };
   },
   dispatch => ({
@@ -59,7 +60,8 @@ class Topbar extends Component {
     isChangingNodeStatus: PropTypes.bool.isRequired,
     isTestingCustomRPC: PropTypes.bool.isRequired,
     walletSync: PropTypes.bool.isRequired,
-    walletSyncProgress: PropTypes.number.isRequired,
+    walletHeight: PropTypes.number.isRequired,
+    chainHeight: PropTypes.number.isRequired,
   };
 
   state = {
@@ -211,7 +213,8 @@ class Topbar extends Component {
       isChangingNodeStatus,
       isTestingCustomRPC,
       walletSync,
-      walletSyncProgress,
+      walletHeight,
+      chainHeight,
     } = this.props;
 
     if (isSynchronizing) {
@@ -221,7 +224,7 @@ class Topbar extends Component {
     }
 
     if (walletSync) {
-      return `Rescanning... (${walletSyncProgress}%)`;
+      return `Rescanning... (${Math.floor(walletHeight * 100 / chainHeight)}%)`;
     }
 
     if (isSynchronized) {

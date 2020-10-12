@@ -13,21 +13,13 @@ import { START_SYNC_WALLET, STOP_SYNC_WALLET, SYNC_WALLET_PROGRESS } from '../..
 
 const WalletNode = require('hsd/lib/wallet/node');
 const TX = require('hsd/lib/primitives/tx');
-// const {TXRecord} = require("hsd/lib/wallet/records");
 const {Output, MTX, Address, Coin} = require('hsd/lib/primitives');
 const Script = require('hsd/lib/script/script');
 const {hashName, types} = require('hsd/lib/covenants/rules');
 
-
-const Sentry = require('@sentry/electron');
-
 const MasterKey = require('hsd/lib/wallet/masterkey');
 const Mnemonic = require('hsd/lib/hd/mnemonic');
-// const Network = require("hsd/lib/protocol/network");
-// const Address = require("hsd/lib/primitives/address");
 const Covenant = require('hsd/lib/primitives/covenant');
-
-// const walletHeightKey = 'wallet:lastSyncHeight';
 
 const randomAddrs = {
   [NETWORKS.TESTNET]: 'ts1qfcljt5ylsa9rcyvppvl8k8gjnpeh079drfrmzq',
@@ -130,27 +122,31 @@ class WalletService {
   checkRescanStatus = async () => {
     await this._ensureClient();
     const wdb = this.node.wdb;
-    const {chain: {height: chainHeight}} = await nodeService.getInfo();
-    const {height: walletHeight} = await wdb.getTip();
+    const {chain: {height: lastChainHeight}} = await nodeService.getInfo();
+    const {height: lastWalletHeight} = await wdb.getTip();
 
-    if (walletHeight < chainHeight) {
+    if (lastWalletHeight < lastChainHeight) {
       this.rescanStatusIntv = setInterval(async () => {
         const {height: walletHeight} = await wdb.getTip();
+        const {chain: {height: chainHeight}} = await nodeService.getInfo();
+
         if (walletHeight === chainHeight) {
           clearInterval(this.rescanStatusIntv);
           dispatchToMainWindow({type: STOP_SYNC_WALLET});
           dispatchToMainWindow({
             type: SYNC_WALLET_PROGRESS,
-            payload: 100,
+            payload: walletHeight,
           });
           return;
         }
+
         dispatchToMainWindow({type: START_SYNC_WALLET});
         dispatchToMainWindow({
           type: SYNC_WALLET_PROGRESS,
-          payload: parseInt(walletHeight / chainHeight * 100),
+          payload: walletHeight,
         });
-      }, 2500);
+
+      }, 1000);
     }
   };
 
@@ -160,35 +156,13 @@ class WalletService {
     const {chain: {height: chainHeight}} = await nodeService.getInfo();
 
     dispatchToMainWindow({type: START_SYNC_WALLET});
-    let resetting = true;
-
-    return new Promise(async (resolve, reject) => {
-      const intv = setInterval(async () => {
-        const {height: walletHeight} = await wdb.getTip();
-
-        if (walletHeight < chainHeight) {
-          resetting = false;
-        }
-
-        dispatchToMainWindow({
-          type: SYNC_WALLET_PROGRESS,
-          payload: resetting
-            ? 0
-            : parseInt(walletHeight / chainHeight * 100),
-        });
-      }, 2500);
-
-      resetting = false;
-      await wdb.rescan(height);
-
-      clearInterval(intv);
-      resolve();
-      dispatchToMainWindow({
-        type: SYNC_WALLET_PROGRESS,
-        payload: 100,
-      });
-      dispatchToMainWindow({type: STOP_SYNC_WALLET});
+    dispatchToMainWindow({
+      type: SYNC_WALLET_PROGRESS,
+      payload: 0,
     });
+
+    setTimeout(this.checkRescanStatus, 5000);
+    await wdb.rescan(height);
   };
 
   importSeed = async (name, passphrase, mnemonic) => {
@@ -538,6 +512,7 @@ class WalletService {
     this.apiKey = apiKey;
     this.walletApiKey = apiKey || crypto.randomBytes(20).toString('hex');
     this.network = network;
+
     const walletOptions = {
       network: network,
       port: network.walletPort,
@@ -567,22 +542,28 @@ class WalletService {
     });
 
     await node.open();
+
     node.wdb.on('error', e => {
       console.error(e);
     });
+
     this.node = node;
     this.client = new WalletClient(walletOptions);
+
     await this.checkRescanStatus();
   };
 
   _onNodeStop = async () => {
-    if (this.node) {
-      const node = this.node;
-      this.node = null;
+    const node = this.node;
+
+    if (node) {
       await node.close();
     }
+
+    this.node = null;
     this.client = null;
     this.didSelectWallet = false;
+
     if (this.rescanStatusIntv) {
       clearInterval(this.rescanStatusIntv);
     }

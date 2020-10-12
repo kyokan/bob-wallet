@@ -36,7 +36,7 @@ export function getInitialState() {
     transactions: new Map(),
     idle: 0,
     walletSync: false,
-    walletSyncProgress: 0,
+    walletHeight: 0,
     getPassphrase: {get: false},
     wallets: [],
   };
@@ -103,7 +103,7 @@ export default function walletReducer(state = getInitialState(), {type, payload}
     case SYNC_WALLET_PROGRESS:
       return {
         ...state,
-        walletSyncProgress: payload,
+        walletHeight: payload,
       };
     case GET_PASSPHRASE:
       return {
