@@ -38,7 +38,7 @@ function reducePendingTransactions(state, action) {
   const pendingOpMetasByHash = {};
   const pendingOutputByHash = {};
 
-  for (const tx of action.payload) {
+  for (const {tx} of action.payload) {
     for (const output of tx.outputs) {
       if (ALLOWED_COVENANTS.has(output.covenant.action)) {
         pendingOperationsByHash[output.covenant.items[0]] = output.covenant.action;

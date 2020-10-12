@@ -90,12 +90,14 @@ class WalletService {
 
   getCoin = async (hash, index) => {
     await this._ensureClient();
-    return this.client.getCoin(this.name, hash, index);
+    const wallet = await this.node.wdb.get(this.name);
+    return wallet.getCoin(Buffer.from(hash, 'hex'), index);
   };
 
   getNames = async () => {
     await this._selectWallet();
-    return this.client.execute('getnames');
+    const wallet = await this.node.wdb.get(this.name);
+    return wallet.getNames();
   };
 
   createNewWallet = async (name, passphraseOrXPub, isLedger) => {
@@ -191,16 +193,20 @@ class WalletService {
 
   getTransactionHistory = async () => {
     await this._ensureClient();
-    return this.client.getHistory(this.name, 'default');
+    const wallet = await this.node.wdb.get(this.name);
+    return wallet.getHistory('default');
   };
 
   getPendingTransactions = async () => {
     await this._ensureClient();
-    return this.client.getPending(this.name, 'default');
+    const wallet = await this.node.wdb.get(this.name);
+    return wallet.getPending('default');
   };
 
   getBids = async () => {
-    return this._executeRPC('getbids');
+    await this._ensureClient();
+    const wallet = await this.node.wdb.get(this.name);
+    return wallet.getBids();
   };
 
   getMasterHDKey = () => this._ledgerDisabled(
