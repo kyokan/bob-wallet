@@ -10,6 +10,7 @@ import { ConnectionTypes, getConnection } from '../connections/service';
 import crypto from 'crypto';
 import { dispatchToMainWindow } from '../../mainWindow';
 import { START_SYNC_WALLET, STOP_SYNC_WALLET, SYNC_WALLET_PROGRESS } from '../../ducks/walletReducer';
+import {SET_FEE_INFO, SET_NODE_INFO} from "../../ducks/nodeReducer";
 
 const WalletNode = require('hsd/lib/wallet/node');
 const TX = require('hsd/lib/primitives/tx');
@@ -20,6 +21,7 @@ const {hashName, types} = require('hsd/lib/covenants/rules');
 const MasterKey = require('hsd/lib/wallet/masterkey');
 const Mnemonic = require('hsd/lib/hd/mnemonic');
 const Covenant = require('hsd/lib/primitives/covenant');
+const rules = require('hsd/lib/covenants/rules');
 
 const randomAddrs = {
   [NETWORKS.TESTNET]: 'ts1qfcljt5ylsa9rcyvppvl8k8gjnpeh079drfrmzq',
@@ -189,6 +191,26 @@ class WalletService {
 
   getAuctionInfo = async (name) => {
     return this._executeRPC('getauctioninfo', [name]);
+  };
+
+  getNameStateByName = async (name)  => {
+    await this._ensureClient();
+    const wallet = await this.node.wdb.get(WALLET_ID);
+    const height = this.node.wdb.height;
+    const network = this.network;
+    const ns = await wallet.getNameStateByName(name);
+    const nameHash = rules.hashName(name);
+    const reserved = rules.isReserved(nameHash, height + 1, network);
+    const [start, week] = rules.getRollout(nameHash, network);
+
+    return {
+      start: {
+        reserved: reserved,
+        week: week,
+        start: start
+      },
+      info: ns.getJSON(height, network),
+    };
   };
 
   getTransactionHistory = async () => {
@@ -550,12 +572,15 @@ class WalletService {
     await node.open();
 
     node.wdb.on('error', e => {
-      console.error(e);
+      console.error('walletdb error', e);
     });
+
+    node.wdb.client.bind('block connect', this.onNewBlock);
 
     this.node = node;
     this.client = new WalletClient(walletOptions);
 
+    await this.onNewBlock();
     await this.checkRescanStatus();
   };
 
@@ -573,6 +598,24 @@ class WalletService {
     if (this.rescanStatusIntv) {
       clearInterval(this.rescanStatusIntv);
     }
+  };
+
+  onNewBlock = async (entry, txs) => {
+    await this._ensureClient();
+    const info = await nodeService.getInfo();
+    const fees = await nodeService.getFees();
+
+    dispatchToMainWindow({
+      type: SET_NODE_INFO,
+      payload: { info },
+    });
+
+    dispatchToMainWindow({
+      type: SET_FEE_INFO,
+      payload: { fees },
+    });
+
+    await this.node.wdb.addBlock(entry, txs);
   };
 
   async _ensureClient() {
@@ -647,6 +690,7 @@ const methods = {
   importSeed: service.importSeed,
   generateReceivingAddress: service.generateReceivingAddress,
   getAuctionInfo: service.getAuctionInfo,
+  getNameStateByName: service.getNameStateByName,
   getTransactionHistory: service.getTransactionHistory,
   getPendingTransactions: service.getPendingTransactions,
   getBids: service.getBids,

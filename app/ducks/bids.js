@@ -1,6 +1,4 @@
 import walletClient from '../utils/walletClient';
-import {NEW_BLOCK_STATUS} from "./nodeReducer";
-import {getNameInfo} from "./names";
 
 const SET_YOUR_BIDS = 'app/bids/setYourBids';
 
@@ -14,7 +12,7 @@ export const getYourBids = () => async (dispatch) => {
   if (result && result.length) {
     dispatch({
       type: SET_YOUR_BIDS,
-      payload: result,
+      payload: result.filter(({ own }) => own),
     });
   }
 };

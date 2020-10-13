@@ -4,7 +4,6 @@ import { getNetwork, setNetwork, getInitializationState } from '../db/system';
 import { fetchWallet, fetchTransactions, listWallets } from './walletActions';
 import { getWatching } from './watching';
 import * as logger from '../utils/logClient';
-import { onNewBlock } from './backgroundMonitor';
 
 import {
   END_NETWORK_CHANGE,
@@ -49,7 +48,6 @@ export const stop = () => async (dispatch, getState) => {
         setTimeout(async () => {
           await dispatch(fetchTransactions());
           await dispatch(getWatching(network));
-          await dispatch(onNewBlock());
         }, 0);
       }
     }
@@ -111,13 +109,14 @@ export const start = (network) => async (dispatch, getState) => {
     await dispatch(setNodeInfo());
     await dispatch(listWallets());
     await dispatch(fetchWallet());
+
     if (await getInitializationState(network)) {
       setTimeout(async () => {
         await dispatch(fetchTransactions());
         await dispatch(getWatching(network));
-        await dispatch(onNewBlock());
       }, 0);
     }
+
   } catch (error) {
     dispatch({
       type: START_ERROR,
