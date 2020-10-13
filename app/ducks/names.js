@@ -51,8 +51,6 @@ export const fetchName = name => async (dispatch, getState) => {
   const result = await nodeClient.getNameInfo(name);
   const {start, info} = result;
 
-  console.log(start, info);
-
   let bids = [];
   let reveals = [];
   let winner = null;
