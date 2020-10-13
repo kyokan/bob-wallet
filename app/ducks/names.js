@@ -40,14 +40,54 @@ export const NAME_STATES = {
   TRANSFER: 'TRANSFER',
 };
 
-export const getNameInfo = name => async (dispatch) => {
+export const fetchName = name => async (dispatch, getState) => {
+  const {names} = getState();
+  const existing = names[name];
+
+  if (existing && existing.info) {
+    return;
+  }
+
   const result = await nodeClient.getNameInfo(name);
   const {start, info} = result;
+
+  console.log(start, info);
+
   let bids = [];
   let reveals = [];
   let winner = null;
   let isOwner = false;
   let walletHasName = false;
+
+  if (info.state === NAME_STATES.CLOSED) {
+    isOwner = !!await walletClient.getCoin(info.owner.hash, info.owner.index);
+  }
+
+  dispatch({
+    type: SET_NAME,
+    payload: {
+      name,
+      start,
+      info,
+      bids,
+      reveals,
+      winner,
+      isOwner,
+      walletHasName,
+    },
+  });
+};
+
+export const getNameInfo = name => async (dispatch) => {
+  const result = await nodeClient.getNameInfo(name);
+  const {start, info} = result;
+
+  let bids = [];
+  let reveals = [];
+  let winner = null;
+  let isOwner = false;
+  let walletHasName = false;
+
   if (!info) {
     dispatch({
       type: SET_NAME,

@@ -188,6 +188,7 @@ export const fetchTransactions = () => async (dispatch, getState) => {
   });
 
   const txs = await walletClient.getTransactionHistory();
+
   let payload = new Map();
 
   for (let i = 0; i < txs.length; i++) {

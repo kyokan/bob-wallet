@@ -64,6 +64,10 @@ export class NodeService extends EventEmitter {
   }
 
   async startNode() {
+    if (this.hsd) {
+      return;
+    }
+
     const portsFree = await checkHSDPortsFree(this.network);
 
     if (!portsFree) {

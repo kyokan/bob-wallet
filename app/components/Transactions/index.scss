@@ -3,7 +3,7 @@
 .transaction {
   display: flex;
   border-bottom: 1px solid $athens-gray;
-  padding: 1rem 0;
+  padding: 1rem 3rem;
   align-items: center;
 
   &__tld-link {
@@ -136,7 +136,8 @@
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    margin-top: 1rem;
+    padding: 1rem;
+    box-sizing: border-box;
 
     &__numbers {
       @extend %row-nowrap;
@@ -204,13 +205,20 @@
   &__header {
     @extend %row-nowrap;
     align-items: center;
-    padding-bottom: 1rem;
+    padding: 1rem;
     border-bottom: 1px solid $athens-gray;
+    border-top: 1px solid $athens-gray;
+    background-color: #f9f9f9;
   }
 
   &__search {
     margin-right: 1rem;
     flex: 1 1 auto;
+    background-color: $white !important;
+
+    input {
+      background-color: $white !important;
+    }
   }
 
   &__sort-by {

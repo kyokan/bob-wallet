@@ -12,21 +12,36 @@ import { formatName } from '../../utils/nameHelpers';
 import Fuse from '../../vendor/fuse';
 import './your-bids.scss';
 import { clientStub as aClientStub } from '../../background/analytics/client';
+import * as bidsActions from "../../ducks/bids";
+import Dropdown from "../../components/Dropdown";
+import {getPageIndices} from "../../utils/pageable";
+import c from "classnames";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
+const ITEM_PER_DROPDOWN = [
+  { label: '5', value: 5 },
+  { label: '10', value: 10 },
+  { label: '20', value: 20 },
+  { label: '50', value: 50 },
+];
 
 class YourBids extends Component {
   static propTypes = {
     yourBids: PropTypes.array.isRequired,
+    getYourBids: PropTypes.func.isRequired,
   };
 
   state = {
+    isShowingNameClaimForPayment: false,
+    currentPageIndex: 0,
+    itemsPerPage: 10,
     query: '',
   };
 
   componentDidMount() {
     analytics.screenView('Your Bids');
+    this.props.getYourBids();
   }
 
   handleOnChange = e => this.setState({ query: e.target.value });
@@ -42,14 +57,100 @@ class YourBids extends Component {
         <Table className="bids-table">
           <Header />
           {this.renderRows()}
+          {this.renderControls()}
         </Table>
       </div>
     );
   }
 
+
+  renderGoTo() {
+    const { currentPageIndex, itemsPerPage } = this.state;
+    const { yourBids } = this.props;
+    const totalPages = Math.ceil(yourBids.length / itemsPerPage);
+    return (
+      <div className="domain-manager__page-control__dropdowns">
+        <div className="domain-manager__go-to">
+          <div className="domain-manager__go-to__text">Items per Page:</div>
+          <Dropdown
+            className="domain-manager__go-to__dropdown transactions__items-per__dropdown"
+            items={ITEM_PER_DROPDOWN}
+            onChange={itemsPerPage => this.setState({
+              itemsPerPage,
+              currentPageIndex: 0,
+            })}
+            currentIndex={ITEM_PER_DROPDOWN.findIndex(({ value }) => value === this.state.itemsPerPage)}
+          />
+        </div>
+        <div className="domain-manager__go-to">
+          <div className="domain-manager__go-to__text">Page</div>
+          <Dropdown
+            className="domain-manager__go-to__dropdown"
+            items={Array(totalPages).fill(0).map((_, i) => ({ label: `${i + 1}` }))}
+            onChange={currentPageIndex => this.setState({ currentPageIndex })}
+            currentIndex={currentPageIndex}
+          />
+          <div className="domain-manager__go-to__total">of {totalPages}</div>
+        </div>
+      </div>
+    )
+  }
+
+  renderControls() {
+    const {
+      currentPageIndex,
+      itemsPerPage,
+    } = this.state;
+    const {
+      yourBids,
+    } = this.props;
+
+    const totalPages = Math.ceil(yourBids.length / itemsPerPage);
+    const pageIndices = getPageIndices(yourBids, itemsPerPage, currentPageIndex);
+
+    return (
+      <div className="domain-manager__page-control">
+        <div className="domain-manager__page-control__numbers">
+          <div
+            className="domain-manager__page-control__start"
+            onClick={() => this.setState({
+              currentPageIndex: Math.max(currentPageIndex - 1, 0),
+            })}
+          />
+          {pageIndices.map((pageIndex, i) => {
+            if (pageIndex === '...') {
+              return (
+                <div key={`${pageIndex}-${i}`} className="domain-manager__page-control__ellipsis">...</div>
+              );
+            }
+
+            return (
+              <div
+                key={`${pageIndex}-${i}`}
+                className={c('domain-manager__page-control__page', {
+                  'domain-manager__page-control__page--active': currentPageIndex === pageIndex,
+                })}
+                onClick={() => this.setState({ currentPageIndex: pageIndex })}
+              >
+                {pageIndex + 1}
+              </div>
+            )
+          })}
+          <div
+            className="domain-manager__page-control__end"
+            onClick={() => this.setState({
+              currentPageIndex: Math.min(currentPageIndex + 1, totalPages - 1),
+            })}
+          />
+        </div>
+        {this.renderGoTo()}
+      </div>
+    )
+  }
+
   renderRows() {
     const { yourBids, history } = this.props;
-    const { query } = this.state;
+    const { query, currentPageIndex: s, itemsPerPage: n } = this.state;
 
     if (!yourBids.length) {
       return <EmptyResult />;
@@ -66,7 +167,10 @@ class YourBids extends Component {
       return <EmptyResult />;
     }
 
-    return bids.map((bid, i) => (
+    const start = s * n;
+    const end = start + n;
+
+    return bids.slice(start, end).map((bid, i) => (
       <TableRow key={`${bid.name}-${i}`} onClick={() => history.push(`/domain/${bid.name}`)}>
         <TableItem><BidStatus name={bid.name} /></TableItem>
         <TableItem>{formatName(bid.name)}</TableItem>
@@ -83,6 +187,9 @@ export default withRouter(
     state => ({
       yourBids: state.bids.yourBids,
     }),
+    dispatch => ({
+      getYourBids: () => dispatch(bidsActions.getYourBids()),
+    })
   )(YourBids)
 );
 
