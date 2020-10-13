@@ -193,6 +193,26 @@ class WalletService {
     return this._executeRPC('getauctioninfo', [name]);
   };
 
+  getNameStateByName = async (name)  => {
+    await this._ensureClient();
+    const wallet = await this.node.wdb.get(WALLET_ID);
+    const height = this.node.wdb.height;
+    const network = this.network;
+    const ns = await wallet.getNameStateByName(name);
+    const nameHash = rules.hashName(name);
+    const reserved = rules.isReserved(nameHash, height + 1, network);
+    const [start, week] = rules.getRollout(nameHash, network);
+
+    return {
+      start: {
+        reserved: reserved,
+        week: week,
+        start: start
+      },
+      info: ns.getJSON(height, network),
+    };
+  };
+
   getTransactionHistory = async () => {
     await this._ensureClient();
     const wallet = await this.node.wdb.get(this.name);
@@ -670,6 +690,7 @@ const methods = {
   importSeed: service.importSeed,
   generateReceivingAddress: service.generateReceivingAddress,
   getAuctionInfo: service.getAuctionInfo,
+  getNameStateByName: service.getNameStateByName,
   getTransactionHistory: service.getTransactionHistory,
   getPendingTransactions: service.getPendingTransactions,
   getBids: service.getBids,
