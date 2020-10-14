@@ -180,12 +180,10 @@ class WalletService {
       // menmonics with trailing whitespace
       mnemonic: mnemonic.trim(),
     };
-    
+
     const res = await this.client.createWallet(this.name, options);
 
-    setTimeout(async () => {
-      this.rescan(0);
-    }, 0);
+    setTimeout(() => this.rescan(0), 0);
 
     return res;
   };
