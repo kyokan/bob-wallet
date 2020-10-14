@@ -155,7 +155,7 @@ class DomainManager extends Component {
       </div>
     )
   }
-  
+
   renderList() {
     const {namesList, history} = this.props;
     const {
