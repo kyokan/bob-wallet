@@ -173,14 +173,20 @@ class WalletService {
     await this._ensureClient();
     this.setWallet(name);
     this.didSelectWallet = false;
+
     const options = {
       passphrase,
       // hsd generates different keys for
       // menmonics with trailing whitespace
       mnemonic: mnemonic.trim(),
     };
+    
     const res = await this.client.createWallet(this.name, options);
-    this.rescan(0);
+
+    setTimeout(async () => {
+      this.rescan(0);
+    }, 0);
+
     return res;
   };
 
@@ -547,6 +553,7 @@ class WalletService {
       prefix: networkName === 'main'
         ? HSD_DATA_DIR
         : path.join(HSD_DATA_DIR, networkName),
+      migrate: 1,
     });
 
     await node.open();
@@ -595,7 +602,9 @@ class WalletService {
       payload: { fees },
     });
 
-    await this.node.wdb.addBlock(entry, txs);
+    if (entry && txs) {
+      await this.node.wdb.addBlock(entry, txs);
+    }
   };
 
   async _ensureClient() {
