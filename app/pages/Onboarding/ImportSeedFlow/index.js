@@ -138,7 +138,7 @@ class ImportSeedFlow extends Component {
     this.setState({isLoading: true});
     try {
       await walletClient.importSeed(this.state.name, this.state.passphrase, mnemonic);
-      await this.props.completeInitialization(this.state.passphrase);
+      await this.props.completeInitialization(this.state.name, this.state.passphrase);
       await this.props.fetchWallet();
       await this.props.fetchTransactions();
       this.props.history.push('/account');
@@ -157,7 +157,7 @@ export default withRouter(
       network: state.node.network,
     }),
     dispatch => ({
-      completeInitialization: (passphrase) => dispatch(walletActions.completeInitialization(passphrase)),
+      completeInitialization: (name, passphrase) => dispatch(walletActions.completeInitialization(name, passphrase)),
       waitForWalletSync: () => dispatch(walletActions.waitForWalletSync()),
       startWalletSync: () => dispatch(walletActions.startWalletSync()),
       showError: (message) => dispatch(showError(message)),

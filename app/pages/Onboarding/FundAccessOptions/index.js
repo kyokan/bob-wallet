@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { withRouter } from 'react-router-dom';
+import { withRouter, Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import './access.scss';
@@ -41,6 +41,15 @@ class FundAccessOptions extends Component {
           >
             Import a wallet
           </button>
+
+          {!!this.props.wallets.length && (
+            <Link
+              to="/"
+              className="login_subheader_text login_subheader_text__accent"
+            >
+              Return to login
+            </Link>
+          )}
         </div>
       </div>
     );
@@ -49,7 +58,9 @@ class FundAccessOptions extends Component {
 
 export default withRouter(
   connect(
-    state => ({}),
+    state => ({
+      wallets: state.wallet.wallets
+    }),
     dispatch => ({})
   )(FundAccessOptions)
 );

@@ -88,6 +88,12 @@ export default class AccountLogin extends Component {
         >
           Restore with your seed phrase
         </Link>
+        <Link
+          to="/funding-options"
+          className="login_subheader_text login_subheader_text__accent"
+        >
+          Create new wallet
+        </Link>
       </div>
     );
   }

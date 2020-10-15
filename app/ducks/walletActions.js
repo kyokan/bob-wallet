@@ -45,9 +45,9 @@ export const setWallet = opts => {
   };
 };
 
-export const completeInitialization = (passphrase) => async (dispatch, getState) => {
+export const completeInitialization = (name, passphrase) => async (dispatch, getState) => {
   const network = getState().node.network;
-  await walletClient.unlock(passphrase);
+  await walletClient.unlock(name, passphrase);
   await setInitializationState(network, true);
   await dispatch(fetchWallet());
   dispatch({

@@ -207,10 +207,10 @@ export default class Settings extends Component {
           () => history.push('/settings/wallet/reveal-seed'),
         )}
         {this.renderSection(
-          'Reset',
-          'This will remove all data from Bob. Proceed with caution.',
-          'Reset ',
-          () => history.push('/settings/wallet/new-wallet'),
+          'Create new wallet',
+          'This will allow you to create a new wallet',
+          'Create New',
+          () => history.push('/funding-options'),
         )}
       </>
     );
@@ -314,15 +314,6 @@ export default class Settings extends Component {
         { this.renderContent() }
         <Switch>
           <Route path="/settings/wallet/account-index" component={AccountIndexModal} />
-          <Route
-            path="/settings/wallet/new-wallet"
-            render={() => (
-              <InterstitialWarningModal
-                nextAction={() => this.props.reset()}
-                nextRoute="/"
-              />
-            )}
-          />
           <Route path="/settings/wallet/reveal-seed" component={RevealSeedModal} />
           <Route path="/settings/wallet/zap-txs" component={ZapTXsModal} />
           <Route path="/settings/connection/configure" component={CustomRPCConfigModal}>

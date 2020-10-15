@@ -134,7 +134,7 @@ class CreateNewAccount extends Component {
             seedphrase={this.state.seedphrase}
             onBack={() => this.setState({currentStep: COPY_SEEDPHRASE})}
             onNext={async () => {
-              await this.props.completeInitialization(this.state.passphrase);
+              await this.props.completeInitialization(this.state.name, this.state.passphrase);
               this.props.history.push('/account');
             }}
             onCancel={() => this.props.history.push('/funding-options')}
@@ -152,7 +152,7 @@ export default withRouter(
       network: state.node.network,
     }),
     dispatch => ({
-      completeInitialization: (passphrase) => dispatch(walletActions.completeInitialization(passphrase)),
+      completeInitialization: (name, passphrase) => dispatch(walletActions.completeInitialization(name, passphrase)),
     }),
   )(CreateNewAccount),
 );
