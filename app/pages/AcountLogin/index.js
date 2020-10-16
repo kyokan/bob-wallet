@@ -5,7 +5,7 @@ import c from 'classnames';
 import * as walletActions from '../../ducks/walletActions';
 import './login.scss';
 import Submittable from '../../components/Submittable';
-import { Link } from 'react-router-dom';
+import { Link, Redirect } from 'react-router-dom';
 import Dropdown from '../../components/Dropdown';
 import { withRouter } from 'react-router';
 
@@ -15,6 +15,7 @@ import { withRouter } from 'react-router';
   }),
   dispatch => ({
     unlockWallet: (name, passphrase) => dispatch(walletActions.unlockWallet(name, passphrase)),
+    fetchWallet: () => dispatch(walletActions.fetchWallet()),
   }),
 )
 @withRouter
@@ -39,6 +40,7 @@ export default class AccountLogin extends Component {
         this.props.wallets[this.state.chosenWallet],
         passphrase,
       );
+      await this.props.fetchWallet();
       this.props.history.push('/account');
     } catch (error) {
       return this.setState({showError: true});
@@ -47,6 +49,10 @@ export default class AccountLogin extends Component {
 
   render() {
     const {passphrase, showError} = this.state;
+
+    if (!this.props.wallets.length) {
+      return <Redirect to="/funding-options" />;
+    }
 
     return (
       <div className="login">
