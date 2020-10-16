@@ -9,6 +9,7 @@ import Collapsible from '../../components/Collapsible';
 import DomainDetails from './DomainDetails';
 import Records from './Records';
 import BidHistory from '../Auction/BidHistory';
+import { formatName } from '../../utils/nameHelpers';
 import { showError, showSuccess } from '../../ducks/notifications';
 import { fetchPendingTransactions } from '../../ducks/walletActions';
 import { clientStub as aClientStub } from '../../background/analytics/client';
@@ -82,7 +83,7 @@ class MyDomain extends Component {
   }
 
   render() {
-    const {name, history, domain} = this.props;
+    const {name, history, domain = {}} = this.props;
 
     return (
       <div className="my-domain">
@@ -93,7 +94,7 @@ class MyDomain extends Component {
           Back
         </div>
         <div className="my-domain__header">
-          <div className="my-domain__header__title">{`${name}/`}</div>
+          <div className="my-domain__header__title">{formatName(name)}</div>
           <div className="my-domain__header__expires-text">
             {this.renderExpireText()}
           </div>
@@ -103,12 +104,15 @@ class MyDomain extends Component {
           <DomainDetails name={name} />
         </Collapsible>
         <Collapsible className="my-domain__info-panel" title="Records">
-          <Records name={name} transferring={domain.info.transfer !== 0} />
+          <Records
+            name={name}
+            transferring={!!domain.info && domain.info.transfer !== 0}
+          />
         </Collapsible>
         <Collapsible className="my-domain__info-panel" title="Your Bids" defaultCollapsed>
           {
             this.props.domain
-              ? <BidHistory bids={domain.bids} reveals={domain.reveals} />
+              ? <BidHistory bids={domain.bids || []} reveals={domain.reveals || []} />
               : 'Loading...'
           }
         </Collapsible>

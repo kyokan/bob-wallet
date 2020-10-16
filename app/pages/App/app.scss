@@ -47,6 +47,8 @@
   }
 
   &__main-wrapper {
+    display: flex;
+    flex-flow: column nowrap;
     flex: 1 1 auto;
     height: 100vh;
     overflow: auto;

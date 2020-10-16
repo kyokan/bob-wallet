@@ -10,6 +10,7 @@ const client = {
   },
 
   reset: async () => {
+    await wallet.reset();
     return node.reset();
   },
 

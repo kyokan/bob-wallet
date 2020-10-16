@@ -101,7 +101,8 @@ function main() {
     'sentry.js',
     'hsdMain.js',
     'mainWindow.js',
-    'preload.js'
+    'preload.js',
+    'ducks/walletReducer.js'
   ];
   const babelizeFiles = () => {
     if (!babelFiles.length) {

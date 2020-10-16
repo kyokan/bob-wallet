@@ -50,3 +50,7 @@ export default function showMainWindow() {
 export function getMainWindow() {
   return mainWindow;
 }
+
+export function dispatchToMainWindow(reduxAction) {
+  mainWindow.webContents.send('ipcToRedux', reduxAction);
+}

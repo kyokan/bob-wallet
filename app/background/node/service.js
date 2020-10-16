@@ -1,14 +1,14 @@
 import pify from '../../utils/pify';
 import { app, BrowserWindow } from 'electron';
-import { NETWORKS, VALID_NETWORKS } from '../../constants/networks';
+import { VALID_NETWORKS } from '../../constants/networks';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
 import tcpPortUsed from 'tcp-port-used';
 import EventEmitter from 'events';
 import { NodeClient } from 'hs-client';
-import rimraf from 'rimraf';
 import { BigNumber } from 'bignumber.js';
+import {ConnectionTypes, getConnection, getCustomRPC} from '../connections/service';
 
 const Network = require('hsd/lib/protocol/network');
 
@@ -29,6 +29,19 @@ export class NodeService extends EventEmitter {
   }
 
   async start(networkName) {
+    const conn = await getConnection();
+
+    switch (conn.type) {
+      case ConnectionTypes.P2P:
+        await this.startNode(networkName);
+        return;
+      case ConnectionTypes.Custom:
+        await this.startCustom();
+        return;
+    }
+  }
+
+  async startNode(networkName) {
     if (this.hsdWindow && this.networkName === networkName) {
       return;
     }
@@ -38,14 +51,21 @@ export class NodeService extends EventEmitter {
     if (!VALID_NETWORKS[networkName]) {
       throw new Error('Invalid network.');
     }
+
     const network = Network.get(networkName);
+    const apiKey = crypto.randomBytes(20).toString('hex');
+
+    this.networkName = networkName;
+    this.network = network;
+    this.apiKey = apiKey;
+    this.emit('started', this.networkName, this.network, this.apiKey);
+
     const portsFree = await checkHSDPortsFree(network);
     if (!portsFree) {
       throw new Error('hsd ports in use. Please make sure no other hsd instance is running, quit Bob, and try again.');
     }
 
     console.log(`Starting node on ${networkName} network.`);
-    const apiKey = crypto.randomBytes(20).toString('hex');
     const hsdWindow = new BrowserWindow({
       width: 400,
       height: 400,
@@ -54,6 +74,7 @@ export class NodeService extends EventEmitter {
         nodeIntegration: true,
       },
     });
+
     await hsdWindow.loadURL(`file://${path.join(__dirname, '../../hsd.html')}`);
     hsdWindow.webContents.send('start', this.hsdPrefixDir, networkName, apiKey);
     await new Promise((resolve, reject) => {
@@ -87,54 +108,64 @@ export class NodeService extends EventEmitter {
     });
     await retry(() => client.getInfo(), 20, 200);
 
-    this.networkName = networkName;
-    this.network = network;
+
     this.hsdWindow = hsdWindow;
-    this.apiKey = apiKey;
     this.client = client;
-    this.emit('started', this.networkName, this.network, this.apiKey);
+  }
+
+  async startCustom() {
+    const rpc = await getCustomRPC();
+    const networkType = rpc.networkType || 'main';
+
+    if (!VALID_NETWORKS[networkType]) {
+      throw new Error('Invalid network.');
+    }
+
+    const network = Network.get(networkType);
+    this.networkName = networkType;
+    this.network = network;
+    this.emit('started', this.networkName, this.network);
+
+    const client = new NodeClient({
+      network: network,
+      apiKey: rpc.apiKey,
+      url: rpc.url || `http://127.0.0.1:${network.rpcPort}`,
+    });
+
+    this.client = client;
   }
 
   async stop() {
     if (!this.hsdWindow) {
-      throw new Error('hsd not started.');
+      this.emit('stopped');
+      return;
     }
+
     const closed = new Promise((resolve) => this.hsdWindow.on('closed', resolve));
     this.hsdWindow.send('close');
     await closed;
+    this.hsdWindow = null;
+    this.client = null;
   }
 
   async reset() {
     await this.stop();
-
-    if (this.networkName === NETWORKS.MAINNET) {
-      await new Promise((resolve, reject) => rimraf(path.join(this.hsdPrefixDir, 'wallet'), error => {
-        if (error) {
-          return reject(error);
-        }
-        resolve();
-      }));
-    } else {
-      const walletDir = path.join(this.hsdPrefixDir, this.networkName, 'wallet');
-      await new Promise((resolve, reject) => rimraf(walletDir, error => {
-        if (error) {
-          return reject(error);
-        }
-        resolve();
-      }));
-    }
-
     await this.start(this.networkName);
   }
 
   async getAPIKey() {
-    this._ensureStarted();
+    await this._ensureStarted();
     return this.apiKey;
   }
 
   async getInfo() {
-    this._ensureStarted();
+    await this._ensureStarted();
     return this.client.getInfo();
+  }
+
+  async getTXByAddresses(addresses) {
+    await this._ensureStarted();
+    return this.client.getTXByAddresses(addresses);
   }
 
   async getNameInfo(name) {
@@ -147,6 +178,10 @@ export class NodeService extends EventEmitter {
 
   async getAuctionInfo(name) {
     return this._execRPC('getauctioninfo', [name]);
+  }
+
+  async getBlock(height) {
+    return this.client.getBlock(height);
   }
 
   async getBlockByHeight(height, verbose, details) {
@@ -167,7 +202,7 @@ export class NodeService extends EventEmitter {
   }
 
   async getFees() {
-    this._ensureStarted();
+    await this._ensureStarted();
     const slowRes = await this.client.execute('estimatesmartfee', [5]);
     const standardRes = await this.client.execute('estimatesmartfee', [2]);
     const fastRes = await this.client.execute('estimatesmartfee', [1]);
@@ -183,7 +218,7 @@ export class NodeService extends EventEmitter {
   }
 
   async getAverageBlockTime() {
-    this._ensureStarted();
+    await this._ensureStarted();
 
     const info = await this.client.getInfo();
     const height = info.chain.height;
@@ -211,14 +246,30 @@ export class NodeService extends EventEmitter {
     return Math.floor((sum / count) * 1000);
   }
 
-  _ensureStarted() {
-    if (!this.hsdWindow) {
-      throw new Error('hsd not started.');
-    }
+  async getCoin(hash, index) {
+    return this.client.getCoin(hash, index)
   }
 
-  _execRPC(method, args) {
-    this._ensureStarted();
+  async getRawMempool(verbose=false) {
+    return this._execRPC('getrawmempool', [verbose ? 1 : 0]);
+  }
+
+  async _ensureStarted() {
+    return new Promise((resolve, reject) => {
+      if (this.client) {
+        resolve();
+        return;
+      }
+
+      setTimeout(async () => {
+        await this._ensureStarted();
+        resolve();
+      }, 500);
+    });
+  }
+
+  async _execRPC(method, args) {
+    await this._ensureStarted();
     return this.client.execute(method, args);
   }
 }
@@ -227,7 +278,7 @@ async function checkHSDPortsFree(network) {
   const ports = [
     network.port,
     network.rpcPort,
-    network.walletPort,
+    // network.walletPort,
     network.nsPort,
   ];
 
@@ -269,6 +320,8 @@ const methods = {
   getNameInfo: (name) => service.getNameInfo(name),
   getNameByHash: (hash) => service.getNameByHash(hash),
   getAuctionInfo: (name) => service.getAuctionInfo(name),
+  getBlock: (height) => service.getBlock(height),
+  getTXByAddresses: (addresses) => service.getTXByAddresses(addresses),
   getBlockByHeight: (height, verbose, details) => service.getBlockByHeight(height, verbose, details),
   getTx: (hash) => service.getTx(hash),
   broadcastRawTx: (tx) => service.broadcastRawTx(tx),

@@ -121,6 +121,7 @@
 
 .transactions {
   @extend %col-nowrap;
+  position: relative;
 
   &__empty-list {
     text-align: center;

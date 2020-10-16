@@ -6,6 +6,7 @@ import createAMPMTimeStamp from '../../../utils/timeConverter';
 import '../index.scss';
 import { displayBalance } from '../../../utils/balances';
 import ellipsify from '../../../utils/ellipsify';
+import { formatName } from '../../../utils/nameHelpers';
 import Tooltipable from '../../Tooltipable';
 import { shell } from 'electron';
 
@@ -170,7 +171,7 @@ class Transaction extends Component {
           className="transaction__tld-link"
           onClick={() => this.props.history.push(`/domain/${domain}`)}
         >
-          {`${domain}/`}
+          {formatName(domain)}
         </div>
       )
       : '(unknown)';

@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import c from 'classnames';
 import * as nameActions from '../../ducks/names';
 import { verifyName } from '../../utils/nameChecker';
+import { decodePunycode } from '../../utils/nameHelpers';
 import './TLDInput.scss';
 
 @withRouter
@@ -39,7 +40,7 @@ class TLDInput extends Component {
   };
 
   handleSearchClick = () => {
-    const name = this.state.inputValue;
+    const name = decodePunycode(this.state.inputValue);
 
     if (!name.length) {
       return;

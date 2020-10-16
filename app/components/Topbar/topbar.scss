@@ -84,6 +84,15 @@
         background-image: url('../../assets/images/x-square.svg');
       }
     }
+
+    &--loading {
+      color: $manatee-gray;
+      font-weight: 600;
+
+      &:before {
+        background-image: url('../../assets/images/brick-loader.svg');
+      }
+    }
   }
 
   &__icon {

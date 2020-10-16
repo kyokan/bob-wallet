@@ -68,7 +68,7 @@ class App extends Component {
 
     return (
       <div className="app">
-        <WalletSync />
+        {/*<WalletSync />*/}
         <IdleModal />
         <PassphraseModal />
         {this.renderContent()}
@@ -106,14 +106,14 @@ class App extends Component {
   }
 
   uninitializedWrapper(Component, isMainMenu = false, autoHeight = false) {
-    const { history } = this.props;
+    const { history, isRunning } = this.props;
     if (isMainMenu) {
       return () => (
         <div className="app__uninitialized-wrapper">
           <div className="app__header">
             <div className="app__logo"/>
             <div className="app__network-picker-wrapper">
-              <NetworkPicker />
+              { isRunning && <NetworkPicker /> }
             </div>
           </div>
           <div className={c("app__uninitialized", {
@@ -162,7 +162,7 @@ class App extends Component {
         />
         <Route
           path="/settings"
-          render={this.routeRenderer('Settings', Settings)}
+          render={this.routeRenderer('Settings', Settings, false, false)}
         />
         <Route path="/bids" render={this.routeRenderer('Domains', YourBids)} />
         <Route
@@ -190,7 +190,7 @@ class App extends Component {
     );
   }
 
-  routeRenderer(title, Component, showSidebar = true) {
+  routeRenderer(title, Component, showSidebar = true, padded = true) {
     return () => (
       <React.Fragment>
         {showSidebar && (
@@ -200,9 +200,16 @@ class App extends Component {
         )}
         <div className="app__main-wrapper">
           <Topbar title={title} showLogo={!showSidebar} />
-          <div className="app__content">
-            <Component />
-          </div>
+          {
+            padded
+              ? (
+                <div className="app__content">
+                  <Component />
+                </div>
+              )
+              : <Component />
+          }
+
         </div>
       </React.Fragment>
     );
@@ -210,6 +217,8 @@ class App extends Component {
 
   renderDefault = () => {
     let {isLocked, initialized} = this.props;
+
+
     if (!initialized) {
       return <Redirect to="/funding-options" />;
     }
@@ -228,11 +237,12 @@ export default withRouter(
       error: state.node.error,
       isLocked: state.wallet.isLocked,
       isChangingNetworks: state.node.isChangingNetworks,
-      initialized: state.wallet.initialized
+      initialized: state.wallet.initialized,
+      isRunning: state.node.isRunning,
     }),
     dispatch => ({
       watchActivity: () => dispatch(walletActions.watchActivity()),
-      startNode: () => dispatch(node.start()),
+      startNode: () => dispatch(node.startApp()),
       onNewBlock: () => dispatch(onNewBlock()),
     })
   )(App)
