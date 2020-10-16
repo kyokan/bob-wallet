@@ -85,8 +85,6 @@ class App extends Component {
   }
 
   renderContent() {
-    console.log('wallets are', this.props.wallets)
-
     return (
       <Switch>
         <Route
