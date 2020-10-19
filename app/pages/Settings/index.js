@@ -32,6 +32,7 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
     network: state.node.network,
     apiKey: state.node.apiKey,
     walletApiKey: state.wallet.apiKey,
+    wid: state.wallet.wid,
     isRunning: state.node.isRunning,
     isChangingNodeStatus: state.node.isChangingNodeStatus,
     isTestingCustomRPC: state.node.isTestingCustomRPC,
@@ -51,6 +52,7 @@ export default class Settings extends Component {
   static propTypes = {
     network: PropTypes.string.isRequired,
     apiKey: PropTypes.string.isRequired,
+    wid: PropTypes.string.isRequired,
     walletApiKey: PropTypes.string.isRequired,
     isRunning: PropTypes.bool.isRequired,
     isChangingNodeStatus: PropTypes.bool.isRequired,
@@ -166,6 +168,7 @@ export default class Settings extends Component {
       history,
       lockWallet,
       transactions,
+      wid,
     } = this.props;
 
     return (
@@ -189,8 +192,8 @@ export default class Settings extends Component {
         {this.renderSection(
           'API Key',
           <span>
-                  API key for <Anchor href="https://hsd-dev.org/api-docs/#get-wallet-info">hsw-cli</Anchor> and <Anchor href="https://hsd-dev.org/api-docs/#selectwallet">hsw-rpc</Anchor>. Make sure you select the wallet id "allison".
-                </span>,
+            API key for <Anchor href="https://hsd-dev.org/api-docs/#get-wallet-info">hsw-cli</Anchor> and <Anchor href="https://hsd-dev.org/api-docs/#selectwallet">hsw-rpc</Anchor>. Make sure you select the wallet id "{wid}".
+          </span>,
           'View API Key',
           () => history.push('/settings/wallet/view-api-key'),
         )}
