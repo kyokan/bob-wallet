@@ -4,12 +4,18 @@ const FETCH_MY_NAMES_START = 'app/myDomains/fetchMyNamesStart';
 const FETCH_MY_NAMES_STOP = 'app/myDomains/fetchMyNamesStop';
 const ADD_NAME = 'app/myDomains/addName';
 const ADD_NAMES = 'app/myDomains/addNames';
+const SET_NAMES = 'app/myDomains/setNames';
 
 const initialState = {
   names: {},
   isFetching: false,
   errorMessage: '',
 };
+
+export const setNames = (names = []) => ({
+  type: SET_NAMES,
+  payload: names,
+});
 
 export const getMyNames = () => async (dispatch, getState) => {
   const {
@@ -55,8 +61,6 @@ export const getMyNames = () => async (dispatch, getState) => {
       error: true,
     });
   }
-
-
 };
 
 export default function myDomainsReducer(state = initialState, action) {
@@ -80,6 +84,11 @@ export default function myDomainsReducer(state = initialState, action) {
           isFetching: false,
           errorMessage: '',
         };
+    case SET_NAMES:
+      return {
+        ...state,
+        names: payload,
+      };
     case ADD_NAMES:
       return {
         ...state,
