@@ -98,7 +98,7 @@ class App extends Component {
           isLocked={this.props.isLocked}
           wallets={this.props.wallets}
           path="/account"
-          render={this.routeRenderer('Portfolio', Account)}
+          render={this.routeRenderer('Portfolio', Account, true, false)}
         />
         <ProtectedRoute
           isLocked={this.props.isLocked}
