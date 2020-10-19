@@ -22,6 +22,7 @@ export function getInitialState() {
   return {
     address: '',
     apiKey: '',
+    wid: '',
     type: NONE,
     isLocked: true,
     isFetching: false,
@@ -47,6 +48,9 @@ export default function walletReducer(state = getInitialState(), {type, payload}
     case SET_WALLET:
       return {
         ...state,
+        transactions: state.wid === payload.wid
+          ? state.transactions
+          : new Map(),
         wid: payload.wid,
         address: payload.address,
         type: payload.type,
