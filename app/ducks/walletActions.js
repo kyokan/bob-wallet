@@ -26,6 +26,7 @@ let idleInterval;
 
 export const setWallet = opts => {
   const {
+    wid = '',
     initialized = false,
     address = '',
     type = NONE,
@@ -36,6 +37,7 @@ export const setWallet = opts => {
   return {
     type: SET_WALLET,
     payload: {
+      wid,
       initialized,
       address,
       type,
@@ -79,9 +81,18 @@ export const fetchWallet = () => async (dispatch, getState) => {
     }));
   }
 
-  const accountInfo = await walletClient.getAccountInfo();
+  let accountInfo;
+
+  try {
+    accountInfo = await walletClient.getAccountInfo();
+  } catch (e) {
+    accountInfo = null;
+  }
+
   const apiKey = await walletClient.getAPIKey();
+
   dispatch(setWallet({
+    wid: accountInfo ? accountInfo.wid : '',
     initialized: isInitialized,
     address: accountInfo && accountInfo.receiveAddress,
     type: NONE,
