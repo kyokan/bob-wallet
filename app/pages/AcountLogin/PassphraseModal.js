@@ -11,14 +11,16 @@ import MiniModal from '../../components/Modal/MiniModal';
 @connect(
   (state) => ({
     getPassphrase: state.wallet.getPassphrase,
+    wid: state.wallet.wid,
   }),
   dispatch => ({
-    unlockWallet: passphrase => dispatch(walletActions.unlockWallet(passphrase)),
+    unlockWallet: (name, passphrase) => dispatch(walletActions.unlockWallet(name, passphrase)),
     closeGetPassphrase: () => dispatch(walletActions.closeGetPassphrase()),
   })
 )
 export default class PassphraseModal extends Component {
   static propTypes = {
+    wid: PropTypes.string.isRequired,
     unlockWallet: PropTypes.func.isRequired,
     closeGetPassphrase: PropTypes.func.isRequired,
     getPassphrase: PropTypes.object.isRequired,
@@ -35,10 +37,11 @@ export default class PassphraseModal extends Component {
 
   async handleLogin(passphrase) {
     try {
-      await this.props.unlockWallet(passphrase);
+      const {wid, unlockWallet, getPassphrase, closeGetPassphrase} = this.props;
+      await unlockWallet(wid, passphrase);
       this.setState({passphrase: ''});
-      this.props.getPassphrase.resolve();
-      this.props.closeGetPassphrase();
+      getPassphrase.resolve();
+      closeGetPassphrase();
     } catch (error) {
       return this.setState({ showError: true });
     }
