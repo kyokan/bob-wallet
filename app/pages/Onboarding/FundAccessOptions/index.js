@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
-import { withRouter } from 'react-router-dom';
+import { withRouter, Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-// import classNames from 'classnames';
-// import * as auctions.js from '../../../ducks/extension';
 import './access.scss';
 
 class FundAccessOptions extends Component {
@@ -41,8 +39,17 @@ class FundAccessOptions extends Component {
             className="funding-options__footer__secondary-btn"
             onClick={() => this.props.history.push('/existing-options')}
           >
-            I already have a wallet
+            Import a wallet
           </button>
+
+          {!!this.props.wallets.length && (
+            <Link
+              to="/"
+              className="login_subheader_text login_subheader_text__accent"
+            >
+              Return to login
+            </Link>
+          )}
         </div>
       </div>
     );
@@ -51,7 +58,9 @@ class FundAccessOptions extends Component {
 
 export default withRouter(
   connect(
-    state => ({}),
+    state => ({
+      wallets: state.wallet.wallets
+    }),
     dispatch => ({})
   )(FundAccessOptions)
 );

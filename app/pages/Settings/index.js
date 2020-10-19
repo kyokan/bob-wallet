@@ -40,7 +40,7 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
   }),
   dispatch => ({
     lockWallet: () => dispatch(walletActions.lockWallet()),
-    removeWallet: () => dispatch(walletActions.removeWallet()),
+    reset: () => dispatch(walletActions.reset()),
     stopNode: () => dispatch(nodeActions.stop()),
     startNode: () => dispatch(nodeActions.start()),
     setCustomRPCStatus: isConnected => dispatch(setCustomRPCStatus(isConnected)),
@@ -55,7 +55,7 @@ export default class Settings extends Component {
     isRunning: PropTypes.bool.isRequired,
     isChangingNodeStatus: PropTypes.bool.isRequired,
     lockWallet: PropTypes.func.isRequired,
-    removeWallet: PropTypes.func.isRequired,
+    reset: PropTypes.func.isRequired,
     stopNode: PropTypes.func.isRequired,
     startNode: PropTypes.func.isRequired,
     setCustomRPCStatus: PropTypes.func.isRequired,
@@ -207,10 +207,10 @@ export default class Settings extends Component {
           () => history.push('/settings/wallet/reveal-seed'),
         )}
         {this.renderSection(
-          'Remove wallet',
-          'This will remove all data from Bob. Proceed with caution.',
-          'Remove Wallet ',
-          () => history.push('/settings/wallet/new-wallet'),
+          'Create new wallet',
+          'This will allow you to create a new wallet',
+          'Create New',
+          () => history.push('/funding-options'),
         )}
       </>
     );
@@ -314,15 +314,6 @@ export default class Settings extends Component {
         { this.renderContent() }
         <Switch>
           <Route path="/settings/wallet/account-index" component={AccountIndexModal} />
-          <Route
-            path="/settings/wallet/new-wallet"
-            render={() => (
-              <InterstitialWarningModal
-                nextAction={() => this.props.removeWallet()}
-                nextRoute="/"
-              />
-            )}
-          />
           <Route path="/settings/wallet/reveal-seed" component={RevealSeedModal} />
           <Route path="/settings/wallet/zap-txs" component={ZapTXsModal} />
           <Route path="/settings/connection/configure" component={CustomRPCConfigModal}>

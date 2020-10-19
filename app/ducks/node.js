@@ -1,7 +1,7 @@
 import { clientStub } from '../background/node/client';
 import { clientStub as connClientStub } from '../background/connections/client';
 import { getNetwork, setNetwork, getInitializationState } from '../db/system';
-import { fetchWallet, fetchTransactions } from './walletActions';
+import { fetchWallet, fetchTransactions, listWallets } from './walletActions';
 import { getWatching } from './watching';
 import * as logger from '../utils/logClient';
 import { onNewBlock } from './backgroundMonitor';
@@ -109,6 +109,7 @@ export const start = (network) => async (dispatch, getState) => {
       },
     });
     await dispatch(setNodeInfo());
+    await dispatch(listWallets());
     await dispatch(fetchWallet());
     if (await getInitializationState(network)) {
       setTimeout(async () => {
