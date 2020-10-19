@@ -47,6 +47,7 @@ export default function walletReducer(state = getInitialState(), {type, payload}
     case SET_WALLET:
       return {
         ...state,
+        wid: payload.wid,
         address: payload.address,
         type: payload.type,
         balance: {
