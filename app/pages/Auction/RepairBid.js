@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import {consensus} from 'hsd/lib/protocol';
 import walletClient from '../../utils/walletClient';
 import * as names from '../../ducks/names';
+import { showError } from '../../ducks/notifications';
 
 @connect(
   () => ({}),
@@ -50,17 +51,19 @@ export default class RepairBid extends Component {
           }
         }
         disabled={this.state.isCorrect}
-      />      
+      />
     );
   }
 
   processValue = async (val) => {
     const value = val.match(/[0-9]*\.?[0-9]{0,6}/g)[0];
-    if (value * consensus.COIN > consensus.MAX_MONEY)
-      return;
     this.setState({value: value});
-    if (parseFloat(value))
-      return this.verifyBid(value);
+    const parsed = parseFloat(value);
+
+    if (val === "" || Number.isNaN(parsed) || parsed * consensus.COIN > consensus.MAX_MONEY)
+      return;
+
+    return this.verifyBid(parsed);
   }
 
   async verifyBid(value) {
@@ -78,7 +81,7 @@ export default class RepairBid extends Component {
         await walletClient.importNonce({
           name: bid.name,
           address: bid.from,
-          bid: parseFloat(value),
+          bid: value,
         });
 
         this.props.getNameInfo(bid.name);
