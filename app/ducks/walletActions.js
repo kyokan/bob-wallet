@@ -21,6 +21,8 @@ import {
   SET_WALLETS,
 } from './walletReducer';
 import { NEW_BLOCK_STATUS } from './nodeReducer';
+import {setNames} from "./myDomains";
+import {setYourBids} from "./bids";
 
 let idleInterval;
 
@@ -115,6 +117,9 @@ export const unlockWallet = (name, passphrase) => async (dispatch, getState) => 
       type: SET_TRANSACTIONS,
       payload: new Map(),
     });
+
+    dispatch(setNames([]));
+    dispatch(setYourBids([]));
   }
 
   dispatch({
