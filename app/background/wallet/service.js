@@ -158,8 +158,6 @@ class WalletService {
     await this._ensureClient();
     const wdb = this.node.wdb;
 
-    const {chain: {height: chainHeight}} = await nodeService.getInfo();
-
     dispatchToMainWindow({type: START_SYNC_WALLET});
     dispatchToMainWindow({
       type: SYNC_WALLET_PROGRESS,
@@ -168,7 +166,6 @@ class WalletService {
 
     setTimeout(this.checkRescanStatus, 5000);
 
-    wdb.client.timeout = 10000;
     await wdb.rescan(height);
   };
 
@@ -185,9 +182,7 @@ class WalletService {
     };
 
     const res = await this.client.createWallet(this.name, options);
-
-    setTimeout(() => this.rescan(0), 0);
-
+    this.rescan(0);
     return res;
   };
 
@@ -555,7 +550,7 @@ class WalletService {
       prefix: networkName === 'main'
         ? HSD_DATA_DIR
         : path.join(HSD_DATA_DIR, networkName),
-      migrate: 1,
+      migrate: 0,
     });
 
     await node.open();
@@ -568,8 +563,7 @@ class WalletService {
 
     this.node = node;
     this.client = new WalletClient(walletOptions);
-    this.client.timeout = 10000;
-    await this.onNewBlock();
+    await this.refreshNodeInfo();
     await this.checkRescanStatus();
   };
 
@@ -589,8 +583,7 @@ class WalletService {
     }
   };
 
-  onNewBlock = async (entry, txs) => {
-    await this._ensureClient();
+  refreshNodeInfo = async () => {
     const info = await nodeService.getInfo();
     const fees = await nodeService.getFees();
 
@@ -603,6 +596,11 @@ class WalletService {
       type: SET_FEE_INFO,
       payload: { fees },
     });
+  };
+
+  onNewBlock = async (entry, txs) => {
+    await this._ensureClient();
+    await this.refreshNodeInfo();
 
     if (entry && txs) {
       await this.node.wdb.addBlock(entry, txs);
