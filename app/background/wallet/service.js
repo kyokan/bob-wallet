@@ -86,7 +86,13 @@ class WalletService {
 
   getAccountInfo = async () => {
     await this._ensureClient();
-    return this.client.getAccount(this.name, 'default');
+    const wallet = await this.node.wdb.get(this.name);
+    const account = await wallet.getAccount('default');
+    const balance = await wallet.getBalance(account.accountIndex);
+    return {
+      wid: this.name,
+      ...account.getJSON(balance),
+    };
   };
 
   getCoin = async (hash, index) => {
