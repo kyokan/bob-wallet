@@ -107,8 +107,16 @@ export const revealSeed = (passphrase) => async () => {
   return walletClient.revealSeed(passphrase);
 };
 
-export const unlockWallet = (name, passphrase) => async (dispatch) => {
+export const unlockWallet = (name, passphrase) => async (dispatch, getState) => {
   await walletClient.unlock(name, passphrase);
+
+  if (name !== getState().wallet.wid) {
+    dispatch({
+      type: SET_TRANSACTIONS,
+      payload: new Map(),
+    });
+  }
+
   dispatch({
     type: UNLOCK_WALLET,
   });
