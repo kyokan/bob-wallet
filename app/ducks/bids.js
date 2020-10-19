@@ -6,14 +6,16 @@ const initialState = {
   yourBids: [],
 };
 
+export const setYourBids = (bids = []) => ({
+  type: SET_YOUR_BIDS,
+  payload: bids,
+});
+
 export const getYourBids = () => async (dispatch) => {
   const result = await walletClient.getBids();
 
   if (result && result.length) {
-    dispatch({
-      type: SET_YOUR_BIDS,
-      payload: result.filter(({ own }) => own),
-    });
+    dispatch(setYourBids(result.filter(({ own }) => own)));
   }
 };
 
