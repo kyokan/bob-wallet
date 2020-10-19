@@ -6,11 +6,16 @@ import './create.scss';
 import Submittable from '../../../components/Submittable';
 import WizardHeader from '../../../components/WizardHeader';
 
-@connect()
+@connect(
+  (state) => ({
+    wallets: state.wallet.wallets,
+  })
+)
 export default class CreatePassword extends Component {
   static propTypes = {
     currentStep: PropTypes.number.isRequired,
     totalSteps: PropTypes.number.isRequired,
+    wallets: PropTypes.arrayOf(PropTypes.string).isRequired,
     onBack: PropTypes.func.isRequired,
     onNext: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,
@@ -20,6 +25,7 @@ export default class CreatePassword extends Component {
     super(props);
     this.state = {
       name: '',
+      errorMessage: '',
     };
   }
 
@@ -28,17 +34,31 @@ export default class CreatePassword extends Component {
   };
 
   isValidName = () => {
-    return this.state.name.match(/^[a-z0-9]+$/);
+    const {errorMessage, name} = this.state;
+    return !errorMessage && name.match(/^[a-z0-9]+$/);
   };
 
   onChange = name => e => {
+    const {wallets} = this.props;
+    const inputValue = e.target.value;
+
+    let errorMessage = '';
+
+    if (wallets.includes(inputValue)) {
+      errorMessage = `"${inputValue}" already exist`;
+    } else if (inputValue === 'primary') {
+      errorMessage = `cannot use "primary" as name`;
+    }
+
     this.setState({
       [name]: e.target.value,
+      errorMessage: errorMessage,
     });
   };
 
   render() {
     const {currentStep, totalSteps, onBack} = this.props;
+    const {errorMessage} = this.state;
 
     return (
       <div className="create-password">
@@ -57,7 +77,9 @@ export default class CreatePassword extends Component {
               The name can only contain alphanumeric lowercase characters.
             </div>
             <div
-              className={c('create-password__input')}
+              className={c('create-password__input', {
+                'create-password__input--error': errorMessage,
+              })}
             >
               <input
                 type="text"
@@ -66,6 +88,9 @@ export default class CreatePassword extends Component {
                 onChange={this.onChange('name')}
                 autoFocus
               />
+            </div>
+            <div className="create-password__error">
+              {errorMessage}
             </div>
           </Submittable>
         </div>
