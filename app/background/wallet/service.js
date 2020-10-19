@@ -36,6 +36,8 @@ class WalletService {
     nodeService.on('started', this._onNodeStart);
     nodeService.on('stopped', this._onNodeStop);
     this.nodeService = nodeService;
+    this.lastProgressUpdate = 0;
+    this.lastKnownChainHeight = 0;
   }
 
   setWallet = (name) => {
@@ -128,37 +130,6 @@ class WalletService {
     return this.client.createWallet(name, options);
   };
 
-  checkRescanStatus = async () => {
-    await this._ensureClient();
-    const wdb = this.node.wdb;
-    const {chain: {height: lastChainHeight}} = await nodeService.getInfo();
-    const {height: lastWalletHeight} = await wdb.getTip();
-
-    if (lastWalletHeight < lastChainHeight) {
-      this.rescanStatusIntv = setInterval(async () => {
-        const {height: walletHeight} = await wdb.getTip();
-        const {chain: {height: chainHeight}} = await nodeService.getInfo();
-
-        if (walletHeight === chainHeight) {
-          clearInterval(this.rescanStatusIntv);
-          dispatchToMainWindow({type: STOP_SYNC_WALLET});
-          dispatchToMainWindow({
-            type: SYNC_WALLET_PROGRESS,
-            payload: walletHeight,
-          });
-          return;
-        }
-
-        dispatchToMainWindow({type: START_SYNC_WALLET});
-        dispatchToMainWindow({
-          type: SYNC_WALLET_PROGRESS,
-          payload: walletHeight,
-        });
-
-      }, 1000);
-    }
-  };
-
   rescan = async (height = 0) => {
     await this._ensureClient();
     const wdb = this.node.wdb;
@@ -168,8 +139,6 @@ class WalletService {
       type: SYNC_WALLET_PROGRESS,
       payload: 0,
     });
-
-    setTimeout(this.checkRescanStatus, 5000);
 
     await wdb.rescan(height);
   };
@@ -592,11 +561,12 @@ class WalletService {
     });
 
     node.wdb.client.bind('block connect', this.onNewBlock);
+    node.wdb.client.unhook('block rescan');
+    node.wdb.client.hook('block rescan', this.onRescanBlock);
 
     this.node = node;
     this.client = new WalletClient(walletOptions);
     await this.refreshNodeInfo();
-    await this.checkRescanStatus();
   };
 
   _onNodeStop = async () => {
@@ -609,15 +579,15 @@ class WalletService {
     this.node = null;
     this.client = null;
     this.didSelectWallet = false;
-
-    if (this.rescanStatusIntv) {
-      clearInterval(this.rescanStatusIntv);
-    }
   };
 
   refreshNodeInfo = async () => {
     const info = await nodeService.getInfo();
     const fees = await nodeService.getFees();
+
+    const {chain: {height: chainHeight}} = info;
+
+    this.lastKnownChainHeight = chainHeight;
 
     dispatchToMainWindow({
       type: SET_NODE_INFO,
@@ -636,6 +606,48 @@ class WalletService {
 
     if (entry && txs) {
       await this.node.wdb.addBlock(entry, txs);
+    }
+  };
+
+  /**
+   * Stub handler for rescan block
+   *
+   * @param {ChainEntry} entry
+   * @param {TX[]} txs
+   * @returns {Promise}
+   */
+
+  onRescanBlock = async (entry, txs) => {
+    await this._ensureClient();
+    const wdb = this.node.wdb;
+
+    try {
+      await wdb.rescanBlock(entry, txs);
+      const walletHeight = entry.height;
+      const chainHeight = this.lastKnownChainHeight;
+
+      if (walletHeight === chainHeight) {
+        dispatchToMainWindow({type: STOP_SYNC_WALLET});
+        dispatchToMainWindow({
+          type: SYNC_WALLET_PROGRESS,
+          payload: walletHeight,
+        });
+        return;
+      }
+
+      const now = Date.now();
+
+      // debounce wallet sync update
+      if (now - this.lastProgressUpdate > 500) {
+        dispatchToMainWindow({type: START_SYNC_WALLET});
+        dispatchToMainWindow({
+          type: SYNC_WALLET_PROGRESS,
+          payload: walletHeight,
+        });
+        this.lastProgressUpdate = now;
+      }
+    } catch (e) {
+      wdb.emit('error', e);
     }
   };
 
