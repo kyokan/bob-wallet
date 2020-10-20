@@ -109,6 +109,24 @@ class WalletService {
     return wallet.getNames();
   };
 
+  /**
+   * Remove wallet by wid
+   * @param wid
+   * @return {Promise<void>}
+   */
+  removeWalletById = async (wid) => {
+    await this._ensureClient();
+    await this.node.wdb.remove(wid);
+    this.setWallet(null);
+
+    const wids = await this.listWallets();
+
+    dispatchToMainWindow({
+      type: SET_WALLETS,
+      payload: wids,
+    });
+  };
+
   createNewWallet = async (name, passphraseOrXPub, isLedger) => {
     await this._ensureClient();
     this.setWallet(name);
@@ -731,6 +749,7 @@ const methods = {
   revealSeed: service.revealSeed,
   estimateTxFee: service.estimateTxFee,
   estimateMaxSend: service.estimateMaxSend,
+  removeWalletById: service.removeWalletById,
   rescan: service.rescan,
   reset: service.reset,
   sendOpen: service.sendOpen,
