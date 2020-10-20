@@ -60,8 +60,7 @@ export default class InterstitialWarningModal extends Component {
         title="Are you sure you want to do this?"
       >
         <div className="interstitial-warning-modal__instructions">
-          You are about to remove your current wallet from this Chrome
-          extension. Be sure you have your current recovery seed phrase saved
+          You are about to remove your current wallet from Bob. Be sure you have your current recovery seed phrase saved
           somewhere safe before proceeding.
         </div>
         <div className="interstitial-warning-modal__checkbox">

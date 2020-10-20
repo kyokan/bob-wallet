@@ -7,7 +7,6 @@ import './index.scss';
 import AccountIndexModal from './AccountIndexModal';
 import RevealSeedModal from './RevealSeedModal';
 import ZapTXsModal from './ZapTXsModal';
-import InterstitialWarningModal from './InterstitialWarningModal';
 import * as logger from '../../utils/logClient';
 import * as walletActions from '../../ducks/walletActions';
 import * as nodeActions from '../../ducks/node';
@@ -23,6 +22,7 @@ import CustomRPCConfigModal from "./CustomRPCConfigModal";
 import {fetchWalletAPIKey} from "../../ducks/walletActions";
 import Anchor from "../../components/Anchor";
 import walletClient from "../../utils/walletClient";
+import InterstitialWarningModal from "./InterstitialWarningModal";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -32,6 +32,7 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
     network: state.node.network,
     apiKey: state.node.apiKey,
     walletApiKey: state.wallet.apiKey,
+    walletSync: state.wallet.walletSync,
     wid: state.wallet.wid,
     isRunning: state.node.isRunning,
     isChangingNodeStatus: state.node.isChangingNodeStatus,
@@ -55,6 +56,7 @@ export default class Settings extends Component {
     wid: PropTypes.string.isRequired,
     walletApiKey: PropTypes.string.isRequired,
     isRunning: PropTypes.bool.isRequired,
+    walletSync: PropTypes.bool.isRequired,
     isChangingNodeStatus: PropTypes.bool.isRequired,
     lockWallet: PropTypes.func.isRequired,
     reset: PropTypes.func.isRequired,
@@ -169,6 +171,7 @@ export default class Settings extends Component {
       lockWallet,
       transactions,
       wid,
+      walletSync,
     } = this.props;
 
     return (
@@ -187,6 +190,8 @@ export default class Settings extends Component {
           </div>,
           'Rescan',
           () => walletClient.rescan(0),
+          null,
+          walletSync,
         )}
 
         {this.renderSection(
@@ -214,6 +219,12 @@ export default class Settings extends Component {
           'This will allow you to create a new wallet',
           'Create New',
           () => history.push('/funding-options'),
+        )}
+        {this.renderSection(
+          'Remove wallet',
+          `Remove "${wid}" from Bob`,
+          'Remove Wallet',
+          () => history.push('/settings/wallet/remove-wallet'),
         )}
       </>
     );
@@ -317,10 +328,21 @@ export default class Settings extends Component {
         { this.renderContent() }
         <Switch>
           <Route path="/settings/wallet/account-index" component={AccountIndexModal} />
+          <Route
+            path="/settings/wallet/remove-wallet"
+            render={() => (
+              <InterstitialWarningModal
+                nextAction={async () => {
+                  await walletClient.removeWalletById(this.props.wid);
+                  this.props.history.push('/login');
+                }}
+                nextRoute="/"
+              />
+            )}
+          />
           <Route path="/settings/wallet/reveal-seed" component={RevealSeedModal} />
           <Route path="/settings/wallet/zap-txs" component={ZapTXsModal} />
-          <Route path="/settings/connection/configure" component={CustomRPCConfigModal}>
-          </Route>
+          <Route path="/settings/connection/configure" component={CustomRPCConfigModal} />
           <Route path="/settings/wallet/view-api-key">
             <MiniModal
               closeRoute="/settings/wallet"
