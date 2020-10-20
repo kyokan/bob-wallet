@@ -30,7 +30,9 @@ export default class CreatePassword extends Component {
   }
 
   onSubmit = () => {
-    this.props.onNext(this.state.name);
+    if (this.isValidName()) {
+      this.props.onNext(this.state.name);
+    }
   };
 
   isValidName = () => {
