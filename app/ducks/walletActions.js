@@ -211,13 +211,8 @@ export const fetchTransactions = () => async (dispatch, getState) => {
     payload: true,
   });
 
-  let txs = [];
 
-  try {
-    txs = await walletClient.getTransactionHistory();
-  } catch (e) {
-    //
-  }
+  const txs = await walletClient.getTransactionHistory();
 
   let payload = new Map();
 
