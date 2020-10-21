@@ -10,6 +10,7 @@ import { NodeClient } from 'hs-client';
 import { BigNumber } from 'bignumber.js';
 import {ConnectionTypes, getConnection, getCustomRPC} from '../connections/service';
 import FullNode from 'hsd/lib/node/fullnode';
+import {get, put} from "../db/service";
 
 const Network = require('hsd/lib/protocol/network');
 
@@ -171,7 +172,12 @@ export class NodeService extends EventEmitter {
   }
 
   async getNameByHash(hash) {
-    return this._execRPC('getnamebyhash', [hash]);
+    const cachedKey = `nx:${hash}`;
+    const cached = await get(cachedKey);
+    if (cached) return cached;
+    const name = await this._execRPC('getnamebyhash', [hash]);
+    put(cachedKey, name);
+    return name;
   }
 
   async getAuctionInfo(name) {

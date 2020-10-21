@@ -492,14 +492,17 @@ async function nameByHash(net, covenant) {
     nameCache.currNet = net;
     nameCache.cache = {};
   }
+
   if (Object.keys(nameCache.cache) > MAX_NAME_CACHE_SIZE) {
     nameCache.cache = {};
   }
 
   const hash = covenant.items[0];
+
   if (nameCache.cache[hash]) {
     return nameCache.cache[hash];
   }
+
   let name = await nodeClient.getNameByHash(hash);
 
   if (!name && covenant.action === 'OPEN') {
