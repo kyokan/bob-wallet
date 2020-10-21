@@ -87,6 +87,8 @@ class WalletService {
 
 
   getAccountInfo = async () => {
+    if (!this.name) return null;
+
     await this._ensureClient();
     const wallet = await this.node.wdb.get(this.name);
     const account = await wallet.getAccount('default');
@@ -196,6 +198,11 @@ class WalletService {
 
   getTransactionHistory = async () => {
     await this._ensureClient();
+
+    if (!this.name) {
+      return [];
+    }
+
     const wallet = await this.node.wdb.get(this.name);
     return wallet.getHistory('default');
   };
