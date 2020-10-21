@@ -47,7 +47,7 @@ export default class CreatePassword extends Component {
     let errorMessage = '';
 
     if (wallets.includes(inputValue)) {
-      errorMessage = `"${inputValue}" already exist`;
+      errorMessage = `"${inputValue}" already exists`;
     } else if (inputValue === 'primary') {
       errorMessage = `cannot use "primary" as name`;
     }
