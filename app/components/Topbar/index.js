@@ -124,6 +124,7 @@ class Topbar extends Component {
       showLogo,
       location: { pathname },
       walletSync,
+      progress,
     } = this.props;
 
     return (
@@ -134,13 +135,16 @@ class Topbar extends Component {
           className={c('topbar__synced', {
             'topbar__synced--success': isSynchronized || isCustomRPCConnected,
             'topbar__synced--failure': !isRunning && !isCustomRPCConnected,
-            'topbar__synced--loading': walletSync || isChangingNodeStatus || isTestingCustomRPC || isSynchronizing,
+            'topbar__synced--loading': walletSync
+              || isChangingNodeStatus
+              || isTestingCustomRPC
+              || isSynchronizing
+              || progress < 1,
           })}
         >
           {this.getSyncText()}
         </div>
         { this.renderSettingIcon() }
-        {/*<Link to="/settings" className="topbar__icon topbar__icon--settings" />*/}
       </React.Fragment>
     );
   }
@@ -219,6 +223,10 @@ class Topbar extends Component {
 
     if (isSynchronizing) {
       return `Synchronizing... ${
+        progress ? '(' + (progress * 100).toFixed(2) + '%)' : ''
+      }`;
+    } else if (progress < 1) {
+      return `Synchronizing from RPC... ${
         progress ? '(' + (progress * 100).toFixed(2) + '%)' : ''
       }`;
     }

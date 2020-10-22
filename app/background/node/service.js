@@ -116,6 +116,13 @@ export class NodeService extends EventEmitter {
 
   async setCustomRPCClient() {
     const rpc = await getCustomRPC();
+    const {
+      protocol,
+      port,
+      host,
+      pathname,
+      apiKey,
+    } = rpc;
     const networkType = rpc.networkType || 'main';
 
     if (!VALID_NETWORKS[networkType]) {
@@ -128,19 +135,23 @@ export class NodeService extends EventEmitter {
 
     this.emit('started', this.networkName, this.network);
 
+    const portString = port ? `:${port}` : '';
+    const pathString = (!pathname || pathname === '/') ? '' : pathname;
+    const protoString = protocol || 'http';
+
+    const url = `${protoString}://${host}${portString}${pathString}`;
     this.client = new NodeClient({
       network: network,
-      apiKey: rpc.apiKey,
-      url: rpc.url || `http://127.0.0.1:${network.rpcPort}`,
+      apiKey: apiKey,
+      url: url,
     });
   }
 
   async stop() {
-    if (!this.hsd) {
-      return;
+    if (this.hsd) {
+      await this.hsd.close();
     }
 
-    await this.hsd.close();
     this.emit('stopped');
     this.hsd = null;
     this.client = null;

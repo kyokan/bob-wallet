@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import Dropdown from '../../components/Dropdown';
 import { NETWORKS } from '../../constants/networks';
 import { withRouter } from 'react-router-dom';
 import connect from 'react-redux/es/connect/connect';
 import * as nodeActions from '../../ducks/node';
+import c from 'classnames';
 import './network-picker.scss';
 
 const dummyItems = [
@@ -47,15 +49,33 @@ export const indicesNetworks = [
   (state) => ({
     network: state.node.network,
   }),
-  dispatch => ({
+  (dispatch) => ({
     changeNetwork: (net) => dispatch(nodeActions.changeNetwork(net)),
   }),
 )
 export default class NetworkPicker extends Component {
+  static propTypes = {
+    network: PropTypes.string.isRequired,
+    changeNetwork: PropTypes.func.isRequired,
+    className: PropTypes.string,
+    currentNetwork: PropTypes.string,
+    onNetworkChange: PropTypes.func,
+  };
+
   render() {
-    if (!this.props.network) {
+    const {
+      changeNetwork,
+      onNetworkChange,
+      className,
+      network,
+      currentNetwork,
+    } = this.props;
+
+    const net = currentNetwork || network;
+
+    if (!net) {
       return (
-        <div className="network-picker">
+        <div className={c('network-picker', className)}>
           <Dropdown
             items={dummyItems}
             currentIndex={0}
@@ -65,12 +85,18 @@ export default class NetworkPicker extends Component {
     }
 
     return (
-      <div className="network-picker">
+      <div className={c('network-picker', className)}>
         <Dropdown
           reversed
           items={networks}
-          currentIndex={networksIndices[this.props.network]}
-          onChange={(i) => this.props.changeNetwork(indicesNetworks[i])}
+          currentIndex={networksIndices[net]}
+          onChange={(i) => {
+            if (onNetworkChange) {
+              onNetworkChange(indicesNetworks[i]);
+            } else {
+              changeNetwork(indicesNetworks[i])
+            }
+          }}
         />
       </div>
     );

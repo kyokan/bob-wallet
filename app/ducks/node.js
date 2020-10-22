@@ -52,6 +52,10 @@ export const stop = () => async (dispatch, getState) => {
       }
     }
 
+    const info = await nodeClient.getInfo();
+
+    console.log(info);
+
     if (!await nodeClient.getInfo()) {
       throw new Error('cannot get node info');
     }
@@ -169,4 +173,33 @@ export const changeNetwork = (network) => async (dispatch) => {
   dispatch({
     type: END_NETWORK_CHANGE,
   });
+};
+
+export const changeCustomNetwork = (network) => async (dispatch) => {
+  if (!VALID_NETWORKS[network]) {
+    throw new Error('invalid network');
+  }
+
+  const conn = await connClient.getConnection();
+
+  if (conn.networkType !== network) {
+    dispatch({
+      type: START_NETWORK_CHANGE,
+    });
+
+    await connClient.setConnection({
+      type: ConnectionTypes.Custom,
+      port: conn.port,
+      host: conn.host,
+      pathname: conn.pathname,
+      networkType: network,
+      apiKey: conn.apiKey,
+    });
+
+    await nodeClient.reset();
+
+    dispatch({
+      type: END_NETWORK_CHANGE,
+    });
+  }
 };

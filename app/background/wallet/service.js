@@ -38,6 +38,8 @@ class WalletService {
     this.nodeService = nodeService;
     this.lastProgressUpdate = 0;
     this.lastKnownChainHeight = 0;
+    this.closeP = null;
+    this.openP = null;
   }
 
   setWallet = (name) => {
@@ -67,7 +69,7 @@ class WalletService {
         this.network,
         this.apiKey,
       );
-      this.setName(null);
+      this.setWallet(null);
       return true;
     } catch (e) {
       console.error(e);
@@ -84,7 +86,6 @@ class WalletService {
     await this._ensureClient();
     return this.client.getInfo(this.name);
   };
-
 
   getAccountInfo = async () => {
     if (!this.name) return null;
@@ -119,7 +120,7 @@ class WalletService {
   removeWalletById = async (wid) => {
     await this._ensureClient();
     await this.node.wdb.remove(wid);
-    this.setWallet(null);
+    this.setWallet(this.name === wid ? null : this.name);
 
     const wids = await this.listWallets();
 
@@ -558,14 +559,14 @@ class WalletService {
 
     const node = new WalletNode({
       network: networkName,
-      nodeUrl: conn.type === ConnectionTypes.Custom
-        ? conn.url || 'http://127.0.0.1:12037'
-        : undefined,
+      // nodeUrl: conn.type === ConnectionTypes.Custom
+      //   ? conn.url || 'http://127.0.0.1:12037'
+      //   : undefined,
       nodeHost: conn.type === ConnectionTypes.Custom
-        ? getHost(conn.url || 'http://127.0.0.1:12037')
+        ? conn.host
         : undefined,
       nodePort: conn.type === ConnectionTypes.Custom
-        ? getPort(conn.url || 'http://127.0.0.1:12037')
+        ? conn.port
         : undefined,
       nodeApiKey: conn.type === ConnectionTypes.Custom
         ? conn.apiKey
@@ -579,7 +580,10 @@ class WalletService {
       migrate: 0,
     });
 
+    if (this.closeP) await this.closeP;
+
     await node.open();
+    this.node = node;
 
     node.wdb.on('error', e => {
       console.error('walletdb error', e);
@@ -589,40 +593,51 @@ class WalletService {
     node.wdb.client.unhook('block rescan');
     node.wdb.client.hook('block rescan', this.onRescanBlock);
 
-    this.node = node;
     this.client = new WalletClient(walletOptions);
     await this.refreshNodeInfo();
+    const wids = await this.listWallets();
+
+    dispatchToMainWindow({
+      type: SET_WALLETS,
+      payload: wids,
+    });
   };
 
   _onNodeStop = async () => {
     const node = this.node;
-
-    if (node) {
-      await node.close();
-    }
-
     this.node = null;
     this.client = null;
     this.didSelectWallet = false;
+    this.closeP = new Promise(async resolve => {
+      if (node) {
+        await node.close();
+      }
+      resolve();
+    })
+
   };
 
   refreshNodeInfo = async () => {
-    const info = await nodeService.getInfo();
-    const fees = await nodeService.getFees();
+    const info = await nodeService.getInfo().catch(() => null);
+    const fees = await nodeService.getFees().catch(() => null);
 
-    const {chain: {height: chainHeight}} = info;
+    if (info) {
+      const {chain: {height: chainHeight}} = info;
 
-    this.lastKnownChainHeight = chainHeight;
+      this.lastKnownChainHeight = chainHeight;
 
-    dispatchToMainWindow({
-      type: SET_NODE_INFO,
-      payload: { info },
-    });
+      dispatchToMainWindow({
+        type: SET_NODE_INFO,
+        payload: { info },
+      });
+    }
 
-    dispatchToMainWindow({
-      type: SET_FEE_INFO,
-      payload: { fees },
-    });
+    if (fees) {
+      dispatchToMainWindow({
+        type: SET_FEE_INFO,
+        payload: { fees },
+      });
+    }
   };
 
   onNewBlock = async (entry, txs) => {
