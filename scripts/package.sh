@@ -15,3 +15,4 @@ $DIR/node_modules/.bin/babel $DIR/app/constants -d ./dist/constants
 $DIR/node_modules/.bin/babel $DIR/app/db -d ./dist/db
 $DIR/node_modules/.bin/babel $DIR/app/utils -d ./dist/utils
 $DIR/node_modules/.bin/babel $DIR/app/ducks/walletReducer.js -o ./dist/ducks/walletReducer.js
+$DIR/node_modules/.bin/babel $DIR/app/ducks/nodeReducer.js -o ./dist/ducks/nodeReducer.js

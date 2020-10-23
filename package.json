@@ -24,7 +24,7 @@
   "main": "./dist/main.js",
   "build": {
     "productName": "Bob",
-    "appId": "com.kyokan.Bob",
+    "appId": "com.kyokan.BobRelease",
     "files": [
       "dist/",
       "package.json",
@@ -37,6 +37,20 @@
         ]
       }
     ],
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "icon": "resources/icon.icns"
+    },
+    "mas": {
+      "hardenedRuntime": false,
+      "provisioningProfile": "dist/embedded.provisionprofile",
+      "entitlements": "dist/entitlements.mas.plist",
+      "entitlementsInherit": "dist/entitlements.mas.inherit.plist",
+      "gatekeeperAssess": false,
+      "asarUnpack": []
+    },
     "dmg": {
       "contents": [
         {
