@@ -5,6 +5,7 @@ import c from 'classnames';
 import './create.scss';
 import Submittable from '../../../components/Submittable';
 import WizardHeader from '../../../components/WizardHeader';
+import walletClient from "../../../utils/walletClient";
 
 @connect(
   (state) => ({
@@ -40,20 +41,21 @@ export default class CreatePassword extends Component {
     return !errorMessage && name.match(/^[a-z0-9]+$/);
   };
 
-  onChange = name => e => {
+  onChange = (name) => async (e) => {
     const {wallets} = this.props;
     const inputValue = e.target.value;
+    const allWallets = await walletClient.listWallets(true);
 
     let errorMessage = '';
 
     if (wallets.includes(inputValue)) {
       errorMessage = `"${inputValue}" already exists`;
-    } else if (inputValue === 'primary') {
-      errorMessage = `cannot use "primary" as name`;
+    } else if (allWallets.includes(inputValue)) {
+      errorMessage = `cannot use "${inputValue}" as name`;
     }
 
     this.setState({
-      [name]: e.target.value,
+      [name]: inputValue,
       errorMessage: errorMessage,
     });
   };

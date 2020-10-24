@@ -523,7 +523,7 @@ class WalletService {
    * List Wallet IDs (exclude unencrypted wallets)
    * @return {Promise<[string]>}
    */
-  listWallets = async () => {
+  listWallets = async (includeUnencrypted= false) => {
     await this._ensureClient();
 
     const wdb = this.node.wdb;
@@ -533,7 +533,7 @@ class WalletService {
     for (const wid of wallets) {
       const info = await wdb.get(wid);
       const {master: {encrypted}} = info;
-      if (encrypted) {
+      if (includeUnencrypted === true || encrypted) {
         ret.push(wid);
       }
     }

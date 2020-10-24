@@ -30,6 +30,8 @@ import * as node from '../../ducks/node';
 import SplashScreen from "../../components/SplashScreen";
 import NetworkPicker from '../NetworkPicker';
 import IdleModal from '../../components/IdleModal';
+import {LedgerModal} from "../../components/LedgerModal";
+import Notification from "../../components/Notification";
 
 @connect(
   (state) => ({
@@ -84,84 +86,88 @@ class App extends Component {
 
   renderContent() {
     return (
-      <Switch>
-        <Route
-          path="/login"
-          render={this.uninitializedWrapper(() => <AccountLogin className="app__login" />, true, true)}
-        />
-        <Route path="/funding-options" render={this.uninitializedWrapper(FundAccessOptions, true)} />
-        <Route path="/existing-options" render={this.uninitializedWrapper(ExistingAccountOptions)} />
-        <Route path="/new-wallet" render={this.uninitializedWrapper(CreateNewAccount)} />
-        <Route path="/import-seed" render={this.uninitializedWrapper(ImportSeedFlow)} />
-        <Route path="/connect-ledger" render={this.uninitializedWrapper(ConnectLedgerFlow)} />
-        <ProtectedRoute
-          isLocked={this.props.isLocked}
-          wallets={this.props.wallets}
-          path="/account"
-          render={this.routeRenderer('Portfolio', Account, true, false)}
-        />
-        <ProtectedRoute
-          isLocked={this.props.isLocked}
-          wallets={this.props.wallets}
-          path="/send"
-          render={this.routeRenderer('Send', SendModal)}
-        />
-        <ProtectedRoute
-          isLocked={this.props.isLocked}
-          wallets={this.props.wallets}
-          path="/receive"
-          render={this.routeRenderer('Receive', ReceiveModal)}
-        />
-        <ProtectedRoute
-          isLocked={this.props.isLocked}
-          wallets={this.props.wallets}
-          path="/get_coins"
-          render={this.routeRenderer('Get Coins', GetCoins)}
-        />
-        <ProtectedRoute
-          isLocked={this.props.isLocked}
-          wallets={this.props.wallets}
-          path="/settings"
-          render={this.routeRenderer('Settings', Settings, false, false)}
-        />
-        <ProtectedRoute
-          isLocked={this.props.isLocked}
-          wallets={this.props.wallets}
-          path="/bids"
-          render={this.routeRenderer('Domains', YourBids)}
-        />
-        <ProtectedRoute
-          isLocked={this.props.isLocked}
-          wallets={this.props.wallets}
-          path="/domains"
-          render={this.routeRenderer('Domains', SearchTLD, false)}
-        />
-        <ProtectedRoute
-          isLocked={this.props.isLocked}
-          wallets={this.props.wallets}
-          path="/watching"
-          render={this.routeRenderer('Watching', Watching)}
-        />
-        <ProtectedRoute
-          isLocked={this.props.isLocked}
-          wallets={this.props.wallets}
-          path="/domain_manager/:name"
-          render={this.routeRenderer('Domain Manager', MyDomain)}
-        />
-        <ProtectedRoute
-          isLocked={this.props.isLocked}
-          wallets={this.props.wallets}
-          path="/domain_manager"
-          render={this.routeRenderer('Domain Manager', DomainManager)}
-        />
-        <ProtectedRoute
-          isLocked={this.props.isLocked}
-          wallets={this.props.wallets}
-          path="/domain/:name?"
-          render={this.routeRenderer('Browse Domains', Auction, false)}
-        />
-        <Redirect to="/login" />
-      </Switch>
+      <>
+        <LedgerModal />
+        <Notification />
+        <Switch>
+          <Route
+            path="/login"
+            render={this.uninitializedWrapper(() => <AccountLogin className="app__login" />, true, true)}
+          />
+          <Route path="/funding-options" render={this.uninitializedWrapper(FundAccessOptions, true)} />
+          <Route path="/existing-options" render={this.uninitializedWrapper(ExistingAccountOptions)} />
+          <Route path="/new-wallet" render={this.uninitializedWrapper(CreateNewAccount)} />
+          <Route path="/import-seed" render={this.uninitializedWrapper(ImportSeedFlow)} />
+          <Route path="/connect-ledger" render={this.uninitializedWrapper(ConnectLedgerFlow)} />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/account"
+            render={this.routeRenderer('Portfolio', Account, true, false)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/send"
+            render={this.routeRenderer('Send', SendModal)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/receive"
+            render={this.routeRenderer('Receive', ReceiveModal)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/get_coins"
+            render={this.routeRenderer('Get Coins', GetCoins)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/settings"
+            render={this.routeRenderer('Settings', Settings, false, false)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/bids"
+            render={this.routeRenderer('Domains', YourBids)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/domains"
+            render={this.routeRenderer('Domains', SearchTLD, false)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/watching"
+            render={this.routeRenderer('Watching', Watching)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/domain_manager/:name"
+            render={this.routeRenderer('Domain Manager', MyDomain)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/domain_manager"
+            render={this.routeRenderer('Domain Manager', DomainManager)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/domain/:name?"
+            render={this.routeRenderer('Browse Domains', Auction, false)}
+          />
+          <Redirect to="/login" />
+        </Switch>
+      </>
     );
   }
 
