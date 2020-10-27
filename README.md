@@ -78,4 +78,4 @@ Please report issues on Github issues on this repo. Please file bugs with the pr
 
 ### Security Issues
 
-Please don't report security issues on GitHub. Instead, send an e-mail to [security@kyokan.io](mailto:security@kyokan.io) describing your issue. Our PGP key's fingerprint is `9FDB 9D49 4A60 87E8 E61A 3F9E 2DCA AB4D D4B6 04F1`.
+Please don't report security issues on GitHub. Instead, send an e-mail to dtsui [at] kyokan [dot] io (`4096R/395CD3B2`) describing your issue.
