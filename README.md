@@ -1,14 +1,14 @@
 <p align="center"><img src="./resources/icons/128x128.png"></p>
 
-# Bob: A Handshake Wallet and Full Node
+# Bob Wallet: A Handshake Wallet and Full Node
 
-Bob is a [Handshake](https://handshake.org) wallet with an integrated full node.
+Bob Wallet is a [Handshake](https://handshake.org) wallet with an integrated full node.
 This is beta software.
 (As with all wallet GUIs, please use with care, and at your own risk.)
 
-## How to Install Bob
+## How to Install Bob Wallet
 
-Most users (especially those who are unsure how to install Bob) should use the prebuilt binaries in this repo's [releases](https://github.com/kyokan/bob-wallet/releases) page.
+Most users should use the prebuilt binaries in this repo's [releases](https://github.com/kyokan/bob-wallet/releases) page.
 
 ![Screen Shot 2020-02-22 at 11 08 18 AM](https://user-images.githubusercontent.com/8230144/75097836-06f48480-5564-11ea-85db-64251184e7bf.png)
 
