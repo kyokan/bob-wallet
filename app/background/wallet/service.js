@@ -311,6 +311,11 @@ class WalletService {
     ),
   );
 
+  sendRegister = (name) => this._ledgerProxy(
+    () => this._executeRPC('createupdate', [name, {records: []}]),
+    () => this._executeRPC('sendupdate', [name, {records: []}]),
+  );
+
   sendUpdate = (name, json) => this._ledgerProxy(
     () => this._executeRPC('createupdate', [name, json]),
     () => this._executeRPC('sendupdate', [name, json]),
@@ -778,6 +783,7 @@ const methods = {
   reset: service.reset,
   sendOpen: service.sendOpen,
   sendBid: service.sendBid,
+  sendRegister: service.sendRegister,
   sendUpdate: service.sendUpdate,
   sendReveal: service.sendReveal,
   sendRedeem: service.sendRedeem,

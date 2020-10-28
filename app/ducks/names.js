@@ -233,6 +233,17 @@ export const sendReveal = (name) => async (dispatch) => {
   await walletClient.sendReveal(name);
 };
 
+export const sendRegister = (name) => async (dispatch) => {
+  if (!name) {
+    return;
+  }
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
+
+  await walletClient.sendRegister(name);
+};
+
 export const sendRedeem = (name) => async (dispatch) => {
   if (!name) {
     return;
