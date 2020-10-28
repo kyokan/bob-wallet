@@ -52,10 +52,6 @@ export const stop = () => async (dispatch, getState) => {
       }
     }
 
-    const info = await nodeClient.getInfo();
-
-    console.log(info);
-
     if (!await nodeClient.getInfo()) {
       throw new Error('cannot get node info');
     }

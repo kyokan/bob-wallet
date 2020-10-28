@@ -566,7 +566,7 @@ class WalletService {
         ? conn.host
         : undefined,
       nodePort: conn.type === ConnectionTypes.Custom
-        ? conn.port
+        ? conn.port || undefined
         : undefined,
       nodeApiKey: conn.type === ConnectionTypes.Custom
         ? conn.apiKey
