@@ -14,8 +14,10 @@ export const setYourBids = (bids = []) => ({
 export const getYourBids = () => async (dispatch) => {
   const result = await walletClient.getBids();
 
+  const yourBids = result.filter(({ own }) => own);
+
   if (result && result.length) {
-    dispatch(setYourBids(result.filter(({ own }) => own)));
+    dispatch(setYourBids(yourBids));
   }
 };
 

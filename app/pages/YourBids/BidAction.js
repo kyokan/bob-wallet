@@ -11,7 +11,17 @@ class BidAction extends Component {
     address: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
     domain: PropTypes.object,
+    getNameInfo: PropTypes.func.isRequired,
   };
+
+  componentDidMount() {
+    const {
+      name,
+      getNameInfo,
+    } = this.props;
+
+    getNameInfo(name);
+  }
 
   isReveal = () => isReveal(this.props.domain);
 
@@ -96,6 +106,7 @@ class BidAction extends Component {
 
     for (let i = 0; i < reveals.length; i++) {
       const reveal = reveals[i];
+
       if (reveal.bid.own && reveal.height >= domain.info.height) {
         if (reveal.redeemable) {
           return (
@@ -131,6 +142,7 @@ export default withRouter(
       sendRedeem: () => dispatch(nameActions.sendRedeem(ownProps.name)),
       showError: (message) => dispatch(showError(message)),
       showSuccess: (message) => dispatch(showSuccess(message)),
+      getNameInfo: (name) => dispatch(nameActions.getNameInfo(name)),
     }),
   )(BidAction)
 );

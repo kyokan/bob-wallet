@@ -16,6 +16,8 @@ import * as bidsActions from "../../ducks/bids";
 import Dropdown from "../../components/Dropdown";
 import {getPageIndices} from "../../utils/pageable";
 import c from "classnames";
+import * as nameActions from "../../ducks/names";
+import * as notifActions from "../../ducks/notifications";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -30,6 +32,10 @@ class YourBids extends Component {
   static propTypes = {
     yourBids: PropTypes.array.isRequired,
     getYourBids: PropTypes.func.isRequired,
+    sendRedeemAll: PropTypes.func.isRequired,
+    sendRevealAll: PropTypes.func.isRequired,
+    showError: PropTypes.func.isRequired,
+    showSuccess: PropTypes.func.isRequired,
   };
 
   state = {
@@ -46,14 +52,60 @@ class YourBids extends Component {
 
   handleOnChange = e => this.setState({ query: e.target.value });
 
+  onRedeemAll = async () => {
+    const {
+      showError,
+      showSuccess,
+      sendRedeemAll,
+    } = this.props;
+
+    try {
+      await sendRedeemAll();
+      showSuccess('Your redeem request is submitted! Please wait about 15 minutes for it to complete.');
+    } catch (e) {
+      showError(e.message)
+    }
+  };
+
+  onRevealAll = async () => {
+    const {
+      showError,
+      showSuccess,
+      sendRevealAll,
+    } = this.props;
+
+    try {
+      await sendRevealAll();
+      showSuccess('Your reveal request is submitted! Please wait about 15 minutes for it to complete.');
+    } catch (e) {
+      showError(e.message)
+    }
+  };
+
   render() {
     return (
       <div className="bids">
-        <BidSearchInput
-          className="bids__search"
-          onChange={this.handleOnChange}
-          value={this.state.query}
-        />
+        <div className="bids__top">
+          <BidSearchInput
+            className="bids__search"
+            onChange={this.handleOnChange}
+            value={this.state.query}
+          />
+          <div className="bids__top__actions">
+            <button
+              className="bids__top__btn"
+              onClick={this.onRevealAll}
+            >
+              Reveal All
+            </button>
+            <button
+              className="bids__top__btn"
+              onClick={this.onRedeemAll}
+            >
+              Redeem All
+            </button>
+          </div>
+        </div>
         <Table className="bids-table">
           <Header />
           {this.renderRows()}
@@ -189,6 +241,10 @@ export default withRouter(
     }),
     dispatch => ({
       getYourBids: () => dispatch(bidsActions.getYourBids()),
+      sendRedeemAll: () => dispatch(nameActions.sendRedeemAll()),
+      sendRevealAll: () => dispatch(nameActions.sendRevealAll()),
+      showError: (message) => dispatch(notifActions.showError(message)),
+      showSuccess: (message) => dispatch(notifActions.showSuccess(message)),
     })
   )(YourBids)
 );
