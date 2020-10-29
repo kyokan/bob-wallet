@@ -10,12 +10,12 @@ import * as watchingActions from '../../ducks/watching';
 import BidSearchInput from '../../components/BidSearchInput';
 import Fuse from '../../vendor/fuse';
 import PropTypes from 'prop-types';
-import {verifyName} from 'hsd/lib/covenants/rules';
 import { formatName } from '../../utils/nameHelpers';
 import { clientStub as aClientStub } from '../../background/analytics/client';
 import fs from "fs";
 import Dropdown from "../../components/Dropdown";
 import {getPageIndices} from "../../utils/pageable";
+import {verifyName} from "../../utils/nameChecker";
 const {dialog} = require('electron').remote;
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
@@ -61,33 +61,41 @@ class Watching extends Component {
       isConfirmingReset: false,
       isImporting: true,
     });
-    const {
-      filePaths: [filepath]
-    } = await dialog.showOpenDialog({
-      properties: ['openFile'],
-      filters: {
-        name: 'spreadsheet',
-        extensions: ['csv'],
-      },
-    });
 
-    const buf = await fs.promises.readFile(filepath);
-    const content = buf.toString('utf-8');
-    const importedNames = content.split('\n');
-    const {addNames, network, names} = this.props;
-    const newNames = [];
+    try {
+      const {
+        filePaths: [filepath]
+      } = await dialog.showOpenDialog({
+        properties: ['openFile'],
+        filters: {
+          name: 'spreadsheet',
+          extensions: ['csv'],
+        },
+      });
 
-    for (const importedName of importedNames) {
-      const name = importedName.replace(/[^ -~]+/g, "");
-      if (verifyName(name) && names.indexOf(name) === -1) {
-        newNames.push(name);
+      const buf = await fs.promises.readFile(filepath);
+      const content = buf.toString('utf-8');
+      const importedNames = content.split('\n');
+      const {addNames, network, names} = this.props;
+      const newNames = [];
+
+      for (const importedName of importedNames) {
+        const name = importedName.replace(/[^ -~]+/g, "");
+        if (verifyName(name) && names.indexOf(name) === -1) {
+          newNames.push(name);
+        }
       }
+
+      await addNames(newNames, network);
+      this.setState({
+        isImporting: false,
+      });
+    } catch (e) {
+      this.setState({
+        isImporting: false,
+      });
     }
 
-    await addNames(newNames, network);
-    this.setState({
-      isImporting: false,
-    });
   };
 
   onDownload = () => {

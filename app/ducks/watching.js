@@ -22,7 +22,7 @@ export const addNames = (names, network) => async dispatch => {
 
   for (const name of names) {
     data.push(name);
-    await namesDb.storeName(name);
+    await namesDb.storeName(name)
   }
 
   const result = validateWatchlist(data);
