@@ -3,6 +3,7 @@
 .backup-warning {
   @extend %col-nowrap;
   height: 100%;
+  width: 400px;
 
   &__header_text {
     @extend %header_text;

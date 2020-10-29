@@ -61,6 +61,25 @@
 .import_user_input {
   @extend %row-nowrap;
   margin-top: 1rem;
+  align-items: center;
+
+  .checkbox {
+    flex: 0 0 auto;
+    margin-right: 0.5rem;
+  }
+
+  .import_checkbox_text {
+    flex: 1 1 auto;
+    width: 0;
+    margin: 0;
+  }
+}
+
+.terms__input {
+  @extend %row-nowrap;
+  align-items: center;
+  margin-top: 1rem;
+  align-items: center;
 
   .checkbox {
     flex: 0 0 auto;

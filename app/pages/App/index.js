@@ -117,8 +117,24 @@ class App extends Component {
           />
           <Route path="/funding-options" render={this.uninitializedWrapper(FundAccessOptions, true)} />
           <Route path="/existing-options" render={this.uninitializedWrapper(ExistingAccountOptions)} />
-          <Route path="/new-wallet" render={this.uninitializedWrapper(CreateNewAccount)} />
-          <Route path="/import-seed" render={this.uninitializedWrapper(ImportSeedFlow)} />
+          <Route
+            path="/new-wallet"
+            render={this.uninitializedWrapper(
+              CreateNewAccount,
+              false,
+              false,
+              true,
+            )}
+          />
+          <Route
+            path="/import-seed"
+            render={this.uninitializedWrapper(
+              ImportSeedFlow,
+              false,
+              false,
+              true,
+            )}
+          />
           <Route path="/connect-ledger" render={this.uninitializedWrapper(ConnectLedgerFlow)} />
           <ProtectedRoute
             isLocked={this.props.isLocked}
@@ -192,13 +208,15 @@ class App extends Component {
     );
   }
 
-  uninitializedWrapper(Component, isMainMenu = false, autoHeight = false) {
+  uninitializedWrapper(Component, isMainMenu = false, autoHeight = false, autoWidth = false) {
+    const {history, isRunning} = this.props;
     if (isMainMenu) {
       return () => (
         <div className="app__uninitialized-wrapper">
           <AppHeader isMainMenu />
           <div className={c('app__uninitialized', {
             'app__uninitialized--auto-height': autoHeight,
+            'app__uninitialized--auto-width': autoWidth,
           })}>
             <Component />
           </div>
@@ -211,6 +229,7 @@ class App extends Component {
         <AppHeader />
         <div className={c('app__uninitialized', {
           'app__uninitialized--auto-height': autoHeight,
+          'app__uninitialized--auto-width': autoWidth,
         })}>
           <Component />
         </div>

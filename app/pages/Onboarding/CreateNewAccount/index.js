@@ -32,7 +32,7 @@ class CreateNewAccount extends Component {
   };
 
   state = {
-    currentStep: SET_NAME,
+    currentStep: TERMS_OF_USE,
     seedphrase: '',
     passphrase: '',
     isLoading: false,
@@ -45,12 +45,8 @@ class CreateNewAccount extends Component {
           <Terms
             currentStep={0}
             totalSteps={5}
-            onAccept={async () => {
-              this.setState({
-                currentStep: CREATE_PASSWORD,
-              });
-            }}
-            onBack={() => this.props.history.push('/funding-options')}
+            onAccept={() => this.setState({currentStep: SET_NAME})}
+            onBack={() => this.props.history.push('/existing-options')}
           />
         );
       case SET_NAME:
@@ -58,7 +54,7 @@ class CreateNewAccount extends Component {
           <SetName
             currentStep={1}
             totalSteps={5}
-            onBack={() => this.props.history.push('/funding-options')}
+            onBack={() => this.setState({currentStep: TERMS_OF_USE})}
             onNext={(name) => {
               this.setState({currentStep: CREATE_PASSWORD, name});
             }}
