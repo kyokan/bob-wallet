@@ -135,11 +135,10 @@ export class NodeService extends EventEmitter {
   }
 
   async stop() {
-    if (!this.hsd) {
-      return;
+    if (this.hsd) {
+      await this.hsd.close();
     }
 
-    await this.hsd.close();
     this.emit('stopped');
     this.hsd = null;
     this.client = null;

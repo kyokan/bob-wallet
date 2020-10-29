@@ -67,7 +67,7 @@ class WalletService {
         this.network,
         this.apiKey,
       );
-      this.setName(null);
+      this.setWallet(null);
       return true;
     } catch (e) {
       console.error(e);
@@ -103,6 +103,12 @@ class WalletService {
     await this._ensureClient();
     const wallet = await this.node.wdb.get(this.name);
     return wallet.getCoin(Buffer.from(hash, 'hex'), index);
+  };
+
+  getTX = async (hash) => {
+    await this._ensureClient();
+    const wallet = await this.node.wdb.get(this.name);
+    return wallet.getTX(Buffer.from(hash, 'hex'));
   };
 
   getNames = async () => {
@@ -305,6 +311,11 @@ class WalletService {
     ),
   );
 
+  sendRegister = (name) => this._ledgerProxy(
+    () => this._executeRPC('createupdate', [name, {records: []}]),
+    () => this._executeRPC('sendupdate', [name, {records: []}]),
+  );
+
   sendUpdate = (name, json) => this._ledgerProxy(
     () => this._executeRPC('createupdate', [name, json]),
     () => this._executeRPC('sendupdate', [name, json]),
@@ -318,6 +329,16 @@ class WalletService {
   sendRedeem = (name) => this._ledgerProxy(
     () => this._executeRPC('createredeem', [name]),
     () => this._executeRPC('sendredeem', [name]),
+  );
+
+  sendRevealAll = () => this._ledgerProxy(
+    () => this._executeRPC('createreveal', ['']),
+    () => this._executeRPC('sendreveal', ['']),
+  );
+
+  sendRedeemAll = () => this._ledgerProxy(
+    () => this._executeRPC('createredeem', ['']),
+    () => this._executeRPC('sendredeem', ['']),
   );
 
   sendRenewal = (name) => this._ledgerProxy(
@@ -743,6 +764,7 @@ const methods = {
   getAccountInfo: service.getAccountInfo,
   getAPIKey: service.getAPIKey,
   getCoin: service.getCoin,
+  getTX: service.getTX,
   getNames: service.getNames,
   createNewWallet: service.createNewWallet,
   importSeed: service.importSeed,
@@ -761,9 +783,12 @@ const methods = {
   reset: service.reset,
   sendOpen: service.sendOpen,
   sendBid: service.sendBid,
+  sendRegister: service.sendRegister,
   sendUpdate: service.sendUpdate,
   sendReveal: service.sendReveal,
   sendRedeem: service.sendRedeem,
+  sendRevealAll: service.sendRevealAll,
+  sendRedeemAll: service.sendRedeemAll,
   sendRenewal: service.sendRenewal,
   sendTransfer: service.sendTransfer,
   cancelTransfer: service.cancelTransfer,
