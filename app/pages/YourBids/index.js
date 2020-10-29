@@ -63,7 +63,6 @@ class YourBids extends Component {
     );
   }
 
-
   renderGoTo() {
     const { currentPageIndex, itemsPerPage } = this.state;
     const { yourBids } = this.props;

@@ -14,9 +14,18 @@ import {verifyName} from 'hsd/lib/covenants/rules';
 import { formatName } from '../../utils/nameHelpers';
 import { clientStub as aClientStub } from '../../background/analytics/client';
 import fs from "fs";
+import Dropdown from "../../components/Dropdown";
+import {getPageIndices} from "../../utils/pageable";
 const {dialog} = require('electron').remote;
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
+
+const ITEM_PER_DROPDOWN = [
+  { label: '5', value: 5 },
+  { label: '10', value: 10 },
+  { label: '20', value: 20 },
+  { label: '50', value: 50 },
+];
 
 class Watching extends Component {
   static propTypes = {
@@ -32,16 +41,26 @@ class Watching extends Component {
     isAddingName: false,
     query: '',
     showError: false,
-
+    currentPageIndex: 0,
+    itemsPerPage: 10,
+    isConfirmingReset: false,
+    isImporting: false,
   };
 
   componentDidMount() {
     analytics.screenView('Watching');
   }
 
-  handleOnChange = e => this.setState({query: e.target.value});
+  handleOnChange = e => this.setState({
+    query: e.target.value,
+    isConfirmingReset: false,
+  });
 
   onImport = async () => {
+    this.setState({
+      isConfirmingReset: false,
+      isImporting: true,
+    });
     const {
       filePaths: [filepath]
     } = await dialog.showOpenDialog({
@@ -55,17 +74,24 @@ class Watching extends Component {
     const buf = await fs.promises.readFile(filepath);
     const content = buf.toString('utf-8');
     const importedNames = content.split('\n');
-    const {addName, network, names} = this.props;
+    const {addNames, network, names} = this.props;
+    const newNames = [];
 
     for (const importedName of importedNames) {
       const name = importedName.replace(/[^ -~]+/g, "");
       if (verifyName(name) && names.indexOf(name) === -1) {
-        await addName(name, network);
+        newNames.push(name);
       }
     }
+
+    await addNames(newNames, network);
+    this.setState({
+      isImporting: false,
+    });
   };
 
   onDownload = () => {
+    this.setState({isConfirmingReset: false});
     const names = this.props.names;
     const data = names.join('\n');
 
@@ -83,6 +109,7 @@ class Watching extends Component {
   };
 
   onAdd = () => {
+    this.setState({isConfirmingReset: false});
     if (verifyName(this.state.name) && this.props.names.indexOf(this.state.name) === -1) {
       this.props.addName(this.state.name, this.props.network);
       this.onClose();
@@ -94,37 +121,101 @@ class Watching extends Component {
     }
   };
 
+  onReset = async () => {
+    const {isConfirmingReset} = this.state;
+    const {network, reset} = this.props;
+
+    if (isConfirmingReset) {
+      await reset(network);
+      this.setState({isConfirmingReset: false});
+    } else {
+      this.setState({isConfirmingReset: true});
+    }
+  };
+
   onClose = () => this.setState({isAddingName: false, name: ''});
 
+  getText = () => {
+    const {
+      isConfirmingReset,
+      isImporting,
+    } = this.state;
+
+    if (isConfirmingReset) {
+      return 'This will permanently erased your watchlist on your device!';
+    }
+
+    if (isImporting) {
+      return 'Importing watchlist...';
+    }
+
+    return 'Your watchlist does not transfer across devices!';
+  };
+
   render() {
+    const {
+      isConfirmingReset,
+      isImporting,
+      query,
+    } = this.state;
     return (
       <div className="watching">
         <div className="watching__actions">
           <BidSearchInput
             className="watching__search"
             onChange={this.handleOnChange}
-            value={this.state.query}
+            value={query}
           />
           <div className="watching__warning-text">
-            Your watchlist does not transfer across devices!
+            {this.getText()}
           </div>
+          {
+            !isConfirmingReset && (
+              <button
+                className="watching__import"
+                onClick={this.onImport}
+                disabled={isImporting}
+              >
+                Import
+              </button>
+            )
+          }
+          {
+            !isConfirmingReset && (
+              <button
+                className="watching__download"
+                onClick={this.onDownload}
+                disabled={isImporting}
+              >
+                Export
+              </button>
+            )
+          }
+          {
+            isConfirmingReset && (
+              <button
+                className="watching__cancel"
+                onClick={() => this.setState({ isConfirmingReset: false })}
+              >
+                Cancel
+              </button>
+            )
+          }
           <button
-            className="watching__import"
-            onClick={this.onImport}
+            className={c("watching__reset", {
+              'watching__reset--confirming': isConfirmingReset,
+            })}
+            onClick={this.onReset}
+            disabled={isImporting}
           >
-            Import
-          </button>
-          <button
-            className="watching__download"
-            onClick={this.onDownload}
-          >
-            Export
+            {isConfirmingReset ? 'Confirm Reset' : 'Reset'}
           </button>
         </div>
         <Table className="watching-table">
           {this.renderHeaders()}
           {this.renderCreationRow()}
           {this.renderRows()}
+          {this.renderControls()}
         </Table>
       </div>
     );
@@ -196,9 +287,96 @@ class Watching extends Component {
     );
   }
 
+  renderGoTo() {
+    const { currentPageIndex, itemsPerPage } = this.state;
+    const { names } = this.props;
+    const totalPages = Math.ceil(names.length / itemsPerPage);
+
+    return (
+      <div className="domain-manager__page-control__dropdowns">
+        <div className="domain-manager__go-to">
+          <div className="domain-manager__go-to__text">Items per Page:</div>
+          <Dropdown
+            className="domain-manager__go-to__dropdown transactions__items-per__dropdown"
+            items={ITEM_PER_DROPDOWN}
+            onChange={itemsPerPage => this.setState({
+              itemsPerPage,
+              currentPageIndex: 0,
+            })}
+            currentIndex={ITEM_PER_DROPDOWN.findIndex(({ value }) => {
+              return value === this.state.itemsPerPage;
+            })}
+          />
+        </div>
+        <div className="domain-manager__go-to">
+          <div className="domain-manager__go-to__text">Page</div>
+          <Dropdown
+            className="domain-manager__go-to__dropdown"
+            items={Array(totalPages).fill(0).map((_, i) => ({ label: `${i + 1}` }))}
+            onChange={currentPageIndex => this.setState({ currentPageIndex })}
+            currentIndex={currentPageIndex}
+          />
+          <div className="domain-manager__go-to__total">of {totalPages}</div>
+        </div>
+      </div>
+    )
+  }
+
+  renderControls() {
+    const {
+      currentPageIndex,
+      itemsPerPage,
+    } = this.state;
+    const {
+      names,
+    } = this.props;
+
+    const totalPages = Math.ceil(names.length / itemsPerPage);
+    const pageIndices = getPageIndices(names, itemsPerPage, currentPageIndex);
+
+    return (
+      <div className="domain-manager__page-control">
+        <div className="domain-manager__page-control__numbers">
+          <div
+            className="domain-manager__page-control__start"
+            onClick={() => this.setState({
+              currentPageIndex: Math.max(currentPageIndex - 1, 0),
+            })}
+          />
+          {pageIndices.map((pageIndex, i) => {
+            if (pageIndex === '...') {
+              return (
+                <div key={`${pageIndex}-${i}`} className="domain-manager__page-control__ellipsis">...</div>
+              );
+            }
+
+            return (
+              <div
+                key={`${pageIndex}-${i}`}
+                className={c('domain-manager__page-control__page', {
+                  'domain-manager__page-control__page--active': currentPageIndex === pageIndex,
+                })}
+                onClick={() => this.setState({ currentPageIndex: pageIndex })}
+              >
+                {pageIndex + 1}
+              </div>
+            )
+          })}
+          <div
+            className="domain-manager__page-control__end"
+            onClick={() => this.setState({
+              currentPageIndex: Math.min(currentPageIndex + 1, totalPages - 1),
+            })}
+          />
+        </div>
+        {this.renderGoTo()}
+      </div>
+    )
+  }
+
   renderRows() {
     const {names, history} = this.props;
-    const {query} = this.state;
+    const {query, currentPageIndex: s, itemsPerPage: n } = this.state;
 
     if (!names.length) {
       return <EmptyResult />;
@@ -217,7 +395,10 @@ class Watching extends Component {
       return <EmptyResult />;
     }
 
-    return results.map(name => (
+    const start = s * n;
+    const end = start + n;
+
+    return results.slice(start, end).map(name => (
       <TableRow
         key={name}
         onClick={() => history.push(`/domain/${name}`)}
@@ -256,6 +437,7 @@ export default withRouter(
       addName: (name, network) => dispatch(watchingActions.addName(name, network)),
       addNames: (names, network) => dispatch(watchingActions.addNames(names, network)),
       removeName: (name, network) => dispatch(watchingActions.removeName(name, network)),
+      reset: (network) => dispatch(watchingActions.reset(network)),
     }),
   )(Watching),
 );
