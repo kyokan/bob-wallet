@@ -3,6 +3,7 @@
 .opt-in-analytics {
   @extend %col-nowrap;
   height: 100%;
+  width: 400px;
 
   &__header-text {
     @extend %header_text;

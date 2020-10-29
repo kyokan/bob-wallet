@@ -3,6 +3,7 @@
 .terms {
   @extend %col-nowrap;
   height: 100%;
+  width: 620px;
 
   &__header {
     @extend %row-nowrap;
@@ -21,6 +22,17 @@
     padding: 1.25rem 1.875rem 1.875rem 1.875rem;
     flex: 1 1 auto;
     // height: 0;
+  }
+
+  &__html-box {
+    border: 1px solid $mischka-gray;
+    padding: .5rem 1rem;
+    border-radius: 2px;
+    cursor: default;
+    overflow: auto;
+    flex: 1 1 auto;
+    height: 0;
+    margin-top: .5rem;
   }
 
   &__button {
@@ -57,8 +69,6 @@
 }
 
 .terms_subheader {
-  flex: 1 0 auto;
-  @extend %h4;
   color: $manatee-gray;
 }
 

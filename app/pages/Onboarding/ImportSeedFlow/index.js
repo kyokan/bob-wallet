@@ -39,7 +39,7 @@ class ImportSeedFlow extends Component {
   };
 
   state = {
-    currentStep: WARNING_STEP,
+    currentStep: TERMS_OF_USE,
     name: '',
     passphrase: '',
     mnemonic: '',
@@ -62,7 +62,7 @@ class ImportSeedFlow extends Component {
           <ImportSeedWarning
             currentStep={0}
             totalSteps={4}
-            onBack={() => this.props.history.push('/existing-options')}
+            onBack={() => this.setState({currentStep: TERMS_OF_USE})}
             onNext={() => this.goTo(SET_NAME)}
             onCancel={() => this.props.history.push('/funding-options')}
           />
