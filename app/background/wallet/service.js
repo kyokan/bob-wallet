@@ -9,7 +9,14 @@ import rimraf from 'rimraf';
 import { ConnectionTypes, getConnection } from '../connections/service';
 import crypto from 'crypto';
 import { dispatchToMainWindow } from '../../mainWindow';
-import {SET_WALLETS, START_SYNC_WALLET, STOP_SYNC_WALLET, SYNC_WALLET_PROGRESS} from '../../ducks/walletReducer';
+import {
+  getInitialState,
+  NONE, SET_BALANCE,
+  SET_WALLETS,
+  START_SYNC_WALLET,
+  STOP_SYNC_WALLET,
+  SYNC_WALLET_PROGRESS
+} from '../../ducks/walletReducer';
 import {SET_FEE_INFO, SET_NODE_INFO} from "../../ducks/nodeReducer";
 
 const WalletNode = require('hsd/lib/wallet/node');
@@ -104,6 +111,12 @@ class WalletService {
     await this._ensureClient();
     const wallet = await this.node.wdb.get(this.name);
     return wallet.getCoin(Buffer.from(hash, 'hex'), index);
+  };
+
+  getTX = async (hash) => {
+    await this._ensureClient();
+    const wallet = await this.node.wdb.get(this.name);
+    return wallet.getTX(Buffer.from(hash, 'hex'));
   };
 
   getNames = async () => {
@@ -306,6 +319,11 @@ class WalletService {
     ),
   );
 
+  sendRegister = (name) => this._ledgerProxy(
+    () => this._executeRPC('createupdate', [name, {records: []}]),
+    () => this._executeRPC('sendupdate', [name, {records: []}]),
+  );
+
   sendUpdate = (name, json) => this._ledgerProxy(
     () => this._executeRPC('createupdate', [name, json]),
     () => this._executeRPC('sendupdate', [name, json]),
@@ -319,6 +337,16 @@ class WalletService {
   sendRedeem = (name) => this._ledgerProxy(
     () => this._executeRPC('createredeem', [name]),
     () => this._executeRPC('sendredeem', [name]),
+  );
+
+  sendRevealAll = () => this._ledgerProxy(
+    () => this._executeRPC('createreveal', ['']),
+    () => this._executeRPC('sendreveal', ['']),
+  );
+
+  sendRedeemAll = () => this._ledgerProxy(
+    () => this._executeRPC('createredeem', ['']),
+    () => this._executeRPC('sendredeem', ['']),
   );
 
   sendRenewal = (name) => this._ledgerProxy(
@@ -601,6 +629,7 @@ class WalletService {
       type: SET_WALLETS,
       payload: wids,
     });
+    await this.refreshWalletInfo();
   };
 
   _onNodeStop = async () => {
@@ -615,6 +644,17 @@ class WalletService {
       resolve();
     })
 
+  };
+
+  refreshWalletInfo = async () => {
+    if (!this.name) return;
+    const accountInfo = await this.getAccountInfo();
+    const apiKey = await this.getAPIKey();
+
+    dispatchToMainWindow({
+      type: SET_BALANCE,
+      payload: accountInfo.balance,
+    });
   };
 
   refreshNodeInfo = async () => {
@@ -643,6 +683,7 @@ class WalletService {
   onNewBlock = async (entry, txs) => {
     await this._ensureClient();
     await this.refreshNodeInfo();
+    await this.refreshWalletInfo();
 
     if (entry && txs) {
       await this.node.wdb.addBlock(entry, txs);
@@ -672,6 +713,7 @@ class WalletService {
           type: SYNC_WALLET_PROGRESS,
           payload: walletHeight,
         });
+        await this.refreshWalletInfo();
         return;
       }
 
@@ -684,6 +726,7 @@ class WalletService {
           type: SYNC_WALLET_PROGRESS,
           payload: walletHeight,
         });
+        await this.refreshWalletInfo();
         this.lastProgressUpdate = now;
       }
     } catch (e) {
@@ -758,6 +801,7 @@ const methods = {
   getAccountInfo: service.getAccountInfo,
   getAPIKey: service.getAPIKey,
   getCoin: service.getCoin,
+  getTX: service.getTX,
   getNames: service.getNames,
   createNewWallet: service.createNewWallet,
   importSeed: service.importSeed,
@@ -776,9 +820,12 @@ const methods = {
   reset: service.reset,
   sendOpen: service.sendOpen,
   sendBid: service.sendBid,
+  sendRegister: service.sendRegister,
   sendUpdate: service.sendUpdate,
   sendReveal: service.sendReveal,
   sendRedeem: service.sendRedeem,
+  sendRevealAll: service.sendRevealAll,
+  sendRedeemAll: service.sendRedeemAll,
   sendRenewal: service.sendRenewal,
   sendTransfer: service.sendTransfer,
   cancelTransfer: service.cancelTransfer,

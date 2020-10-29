@@ -6,6 +6,7 @@ import './account.scss';
 import { displayBalance } from '../../utils/balances';
 import Tooltipable from '../../components/Tooltipable';
 import { clientStub as aClientStub } from '../../background/analytics/client';
+import * as walletActions from "../../ducks/walletActions";
 
 const pkg = require('../../../package.json');
 
@@ -18,6 +19,9 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
     height: state.node.chain.height,
     isFetching: state.wallet.isFetching,
   }),
+  dispatch => ({
+    fetchWallet: () => dispatch(walletActions.fetchWallet()),
+  }),
 )
 export default class Account extends Component {
   static propTypes = {
@@ -25,10 +29,12 @@ export default class Account extends Component {
     spendableBalance: PropTypes.number.isRequired,
     height: PropTypes.number.isRequired,
     isFetching: PropTypes.bool.isRequired,
+    fetchWallet: PropTypes.func.isRequired,
   };
 
   componentDidMount() {
     analytics.screenView('Account');
+    this.props.fetchWallet();
   }
 
   render() {
