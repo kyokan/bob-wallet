@@ -43,6 +43,23 @@
     }
   }
 
+  &__loader {
+    @extend %row-nowrap;
+    align-items: center;
+    justify-content: flex-end;
+
+    &:before {
+      content: '';
+      display: block;
+      height: 0.8rem;
+      width: 0.8rem;
+      background-size: cover;
+      background-position: center;
+      margin-right: 4px;
+      background-image: url('../../assets/images/brick-loader.svg');
+    }
+  }
+
   &__cancel {
     @extend %row-nowrap;
     @extend %btn-secondary;

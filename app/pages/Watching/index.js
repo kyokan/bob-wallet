@@ -87,6 +87,8 @@ class Watching extends Component {
       }
 
       await addNames(newNames, network);
+      this.fuse = null;
+
       this.setState({
         isImporting: false,
       });
@@ -116,10 +118,11 @@ class Watching extends Component {
     }
   };
 
-  onAdd = () => {
+  onAdd = async () => {
     this.setState({isConfirmingReset: false});
     if (verifyName(this.state.name) && this.props.names.indexOf(this.state.name) === -1) {
-      this.props.addName(this.state.name, this.props.network);
+      await this.props.addName(this.state.name, this.props.network);
+      this.fuse = null;
       this.onClose();
       analytics.track('watched domain', {
         source: 'Watching',
@@ -150,14 +153,14 @@ class Watching extends Component {
     } = this.state;
 
     if (isConfirmingReset) {
-      return 'This will permanently erased your watchlist on your device!';
+      return 'Unless previously exported, this will permanently delete your watchlist.';
     }
 
     if (isImporting) {
-      return 'Importing watchlist...';
+      return <span className="watching__loader">Importing watchlist...</span>;
     }
 
-    return 'Your watchlist does not transfer across devices!';
+    return '';
   };
 
   render() {
@@ -395,8 +398,8 @@ class Watching extends Component {
         keys: ['name'],
       });
     }
-    const results = query ?
-      this.fuse.search(query).map(({name}) => name)
+    const results = query
+      ? this.fuse.search(query).map(({name}) => name)
       : names;
 
     if (!results.length) {
