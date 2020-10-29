@@ -36,30 +36,6 @@ class BidAction extends Component {
     const info = domain.info || {};
     const stats = info.stats || {};
 
-    if (this.isBidding()) {
-      return (
-        <div className="bid-action">
-          <div className="bid-action__link">Set Reminder</div>
-        </div>
-      );
-    }
-
-    if (this.isOpening()) {
-      return (
-        <div className="bid-action">
-          <div className="bid-action__link">Set Reminder</div>
-        </div>
-      );
-    }
-
-    if (this.isReveal()) {
-      return (
-        <div className="bid-action">
-          <div className="bid-action__link">Set Reminder</div>
-        </div>
-      );
-    }
-
     if (this.isOwned()) {
       return (
         <div className="bid-action">

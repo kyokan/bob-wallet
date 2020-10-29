@@ -17,14 +17,38 @@
 
   &__download {
     @extend %row-nowrap;
-    @extend %link;
+    @extend %btn-secondary;
 
     flex: 0 0 auto;
-
     align-items: center;
+    padding: .25rem .5rem;
 
     &__icon {
-      background-image: url(../../assets/images/download-blue.png);
+      background-image: url(../../assets/images/export.svg);
+      background-repeat: no-repeat;
+      background-size: contain;
+      background-position: center;
+      padding-right: .5rem;
+      width: .8rem;
+      height: .8rem;
+    }
+
+    &__link {
+      font-size: .8rem;
+    }
+  }
+
+  &__import {
+    @extend %row-nowrap;
+    @extend %btn-secondary;
+
+    flex: 0 0 auto;
+    align-items: center;
+    padding: .25rem .5rem;
+    margin-right: .5rem;
+
+    &__icon {
+      background-image: url(../../assets/images/import.svg);
       background-repeat: no-repeat;
       background-size: contain;
       background-position: center;

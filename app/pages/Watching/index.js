@@ -9,13 +9,23 @@ import BidTimeLeft from '../YourBids/BidTimeLeft';
 import * as watchingActions from '../../ducks/watching';
 import BidSearchInput from '../../components/BidSearchInput';
 import Fuse from '../../vendor/fuse';
-import { verifyName } from '../../utils/nameChecker';
+import PropTypes from 'prop-types';
+import {verifyName} from 'hsd/lib/covenants/rules';
 import { formatName } from '../../utils/nameHelpers';
 import { clientStub as aClientStub } from '../../background/analytics/client';
+import fs from "fs";
+const {dialog} = require('electron').remote;
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
 class Watching extends Component {
+  static propTypes = {
+    network: PropTypes.string.isRequired,
+    names: PropTypes.arrayOf(PropTypes.string).isRequired,
+    addNames: PropTypes.func.isRequired,
+    addName: PropTypes.func.isRequired,
+    removeName: PropTypes.func.isRequired,
+  };
 
   state = {
     name: '',
@@ -31,15 +41,45 @@ class Watching extends Component {
 
   handleOnChange = e => this.setState({query: e.target.value});
 
+  onImport = async () => {
+    const {
+      filePaths: [filepath]
+    } = await dialog.showOpenDialog({
+      properties: ['openFile'],
+      filters: {
+        name: 'spreadsheet',
+        extensions: ['csv'],
+      },
+    });
+
+    const buf = await fs.promises.readFile(filepath);
+    const content = buf.toString('utf-8');
+    const importedNames = content.split('\n');
+    const {addName, network, names} = this.props;
+
+    for (const importedName of importedNames) {
+      const name = importedName.replace(/[^ -~]+/g, "");
+      if (verifyName(name) && names.indexOf(name) === -1) {
+        await addName(name, network);
+      }
+    }
+  };
+
   onDownload = () => {
-    const csvContent = `data:text/csv;charset=utf-8,${this.props.names.join(',')}\r\n`;
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', 'allison_and_bob_watchlist.csv');
-    document.body.appendChild(link); // Required for FF
-    link.click();
-    link.remove();
+    const names = this.props.names;
+    const data = names.join('\n');
+
+    const savePath = dialog.showSaveDialogSync({
+      filters: [{name: 'spreadsheet', extensions: ['csv']}],
+    });
+
+    if (savePath) {
+      fs.writeFile(savePath, data, (err) => {
+        if (err) {
+          throw err;
+        }
+      });
+    }
   };
 
   onAdd = () => {
@@ -68,12 +108,18 @@ class Watching extends Component {
           <div className="watching__warning-text">
             Your watchlist does not transfer across devices!
           </div>
-          <div className="watching__download" onClick={this.onDownload}>
-            <div className="watching__download__icon" />
-            <div className="watching__download__link">
-              Download Watchlist
-            </div>
-          </div>
+          <button
+            className="watching__import"
+            onClick={this.onImport}
+          >
+            Import
+          </button>
+          <button
+            className="watching__download"
+            onClick={this.onDownload}
+          >
+            Export
+          </button>
         </div>
         <Table className="watching-table">
           {this.renderHeaders()}
@@ -172,7 +218,10 @@ class Watching extends Component {
     }
 
     return results.map(name => (
-      <TableRow key={name} onClick={() => history.push(`/domain/${name}`)}>
+      <TableRow
+        key={name}
+        onClick={() => history.push(`/domain/${name}`)}
+      >
         <TableItem>
           <BidStatus name={name} />
         </TableItem>
@@ -205,6 +254,7 @@ export default withRouter(
     }),
     dispatch => ({
       addName: (name, network) => dispatch(watchingActions.addName(name, network)),
+      addNames: (names, network) => dispatch(watchingActions.addNames(names, network)),
       removeName: (name, network) => dispatch(watchingActions.removeName(name, network)),
     }),
   )(Watching),
