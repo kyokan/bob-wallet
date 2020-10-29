@@ -9,7 +9,14 @@ import rimraf from 'rimraf';
 import { ConnectionTypes, getConnection } from '../connections/service';
 import crypto from 'crypto';
 import { dispatchToMainWindow } from '../../mainWindow';
-import {SET_WALLETS, START_SYNC_WALLET, STOP_SYNC_WALLET, SYNC_WALLET_PROGRESS} from '../../ducks/walletReducer';
+import {
+  getInitialState,
+  NONE, SET_BALANCE,
+  SET_WALLETS,
+  START_SYNC_WALLET,
+  STOP_SYNC_WALLET,
+  SYNC_WALLET_PROGRESS
+} from '../../ducks/walletReducer';
 import {SET_FEE_INFO, SET_NODE_INFO} from "../../ducks/nodeReducer";
 
 const WalletNode = require('hsd/lib/wallet/node');
@@ -613,6 +620,7 @@ class WalletService {
     this.node = node;
     this.client = new WalletClient(walletOptions);
     await this.refreshNodeInfo();
+    await this.refreshWalletInfo();
   };
 
   _onNodeStop = async () => {
@@ -625,6 +633,17 @@ class WalletService {
     this.node = null;
     this.client = null;
     this.didSelectWallet = false;
+  };
+
+  refreshWalletInfo = async () => {
+    if (!this.name) return;
+    const accountInfo = await this.getAccountInfo();
+    const apiKey = await this.getAPIKey();
+
+    dispatchToMainWindow({
+      type: SET_BALANCE,
+      payload: accountInfo.balance,
+    });
   };
 
   refreshNodeInfo = async () => {
@@ -649,6 +668,7 @@ class WalletService {
   onNewBlock = async (entry, txs) => {
     await this._ensureClient();
     await this.refreshNodeInfo();
+    await this.refreshWalletInfo();
 
     if (entry && txs) {
       await this.node.wdb.addBlock(entry, txs);
@@ -678,6 +698,7 @@ class WalletService {
           type: SYNC_WALLET_PROGRESS,
           payload: walletHeight,
         });
+        await this.refreshWalletInfo();
         return;
       }
 
@@ -690,6 +711,7 @@ class WalletService {
           type: SYNC_WALLET_PROGRESS,
           payload: walletHeight,
         });
+        await this.refreshWalletInfo();
         this.lastProgressUpdate = now;
       }
     } catch (e) {

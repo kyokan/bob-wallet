@@ -4,6 +4,7 @@ export const IMPORTED = 'IMPORTED';
 export const ELECTRON = 'ELECTRON';
 
 export const SET_WALLET = 'app/wallet/setWallet';
+export const SET_BALANCE = 'app/wallet/setBalance';
 export const UNLOCK_WALLET = 'app/wallet/unlockWallet';
 export const LOCK_WALLET = 'app/wallet/lockWallet';
 export const SET_TRANSACTIONS = 'app/wallet/setTransactions';
@@ -62,8 +63,20 @@ export default function walletReducer(state = getInitialState(), {type, payload}
           lockedConfirmed: payload.balance.lockedConfirmed,
           spendable: payload.balance.unconfirmed - payload.balance.lockedUnconfirmed,
         },
-        initialized: payload.initialized,
+        initialized: typeof payload.initialized === 'undefined' ? state.initialized : payload.initialized,
         apiKey: payload.apiKey,
+      };
+    case SET_BALANCE:
+      return {
+        ...state,
+        balance: {
+          ...state.balance,
+          confirmed: payload.confirmed,
+          unconfirmed: payload.unconfirmed,
+          lockedUnconfirmed: payload.lockedUnconfirmed,
+          lockedConfirmed: payload.lockedConfirmed,
+          spendable: payload.unconfirmed - payload.lockedUnconfirmed,
+        }
       };
     case SET_API_KEY:
       return {
