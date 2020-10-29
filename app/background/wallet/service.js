@@ -930,7 +930,7 @@ function uniq(list) {
   const mapping = {};
   const ret = [];
 
-  for (const item in list) {
+  for (const item of list) {
     if (!mapping[item]) {
       ret.push(item);
       mapping[item] = true;
