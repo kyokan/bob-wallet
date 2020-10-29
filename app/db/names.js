@@ -16,10 +16,10 @@ export async function findNameByHash(hash) {
   return dbClient.get(prefixHash(hash));
 }
 
-function prefixName(name) {
+export function prefixName(name) {
   return `names:${name}`
 }
 
-function prefixHash(hash) {
+export function prefixHash(hash) {
   return `namehashes:${hash}`
 }

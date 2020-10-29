@@ -30,9 +30,27 @@ export default class CreatePassword extends Component {
     };
   }
 
-  onSubmit = () => {
+  onSubmit = async () => {
     if (this.isValidName()) {
-      this.props.onNext(this.state.name);
+      const allWallets = await walletClient.listWallets(true);
+      const {wallets} = this.props;
+      const {name} = this.state;
+      let errorMessage = '';
+
+      if (wallets.includes(name)) {
+        errorMessage = `"${name}" already exists`;
+      } else if (allWallets.includes(name)) {
+        errorMessage = `cannot use "${name}" as name`;
+      }
+
+      if (errorMessage) {
+        this.setState({
+          errorMessage,
+        });
+        return;
+      }
+
+      this.props.onNext(name);
     }
   };
 
@@ -44,14 +62,11 @@ export default class CreatePassword extends Component {
   onChange = (name) => async (e) => {
     const {wallets} = this.props;
     const inputValue = e.target.value;
-    const allWallets = await walletClient.listWallets(true);
 
     let errorMessage = '';
 
     if (wallets.includes(inputValue)) {
       errorMessage = `"${inputValue}" already exists`;
-    } else if (allWallets.includes(inputValue)) {
-      errorMessage = `cannot use "${inputValue}" as name`;
     }
 
     this.setState({

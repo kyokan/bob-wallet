@@ -10,8 +10,7 @@ import { ConnectionTypes, getConnection } from '../connections/service';
 import crypto from 'crypto';
 import { dispatchToMainWindow } from '../../mainWindow';
 import {
-  getInitialState,
-  NONE, SET_BALANCE,
+  SET_BALANCE,
   SET_WALLETS,
   START_SYNC_WALLET,
   STOP_SYNC_WALLET,
@@ -45,6 +44,8 @@ class WalletService {
     this.nodeService = nodeService;
     this.lastProgressUpdate = 0;
     this.lastKnownChainHeight = 0;
+    this.closeP = null;
+    this.openP = null;
   }
 
   setWallet = (name) => {
@@ -92,12 +93,14 @@ class WalletService {
     return this.client.getInfo(this.name);
   };
 
-
   getAccountInfo = async () => {
     if (!this.name) return null;
 
     await this._ensureClient();
     const wallet = await this.node.wdb.get(this.name);
+
+    if (!wallet) return null;
+
     const account = await wallet.getAccount('default');
     const balance = await wallet.getBalance(account.accountIndex);
     return {
@@ -132,7 +135,7 @@ class WalletService {
   removeWalletById = async (wid) => {
     await this._ensureClient();
     await this.node.wdb.remove(wid);
-    this.setWallet(null);
+    this.setWallet(this.name === wid ? null : this.name);
 
     const wids = await this.listWallets();
 
@@ -145,6 +148,7 @@ class WalletService {
   createNewWallet = async (name, passphraseOrXPub, isLedger) => {
     await this._ensureClient();
     this.setWallet(name);
+    this.didSelectWallet = false;
 
     if (isLedger) {
       return this.client.createWallet(name, {
@@ -158,9 +162,18 @@ class WalletService {
       passphrase: passphraseOrXPub,
       witness: false,
       watchOnly: false,
-      mnemonic: mnemonic.getPhrase(),
+      mnemonic: mnemonic.getPhrase().trim(),
     };
-    return this.client.createWallet(name, options);
+
+    const res = await this.client.createWallet(this.name, options);
+    const wids = await this.listWallets();
+
+    dispatchToMainWindow({
+      type: SET_WALLETS,
+      payload: uniq([...wids, name]),
+    });
+
+    return res;
   };
 
   rescan = async (height = 0) => {
@@ -193,7 +206,7 @@ class WalletService {
 
     dispatchToMainWindow({
       type: SET_WALLETS,
-      payload: wids,
+      payload: uniq([...wids, name]),
     });
 
     this.rescan(0);
@@ -586,14 +599,14 @@ class WalletService {
 
     const node = new WalletNode({
       network: networkName,
-      nodeUrl: conn.type === ConnectionTypes.Custom
-        ? conn.url || 'http://127.0.0.1:12037'
-        : undefined,
+      // nodeUrl: conn.type === ConnectionTypes.Custom
+      //   ? conn.url || 'http://127.0.0.1:12037'
+      //   : undefined,
       nodeHost: conn.type === ConnectionTypes.Custom
-        ? getHost(conn.url || 'http://127.0.0.1:12037')
+        ? conn.host
         : undefined,
       nodePort: conn.type === ConnectionTypes.Custom
-        ? getPort(conn.url || 'http://127.0.0.1:12037')
+        ? conn.port || undefined
         : undefined,
       nodeApiKey: conn.type === ConnectionTypes.Custom
         ? conn.apiKey
@@ -607,7 +620,10 @@ class WalletService {
       migrate: 0,
     });
 
+    if (this.closeP) await this.closeP;
+
     await node.open();
+    this.node = node;
 
     node.wdb.on('error', e => {
       console.error('walletdb error', e);
@@ -617,28 +633,37 @@ class WalletService {
     node.wdb.client.unhook('block rescan');
     node.wdb.client.hook('block rescan', this.onRescanBlock);
 
-    this.node = node;
     this.client = new WalletClient(walletOptions);
     await this.refreshNodeInfo();
+    const wids = await this.listWallets();
+
+    dispatchToMainWindow({
+      type: SET_WALLETS,
+      payload: wids,
+    });
     await this.refreshWalletInfo();
   };
 
   _onNodeStop = async () => {
     const node = this.node;
-
-    if (node) {
-      await node.close();
-    }
-
     this.node = null;
     this.client = null;
     this.didSelectWallet = false;
+    this.closeP = new Promise(async resolve => {
+      if (node) {
+        await node.close();
+      }
+      resolve();
+    })
+
   };
 
   refreshWalletInfo = async () => {
     if (!this.name) return;
+
     const accountInfo = await this.getAccountInfo();
-    const apiKey = await this.getAPIKey();
+
+    if (!accountInfo) return;
 
     dispatchToMainWindow({
       type: SET_BALANCE,
@@ -647,22 +672,26 @@ class WalletService {
   };
 
   refreshNodeInfo = async () => {
-    const info = await nodeService.getInfo();
-    const fees = await nodeService.getFees();
+    const info = await nodeService.getInfo().catch(() => null);
+    const fees = await nodeService.getFees().catch(() => null);
 
-    const {chain: {height: chainHeight}} = info;
+    if (info) {
+      const {chain: {height: chainHeight}} = info;
 
-    this.lastKnownChainHeight = chainHeight;
+      this.lastKnownChainHeight = chainHeight;
 
-    dispatchToMainWindow({
-      type: SET_NODE_INFO,
-      payload: { info },
-    });
+      dispatchToMainWindow({
+        type: SET_NODE_INFO,
+        payload: { info },
+      });
+    }
 
-    dispatchToMainWindow({
-      type: SET_FEE_INFO,
-      payload: { fees },
-    });
+    if (fees) {
+      dispatchToMainWindow({
+        type: SET_FEE_INFO,
+        payload: { fees },
+      });
+    }
   };
 
   onNewBlock = async (entry, txs) => {
@@ -895,4 +924,18 @@ function assert(value) {
   if (!value) {
     throw new Error('Assertion failed.');
   }
+}
+
+function uniq(list) {
+  const mapping = {};
+  const ret = [];
+
+  for (const item of list) {
+    if (!mapping[item]) {
+      ret.push(item);
+      mapping[item] = true;
+    }
+  }
+
+  return ret;
 }

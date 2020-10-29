@@ -5,9 +5,11 @@ const CONNECTION_TYPE_KEY = 'connection_type';
 const RPC_API_KEY = 'p2p_api_key';
 const CUSTOM_RPC_HOST = 'custom_rpc_host';
 const CUSTOM_RPC_PORT = 'custom_rpc_port';
+const CUSTOM_RPC_PATH = 'custom_rpc_path';
 const CUSTOM_RPC_NETWORK_TYPE = 'custom_rpc_network_type';
 const CUSTOM_RPC_API_KEY = 'custom_rpc_api_key';
 const CUSTOM_RPC_URL = 'custom_rpc_url';
+const CUSTOM_RPC_PROTOCOL = 'custom_rpc_protocol';
 
 const Network = require('hsd/lib/protocol/network');
 
@@ -34,6 +36,8 @@ export async function getCustomRPC() {
   const networkType = await get(CUSTOM_RPC_NETWORK_TYPE);
   const apiKey = await get(CUSTOM_RPC_API_KEY);
   const url = await get(CUSTOM_RPC_URL);
+  const pathname = await get(CUSTOM_RPC_PATH);
+  const protocol = await get(CUSTOM_RPC_PROTOCOL);
 
   return {
     host,
@@ -41,6 +45,8 @@ export async function getCustomRPC() {
     networkType,
     apiKey,
     url,
+    pathname,
+    protocol,
   };
 }
 
@@ -56,6 +62,8 @@ async function setConnection(opts) {
       await put(CUSTOM_RPC_NETWORK_TYPE, opts.networkType || '');
       await put(CUSTOM_RPC_API_KEY, opts.apiKey || '');
       await put(CUSTOM_RPC_URL, opts.url || '');
+      await put(CUSTOM_RPC_PATH, opts.pathname || '');
+      await put(CUSTOM_RPC_PROTOCOL, opts.protocol || '');
       return;
     default:
       throw new Error(`unknown connection type ${opts.type}`);

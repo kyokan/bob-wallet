@@ -21,6 +21,7 @@ import MyDomain from '../MyDomain';
 import YourBids from '../YourBids';
 import Watching from '../Watching';
 import SearchTLD from '../SearchTLD';
+import * as nodeActions from "../../ducks/node";
 import * as walletActions from '../../ducks/walletActions';
 import { listWallets } from '../../ducks/walletActions';
 import './app.scss';
@@ -28,10 +29,13 @@ import AccountLogin from '../AcountLogin';
 import PassphraseModal from '../AcountLogin/PassphraseModal';
 import * as node from '../../ducks/node';
 import SplashScreen from "../../components/SplashScreen";
-import NetworkPicker from '../NetworkPicker';
 import IdleModal from '../../components/IdleModal';
 import {LedgerModal} from "../../components/LedgerModal";
 import Notification from "../../components/Notification";
+import {clientStub as cClientStub} from "../../background/connections/client";
+import {ConnectionTypes} from "../../background/connections/service";
+import AppHeader from "../AppHeader";
+const connClient = cClientStub(() => require('electron').ipcRenderer);
 
 @connect(
   (state) => ({
@@ -53,7 +57,8 @@ class App extends Component {
 
   state = {
     isLoading: true,
-    isListingWallets: true
+    isListingWallets: true,
+    custtomRPCNetworkType: '',
   };
 
   async componentDidMount() {
@@ -61,7 +66,23 @@ class App extends Component {
     await this.props.startNode();
     this.props.watchActivity();
     await this.props.listWallets();
+
+    const {type} = await connClient.getConnection();
+
+    if (type === ConnectionTypes.Custom) {
+      await this.fetchCustomRPC();
+    } else {
+      this.setState({ customRPCNetworkType: '' })
+    }
+
     setTimeout(() => this.setState({isLoading: false}), 1000);
+  }
+
+  async fetchCustomRPC() {
+    const conn = await connClient.getCustomRPC();
+    this.setState({
+      customRPCNetworkType: conn.networkType || 'main',
+    });
   }
 
   render() {
@@ -172,16 +193,10 @@ class App extends Component {
   }
 
   uninitializedWrapper(Component, isMainMenu = false, autoHeight = false) {
-    const {history, isRunning} = this.props;
     if (isMainMenu) {
       return () => (
         <div className="app__uninitialized-wrapper">
-          <div className="app__header">
-            <div className="app__logo" />
-            <div className="app__network-picker-wrapper">
-              {isRunning && <NetworkPicker />}
-            </div>
-          </div>
+          <AppHeader isMainMenu />
           <div className={c('app__uninitialized', {
             'app__uninitialized--auto-height': autoHeight,
           })}>
@@ -193,14 +208,7 @@ class App extends Component {
 
     return () => (
       <div className="app__uninitialized-wrapper">
-        <div className="app__header">
-          <div className="app__logo" />
-          <div className="app__network-picker-wrapper">
-            <div className="app__cancel" onClick={() => history.push('/')}>
-              Return to Menu
-            </div>
-          </div>
-        </div>
+        <AppHeader />
         <div className={c('app__uninitialized', {
           'app__uninitialized--auto-height': autoHeight,
         })}>

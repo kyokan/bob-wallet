@@ -10,6 +10,8 @@ import { NodeClient } from 'hs-client';
 import { BigNumber } from 'bignumber.js';
 import {ConnectionTypes, getConnection, getCustomRPC} from '../connections/service';
 import FullNode from 'hsd/lib/node/fullnode';
+import {prefixHash} from "../../db/names";
+import {get, put} from "../db/service";
 
 const Network = require('hsd/lib/protocol/network');
 
@@ -115,6 +117,13 @@ export class NodeService extends EventEmitter {
 
   async setCustomRPCClient() {
     const rpc = await getCustomRPC();
+    const {
+      protocol,
+      port,
+      host,
+      pathname,
+      apiKey,
+    } = rpc;
     const networkType = rpc.networkType || 'main';
 
     if (!VALID_NETWORKS[networkType]) {
@@ -127,10 +136,15 @@ export class NodeService extends EventEmitter {
 
     this.emit('started', this.networkName, this.network);
 
+    const portString = port ? `:${port}` : '';
+    const pathString = (!pathname || pathname === '/') ? '' : pathname;
+    const protoString = protocol || 'http';
+
+    const url = `${protoString}://${host}${portString}${pathString}`;
     this.client = new NodeClient({
       network: network,
-      apiKey: rpc.apiKey,
-      url: rpc.url || `http://127.0.0.1:${network.rpcPort}`,
+      apiKey: apiKey,
+      url: url,
     });
   }
 
@@ -170,7 +184,11 @@ export class NodeService extends EventEmitter {
   }
 
   async getNameByHash(hash) {
-    return this._execRPC('getnamebyhash', [hash]);
+    const cached = await get(prefixHash(hash));
+    if (cached) return cached;
+    const name = await this._execRPC('getnamebyhash', [hash]);
+    put(prefixHash(hash), name);
+    return name;
   }
 
   async getAuctionInfo(name) {
