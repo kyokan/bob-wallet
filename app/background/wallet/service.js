@@ -10,8 +10,7 @@ import { ConnectionTypes, getConnection } from '../connections/service';
 import crypto from 'crypto';
 import { dispatchToMainWindow } from '../../mainWindow';
 import {
-  getInitialState,
-  NONE, SET_BALANCE,
+  SET_BALANCE,
   SET_WALLETS,
   START_SYNC_WALLET,
   STOP_SYNC_WALLET,
@@ -99,6 +98,9 @@ class WalletService {
 
     await this._ensureClient();
     const wallet = await this.node.wdb.get(this.name);
+
+    if (!wallet) return null;
+
     const account = await wallet.getAccount('default');
     const balance = await wallet.getBalance(account.accountIndex);
     return {
@@ -146,6 +148,7 @@ class WalletService {
   createNewWallet = async (name, passphraseOrXPub, isLedger) => {
     await this._ensureClient();
     this.setWallet(name);
+    this.didSelectWallet = false;
 
     if (isLedger) {
       return this.client.createWallet(name, {
@@ -159,9 +162,18 @@ class WalletService {
       passphrase: passphraseOrXPub,
       witness: false,
       watchOnly: false,
-      mnemonic: mnemonic.getPhrase(),
+      mnemonic: mnemonic.getPhrase().trim(),
     };
-    return this.client.createWallet(name, options);
+
+    const res = await this.client.createWallet(this.name, options);
+    const wids = await this.listWallets();
+
+    dispatchToMainWindow({
+      type: SET_WALLETS,
+      payload: uniq([...wids, name]),
+    });
+
+    return res;
   };
 
   rescan = async (height = 0) => {
@@ -194,7 +206,7 @@ class WalletService {
 
     dispatchToMainWindow({
       type: SET_WALLETS,
-      payload: wids,
+      payload: uniq([...wids, name]),
     });
 
     this.rescan(0);
@@ -648,8 +660,10 @@ class WalletService {
 
   refreshWalletInfo = async () => {
     if (!this.name) return;
+
     const accountInfo = await this.getAccountInfo();
-    const apiKey = await this.getAPIKey();
+
+    if (!accountInfo) return;
 
     dispatchToMainWindow({
       type: SET_BALANCE,
@@ -910,4 +924,18 @@ function assert(value) {
   if (!value) {
     throw new Error('Assertion failed.');
   }
+}
+
+function uniq(list) {
+  const mapping = {};
+  const ret = [];
+
+  for (const item in list) {
+    if (!mapping[item]) {
+      ret.push(item);
+      mapping[item] = true;
+    }
+  }
+
+  return ret;
 }
