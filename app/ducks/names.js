@@ -56,8 +56,9 @@ export const fetchName = name => async (dispatch, getState) => {
   let winner = null;
   let isOwner = false;
   let walletHasName = false;
+  let nameState = info && info.state;
 
-  if (info.state === NAME_STATES.CLOSED) {
+  if (nameState === NAME_STATES.CLOSED) {
     isOwner = !!await walletClient.getCoin(info.owner.hash, info.owner.index);
   }
 

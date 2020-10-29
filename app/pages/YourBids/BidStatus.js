@@ -9,7 +9,6 @@ import {
   isOpening,
   isAvailable,
 } from '../../utils/nameHelpers';
-import Hash from '../../components/Hash';
 import Blocktime from '../../components/Blocktime';
 import * as namesActions from "../../ducks/names";
 
