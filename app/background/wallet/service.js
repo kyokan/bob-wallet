@@ -599,9 +599,6 @@ class WalletService {
 
     const node = new WalletNode({
       network: networkName,
-      // nodeUrl: conn.type === ConnectionTypes.Custom
-      //   ? conn.url || 'http://127.0.0.1:12037'
-      //   : undefined,
       nodeHost: conn.type === ConnectionTypes.Custom
         ? conn.host
         : undefined,

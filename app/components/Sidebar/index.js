@@ -5,17 +5,23 @@ import { connect } from 'react-redux';
 import './sidebar.scss';
 import ellipsify from '../../utils/ellipsify';
 import { Logo } from '../Logo';
+import {clientStub} from "../../background/node/client";
+const nodeClient = clientStub(() => require('electron').ipcRenderer);
 
 @withRouter
 @connect(
   state => ({
+    network: state.node.network,
     chainHeight: state.node.chain.height,
     tip: state.node.chain.tip,
     newBlockStatus: state.node.newBlockStatus,
     walletSync: state.wallet.walletSync,
     walletHeight: state.wallet.walletHeight,
+    address: state.wallet.address,
   }),
-  dispatch => ({})
+  dispatch => ({
+
+  }),
 )
 class Sidebar extends Component {
   static propTypes = {
@@ -30,6 +36,8 @@ class Sidebar extends Component {
     newBlockStatus: PropTypes.string.isRequired,
     walletSync: PropTypes.bool.isRequired,
     walletHeight: PropTypes.number.isRequired,
+    network: PropTypes.string.isRequired,
+    address: PropTypes.string.isRequired,
   };
 
   render() {
@@ -49,10 +57,6 @@ class Sidebar extends Component {
   }
 
   renderNav() {
-    const {
-      history: { push },
-      location: { pathname }
-    } = this.props;
     return (
       <React.Fragment>
         <div className="sidebar__section">Wallet</div>
@@ -121,6 +125,22 @@ class Sidebar extends Component {
     );
   }
 
+  renderGenerateBlockButton(numblocks) {
+    const { network, address } = this.props;
+    if (network === 'simnet') {
+      return (
+        <button
+          className="sidebar__generate-btn"
+          onClick={async () => {
+            await nodeClient.generateToAddress(numblocks, address);
+          }}
+        >
+         {`+${numblocks}`}
+        </button>
+      )
+    }
+  }
+
   renderFooter() {
     const {
       walletSync,
@@ -139,6 +159,11 @@ class Sidebar extends Component {
           <div className="sidebar__footer__title">Current Height</div>
           <div className="sidebar__footer__text">
             {walletSync ? `${walletHeight}/${chainHeight}` : `${chainHeight}` || '--'}
+          </div>
+          <div className="sidebar__footer__simnet-controls">
+            {this.renderGenerateBlockButton(1)}
+            {this.renderGenerateBlockButton(10)}
+            {this.renderGenerateBlockButton(50)}
           </div>
         </div>
         <div className="sidebar__footer__row">
