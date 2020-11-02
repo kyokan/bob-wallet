@@ -19,7 +19,7 @@ class Sold extends Component {
     chain: PropTypes.object.isRequired,
     name: PropTypes.string.isRequired,
     sendRedeem: PropTypes.func.isRequired,
-    hasRedeemableReveals: PropTypes.func.isRequired,
+    hasRedeemableReveals: PropTypes.bool.isRequired,
     showSuccess: PropTypes.func.isRequired,
     showError: PropTypes.func.isRequired,
     history: PropTypes.shape({

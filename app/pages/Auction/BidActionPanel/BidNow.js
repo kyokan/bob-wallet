@@ -28,7 +28,7 @@ class BidNow extends Component {
     showSuccess: PropTypes.func.isRequired,
     totalBids: PropTypes.number.isRequired,
     totalMasks: PropTypes.number.isRequired,
-    ownHighestBid: PropTypes.object.isRequired,
+    ownHighestBid: PropTypes.object,
     isPending: PropTypes.bool.isRequired,
     spendableBalance: PropTypes.number.isRequired,
     getNameInfo: PropTypes.func.isRequired,
@@ -89,7 +89,7 @@ class BidNow extends Component {
       logger.error(`Error received from BidNow - sendBid]\n\n${e.message}\n${e.stack}\n`);
       this.props.showError(`Failed to place bid: ${e.message}`);
     } finally {
-      await this.props.getNameInfo(domain.name);  
+      await this.props.getNameInfo(domain.name);
     }
   };
 
@@ -98,7 +98,6 @@ class BidNow extends Component {
       const {domain} = this.props;
       await this.props.startWalletSync();
       await walletClient.importName(domain.name, domain.info.height - 1);
-      await this.props.waitForWalletSync();
       await this.props.getNameInfo(domain.name);
     } catch (e) {
       await this.props.stopWalletSync();

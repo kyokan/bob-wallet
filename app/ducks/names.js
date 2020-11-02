@@ -141,19 +141,20 @@ async function inflateBids(nClient, walletClient, bids) {
 
   const ret = [];
   for (const bid of bids) {
-    const res = await walletClient.getTX(bid.prevout.hash);
+    // Must use node client to get non-own bids
+    const res = await nodeClient.getTx(bid.prevout.hash);
 
     if (!res) continue;
 
-    const {tx, height} = res;
+    const tx = res;
     const out = tx.outputs[bid.prevout.index];
 
     ret.push({
       bid,
       from: out.address,
-      date: tx.mtime,
+      date: tx.mtime * 1000,
       value: out.value,
-      height: height,
+      height: tx.height,
     });
   }
 
@@ -167,20 +168,21 @@ async function inflateReveals(nClient, walletClient, bids) {
 
   const ret = [];
   for (const bid of bids) {
-    const res = await walletClient.getTX(bid.prevout.hash);
+    // Must use node client to get non-own reveals
+    const res = await nodeClient.getTx(bid.prevout.hash);
 
     if (!res) continue;
 
-    const {tx, height} = res;
+    const tx = res;
     const out = tx.outputs[bid.prevout.index];
     const coin = await walletClient.getCoin(bid.prevout.hash, bid.prevout.index);
 
     ret.push({
       bid,
       from: out.address,
-      date: tx.mtime,
+      date: tx.mtime * 1000,
       value: out.value,
-      height: height,
+      height: tx.height,
       redeemable: !!coin,
     });
   }
