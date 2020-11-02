@@ -1,3 +1,5 @@
+import { Amount } from 'hsd/lib/ui';
+import {consensus} from 'hsd/lib/protocol';
 import React, { Component } from 'react';
 import { MiniModal } from '../../components/Modal/MiniModal';
 import { clientStub as wClientStub } from '../../background/wallet/client';
@@ -24,7 +26,7 @@ export class FinalizeWithPaymentModal extends Component {
         this.props.name,
         fundingAddr,
         this.props.transferTo,
-        Number(this.state.price),
+        Amount.fromCoins(this.state.price).toValue(),
       );
       this.setState({
         hex,
@@ -73,6 +75,15 @@ export class FinalizeWithPaymentModal extends Component {
     );
   }
 
+  processValue = (val) => {
+    const value = val.match(/[0-9]*\.?[0-9]{0,6}/g)[0];
+    if (Number.isNaN(parseFloat(value)))
+      return;
+    if (value * consensus.COIN > consensus.MAX_MONEY)
+      return;
+    this.setState({price: value});
+  }
+
   renderForm() {
     const isValid = !!this.state.price && (
       !!this.state.price && Number(this.state.price) <= 2000
@@ -99,9 +110,7 @@ export class FinalizeWithPaymentModal extends Component {
               type="number"
               min={0}
               placeholder="0.000000"
-              onChange={(e) => this.setState({
-                price: e.target.value,
-              })}
+              onChange={(e) => this.processValue(e.target.value)}
               value={this.state.price}
             />
           </div>
