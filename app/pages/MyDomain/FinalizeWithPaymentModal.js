@@ -5,6 +5,7 @@ import { MiniModal } from '../../components/Modal/MiniModal';
 import { clientStub as wClientStub } from '../../background/wallet/client';
 import { finalizeWithPayment } from '../../ducks/names';
 import { connect } from 'react-redux';
+import { waitForPassphrase } from '../../ducks/walletActions';
 
 const wallet = wClientStub(() => require('electron').ipcRenderer);
 
@@ -22,6 +23,7 @@ export class FinalizeWithPaymentModal extends Component {
   onClickFinalize = async () => {
     try {
       const fundingAddr = (await wallet.generateReceivingAddress()).address;
+      await this.props.waitForPassphrase();
       const hex = await this.props.finalizeWithPayment(
         this.props.name,
         fundingAddr,
@@ -139,5 +141,6 @@ export default connect(
   () => ({}),
   (dispatch) => ({
     finalizeWithPayment: (name, fundingAddr, recipient, price) => dispatch(finalizeWithPayment(name, fundingAddr, recipient, price)),
+    waitForPassphrase: () => dispatch(waitForPassphrase()),
   }),
 )(FinalizeWithPaymentModal);
