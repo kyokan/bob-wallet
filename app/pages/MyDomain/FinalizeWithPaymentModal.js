@@ -12,7 +12,6 @@ export class FinalizeWithPaymentModal extends Component {
 
     this.state = {
       error: '',
-      recipient: '',
       price: '',
       hex: '',
     };
@@ -24,7 +23,7 @@ export class FinalizeWithPaymentModal extends Component {
       const hex = await this.props.finalizeWithPayment(
         this.props.name,
         fundingAddr,
-        this.state.recipient,
+        this.props.transferTo,
         Number(this.state.price),
       );
       this.setState({
@@ -75,15 +74,16 @@ export class FinalizeWithPaymentModal extends Component {
   }
 
   renderForm() {
-    const isValid = !!this.state.recipient && !!this.state.price && (
+    const isValid = !!this.state.price && (
       !!this.state.price && Number(this.state.price) <= 2000
     );
 
     return (
       <>
         <p>
-          To require payment to finalize this transfer, please
-          fill out the steps below.
+          To require payment to finalize this transfer,
+          verify the recipient's name transfer address and
+          enter the agreed price in HNS below.
         </p>
 
         <p>
@@ -96,18 +96,6 @@ export class FinalizeWithPaymentModal extends Component {
         <div className="send__to">
           <div className="send__input">
             <input
-              type="text"
-              value={this.state.recipient}
-              onChange={(e) => this.setState({
-                recipient: e.target.value,
-              })}
-              placeholder="Enter a recipient for the name..."
-            />
-          </div>
-        </div>
-        <div className="send__to">
-          <div className="send__input">
-            <input
               type="number"
               min={0}
               placeholder="0.000000"
@@ -117,6 +105,12 @@ export class FinalizeWithPaymentModal extends Component {
               value={this.state.price}
             />
           </div>
+        </div>
+        <div className="send__to">      
+          Name recipient address:
+        </div>
+        <div className="send__to">
+          {this.props.transferTo}
         </div>
         <div className="send__actions">
           <button
