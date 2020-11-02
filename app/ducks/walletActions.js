@@ -16,14 +16,19 @@ import {
   STOP_SYNC_WALLET,
   SYNC_WALLET_PROGRESS,
   UNLOCK_WALLET,
-  SET_API_KEY, SET_FETCHING,
+  SET_API_KEY,
+  SET_FETCHING,
+  SET_WALLETS,
 } from './walletReducer';
 import { NEW_BLOCK_STATUS } from './nodeReducer';
+import {setNames} from "./myDomains";
+import {setYourBids} from "./bids";
 
 let idleInterval;
 
 export const setWallet = opts => {
   const {
+    wid = '',
     initialized = false,
     address = '',
     type = NONE,
@@ -34,6 +39,7 @@ export const setWallet = opts => {
   return {
     type: SET_WALLET,
     payload: {
+      wid,
       initialized,
       address,
       type,
@@ -43,9 +49,9 @@ export const setWallet = opts => {
   };
 };
 
-export const completeInitialization = (passphrase) => async (dispatch, getState) => {
+export const completeInitialization = (name, passphrase) => async (dispatch, getState) => {
   const network = getState().node.network;
-  await walletClient.unlock(passphrase);
+  await walletClient.unlock(name, passphrase);
   await setInitializationState(network, true);
   await dispatch(fetchWallet());
   dispatch({
@@ -77,9 +83,18 @@ export const fetchWallet = () => async (dispatch, getState) => {
     }));
   }
 
-  const accountInfo = await walletClient.getAccountInfo();
+  let accountInfo;
+
+  try {
+    accountInfo = await walletClient.getAccountInfo();
+  } catch (e) {
+    accountInfo = null;
+  }
+
   const apiKey = await walletClient.getAPIKey();
+
   dispatch(setWallet({
+    wid: accountInfo ? accountInfo.wid : '',
     initialized: isInitialized,
     address: accountInfo && accountInfo.receiveAddress,
     type: NONE,
@@ -94,8 +109,19 @@ export const revealSeed = (passphrase) => async () => {
   return walletClient.revealSeed(passphrase);
 };
 
-export const unlockWallet = passphrase => async (dispatch) => {
-  await walletClient.unlock(passphrase);
+export const unlockWallet = (name, passphrase) => async (dispatch, getState) => {
+  await walletClient.unlock(name, passphrase);
+
+  if (name !== getState().wallet.wid) {
+    dispatch({
+      type: SET_TRANSACTIONS,
+      payload: new Map(),
+    });
+
+    dispatch(setNames([]));
+    dispatch(setYourBids([]));
+  }
+
   dispatch({
     type: UNLOCK_WALLET,
   });
@@ -108,7 +134,7 @@ export const lockWallet = () => async (dispatch) => {
   });
 };
 
-export const removeWallet = () => async (dispatch, getState) => {
+export const reset = () => async (dispatch, getState) => {
   const network = getState().node.network;
   await walletClient.reset();
   await setInitializationState(network, false);
@@ -176,31 +202,45 @@ export const fetchTransactions = () => async (dispatch, getState) => {
   const net = state.node.network;
   const currentTXs = state.wallet.transactions;
 
+  if (state.wallet.isFetching) {
+    return;
+  }
+
   dispatch({
     type: SET_FETCHING,
     payload: true,
   });
 
+
   const txs = await walletClient.getTransactionHistory();
+
   let payload = new Map();
 
   for (let i = 0; i < txs.length; i++) {
-    const tx = txs[i];
+    const {tx, time, block} = txs[i];
     const existing = currentTXs.get(tx.hash);
+
     if (existing) {
-      const isPending = tx.block === null;
-      existing.date = isPending ? Date.now() : Date.parse(tx.date);
+      const isPending = !block;
+      existing.date = isPending ? Date.now() : time * 1000;
       existing.pending = isPending;
 
       payload.set(existing.id, existing);
       continue;
     }
-    dispatch({type: NEW_BLOCK_STATUS, payload: `Processing TX: ${i}/${txs.length}`});
+
+    if (!(i % 100)) {
+      dispatch({
+        type: NEW_BLOCK_STATUS,
+        payload: `Processing TX: ${i}/${txs.length}`,
+      });
+    }
+
     const ios = await parseInputsOutputs(net, tx);
-    const isPending = tx.block === null;
+    const isPending = !block;
     const txData = {
       id: tx.hash,
-      date: isPending ? Date.now() : Date.parse(tx.date),
+      date: isPending ? Date.now() : time * 1000,
       pending: isPending,
       ...ios,
     };
@@ -263,6 +303,15 @@ export const watchActivity = () => dispatch => {
     document.addEventListener('mousemove', handler);
     document.addEventListener('keypress', handler);
   }
+};
+
+export const listWallets = () => async (dispatch) => {
+  const wallets = await walletClient.listWallets();
+
+  dispatch({
+    type: SET_WALLETS,
+    payload: wallets,
+  });
 };
 
 async function parseInputsOutputs(net, tx) {
@@ -353,7 +402,7 @@ async function parseInputsOutputs(net, tx) {
       type: 'UNKNOWN',
       meta: {},
       fee: tx.fee,
-      value: 0
+      value: 0,
     };
   }
 
@@ -443,14 +492,17 @@ async function nameByHash(net, covenant) {
     nameCache.currNet = net;
     nameCache.cache = {};
   }
+
   if (Object.keys(nameCache.cache) > MAX_NAME_CACHE_SIZE) {
     nameCache.cache = {};
   }
 
   const hash = covenant.items[0];
+
   if (nameCache.cache[hash]) {
     return nameCache.cache[hash];
   }
+
   let name = await nodeClient.getNameByHash(hash);
 
   if (!name && covenant.action === 'OPEN') {

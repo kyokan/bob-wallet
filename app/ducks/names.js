@@ -40,14 +40,53 @@ export const NAME_STATES = {
   TRANSFER: 'TRANSFER',
 };
 
-export const getNameInfo = name => async (dispatch) => {
+export const fetchName = name => async (dispatch, getState) => {
+  const {names} = getState();
+  const existing = names[name];
+
+  if (existing && existing.info) {
+    return;
+  }
+
   const result = await nodeClient.getNameInfo(name);
   const {start, info} = result;
+
   let bids = [];
   let reveals = [];
   let winner = null;
   let isOwner = false;
   let walletHasName = false;
+  let nameState = info && info.state;
+
+  if (nameState === NAME_STATES.CLOSED) {
+    isOwner = !!await walletClient.getCoin(info.owner.hash, info.owner.index);
+  }
+
+  dispatch({
+    type: SET_NAME,
+    payload: {
+      name,
+      start,
+      info,
+      bids,
+      reveals,
+      winner,
+      isOwner,
+      walletHasName,
+    },
+  });
+};
+
+export const getNameInfo = name => async (dispatch) => {
+  const result = await nodeClient.getNameInfo(name);
+  const {start, info} = result;
+
+  let bids = [];
+  let reveals = [];
+  let winner = null;
+  let isOwner = false;
+  let walletHasName = false;
+
   if (!info) {
     dispatch({
       type: SET_NAME,
@@ -77,13 +116,16 @@ export const getNameInfo = name => async (dispatch) => {
   }
 
   if (info.state === NAME_STATES.CLOSED) {
-    const buyTx = await nodeClient.getTx(info.owner.hash);
-    const buyOutput = buyTx.outputs[info.owner.index];
-    isOwner = !!await walletClient.getCoin(info.owner.hash, info.owner.index);
+    const res = await walletClient.getTX(info.owner.hash);
+    if (res) {
+      const {tx: buyTx} = res;
+      const buyOutput = buyTx.outputs[info.owner.index];
+      isOwner = !!await walletClient.getCoin(info.owner.hash, info.owner.index);
 
-    winner = {
-      address: buyOutput.address,
-    };
+      winner = {
+        address: buyOutput.address,
+      };
+    }
   }
 
   dispatch({
@@ -99,13 +141,18 @@ async function inflateBids(nClient, walletClient, bids) {
 
   const ret = [];
   for (const bid of bids) {
-    const tx = await nClient.getTx(bid.prevout.hash);
+    // Must use node client to get non-own bids
+    const res = await nodeClient.getTx(bid.prevout.hash);
+
+    if (!res) continue;
+
+    const tx = res;
     const out = tx.outputs[bid.prevout.index];
 
     ret.push({
       bid,
       from: out.address,
-      date: tx.mtime,
+      date: tx.mtime * 1000,
       value: out.value,
       height: tx.height,
     });
@@ -121,14 +168,19 @@ async function inflateReveals(nClient, walletClient, bids) {
 
   const ret = [];
   for (const bid of bids) {
-    const tx = await nClient.getTx(bid.prevout.hash);
+    // Must use node client to get non-own reveals
+    const res = await nodeClient.getTx(bid.prevout.hash);
+
+    if (!res) continue;
+
+    const tx = res;
     const out = tx.outputs[bid.prevout.index];
     const coin = await walletClient.getCoin(bid.prevout.hash, bid.prevout.index);
 
     ret.push({
       bid,
       from: out.address,
-      date: tx.mtime,
+      date: tx.mtime * 1000,
       value: out.value,
       height: tx.height,
       redeemable: !!coin,
@@ -184,6 +236,17 @@ export const sendReveal = (name) => async (dispatch) => {
   await walletClient.sendReveal(name);
 };
 
+export const sendRegister = (name) => async (dispatch) => {
+  if (!name) {
+    return;
+  }
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
+
+  await walletClient.sendRegister(name);
+};
+
 export const sendRedeem = (name) => async (dispatch) => {
   if (!name) {
     return;
@@ -194,6 +257,22 @@ export const sendRedeem = (name) => async (dispatch) => {
 
   await namesDb.storeName(name);
   await walletClient.sendRedeem(name);
+};
+
+export const sendRedeemAll = () => async (dispatch) => {
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
+
+  await walletClient.sendRedeemAll();
+};
+
+export const sendRevealAll = () => async (dispatch) => {
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
+
+  await walletClient.sendRevealAll();
 };
 
 export const sendRenewal = (name) => async (dispatch) => {

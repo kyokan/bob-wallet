@@ -4,6 +4,7 @@ export const IMPORTED = 'IMPORTED';
 export const ELECTRON = 'ELECTRON';
 
 export const SET_WALLET = 'app/wallet/setWallet';
+export const SET_BALANCE = 'app/wallet/setBalance';
 export const UNLOCK_WALLET = 'app/wallet/unlockWallet';
 export const LOCK_WALLET = 'app/wallet/lockWallet';
 export const SET_TRANSACTIONS = 'app/wallet/setTransactions';
@@ -16,11 +17,13 @@ export const SYNC_WALLET_PROGRESS = 'app/wallet/syncWalletProgress';
 export const GET_PASSPHRASE = 'app/wallet/getPassphrase';
 export const SET_API_KEY = 'app/wallet/setApiKey';
 export const SET_FETCHING = 'app/wallet/setFetching';
+export const SET_WALLETS = 'app/wallet/setWallets';
 
 export function getInitialState() {
   return {
     address: '',
     apiKey: '',
+    wid: '',
     type: NONE,
     isLocked: true,
     isFetching: false,
@@ -35,8 +38,9 @@ export function getInitialState() {
     transactions: new Map(),
     idle: 0,
     walletSync: false,
-    walletSyncProgress: 0,
+    walletHeight: 0,
     getPassphrase: {get: false},
+    wallets: [],
   };
 }
 
@@ -45,6 +49,10 @@ export default function walletReducer(state = getInitialState(), {type, payload}
     case SET_WALLET:
       return {
         ...state,
+        transactions: state.wid === payload.wid
+          ? state.transactions
+          : new Map(),
+        wid: payload.wid,
         address: payload.address,
         type: payload.type,
         balance: {
@@ -55,8 +63,20 @@ export default function walletReducer(state = getInitialState(), {type, payload}
           lockedConfirmed: payload.balance.lockedConfirmed,
           spendable: payload.balance.unconfirmed - payload.balance.lockedUnconfirmed,
         },
-        initialized: payload.initialized,
+        initialized: typeof payload.initialized === 'undefined' ? state.initialized : payload.initialized,
         apiKey: payload.apiKey,
+      };
+    case SET_BALANCE:
+      return {
+        ...state,
+        balance: {
+          ...state.balance,
+          confirmed: payload.confirmed,
+          unconfirmed: payload.unconfirmed,
+          lockedUnconfirmed: payload.lockedUnconfirmed,
+          lockedConfirmed: payload.lockedConfirmed,
+          spendable: payload.unconfirmed - payload.lockedUnconfirmed,
+        }
       };
     case SET_API_KEY:
       return {
@@ -66,17 +86,17 @@ export default function walletReducer(state = getInitialState(), {type, payload}
     case LOCK_WALLET:
       return {
         ...state,
-        isLocked: true
+        isLocked: true,
       };
     case UNLOCK_WALLET:
       return {
         ...state,
-        isLocked: false
+        isLocked: false,
       };
     case SET_TRANSACTIONS:
       return {
         ...state,
-        transactions: payload
+        transactions: payload,
       };
     case INCREMENT_IDLE:
       return {
@@ -101,7 +121,7 @@ export default function walletReducer(state = getInitialState(), {type, payload}
     case SYNC_WALLET_PROGRESS:
       return {
         ...state,
-        walletSyncProgress: payload,
+        walletHeight: payload,
       };
     case GET_PASSPHRASE:
       return {
@@ -112,6 +132,11 @@ export default function walletReducer(state = getInitialState(), {type, payload}
       return {
         ...state,
         isFetching: payload,
+      };
+    case SET_WALLETS:
+      return {
+        ...state,
+        wallets: payload,
       };
     default:
       return state;

@@ -21,45 +21,74 @@ import MyDomain from '../MyDomain';
 import YourBids from '../YourBids';
 import Watching from '../Watching';
 import SearchTLD from '../SearchTLD';
+import * as nodeActions from "../../ducks/node";
 import * as walletActions from '../../ducks/walletActions';
+import { listWallets } from '../../ducks/walletActions';
 import './app.scss';
 import AccountLogin from '../AcountLogin';
 import PassphraseModal from '../AcountLogin/PassphraseModal';
 import * as node from '../../ducks/node';
-import { onNewBlock } from '../../ducks/backgroundMonitor';
-import Notification from '../../components/Notification';
 import SplashScreen from "../../components/SplashScreen";
-import WalletSync from "../../components/WalletSync";
-import NetworkPicker from '../NetworkPicker';
 import IdleModal from '../../components/IdleModal';
-import { LedgerModal } from '../../components/LedgerModal';
+import {LedgerModal} from "../../components/LedgerModal";
+import Notification from "../../components/Notification";
+import {clientStub as cClientStub} from "../../background/connections/client";
+import {ConnectionTypes} from "../../background/connections/service";
+import AppHeader from "../AppHeader";
+const connClient = cClientStub(() => require('electron').ipcRenderer);
 
+@connect(
+  (state) => ({
+    wallets: state.wallet.wallets,
+  }),
+  (dispatch) => ({
+    listWallets: () => dispatch(listWallets()),
+  }),
+)
 class App extends Component {
   static propTypes = {
     error: PropTypes.string.isRequired,
     isLocked: PropTypes.bool.isRequired,
     initialized: PropTypes.bool.isRequired,
     startNode: PropTypes.func.isRequired,
-    onNewBlock: PropTypes.func.isRequired,
     watchActivity: PropTypes.func.isRequired,
     isChangingNetworks: PropTypes.bool.isRequired,
   };
 
   state = {
-    isLoading: true
+    isLoading: true,
+    isListingWallets: true,
+    custtomRPCNetworkType: '',
   };
 
   async componentDidMount() {
     this.setState({isLoading: true});
     await this.props.startNode();
     this.props.watchActivity();
-    setTimeout(() => this.setState({isLoading: false}), 1000)
+    await this.props.listWallets();
+
+    const {type} = await connClient.getConnection();
+
+    if (type === ConnectionTypes.Custom) {
+      await this.fetchCustomRPC();
+    } else {
+      this.setState({ customRPCNetworkType: '' })
+    }
+
+    setTimeout(() => this.setState({isLoading: false}), 1000);
+  }
+
+  async fetchCustomRPC() {
+    const conn = await connClient.getCustomRPC();
+    this.setState({
+      customRPCNetworkType: conn.networkType || 'main',
+    });
   }
 
   render() {
     // TODO: Confirm that error shows properly
     if (this.props.error) {
-      return <SplashScreen error={this.props.error} />
+      return <SplashScreen error={this.props.error} />;
     }
 
     if (this.state.isLoading || this.props.isChangingNetworks) {
@@ -77,10 +106,10 @@ class App extends Component {
   }
 
   renderContent() {
-    const { isLocked, initialized } = this.props;
-
-    if (isLocked || !initialized) {
-      return (
+    return (
+      <>
+        <LedgerModal />
+        <Notification />
         <Switch>
           <Route
             path="/login"
@@ -88,105 +117,123 @@ class App extends Component {
           />
           <Route path="/funding-options" render={this.uninitializedWrapper(FundAccessOptions, true)} />
           <Route path="/existing-options" render={this.uninitializedWrapper(ExistingAccountOptions)} />
-          <Route path="/new-wallet" render={this.uninitializedWrapper(CreateNewAccount)} />
-          <Route path="/import-seed" render={this.uninitializedWrapper(ImportSeedFlow)} />
+          <Route
+            path="/new-wallet"
+            render={this.uninitializedWrapper(
+              CreateNewAccount,
+              false,
+              false,
+              true,
+            )}
+          />
+          <Route
+            path="/import-seed"
+            render={this.uninitializedWrapper(
+              ImportSeedFlow,
+              false,
+              false,
+              true,
+            )}
+          />
           <Route path="/connect-ledger" render={this.uninitializedWrapper(ConnectLedgerFlow)} />
-          {this.renderDefault()}
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/account"
+            render={this.routeRenderer('Portfolio', Account, true, false)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/send"
+            render={this.routeRenderer('Send', SendModal)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/receive"
+            render={this.routeRenderer('Receive', ReceiveModal)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/get_coins"
+            render={this.routeRenderer('Get Coins', GetCoins)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/settings"
+            render={this.routeRenderer('Settings', Settings, false, false)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/bids"
+            render={this.routeRenderer('Domains', YourBids)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/domains"
+            render={this.routeRenderer('Domains', SearchTLD, false)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/watching"
+            render={this.routeRenderer('Watching', Watching)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/domain_manager/:name"
+            render={this.routeRenderer('Domain Manager', MyDomain)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/domain_manager"
+            render={this.routeRenderer('Domain Manager', DomainManager)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/domain/:name?"
+            render={this.routeRenderer('Browse Domains', Auction, false)}
+          />
+          <Redirect to="/login" />
         </Switch>
-      );
-    }
-
-    return (
-      <React.Fragment>
-        <LedgerModal/>
-        <Notification />
-        {this.renderRoutes()}
-      </React.Fragment>
+      </>
     );
   }
 
-  uninitializedWrapper(Component, isMainMenu = false, autoHeight = false) {
-    const { history, isRunning } = this.props;
+  uninitializedWrapper(Component, isMainMenu = false, autoHeight = false, autoWidth = false) {
+    const {history, isRunning} = this.props;
     if (isMainMenu) {
       return () => (
         <div className="app__uninitialized-wrapper">
-          <div className="app__header">
-            <div className="app__logo"/>
-            <div className="app__network-picker-wrapper">
-              { isRunning && <NetworkPicker /> }
-            </div>
-          </div>
-          <div className={c("app__uninitialized", {
-          "app__uninitialized--auto-height": autoHeight,
+          <AppHeader isMainMenu />
+          <div className={c('app__uninitialized', {
+            'app__uninitialized--auto-height': autoHeight,
+            'app__uninitialized--auto-width': autoWidth,
           })}>
             <Component />
           </div>
         </div>
-      )
+      );
     }
 
     return () => (
       <div className="app__uninitialized-wrapper">
-        <div className="app__header">
-          <div className="app__logo" />
-          <div className="app__network-picker-wrapper">
-            <div className="app__cancel" onClick={() => history.push('/')}>
-              Return to Menu
-            </div>
-          </div>
-        </div>
-        <div className={c("app__uninitialized", {
-          "app__uninitialized--auto-height": autoHeight,
+        <AppHeader />
+        <div className={c('app__uninitialized', {
+          'app__uninitialized--auto-height': autoHeight,
+          'app__uninitialized--auto-width': autoWidth,
         })}>
           <Component />
         </div>
       </div>
-      )
-  }
-
-  renderRoutes() {
-    return (
-      <Switch>
-        <Route
-          path="/account"
-          render={this.routeRenderer('Portfolio', Account)}
-        />
-        <Route path="/send" render={this.routeRenderer('Send', SendModal)} />
-        <Route
-          path="/receive"
-          render={this.routeRenderer('Receive', ReceiveModal)}
-        />
-        <Route
-          path="/get_coins"
-          render={this.routeRenderer('Get Coins', GetCoins)}
-        />
-        <Route
-          path="/settings"
-          render={this.routeRenderer('Settings', Settings, false, false)}
-        />
-        <Route path="/bids" render={this.routeRenderer('Domains', YourBids)} />
-        <Route
-          path="/domains"
-          render={this.routeRenderer('Domains', SearchTLD, false)}
-        />
-        <Route
-          path="/watching"
-          render={this.routeRenderer('Watching', Watching)}
-        />
-        <Route
-          path="/domain_manager/:name"
-          render={this.routeRenderer('Domain Manager', MyDomain)}
-        />
-        <Route
-          path="/domain_manager"
-          render={this.routeRenderer('Domain Manager', DomainManager)}
-        />
-        <Route
-          path="/domain/:name?"
-          render={this.routeRenderer('Browse Domains', Auction, false)}
-        />
-        {this.renderDefault()}
-      </Switch>
     );
   }
 
@@ -214,22 +261,19 @@ class App extends Component {
       </React.Fragment>
     );
   }
-
-  renderDefault = () => {
-    let {isLocked, initialized} = this.props;
-
-
-    if (!initialized) {
-      return <Redirect to="/funding-options" />;
-    }
-
-    if (isLocked) {
-      return <Redirect to="/login" />;
-    }
-
-    return <Redirect to="/account" />;
-  };
 }
+
+const ProtectedRoute = (props) => {
+  if (!props.wallets.length) {
+    return <Redirect to="/funding-options" />;
+  }
+
+  if (props.isLocked) {
+    return <Redirect to="/login" />;
+  }
+
+  return <Route {...props} />;
+};
 
 export default withRouter(
   connect(
@@ -243,7 +287,6 @@ export default withRouter(
     dispatch => ({
       watchActivity: () => dispatch(walletActions.watchActivity()),
       startNode: () => dispatch(node.startApp()),
-      onNewBlock: () => dispatch(onNewBlock()),
     })
-  )(App)
+  )(App),
 );

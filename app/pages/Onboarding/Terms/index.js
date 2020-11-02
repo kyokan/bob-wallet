@@ -3,8 +3,10 @@ import PropTypes from 'prop-types';
 import c from 'classnames';
 import { connect } from 'react-redux';
 // import * as auctions.js from '../../../ducks/extension';
-import './terms.scss';
 import WizardHeader from '../../../components/WizardHeader';
+import Checkbox from "../../../components/Checkbox";
+import TERMS_HTML from "./tos";
+import "./terms.scss";
 
 export default class Terms extends Component {
   static propTypes = {
@@ -30,25 +32,31 @@ export default class Terms extends Component {
         <div className="terms__content">
           <div className="terms__header_text">Terms of Use</div>
           <div className="terms_subheader">
-            Please review and agree to the Handshake wallet's terms of use.
+            Please review and agree to the Bob Wallet's terms of use.
           </div>
-          <button
-            className={c('terms__button', {
-              'terms__button--accepted': hasAccepted
-            })}
-            onClick={this.toggleTerms}
-          >
-            <span>Terms of Use</span>
-            <span className="directional_symbol terms_forward_arrow">
-              <i className="right" />
+          <div
+            className="terms__html-box"
+            dangerouslySetInnerHTML={{
+              __html: TERMS_HTML,
+            }}
+          />
+          <div className="terms__input">
+            <span className="import_checkbox_container">
+              <Checkbox
+                checked={hasAccepted}
+                onChange={this.toggleTerms}
+              />
             </span>
-          </button>
+            <span className="import_checkbox_text">
+              I accept the terms of use.
+            </span>
+          </div>
           <button
             className="extension_cta_button terms_cta"
             onClick={onAccept}
             disabled={!hasAccepted}
           >
-            I agree
+            Next
           </button>
         </div>
       </div>

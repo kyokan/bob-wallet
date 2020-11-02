@@ -13,12 +13,12 @@
 
   &__header {
     @extend %row-nowrap;
-    margin-bottom: 1.5rem;
+    padding: 2rem 1.5rem 1rem;
   }
 
   &__header-section {
     @extend %col-nowrap;
-    margin: 0 4.5rem 1rem 0;
+    padding: 0 1.5rem;
   }
 
   &__info-icon {
@@ -41,8 +41,8 @@
     }
 
     &__amount {
-      font-size: 2.2rem;
-      line-height: 3.5rem;
+      font-size: 1.6125rem;
+      line-height: 3rem;
       font-weight: 500;
     }
   }
@@ -94,11 +94,9 @@
 
   &__panel-title {
     @extend %row-nowrap;
-    font-size: 1.2rem;
+    font-size: .8125rem;
     font-weight: 500;
-    margin-bottom: 1rem;
-    padding-bottom: 1rem;
-    border-bottom: solid 1px rgba($black, 0.1);
+    margin: 1rem 3rem 1rem 3rem;
   }
 
   &__empty-list {

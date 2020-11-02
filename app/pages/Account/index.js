@@ -6,6 +6,7 @@ import './account.scss';
 import { displayBalance } from '../../utils/balances';
 import Tooltipable from '../../components/Tooltipable';
 import { clientStub as aClientStub } from '../../background/analytics/client';
+import * as walletActions from "../../ducks/walletActions";
 
 const pkg = require('../../../package.json');
 
@@ -18,6 +19,9 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
     height: state.node.chain.height,
     isFetching: state.wallet.isFetching,
   }),
+  dispatch => ({
+    fetchWallet: () => dispatch(walletActions.fetchWallet()),
+  }),
 )
 export default class Account extends Component {
   static propTypes = {
@@ -25,10 +29,12 @@ export default class Account extends Component {
     spendableBalance: PropTypes.number.isRequired,
     height: PropTypes.number.isRequired,
     isFetching: PropTypes.bool.isRequired,
+    fetchWallet: PropTypes.func.isRequired,
   };
 
   componentDidMount() {
     analytics.screenView('Account');
+    this.props.fetchWallet();
   }
 
   render() {
@@ -43,7 +49,7 @@ export default class Account extends Component {
               <div>Total Balance</div>
             </div>
             <div className="account__balance-wrapper">
-              <div className="account__balance-wrapper__amount">{`HNS ${displayBalance(unconfirmedBalance)}`}</div>
+              <div className="account__balance-wrapper__amount">{`${displayBalance(unconfirmedBalance)} HNS`}</div>
             </div>
           </div>
           <div className="account__header-section">
@@ -55,7 +61,7 @@ export default class Account extends Component {
               </Tooltipable>
             </div>
             <div className="account__balance-wrapper">
-              <div className="account__balance-wrapper__amount">{`HNS ${displayBalance(spendableBalance)}`}</div>
+              <div className="account__balance-wrapper__amount">{`${displayBalance(spendableBalance)} HNS`}</div>
             </div>
           </div>
         </div>

@@ -33,7 +33,8 @@ import * as walletActions from '../../ducks/walletActions';
       unconfirmedBalance: state.wallet.balance.unconfirmed,
       spendableBalance: state.wallet.balance.spendable,
       walletSync: state.wallet.walletSync,
-      walletSyncProgress: state.wallet.walletSyncProgress,
+      walletHeight: state.wallet.walletHeight,
+      chainHeight: state.node.chain.height,
     };
   },
   dispatch => ({
@@ -59,7 +60,8 @@ class Topbar extends Component {
     isChangingNodeStatus: PropTypes.bool.isRequired,
     isTestingCustomRPC: PropTypes.bool.isRequired,
     walletSync: PropTypes.bool.isRequired,
-    walletSyncProgress: PropTypes.number.isRequired,
+    walletHeight: PropTypes.number.isRequired,
+    chainHeight: PropTypes.number.isRequired,
   };
 
   state = {
@@ -122,6 +124,7 @@ class Topbar extends Component {
       showLogo,
       location: { pathname },
       walletSync,
+      progress,
     } = this.props;
 
     return (
@@ -132,13 +135,16 @@ class Topbar extends Component {
           className={c('topbar__synced', {
             'topbar__synced--success': isSynchronized || isCustomRPCConnected,
             'topbar__synced--failure': !isRunning && !isCustomRPCConnected,
-            'topbar__synced--loading': walletSync || isChangingNodeStatus || isTestingCustomRPC || isSynchronizing,
+            'topbar__synced--loading': walletSync
+              || isChangingNodeStatus
+              || isTestingCustomRPC
+              || isSynchronizing
+              || progress < 1,
           })}
         >
           {this.getSyncText()}
         </div>
         { this.renderSettingIcon() }
-        {/*<Link to="/settings" className="topbar__icon topbar__icon--settings" />*/}
       </React.Fragment>
     );
   }
@@ -211,17 +217,22 @@ class Topbar extends Component {
       isChangingNodeStatus,
       isTestingCustomRPC,
       walletSync,
-      walletSyncProgress,
+      walletHeight,
+      chainHeight,
     } = this.props;
 
     if (isSynchronizing) {
       return `Synchronizing... ${
         progress ? '(' + (progress * 100).toFixed(2) + '%)' : ''
       }`;
+    } else if (progress < 1) {
+      return `Synchronizing from RPC... ${
+        progress ? '(' + (progress * 100).toFixed(2) + '%)' : ''
+      }`;
     }
 
     if (walletSync) {
-      return `Rescanning... (${walletSyncProgress}%)`;
+      return `Rescanning... (${Math.floor(walletHeight * 100 / chainHeight)}%)`;
     }
 
     if (isSynchronized) {

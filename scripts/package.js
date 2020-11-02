@@ -99,7 +99,6 @@ function main() {
     'main.js',
     'menu.js',
     'sentry.js',
-    'hsdMain.js',
     'mainWindow.js',
     'preload.js',
     'ducks/walletReducer.js'
@@ -117,8 +116,7 @@ function main() {
   const pack = () => webpack(babelizeFiles);
   const csp = () => replaceCSP(path.join('dist', 'app.html'), pack);
   const cpApp = () => copyFileFromRoot(path.join('app', 'app.html'), 'dist', csp);
-  const cpHSD = () => copyFileFromRoot(path.join('app', 'hsd.html'), 'dist', cpApp);
-  const mkDist = () => mkdirPFromRoot('dist', cpHSD);
+  const mkDist = () => mkdirPFromRoot('dist', cpApp);
   mkDist();
 }
 

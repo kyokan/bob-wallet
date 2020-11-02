@@ -7,6 +7,7 @@ import CreatePassword from '../CreatePassword/index';
 import BackUpSeedWarning from '../BackUpSeedWarning/index';
 import CopySeed from '../../CopySeed/index';
 import ConfirmSeed from '../ConfirmSeed/index';
+import SetName from '../SetName/index';
 import * as walletActions from '../../../ducks/walletActions';
 import '../ImportSeedEnterMnemonic/importenter.scss';
 import '../ImportSeedWarning/importwarning.scss';
@@ -22,6 +23,7 @@ const BACK_UP_SEED_WARNING = 2;
 const COPY_SEEDPHRASE = 3;
 const CONFIRM_SEEDPHRASE = 4;
 const OPT_IN_ANALYTICS = 5;
+const SET_NAME = 6;
 
 class CreateNewAccount extends Component {
   static propTypes = {
@@ -30,9 +32,9 @@ class CreateNewAccount extends Component {
   };
 
   state = {
-    currentStep: CREATE_PASSWORD,
+    currentStep: TERMS_OF_USE,
     seedphrase: '',
-    pasphrase: '',
+    passphrase: '',
     isLoading: false,
   };
 
@@ -42,21 +44,31 @@ class CreateNewAccount extends Component {
         return (
           <Terms
             currentStep={0}
-            totalSteps={4}
-            onAccept={async () => {
-              this.setState({
-                currentStep: CREATE_PASSWORD,
-              });
+            totalSteps={5}
+            onAccept={() => this.setState({currentStep: SET_NAME})}
+            onBack={() => this.props.history.push('/existing-options')}
+          />
+        );
+      case SET_NAME:
+        return (
+          <SetName
+            currentStep={1}
+            totalSteps={5}
+            onBack={() => this.setState({currentStep: TERMS_OF_USE})}
+            onNext={(name) => {
+              this.setState({currentStep: CREATE_PASSWORD, name});
             }}
-            onBack={() => this.props.history.push('/funding-options')}
+            onCancel={() => this.props.history.push('/funding-options')}
           />
         );
       case CREATE_PASSWORD:
         return (
           <CreatePassword
-            currentStep={1}
-            totalSteps={4}
-            onBack={() => this.props.history.push('/funding-options')}
+            currentStep={2}
+            totalSteps={5}
+            onBack={() => this.setState({
+              currentStep: SET_NAME
+            })}
             onNext={async (passphrase) => {
               const optInState = await analytics.getOptIn();
               let currentStep = BACK_UP_SEED_WARNING;
@@ -72,8 +84,8 @@ class CreateNewAccount extends Component {
       case OPT_IN_ANALYTICS:
         return (
           <OptInAnalytics
-            currentStep={1}
-            totalSteps={4}
+            currentStep={3}
+            totalSteps={5}
             onBack={() => this.setState({currentStep: CREATE_PASSWORD})}
             onNext={async (optInState) => {
               await analytics.setOptIn(optInState);
@@ -85,12 +97,12 @@ class CreateNewAccount extends Component {
       case BACK_UP_SEED_WARNING:
         return (
           <BackUpSeedWarning
-            currentStep={2}
-            totalSteps={4}
+            currentStep={4}
+            totalSteps={5}
             onBack={() => this.setState({currentStep: CREATE_PASSWORD})}
             onNext={async () => {
               this.setState({isLoading: true});
-              await walletClient.createNewWallet();
+              await walletClient.createNewWallet(this.state.name);
               const masterHDKey = await walletClient.getMasterHDKey();
               await walletClient.setPassphrase(this.state.passphrase);
               this.setState({currentStep: COPY_SEEDPHRASE, seedphrase: masterHDKey.mnemonic.phrase, isLoading: false});
@@ -102,8 +114,8 @@ class CreateNewAccount extends Component {
       case COPY_SEEDPHRASE:
         return (
           <CopySeed
-            currentStep={3}
-            totalSteps={4}
+            currentStep={5}
+            totalSteps={5}
             seedphrase={this.state.seedphrase}
             onBack={() => this.setState({currentStep: BACK_UP_SEED_WARNING})}
             onNext={() => this.setState({currentStep: CONFIRM_SEEDPHRASE})}
@@ -113,13 +125,13 @@ class CreateNewAccount extends Component {
       case CONFIRM_SEEDPHRASE:
         return (
           <ConfirmSeed
-            currentStep={4}
-            totalSteps={4}
+            currentStep={5}
+            totalSteps={5}
             seedphrase={this.state.seedphrase}
             onBack={() => this.setState({currentStep: COPY_SEEDPHRASE})}
             onNext={async () => {
-              await this.props.completeInitialization(this.state.passphrase);
-              this.props.history.push('/');
+              await this.props.completeInitialization(this.state.name, this.state.passphrase);
+              this.props.history.push('/account');
             }}
             onCancel={() => this.props.history.push('/funding-options')}
           />
@@ -136,7 +148,7 @@ export default withRouter(
       network: state.node.network,
     }),
     dispatch => ({
-      completeInitialization: (passphrase) => dispatch(walletActions.completeInitialization(passphrase)),
+      completeInitialization: (name, passphrase) => dispatch(walletActions.completeInitialization(name, passphrase)),
     }),
   )(CreateNewAccount),
 );

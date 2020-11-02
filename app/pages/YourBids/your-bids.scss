@@ -3,10 +3,29 @@
 .bids {
   @extend %col-nowrap;
 
+  &__top {
+    @extend %row-nowrap;
+    align-items: center;
+
+    &__actions {
+      @extend %row-nowrap;
+      flex: 1 1 auto;
+      justify-content: flex-end;
+    }
+
+    &__btn {
+      @extend %btn-primary;
+      height: 1.75rem;
+      padding: 0 1rem;
+      margin-left: 1rem;
+    }
+  }
+
   &__search {
     margin: 1rem 0;
     width: 10rem;
   }
+
 }
 
 .bids-table {
@@ -21,7 +40,7 @@
   .table {
     &__header {
       &__item:nth-of-type(1) {
-        flex: 0 0 11rem;
+        flex: 0 0 8rem;
       }
 
       &__item:nth-of-type(2) {
@@ -54,11 +73,14 @@
       }
 
       &__item:nth-of-type(1) {
-        flex: 0 0 11rem;
+        flex: 0 0 8rem;
       }
 
       &__item:nth-of-type(2) {
         flex: 1 0 8rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       &__item:nth-of-type(3) {

@@ -1,10 +1,9 @@
 import { clientStub } from '../background/node/client';
 import { clientStub as connClientStub } from '../background/connections/client';
 import { getNetwork, setNetwork, getInitializationState } from '../db/system';
-import { fetchWallet, fetchTransactions } from './walletActions';
+import { fetchWallet, fetchTransactions, listWallets } from './walletActions';
 import { getWatching } from './watching';
 import * as logger from '../utils/logClient';
-import { onNewBlock } from './backgroundMonitor';
 
 import {
   END_NETWORK_CHANGE,
@@ -49,7 +48,6 @@ export const stop = () => async (dispatch, getState) => {
         setTimeout(async () => {
           await dispatch(fetchTransactions());
           await dispatch(getWatching(network));
-          await dispatch(onNewBlock());
         }, 0);
       }
     }
@@ -109,14 +107,16 @@ export const start = (network) => async (dispatch, getState) => {
       },
     });
     await dispatch(setNodeInfo());
+    await dispatch(listWallets());
     await dispatch(fetchWallet());
+
     if (await getInitializationState(network)) {
       setTimeout(async () => {
         await dispatch(fetchTransactions());
         await dispatch(getWatching(network));
-        await dispatch(onNewBlock());
       }, 0);
     }
+
   } catch (error) {
     dispatch({
       type: START_ERROR,
@@ -169,4 +169,33 @@ export const changeNetwork = (network) => async (dispatch) => {
   dispatch({
     type: END_NETWORK_CHANGE,
   });
+};
+
+export const changeCustomNetwork = (network) => async (dispatch) => {
+  if (!VALID_NETWORKS[network]) {
+    throw new Error('invalid network');
+  }
+
+  const conn = await connClient.getConnection();
+
+  if (conn.networkType !== network) {
+    dispatch({
+      type: START_NETWORK_CHANGE,
+    });
+
+    await connClient.setConnection({
+      type: ConnectionTypes.Custom,
+      port: conn.port,
+      host: conn.host,
+      pathname: conn.pathname,
+      networkType: network,
+      apiKey: conn.apiKey,
+    });
+
+    await nodeClient.reset();
+
+    dispatch({
+      type: END_NETWORK_CHANGE,
+    });
+  }
 };
