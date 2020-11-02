@@ -116,9 +116,9 @@ export const getNameInfo = name => async (dispatch) => {
   }
 
   if (info.state === NAME_STATES.CLOSED) {
-    const res = await walletClient.getTX(info.owner.hash);
+    const res = await nodeClient.getTx(info.owner.hash);
     if (res) {
-      const {tx: buyTx} = res;
+      const buyTx = res;
       const buyOutput = buyTx.outputs[info.owner.index];
       isOwner = !!await walletClient.getCoin(info.owner.hash, info.owner.index);
 
@@ -141,19 +141,19 @@ async function inflateBids(nClient, walletClient, bids) {
 
   const ret = [];
   for (const bid of bids) {
-    const res = await walletClient.getTX(bid.prevout.hash);
+    const res = await nodeClient.getTx(bid.prevout.hash);
 
     if (!res) continue;
 
-    const {tx, height} = res;
+    const tx = res;
     const out = tx.outputs[bid.prevout.index];
 
     ret.push({
       bid,
       from: out.address,
-      date: tx.mtime,
+      date: tx.mtime * 1000,
       value: out.value,
-      height: height,
+      height: tx.height,
     });
   }
 
@@ -167,20 +167,20 @@ async function inflateReveals(nClient, walletClient, bids) {
 
   const ret = [];
   for (const bid of bids) {
-    const res = await walletClient.getTX(bid.prevout.hash);
+    const res = await nodeClient.getTx(bid.prevout.hash);
 
     if (!res) continue;
 
-    const {tx, height} = res;
+    const tx = res;
     const out = tx.outputs[bid.prevout.index];
     const coin = await walletClient.getCoin(bid.prevout.hash, bid.prevout.index);
 
     ret.push({
       bid,
       from: out.address,
-      date: tx.mtime,
+      date: tx.mtime * 1000,
       value: out.value,
-      height: height,
+      height: tx.height,
       redeemable: !!coin,
     });
   }
