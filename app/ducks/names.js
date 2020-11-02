@@ -116,9 +116,9 @@ export const getNameInfo = name => async (dispatch) => {
   }
 
   if (info.state === NAME_STATES.CLOSED) {
-    const res = await nodeClient.getTx(info.owner.hash);
+    const res = await walletClient.getTX(info.owner.hash);
     if (res) {
-      const buyTx = res;
+      const {tx: buyTx} = res;
       const buyOutput = buyTx.outputs[info.owner.index];
       isOwner = !!await walletClient.getCoin(info.owner.hash, info.owner.index);
 
@@ -141,6 +141,7 @@ async function inflateBids(nClient, walletClient, bids) {
 
   const ret = [];
   for (const bid of bids) {
+    // Must use node client to get non-own bids
     const res = await nodeClient.getTx(bid.prevout.hash);
 
     if (!res) continue;
@@ -167,6 +168,7 @@ async function inflateReveals(nClient, walletClient, bids) {
 
   const ret = [];
   for (const bid of bids) {
+    // Must use node client to get non-own reveals
     const res = await nodeClient.getTx(bid.prevout.hash);
 
     if (!res) continue;
