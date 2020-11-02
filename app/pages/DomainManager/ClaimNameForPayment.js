@@ -1,3 +1,4 @@
+import { Amount } from 'hsd/lib/ui';
 import React, { Component } from 'react';
 import { MiniModal } from '../../components/Modal/MiniModal';
 import { MTX } from 'hsd/lib/primitives';
@@ -142,7 +143,7 @@ export default class ClaimNameForPayment extends Component {
           <dt>Address Receiving Funds</dt>
           <dd>{this.state.fundingAddr}</dd>
           <dt>Price</dt>
-          <dd>{Math.floor(this.state.price / 1e6)} HNS</dd>
+          <dd>{Amount.fromValue(this.state.price).toCoins()} HNS</dd>
         </dl>
 
         <div className="claim-name-for-payment__verification-buttons">
