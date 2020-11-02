@@ -5,6 +5,7 @@ import { MTX } from 'hsd/lib/primitives';
 import { connect } from 'react-redux';
 import { showSuccess } from '../../ducks/notifications';
 import { claimPaidTransfer } from '../../ducks/names';
+import { waitForPassphrase } from '../../ducks/walletActions';
 
 @connect(
   (state) => ({
@@ -13,6 +14,7 @@ import { claimPaidTransfer } from '../../ducks/names';
   (dispatch) => ({
     showSuccess: (message) => dispatch(showSuccess(message)),
     claimPaidTransfer: (hex) => dispatch(claimPaidTransfer(hex)),
+    waitForPassphrase: () => dispatch(waitForPassphrase()),
   }),
 )
 export default class ClaimNameForPayment extends Component {
@@ -54,6 +56,7 @@ export default class ClaimNameForPayment extends Component {
       this.setState({
         isLoading: true,
       });
+      await this.props.waitForPassphrase();
       await this.props.claimPaidTransfer(this.state.hex);
       this.props.onClose();
       this.props.showSuccess('Successfully claimed paid transfer. Please wait 1 block for the name to appear.');

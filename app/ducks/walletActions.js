@@ -294,6 +294,13 @@ export const closeGetPassphrase = () => ({
   payload: {get: false},
 });
 
+export const waitForPassphrase = () => async (dispatch) => {
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
+  return null;
+};
+
 export const watchActivity = () => dispatch => {
   if (!idleInterval) {
     // Increment idle once a minute
