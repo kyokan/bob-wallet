@@ -1,3 +1,4 @@
+import { Address } from 'hsd/lib/primitives';
 import nodeClient from '../utils/nodeClient';
 import walletClient from '../utils/walletClient';
 import * as namesDb from '../db/names';
@@ -120,7 +121,15 @@ export const getNameInfo = name => async (dispatch) => {
     if (res) {
       const {tx: buyTx} = res;
       const buyOutput = buyTx.outputs[info.owner.index];
-      isOwner = !!await walletClient.getCoin(info.owner.hash, info.owner.index);
+      const coin = await walletClient.getCoin(info.owner.hash, info.owner.index); 
+      isOwner = !!coin;
+      if (coin && coin.covenant.action === 'TRANSFER') {
+        const {network} = await nodeClient.getInfo();
+        info.transferTo = Address.fromHash(
+          Buffer.from(coin.covenant.items[3], 'hex'),
+          Number(coin.covenant.items[2])
+        ).toString(network);
+      }
 
       winner = {
         address: buyOutput.address,
