@@ -816,7 +816,11 @@ class WalletService {
               reject(e);
             } finally {
               if (device) {
-                await device.close();
+                try {
+                  await device.close();
+                } catch (e) {
+                  console.error('failed to close ledger', e);
+                }
               }
             }
           };

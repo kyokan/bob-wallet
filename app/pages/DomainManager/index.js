@@ -8,22 +8,22 @@ import './domain-manager.scss';
 import { clientStub as aClientStub } from '../../background/analytics/client';
 import fs from 'fs';
 import ClaimNameForPayment from './ClaimNameForPayment';
-import {HeaderItem, HeaderRow, Table, TableItem, TableRow} from "../../components/Table";
-import Blocktime from "../../components/Blocktime";
-import {displayBalance} from "../../utils/balances";
-import {getPageIndices} from "../../utils/pageable";
-import c from "classnames";
-import Dropdown from "../../components/Dropdown";
+import { HeaderItem, HeaderRow, Table, TableItem, TableRow } from '../../components/Table';
+import Blocktime from '../../components/Blocktime';
+import { displayBalance } from '../../utils/balances';
+import { getPageIndices } from '../../utils/pageable';
+import c from 'classnames';
+import Dropdown from '../../components/Dropdown';
 
 const {dialog} = require('electron').remote;
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
 const ITEM_PER_DROPDOWN = [
-  { label: '5', value: 5 },
-  { label: '10', value: 10 },
-  { label: '20', value: 20 },
-  { label: '50', value: 50 },
+  {label: '5', value: 5},
+  {label: '10', value: 10},
+  {label: '20', value: 20},
+  {label: '50', value: 50},
 ];
 
 class DomainManager extends Component {
@@ -74,7 +74,7 @@ class DomainManager extends Component {
   }
 
   renderGoTo(namesList) {
-    const { currentPageIndex, itemsPerPage } = this.state;
+    const {currentPageIndex, itemsPerPage} = this.state;
     const totalPages = Math.ceil(namesList.length / itemsPerPage);
     return (
       <div className="domain-manager__page-control__dropdowns">
@@ -87,21 +87,21 @@ class DomainManager extends Component {
               itemsPerPage,
               currentPageIndex: 0,
             })}
-            currentIndex={ITEM_PER_DROPDOWN.findIndex(({ value }) => value === this.state.itemsPerPage)}
+            currentIndex={ITEM_PER_DROPDOWN.findIndex(({value}) => value === this.state.itemsPerPage)}
           />
         </div>
         <div className="domain-manager__go-to">
           <div className="domain-manager__go-to__text">Page</div>
           <Dropdown
             className="domain-manager__go-to__dropdown"
-            items={Array(totalPages).fill(0).map((_, i) => ({ label: `${i + 1}` }))}
-            onChange={currentPageIndex => this.setState({ currentPageIndex })}
+            items={Array(totalPages).fill(0).map((_, i) => ({label: `${i + 1}`}))}
+            onChange={currentPageIndex => this.setState({currentPageIndex})}
             currentIndex={currentPageIndex}
           />
           <div className="domain-manager__go-to__total">of {totalPages}</div>
         </div>
       </div>
-    )
+    );
   }
 
   renderControls() {
@@ -138,11 +138,11 @@ class DomainManager extends Component {
                 className={c('domain-manager__page-control__page', {
                   'domain-manager__page-control__page--active': currentPageIndex === pageIndex,
                 })}
-                onClick={() => this.setState({ currentPageIndex: pageIndex })}
+                onClick={() => this.setState({currentPageIndex: pageIndex})}
               >
                 {pageIndex + 1}
               </div>
-            )
+            );
           })}
           <div
             className="domain-manager__page-control__end"
@@ -153,7 +153,7 @@ class DomainManager extends Component {
         </div>
         {this.renderGoTo(namesList)}
       </div>
-    )
+    );
   }
 
   renderList() {
@@ -175,14 +175,16 @@ class DomainManager extends Component {
           >
             Export All Names
           </button>
-          <button
-            className="extension_cta_button domain-manager__export-btn"
-            onClick={() => this.setState({
-              isShowingNameClaimForPayment: true,
-            })}
-          >
-            Claim Name For Payment
-          </button>
+          {this.props.wid !== 'Ledger' && (
+            <button
+              className="extension_cta_button domain-manager__export-btn"
+              onClick={() => this.setState({
+                isShowingNameClaimForPayment: true,
+              })}
+            >
+              Claim Name For Payment
+            </button>
+          )}
         </div>
         <Table className="domain-manager__table">
           <HeaderRow>
@@ -208,14 +210,16 @@ class DomainManager extends Component {
     return (
       <div className="domain-manager">
         <div className="domain-manager__buttons">
-          <button
-            className="extension_cta_button domain-manager__export-btn"
-            onClick={() => this.setState({
-              isShowingNameClaimForPayment: true,
-            })}
-          >
-            Claim Name For Payment
-          </button>
+          {this.props.wid !== 'Ledger' && (
+            <button
+              className="extension_cta_button domain-manager__export-btn"
+              onClick={() => this.setState({
+                isShowingNameClaimForPayment: true,
+              })}
+            >
+              Claim Name For Payment
+            </button>
+          )}
         </div>
         <div className="domain-manager__empty-text">
           You do not own any domains.
@@ -225,7 +229,7 @@ class DomainManager extends Component {
   }
 
   renderBody() {
-    const { namesList, isFetching } = this.props;
+    const {namesList, isFetching} = this.props;
 
     if (isFetching) {
       return (
@@ -234,7 +238,7 @@ class DomainManager extends Component {
             {`Loading ${namesList.length} domains...`}
           </div>
         </div>
-      )
+      );
     }
 
     if (namesList.length) {
@@ -267,6 +271,7 @@ export default withRouter(
       names: state.myDomains.names,
       isFetching: state.myDomains.isFetching,
       namesList: Object.keys(state.myDomains.names),
+      wid: state.wallet.wid,
     }),
     dispatch => ({
       getMyNames: () => dispatch(myDomainsActions.getMyNames()),
@@ -282,7 +287,7 @@ const DomainRow = connect(
 )(_DomainRow);
 
 function _DomainRow(props) {
-  const { name, names, onClick } = props;
+  const {name, names, onClick} = props;
   return (
     <TableRow key={`${name}`} onClick={onClick}>
       <TableItem>{formatName(name)}</TableItem>
@@ -295,5 +300,5 @@ function _DomainRow(props) {
       </TableItem>
       <TableItem>{displayBalance(names[name].highest, true)}</TableItem>
     </TableRow>
-  )
+  );
 }

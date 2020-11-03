@@ -125,9 +125,11 @@ class TransferDetails extends Component {
               <button className="extension_cta_button" onClick={this.finalizeTransfer}>
                 Finalize Transfer
               </button>
-              <button className="extension_cta_button" onClick={this.finalizeWithPayment}>
-                Finalize With Payment
-              </button>
+              {this.props.wid !== 'Ledger' && (
+                <button className="extension_cta_button" onClick={this.finalizeWithPayment}>
+                  Finalize With Payment
+                </button>
+              )}
             </p>
             {this.state.isShowingFinalizeWithPayment && (
               <FinalizeWithPaymentModal
@@ -244,6 +246,7 @@ export default connect(
     domain: state.names[ownProps.name],
     height: state.node.chain.height,
     network: state.node.network,
+    wid: state.wallet.wid,
   }),
   (dispatch, ownProps) => ({
     sendTransfer: (recipient) => dispatch(names.sendTransfer(ownProps.name, recipient)),
