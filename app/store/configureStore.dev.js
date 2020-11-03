@@ -19,7 +19,7 @@ const configureStore = initialState => {
 
   // Logging Middleware
   const logger = createLogger({
-    level: 'info',
+    level: 'error',
     collapsed: true
   });
 
