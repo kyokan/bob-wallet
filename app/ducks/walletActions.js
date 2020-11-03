@@ -304,10 +304,17 @@ export const resetIdle = () => ({
   type: RESET_IDLE,
 });
 
-export const getPassphrase = (resolve, reject) => ({
-  type: GET_PASSPHRASE,
-  payload: {get: true, resolve, reject},
-});
+export const getPassphrase = (resolve, reject) => async (dispatch, getState) => {
+  if (getState().wallet.wid === 'Ledger') {
+    resolve();
+    return;
+  }
+
+  dispatch({
+    type: GET_PASSPHRASE,
+    payload: {get: true, resolve, reject},
+  })
+};
 
 export const closeGetPassphrase = () => ({
   type: GET_PASSPHRASE,

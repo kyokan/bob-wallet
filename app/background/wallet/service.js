@@ -6,7 +6,7 @@ import rimraf from 'rimraf';
 import crypto from 'crypto';
 const Validator = require('bval');
 import { ConnectionTypes, getConnection } from '../connections/service';
-import { dispatchToMainWindow } from '../../mainWindow';
+import { dispatchToMainWindow, getMainWindow } from '../../mainWindow';
 import { NETWORKS } from '../../constants/networks';
 import { displayBalance, toBaseUnits, toDisplayUnits } from '../../utils/balances';
 import { service as nodeService } from '../node/service';
@@ -16,12 +16,14 @@ import {
   SET_WALLETS,
   START_SYNC_WALLET,
   STOP_SYNC_WALLET,
-  SYNC_WALLET_PROGRESS
+  SYNC_WALLET_PROGRESS,
 } from '../../ducks/walletReducer';
 import {SET_FEE_INFO, SET_NODE_INFO} from "../../ducks/nodeReducer";
 import createRegisterAll from "./create-register-all";
 import {finalizeMany, transferMany} from "./bulk-transfer";
 import {get, put} from "../db/service";
+import hsdLedger from 'hsd-ledger';
+
 const WalletNode = require('hsd/lib/wallet/node');
 const TX = require('hsd/lib/primitives/tx');
 const {Output, MTX, Address, Coin} = require('hsd/lib/primitives');
@@ -31,6 +33,8 @@ const MasterKey = require('hsd/lib/wallet/masterkey');
 const Mnemonic = require('hsd/lib/hd/mnemonic');
 const Covenant = require('hsd/lib/primitives/covenant');
 const common = require('hsd/lib/wallet/common');
+const ipc = require('electron').ipcMain;
+
 
 const randomAddrs = {
   [NETWORKS.TESTNET]: 'ts1qfcljt5ylsa9rcyvppvl8k8gjnpeh079drfrmzq',
@@ -38,6 +42,10 @@ const randomAddrs = {
   [NETWORKS.MAINNET]: 'hs1q5e06h2fcwx9sx38k6skzwkzmm54meudhphkytx',
   [NETWORKS.SIMNET]: 'ss1qfrfg6pg7emnx5m53zf4fe24vdtt8thljhyekhj',
 };
+
+const {LedgerHSD} = hsdLedger;
+const {Device} = hsdLedger.USB;
+const ONE_MINUTE = 60000;
 
 const HSD_DATA_DIR = path.join(app.getPath('userData'), 'hsd_data');
 const WALLET_API_KEY = 'walletApiKey';
@@ -178,24 +186,25 @@ class WalletService {
     this.setWallet(name);
     this.didSelectWallet = false;
 
+    let res;
     if (isLedger) {
-      return this.client.createWallet(name, {
+      res = this.client.createWallet(name, {
         watchOnly: true,
         accountKey: passphraseOrXPub,
       });
+    } else {
+      const mnemonic = new Mnemonic({bits: 256});
+      const options = {
+        passphrase: passphraseOrXPub,
+        witness: false,
+        watchOnly: false,
+        mnemonic: mnemonic.getPhrase().trim(),
+      };
+
+      res = await this.client.createWallet(this.name, options);
     }
 
-    const mnemonic = new Mnemonic({bits: 256});
-    const options = {
-      passphrase: passphraseOrXPub,
-      witness: false,
-      watchOnly: false,
-      mnemonic: mnemonic.getPhrase().trim(),
-    };
-
-    const res = await this.client.createWallet(this.name, options);
     const wids = await this.listWallets();
-
     dispatchToMainWindow({
       type: SET_WALLETS,
       payload: uniq([...wids, name]),
@@ -491,6 +500,7 @@ class WalletService {
     return this._ledgerProxy(
       () => null,
       () => this.client.unlock(this.name, passphrase),
+      false
     );
   };
 
@@ -505,6 +515,7 @@ class WalletService {
         return true;
       }
     },
+    false,
   );
 
   getNonce = async (options) => {
@@ -637,7 +648,7 @@ class WalletService {
    * List Wallet IDs (exclude unencrypted wallets)
    * @return {Promise<[string]>}
    */
-  listWallets = async (includeUnencrypted= false) => {
+  listWallets = async (includeUnencrypted = false) => {
     await this._ensureClient();
 
     const wdb = this.node.wdb;
@@ -646,8 +657,8 @@ class WalletService {
 
     for (const wid of wallets) {
       const info = await wdb.get(wid);
-      const {master: {encrypted}} = info;
-      if (includeUnencrypted === true || encrypted) {
+      const {master: {encrypted}, watchOnly} = info;
+      if (includeUnencrypted === true || encrypted || watchOnly) {
         ret.push(wid);
       }
     }
@@ -729,7 +740,7 @@ class WalletService {
         await node.close();
       }
       resolve();
-    })
+    });
 
   };
 
@@ -815,14 +826,14 @@ class WalletService {
 
       dispatchToMainWindow({
         type: SET_NODE_INFO,
-        payload: { info },
+        payload: {info},
       });
     }
 
     if (fees) {
       dispatchToMainWindow({
         type: SET_FEE_INFO,
-        payload: { fees },
+        payload: {fees},
       });
     }
   };
@@ -914,7 +925,48 @@ class WalletService {
   _ledgerProxy = async (onLedger, onNonLedger, shouldConfirmLedger = true) => {
     const info = await this.getWalletInfo();
     if (info.watchOnly) {
-      throw new Error('ledger is not currently enabled');
+      const res = await onLedger();
+      if (shouldConfirmLedger) {
+        const mtx = MTX.fromJSON(res);
+        const mainWindow = getMainWindow()
+        await new Promise((resolve, reject) => {
+          const resHandler = async () => {
+            let device;
+            try {
+              device = await Device.requestDevice();
+              device.set({
+                timeout: ONE_MINUTE,
+              });
+              await device.open();
+              const ledger = new LedgerHSD({device, network: this.networkName});
+              const retMtx = await ledger.signTransaction(mtx);
+              retMtx.check();
+              await this.nodeService.broadcastRawTx(retMtx.toHex());
+              mainWindow.send('LEDGER/CONNECT_OK');
+              ipc.removeListener('LEDGER/CONNECT_RES', resHandler);
+              ipc.removeListener('LEDGER/CONNECT_CANCEL', cancelHandler);
+              resolve(retMtx);
+            } catch (e) {
+              mainWindow.send('LEDGER/CONNECT_ERR', e.message);
+              reject(e);
+            } finally {
+              if (device) {
+                await device.close();
+              }
+            }
+          };
+          const cancelHandler = () => {
+            reject(new Error('Cancelled.'));
+            ipc.removeListener('LEDGER/CONNECT_RES', resHandler);
+            ipc.removeListener('LEDGER/CONNECT_CANCEL', cancelHandler);
+          };
+          ipc.on('LEDGER/CONNECT_RES', resHandler);
+          ipc.on('LEDGER/CONNECT_CANCEL', cancelHandler);
+          mainWindow.send('LEDGER/CONNECT', mtx.txid());
+        });
+      }
+
+      return res;
     }
 
     return onNonLedger();
