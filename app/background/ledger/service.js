@@ -1,10 +1,7 @@
-// import hsdLedger from 'hsd-ledger';
-import * as logger from './logger/logger';
-import { defaultServer, makeClient } from '../ipc/ipc';
-
+import hsdLedger from 'hsd-ledger';
 const MTX = require('hsd/lib/primitives/mtx');
-// const {LedgerHSD} = hsdLedger;
-// const {Device} = hsdLedger.HID;
+const {LedgerHSD} = hsdLedger;
+const {Device} = hsdLedger.USB;
 const ONE_MINUTE = 60000;
 
 export async function withLedger(network, action) {
@@ -15,13 +12,13 @@ export async function withLedger(network, action) {
     const devices = await Device.getDevices();
     device = new Device({
       device: devices[0],
-      timeout: ONE_MINUTE
+      timeout: ONE_MINUTE,
     });
     await device.open();
     // TODO: this network parameter should be passed dynamically.
     ledger = new LedgerHSD({device, network});
   } catch (e) {
-    logger.error('failed to open ledger', e);
+    console.error('failed to open ledger', e);
     throw e;
   }
 
@@ -29,9 +26,9 @@ export async function withLedger(network, action) {
     return await action(ledger);
   } finally {
     try {
-      await device.close()
+      await device.close();
     } catch (e) {
-      logger.error('failed to close ledger', e);
+      console.error('failed to close ledger', e);
     }
   }
 }
@@ -51,18 +48,18 @@ export async function signTransaction(network, txJSON) {
     try {
       retMTX.check();
     } catch (e) {
-      logger.error('transaction failed to verify:' + e.message);
-      throw e
+      console.error('transaction failed to verify:' + e.message);
+      throw e;
     }
 
-    return retMTX
+    return retMTX;
   });
 }
 
 const sName = 'Ledger';
 const methods = {
   getXPub,
-  signTransaction
+  signTransaction,
 };
 
 export function start(server) {

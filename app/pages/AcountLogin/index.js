@@ -36,8 +36,9 @@ export default class AccountLogin extends Component {
 
   async handleLogin(passphrase) {
     try {
+      const walletName = this.props.wallets[this.state.chosenWallet];
       await this.props.unlockWallet(
-        this.props.wallets[this.state.chosenWallet],
+        walletName,
         passphrase,
       );
       await this.props.fetchWallet();
@@ -54,6 +55,8 @@ export default class AccountLogin extends Component {
       return <Redirect to="/funding-options" />;
     }
 
+    const currWallet = this.props.wallets[this.state.chosenWallet];
+
     return (
       <div className="login">
         <div className="login_header_text">Log in to your wallet</div>
@@ -64,18 +67,20 @@ export default class AccountLogin extends Component {
             onChange={(i) => this.setState({chosenWallet: i})}
           />
           <div>
-            <input
-              className={c('login_password_input', {
-                'login_password_input--error': showError,
-              })}
-              type="password"
-              placeholder="Your password"
-              onChange={e =>
-                this.setState({passphrase: e.target.value, showError: false})
-              }
-              value={passphrase}
-              autoFocus
-            />
+            {currWallet !== 'Ledger' && (
+              <input
+                className={c('login_password_input', {
+                  'login_password_input--error': showError,
+                })}
+                type="password"
+                placeholder="Your password"
+                onChange={e =>
+                  this.setState({passphrase: e.target.value, showError: false})
+                }
+                value={passphrase}
+                autoFocus
+              />
+            )}
           </div>
           <div className="login_password_error">
             {showError && `Invalid password.`}
