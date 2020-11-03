@@ -1,4 +1,5 @@
 import hsdLedger from 'hsd-ledger';
+
 const MTX = require('hsd/lib/primitives/mtx');
 const {LedgerHSD} = hsdLedger;
 const {Device} = hsdLedger.USB;
@@ -39,27 +40,9 @@ export async function getXPub(network) {
   });
 }
 
-export async function signTransaction(network, txJSON) {
-  const mtx = MTX.fromJSON(txJSON);
-
-  return withLedger(network, async (ledger) => {
-    const retMTX = await ledger.signTransaction(mtx);
-
-    try {
-      retMTX.check();
-    } catch (e) {
-      console.error('transaction failed to verify:' + e.message);
-      throw e;
-    }
-
-    return retMTX;
-  });
-}
-
 const sName = 'Ledger';
 const methods = {
   getXPub,
-  signTransaction,
 };
 
 export function start(server) {
