@@ -6,6 +6,7 @@ import './sidebar.scss';
 import ellipsify from '../../utils/ellipsify';
 import { Logo } from '../Logo';
 import {clientStub} from "../../background/node/client";
+import {NETWORKS} from "../../constants/networks";
 const nodeClient = clientStub(() => require('electron').ipcRenderer);
 
 @withRouter
@@ -127,13 +128,11 @@ class Sidebar extends Component {
 
   renderGenerateBlockButton(numblocks) {
     const { network, address } = this.props;
-    if (network === 'simnet') {
+    if ([NETWORKS.SIMNET, NETWORKS.REGTEST].includes(network)) {
       return (
         <button
           className="sidebar__generate-btn"
-          onClick={async () => {
-            await nodeClient.generateToAddress(numblocks, address);
-          }}
+          onClick={() => nodeClient.generateToAddress(numblocks, address)}
         >
          {`+${numblocks}`}
         </button>
