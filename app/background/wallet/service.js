@@ -1,14 +1,15 @@
 import { WalletClient } from 'hs-client';
-import { displayBalance, toBaseUnits, toDisplayUnits } from '../../utils/balances';
-import { service as nodeService } from '../node/service';
 import BigNumber from 'bignumber.js';
-import { NETWORKS } from '../../constants/networks';
 import path from 'path';
 import { app } from 'electron';
 import rimraf from 'rimraf';
-import { ConnectionTypes, getConnection } from '../connections/service';
 import crypto from 'crypto';
+import { Amount } from 'hsd/lib/ui';
+import { ConnectionTypes, getConnection } from '../connections/service';
 import { dispatchToMainWindow } from '../../mainWindow';
+import { NETWORKS } from '../../constants/networks';
+import { displayBalance, toBaseUnits, toDisplayUnits } from '../../utils/balances';
+import { service as nodeService } from '../node/service';
 import {
   SET_BALANCE,
   SET_WALLETS,
@@ -17,13 +18,11 @@ import {
   SYNC_WALLET_PROGRESS
 } from '../../ducks/walletReducer';
 import {SET_FEE_INFO, SET_NODE_INFO} from "../../ducks/nodeReducer";
-
 const WalletNode = require('hsd/lib/wallet/node');
 const TX = require('hsd/lib/primitives/tx');
 const {Output, MTX, Address, Coin} = require('hsd/lib/primitives');
 const Script = require('hsd/lib/script/script');
 const {hashName, types} = require('hsd/lib/covenants/rules');
-
 const MasterKey = require('hsd/lib/wallet/masterkey');
 const Mnemonic = require('hsd/lib/hd/mnemonic');
 const Covenant = require('hsd/lib/primitives/covenant');
@@ -474,12 +473,14 @@ class WalletService {
 
   // price is in WHOLE HNS!
   finalizeWithPayment = async (name, fundingAddr, nameReceiveAddr, price) => {
+    await this._ensureClient();
+
     if (price > 2000) {
       throw new Error('Refusing to create a transfer for more than 2000 HNS.');
     }
 
     const {wdb} = this.node;
-    const wallet = await wdb.get('allison');
+    const wallet = await wdb.get(this.name);
     const ns = await wallet.getNameStateByName(name);
     const owner = ns.owner;
     const coin = await wallet.getCoin(owner.hash, owner.index);
@@ -524,8 +525,10 @@ class WalletService {
   };
 
   claimPaidTransfer = async (txHex) => {
+    await this._ensureClient();
+
     const {wdb} = this.node;
-    const wallet = await wdb.get('allison');
+    const wallet = await wdb.get(this.name);
     const mtx = MTX.decode(Buffer.from(txHex, 'hex'));
 
     // Bob should verify all the data in the MTX to ensure everything is valid,
@@ -570,21 +573,6 @@ class WalletService {
     //                 (null) --- output 2: payment to Alice
     const tx = await wallet.sendMTX(mtx);
     assert(tx.verify(mtx.view));
-
-    const hash = tx.hash();
-    // Wait for mempool and check
-    for (let i = 0; i < 10; i++) {
-      const mp = await this.nodeService.getRawMempool(false);
-      if (!mp[hash]) {
-        console.log('Transaction did not appear in the mempool, retrying...');
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-        continue;
-      }
-
-      return;
-    }
-
-    throw new Error('Transaction never appeared in the mempool.');
   };
 
   /**
