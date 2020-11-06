@@ -272,7 +272,7 @@ export const fetchPendingTransactions = () => async (dispatch, getState) => {
   const payload = await walletClient.getPendingTransactions();
   dispatch({
     type: SET_PENDING_TRANSACTIONS,
-    payload,
+    payload: payload || [],
   });
 };
 
