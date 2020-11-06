@@ -1,11 +1,10 @@
-import { Amount } from 'hsd/lib/ui';
-import {consensus} from 'hsd/lib/protocol';
 import React, { Component } from 'react';
 import { MiniModal } from '../../components/Modal/MiniModal';
 import { clientStub as wClientStub } from '../../background/wallet/client';
 import { finalizeWithPayment } from '../../ducks/names';
 import { connect } from 'react-redux';
 import { waitForPassphrase } from '../../ducks/walletActions';
+import {parseFloatValue} from "../../utils/balances";
 
 const wallet = wClientStub(() => require('electron').ipcRenderer);
 
@@ -23,12 +22,11 @@ export class FinalizeWithPaymentModal extends Component {
   onClickFinalize = async () => {
     try {
       const fundingAddr = (await wallet.generateReceivingAddress()).address;
-      await this.props.waitForPassphrase();
       const hex = await this.props.finalizeWithPayment(
         this.props.name,
         fundingAddr,
         this.props.transferTo,
-        Amount.fromCoins(this.state.price).toValue(),
+        this.state.price,
       );
       this.setState({
         hex,
@@ -78,13 +76,11 @@ export class FinalizeWithPaymentModal extends Component {
   }
 
   processValue = (val) => {
-    const value = val.match(/[0-9]*\.?[0-9]{0,6}/g)[0];
-    if (Number.isNaN(parseFloat(value)))
-      return;
-    if (value * consensus.COIN > consensus.MAX_MONEY)
-      return;
-    this.setState({price: value});
-  }
+    const value = parseFloatValue(val);
+    if (value) {
+      this.setState({price: value});
+    }
+  };
 
   renderForm() {
     const isValid = !!this.state.price && (
@@ -117,7 +113,7 @@ export class FinalizeWithPaymentModal extends Component {
             />
           </div>
         </div>
-        <div className="send__to">      
+        <div className="send__to">
           Name recipient address:
         </div>
         <div className="send__to">

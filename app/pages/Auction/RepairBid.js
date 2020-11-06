@@ -5,6 +5,7 @@ import {consensus} from 'hsd/lib/protocol';
 import walletClient from '../../utils/walletClient';
 import * as names from '../../ducks/names';
 import { showError } from '../../ducks/notifications';
+import {parseFloatValue} from "../../utils/balances";
 
 @connect(
   () => ({}),
@@ -56,15 +57,13 @@ export default class RepairBid extends Component {
   }
 
   processValue = async (val) => {
-    const value = val.match(/[0-9]*\.?[0-9]{0,6}/g)[0];
-    this.setState({value: value});
-    const parsed = parseFloat(value);
+    const value = parseFloatValue(val);
 
-    if (val === "" || Number.isNaN(parsed) || parsed * consensus.COIN > consensus.MAX_MONEY)
-      return;
-
-    return this.verifyBid(parsed);
-  }
+    if (value) {
+      this.setState({value: value});
+      return this.verifyBid(parsed);
+    }
+  };
 
   async verifyBid(value) {
     const {bid} = this.props;

@@ -56,7 +56,6 @@ export default class ClaimNameForPayment extends Component {
       this.setState({
         isLoading: true,
       });
-      await this.props.waitForPassphrase();
       await this.props.claimPaidTransfer(this.state.hex);
       this.props.onClose();
       this.props.showSuccess('Successfully claimed paid transfer. Please wait 1 block for the name to appear.');

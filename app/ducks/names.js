@@ -121,7 +121,7 @@ export const getNameInfo = name => async (dispatch) => {
     if (res) {
       const {tx: buyTx} = res;
       const buyOutput = buyTx.outputs[info.owner.index];
-      const coin = await walletClient.getCoin(info.owner.hash, info.owner.index); 
+      const coin = await walletClient.getCoin(info.owner.hash, info.owner.index);
       isOwner = !!coin;
       if (coin && coin.covenant.action === 'TRANSFER') {
         const {network} = await nodeClient.getInfo();
