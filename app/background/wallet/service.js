@@ -27,6 +27,7 @@ const {hashName, types} = require('hsd/lib/covenants/rules');
 const MasterKey = require('hsd/lib/wallet/masterkey');
 const Mnemonic = require('hsd/lib/hd/mnemonic');
 const Covenant = require('hsd/lib/primitives/covenant');
+const common = require('hsd/lib/wallet/common');
 
 const randomAddrs = {
   [NETWORKS.TESTNET]: 'ts1qfcljt5ylsa9rcyvppvl8k8gjnpeh079drfrmzq',
@@ -240,7 +241,19 @@ class WalletService {
     }
 
     const wallet = await this.node.wdb.get(this.name);
-    return wallet.getHistory('default');
+    const txs = await wallet.getHistory('default');
+
+    common.sortTX(txs);
+
+    const details = await wallet.toDetails(txs);
+
+    const result = [];
+
+    for (const item of details) {
+      result.push(item.getJSON(this.network, this.lastKnownChainHeight));
+    }
+
+    return result;
   };
 
   getPendingTransactions = async () => {

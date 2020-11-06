@@ -217,7 +217,8 @@ export const fetchTransactions = () => async (dispatch, getState) => {
   let payload = new Map();
 
   for (let i = 0; i < txs.length; i++) {
-    const {tx, time, block} = txs[i];
+    const tx = txs[i];
+    const {time, block} = tx;
     const existing = currentTXs.get(tx.hash);
 
     if (existing) {
@@ -332,7 +333,7 @@ async function parseInputsOutputs(net, tx) {
 
     // Track normal receive amounts for later
     if (covenant.action === 'NONE') {
-      if (await walletClient.hasAddress(output.address)) {
+      if (output.path) {
         totalValue += output.value;
       }
       continue;
