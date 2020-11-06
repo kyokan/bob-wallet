@@ -83,6 +83,16 @@ class WalletService {
     }
   };
 
+  hasAddress = async (addressHash) => {
+    if (!this.name) return false;
+    await this._ensureClient();
+    const wallet = await this.node.wdb.get(this.name);
+
+    if (!wallet) return null;
+
+    return wallet.hasPath(new Address(addressHash, this.network));
+  };
+
   getAPIKey = async () => {
     await this._ensureClient();
     return this.walletApiKey;
@@ -825,6 +835,7 @@ const methods = {
   getPendingTransactions: service.getPendingTransactions,
   getBids: service.getBids,
   getMasterHDKey: service.getMasterHDKey,
+  hasAddress: service.hasAddress,
   setPassphrase: service.setPassphrase,
   revealSeed: service.revealSeed,
   estimateTxFee: service.estimateTxFee,

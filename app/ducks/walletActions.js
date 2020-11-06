@@ -332,7 +332,9 @@ async function parseInputsOutputs(net, tx) {
 
     // Track normal receive amounts for later
     if (covenant.action === 'NONE') {
-      totalValue += output.value;
+      if (await walletClient.hasAddress(output.address)) {
+        totalValue += output.value;
+      }
       continue;
     }
     // Stay focused on the first non-NONE covenant type, ignore other types
