@@ -27,6 +27,7 @@ const {hashName, types} = require('hsd/lib/covenants/rules');
 const MasterKey = require('hsd/lib/wallet/masterkey');
 const Mnemonic = require('hsd/lib/hd/mnemonic');
 const Covenant = require('hsd/lib/primitives/covenant');
+const common = require('hsd/lib/wallet/common');
 
 const randomAddrs = {
   [NETWORKS.TESTNET]: 'ts1qfcljt5ylsa9rcyvppvl8k8gjnpeh079drfrmzq',
@@ -81,6 +82,16 @@ class WalletService {
       console.error(e);
       return false;
     }
+  };
+
+  hasAddress = async (addressHash) => {
+    if (!this.name) return false;
+    await this._ensureClient();
+    const wallet = await this.node.wdb.get(this.name);
+
+    if (!wallet) return null;
+
+    return wallet.hasPath(new Address(addressHash, this.network));
   };
 
   getAPIKey = async () => {
@@ -230,7 +241,19 @@ class WalletService {
     }
 
     const wallet = await this.node.wdb.get(this.name);
-    return wallet.getHistory('default');
+    const txs = await wallet.getHistory('default');
+
+    common.sortTX(txs);
+
+    const details = await wallet.toDetails(txs);
+
+    const result = [];
+
+    for (const item of details) {
+      result.push(item.getJSON(this.network, this.lastKnownChainHeight));
+    }
+
+    return result;
   };
 
   getPendingTransactions = async () => {
@@ -831,6 +854,7 @@ const methods = {
   getPendingTransactions: service.getPendingTransactions,
   getBids: service.getBids,
   getMasterHDKey: service.getMasterHDKey,
+  hasAddress: service.hasAddress,
   setPassphrase: service.setPassphrase,
   revealSeed: service.revealSeed,
   estimateTxFee: service.estimateTxFee,
