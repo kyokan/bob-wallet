@@ -8,6 +8,7 @@ import Submittable from '../../components/Submittable';
 import { Link, Redirect } from 'react-router-dom';
 import Dropdown from '../../components/Dropdown';
 import { withRouter } from 'react-router';
+import walletClient from "../../utils/walletClient";
 
 @connect(
   (state) => ({
@@ -42,6 +43,7 @@ export default class AccountLogin extends Component {
       );
       await this.props.fetchWallet();
       this.props.history.push('/account');
+      await walletClient.lock();
     } catch (error) {
       return this.setState({showError: true});
     }

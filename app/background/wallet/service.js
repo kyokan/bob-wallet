@@ -317,7 +317,7 @@ class WalletService {
 
   sendOpen = (name) => this._ledgerProxy(
     () => this._executeRPC('createopen', [name]),
-    () => this._executeRPC('sendopen', [name]),
+    () => this._executeRPC('sendopen', [name], this.lock),
   );
 
   sendBid = (name, amount, lockup) => this._ledgerProxy(
@@ -328,73 +328,77 @@ class WalletService {
     () => this._executeRPC(
       'sendbid',
       [name, Number(displayBalance(amount)), Number(displayBalance(lockup))],
+      this.lock,
     ),
   );
 
   sendRegister = (name) => this._ledgerProxy(
     () => this._executeRPC('createupdate', [name, {records: []}]),
-    () => this._executeRPC('sendupdate', [name, {records: []}]),
+    () => this._executeRPC('sendupdate', [name, {records: []}], this.lock),
   );
 
   sendUpdate = (name, json) => this._ledgerProxy(
     () => this._executeRPC('createupdate', [name, json]),
-    () => this._executeRPC('sendupdate', [name, json]),
+    () => this._executeRPC('sendupdate', [name, json], this.lock),
   );
 
   sendReveal = (name) => this._ledgerProxy(
     () => this._executeRPC('createreveal', [name]),
-    () => this._executeRPC('sendreveal', [name]),
+    () => this._executeRPC('sendreveal', [name], this.lock),
   );
 
   sendRedeem = (name) => this._ledgerProxy(
     () => this._executeRPC('createredeem', [name]),
-    () => this._executeRPC('sendredeem', [name]),
+    () => this._executeRPC('sendredeem', [name], this.lock),
   );
 
   sendRevealAll = () => this._ledgerProxy(
     () => this._executeRPC('createreveal', ['']),
-    () => this._executeRPC('sendreveal', ['']),
+    () => this._executeRPC('sendreveal', [''], this.lock),
   );
 
   sendRedeemAll = () => this._ledgerProxy(
     () => this._executeRPC('createredeem', ['']),
-    () => this._executeRPC('sendredeem', ['']),
+    () => this._executeRPC('sendredeem', [''], this.lock),
   );
 
   sendRenewal = (name) => this._ledgerProxy(
     () => this._executeRPC('createrenewal', [name]),
-    () => this._executeRPC('sendrenewal', [name]),
+    () => this._executeRPC('sendrenewal', [name], this.lock),
   );
 
   sendTransfer = (name, recipient) => this._ledgerProxy(
     () => this._executeRPC('createtransfer', [name, recipient]),
-    () => this._executeRPC('sendtransfer', [name, recipient]),
+    () => this._executeRPC('sendtransfer', [name, recipient], this.lock),
   );
 
   cancelTransfer = (name) => this._ledgerProxy(
     () => this._executeRPC('createcancel', [name]),
-    () => this._executeRPC('sendcancel', [name]),
+    () => this._executeRPC('sendcancel', [name], this.lock),
   );
 
   finalizeTransfer = (name) => this._ledgerProxy(
     () => this._executeRPC('createfinalize', [name]),
-    () => this._executeRPC('sendfinalize', [name]),
+    () => this._executeRPC('sendfinalize', [name], this.lock),
   );
 
   revokeName = (name) => this._ledgerProxy(
     () => this._executeRPC('createrevoke', [name]),
-    () => this._executeRPC('sendrevoke', [name]),
+    () => this._executeRPC('sendrevoke', [name], this.lock),
   );
 
   send = (to, amount, fee) => this._ledgerProxy(
     () => this._executeRPC('createsendtoaddress', [to, Number(amount), '', '', false, 'default']),
-    () => this.client.send(this.name, {
-      rate: Number(toBaseUnits(fee)),
-      outputs: [{
-        value: Number(toBaseUnits(amount)),
-        address: to,
-      }],
-    }),
+    async () => {
+      await this.client.send(this.name, {
+        rate: Number(toBaseUnits(fee)),
+        outputs: [{
+          value: Number(toBaseUnits(amount)),
+          address: to,
+        }],
+      });
+      await this.lock();
+    },
   );
 
   lock = () => this._ledgerProxy(
@@ -793,9 +797,11 @@ class WalletService {
     }, onNonLedger, false);
   };
 
-  async _executeRPC(method, args) {
+  async _executeRPC(method, args, cb) {
     await this._selectWallet();
-    return this.client.execute(method, args);
+    const res = await this.client.execute(method, args);
+    if (cb) cb(res);
+    return res;
   }
 }
 
