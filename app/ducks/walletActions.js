@@ -105,6 +105,10 @@ export const fetchWallet = () => async (dispatch, getState) => {
   }));
 };
 
+export const hasAddress = (address) => async () => {
+  return walletClient.hasAddress(address);
+};
+
 export const revealSeed = (passphrase) => async () => {
   return walletClient.revealSeed(passphrase);
 };
