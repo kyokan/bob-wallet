@@ -19,9 +19,10 @@ export function toDisplayUnits(bal) {
 
 export function parseFloatValue(val) {
   const value = val.match(/[0-9]*\.?[0-9]{0,6}/g)[0];
-  if (Number.isNaN(parseFloat(value)))
+  const parsed = parseFloat(value);
+  if (Number.isNaN(parsed))
     return;
   if (value * consensus.COIN > consensus.MAX_MONEY)
     return;
-  return value;
+  return parsed;
 }

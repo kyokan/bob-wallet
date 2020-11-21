@@ -61,7 +61,7 @@ export default class RepairBid extends Component {
 
     if (value) {
       this.setState({value: value});
-      return this.verifyBid(parsed);
+      return this.verifyBid(value);
     }
   };
 
