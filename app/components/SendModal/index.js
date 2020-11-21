@@ -129,7 +129,7 @@ class SendModal extends Component {
       this.setState({
         errorMessage: `Something went wrong: ${e.message}`,
       });
-      return;     
+      return;
     }
 
     this.setState({
