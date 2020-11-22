@@ -10,6 +10,8 @@ import { history, store } from './store/configureStore';
 import './global.scss';
 import { showError } from './ducks/notifications';
 import {ipcRenderer} from "electron";
+import { clientStub as aClientStub } from './background/analytics/client';
+const analytics = aClientStub(() => require('electron').ipcRenderer);
 
 window.addEventListener('error', (e) => {
   store.dispatch(showError(e.message));
@@ -31,6 +33,10 @@ function handleDeeplink(message) {
   const isLocked = state.wallet.isLocked;
   const params = url.searchParams;
 
+  analytics.track('deeplink', {
+    pathname: url.pathname,
+  });
+
   let name;
   switch (url.pathname) {
     case "//openauction":
@@ -41,6 +47,7 @@ function handleDeeplink(message) {
       } else {
         history.push(`/domain/${name}`);
       }
+      return;
     case "//opendomain":
       name = params.get('name');
 
@@ -48,9 +55,8 @@ function handleDeeplink(message) {
         store.dispatch(setDeeplink(message));
       } else if (name) {
         history.push(`/domain_manager/${name}`);
-      } else {
-        history.push(`/domain_manager`);
       }
+      return;
     default:
       return;
   }
