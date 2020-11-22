@@ -10,6 +10,7 @@ class EditableRecord extends Component {
     record: PropTypes.object.isRequired,
     onEdit: PropTypes.func.isRequired,
     onRemove: PropTypes.func.isRequired,
+    disabled: PropTypes.bool,
   };
 
   constructor(props) {
@@ -50,6 +51,8 @@ class EditableRecord extends Component {
     const {value, currentTypeIndex} = this.state;
     const {label: type} = DROPDOWN_TYPES[currentTypeIndex];
 
+    if (this.props.disabled) return;
+
     let record;
     try {
       record = deserializeRecord({type, value});
@@ -85,6 +88,7 @@ class EditableRecord extends Component {
           currentIndex={this.state.currentTypeIndex}
           onChange={i => this.setState({currentTypeIndex: i, errorMessage: ''})}
           items={DROPDOWN_TYPES}
+          disabled={this.props.disabled}
         />
       </TableItem>
     );
@@ -100,6 +104,7 @@ class EditableRecord extends Component {
             [name]: e.target.value,
             errorMessage: '',
           })}
+          disabled={this.props.disabled}
         />
       </TableItem>
     );
@@ -116,15 +121,21 @@ class EditableRecord extends Component {
           {this.renderInput('value')}
           <TableItem>
             <div className="records-table__actions">
-              <button
-                className="records-table__actions__accept"
-                disabled={this.state.errorMessage}
-                onClick={this.editRecord}
-              />
-              <button
-                className="records-table__actions__cancel"
-                onClick={this.cancel}
-              />
+              {
+                !this.props.disabled && (
+                  <>
+                    <button
+                      className="records-table__actions__accept"
+                      disabled={this.state.errorMessage}
+                      onClick={this.editRecord}
+                    />
+                    <button
+                      className="records-table__actions__cancel"
+                      onClick={this.cancel}
+                    />
+                  </>
+                )
+              }
             </div>
           </TableItem>
         </div>
@@ -139,14 +150,20 @@ class EditableRecord extends Component {
         <TableItem>{this.state.value}</TableItem>
         <TableItem>
           <div className="records-table__actions">
-            <div
-              className="records-table__actions__edit"
-              onClick={() => this.setState({isEditing: true})}
-            />
-            <div
-              className="records-table__actions__remove"
-              onClick={this.props.onRemove}
-            />
+            {
+              !this.props.disabled && (
+                <>
+                  <div
+                    className="records-table__actions__edit"
+                    onClick={() => this.setState({isEditing: true})}
+                  />
+                  <div
+                    className="records-table__actions__remove"
+                    onClick={this.props.onRemove}
+                  />
+                </>
+              )
+            }
           </div>
         </TableItem>
       </TableRow>

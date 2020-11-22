@@ -8,7 +8,7 @@ require('./sentry');
 
 import {app, dialog} from 'electron';
 import MenuBuilder from './menu';
-import showMainWindow from './mainWindow';
+import showMainWindow, {dispatchToMainWindow, sendDeeplinkToMainWindow} from './mainWindow';
 
 const Sentry = require('@sentry/electron');
 
@@ -23,6 +23,14 @@ if (
 ) {
   require('electron-debug')();
 }
+
+app.setAsDefaultProtocolClient('bob');
+
+// Protocol handler for osx
+app.on('open-url', function (event, url) {
+  event.preventDefault();
+  sendDeeplinkToMainWindow(url);
+});
 
 app.on('ready', async () => {
   // start the IPC server

@@ -26,6 +26,10 @@
   "build": {
     "productName": "Bob",
     "appId": "com.kyokan.BobRelease",
+    "protocols": {
+      "name": "bob-wallet",
+      "schemes": ["bob"]
+    },
     "files": [
       "dist/",
       "package.json",

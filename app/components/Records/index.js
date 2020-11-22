@@ -121,6 +121,7 @@ class Records extends Component {
 
   renderRows() {
     const resource = this.state.updatedResource;
+
     if (this.props.editable) {
       return resource.records.map((record, i) => {
         return (
@@ -149,11 +150,17 @@ class Records extends Component {
   }
 
   renderCreateRecord() {
-    return <CreateRecord name={this.props.name} onCreate={this.onCreate} />;
+    return (
+      <CreateRecord
+        name={this.props.name}
+        onCreate={this.onCreate}
+        disabled={!this.props.domain || !this.props.domain.isOwner}
+      />
+    );
   }
 
   renderActionRow() {
-    return (
+    return (this.props.domain && this.props.domain.isOwner) && (
       <TableRow className="records-table__action-row">
         <div className="records-table__action-row__error-message">
           {this.state.errorMessage}

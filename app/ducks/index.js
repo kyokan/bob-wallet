@@ -8,6 +8,7 @@ import notifications from './notifications';
 import bids from './bids';
 import watching from './watching';
 import ledger from './ledger';
+import app from './app';
 
 export default function createRootReducer(history) {
   const root = combineReducers({
@@ -20,6 +21,7 @@ export default function createRootReducer(history) {
     bids,
     watching,
     ledger,
+    app,
   });
 
   return (state, action) => {
