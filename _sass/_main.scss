@@ -7,7 +7,37 @@ html, body {
 }
 
 body {
-  font-family: "Anonymous Pro", monospace;
+  font-family: "Open Sans", sans-serif;
+  cursor: default;
+}
+
+.hero__image {
+  height: 2rem;
+}
+
+.white-text {
+  color: white;
+}
+
+.highlights {
+  text-align: left;
+  width: 22rem;
+  margin: 0 auto;
+  padding: 0;
+
+  li {
+    list-style-type: none;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 1rem 0;
+    color: #333333;
+  }
+
+  li:before {
+    content: '\2705';
+    margin-left: 1rem;
+    margin-right: 2rem;
+  }
 }
 
 .section-container {
@@ -16,8 +46,8 @@ body {
 }
 
 .hero {
-  color: white;
-  background: #1d242d;
+  color: #1a1a1a;
+  background: #fafafa;
   padding: ($base * 6) 0;
 
   h1 {
@@ -46,11 +76,6 @@ body {
     justify-content: center;
   }
 
-  &__image {
-    width: 25%;
-    height: 25%;
-  }
-
   &__left {
     flex: 1 1 60%;
   }
@@ -61,33 +86,32 @@ body {
   }
 
   &__social-link {
-    margin: 2.5% 0;
+    margin: 1rem;
   }
 
   &__buttons {
 
     &__wrapper {
-      margin: 2.5% 0;
+      margin: 3rem 0;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
     a {
-      color: white;
+      color: #1a1a1a;
       text-decoration: none;
       justify-content: center;
       display: flex;
     }
 
     &__red-wrapper {
-      width: 10%;
+
     }
 
     span {
       background: $red;
       display: block;
-      width: 80%;
       padding: 12px 10px;
       text-align: center;
       border-radius: 3px;
@@ -95,12 +119,10 @@ body {
 
     &__vernum {
       margin-left: 3.5%;
-      width: 7.5%;
     }
 
     &__link {
       margin-left: 2.5%;
-      width: 7.5%;
     }
 
     .outline span {
@@ -131,6 +153,7 @@ body {
 
 .bob-github-link {
   text-decoration: underline;
+  color: #646464;
 }
 
 .bob {
@@ -142,16 +165,12 @@ body {
     text-align: center;
     margin-bottom: $base * 6;
 
-    h2 {
-      margin-top: 0;
-      margin-bottom: $base * 2;
-      font-size: $base * 4;
-      font-family: "Roboto", sans-serif;
-      font-weight: 700;
-    }
-
     h3 {
-      margin-bottom: $base * 3;
+      font-weight: 300;
+      font-size: 1.3125rem;
+      color: #646464;
+      max-width: 30rem;
+      margin: 0 auto 24px;
     }
   }
 
@@ -190,6 +209,7 @@ body {
 
   &__benefit-copy + &__screenshot{
     margin-left: $base * 4;
+    text-align: right;
   }
 
   &__additional-features {
@@ -240,5 +260,42 @@ body {
       padding: 0 ($base);
       max-width: 80%;
     }
+  }
+}
+
+@media (max-width: 769px) {
+  .bob__centered h3 {
+    font-size: 1.125rem;
+  }
+
+  .bob__benefits {
+    .bob__screenshot {
+      margin: 0;
+    }
+  }
+
+  .bob__benefits:nth-of-type(1) {
+    flex-flow: column-reverse nowrap;
+    .bob__benefit-copy {
+      margin: 0;
+    }
+  }
+
+  .bob__benefits:nth-of-type(2) {
+    flex-flow: column nowrap;
+    .bob__benefit-copy {
+      margin: 0;
+    }
+  }
+
+  .bob__benefits:nth-of-type(3) {
+    flex-flow: column-reverse nowrap;
+    .bob__benefit-copy {
+      margin: 0;
+    }
+  }
+
+  .hero__image {
+    height: 1.75rem;
   }
 }
