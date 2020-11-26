@@ -5,16 +5,8 @@ import {consensus} from 'hsd/lib/protocol';
 import walletClient from '../../utils/walletClient';
 import * as names from '../../ducks/names';
 import { showError } from '../../ducks/notifications';
-import {parseFloatValue} from "../../utils/balances";
 
-@connect(
-  () => ({}),
-  dispatch => ({
-    getNameInfo: tld => dispatch(names.getNameInfo(tld)),
-    showError: (message) => dispatch(showError(message)),
-  }),
-)
-export default class RepairBid extends Component {
+export class RepairBid extends Component {
   static propTypes = {
     bid: PropTypes.object.isRequired,
     getNameInfo: PropTypes.func.isRequired,
@@ -28,7 +20,7 @@ export default class RepairBid extends Component {
       value: "",
       isCorrect: false,
     };
-  }
+  };
 
   renderRepairableBid() {
     return (
@@ -57,12 +49,14 @@ export default class RepairBid extends Component {
   }
 
   processValue = async (val) => {
-    const value = parseFloatValue(val);
+    const value = val.match(/[0-9]*\.?[0-9]{0,6}/g)[0];
+    this.setState({value: value});
+    const parsed = parseFloat(value);
 
-    if (value) {
-      this.setState({value: value});
-      return this.verifyBid(value);
-    }
+    if (val === "" || Number.isNaN(parsed) || parsed * consensus.COIN > consensus.MAX_MONEY)
+      return;
+
+    return this.verifyBid(parsed);
   };
 
   async verifyBid(value) {
@@ -96,3 +90,11 @@ export default class RepairBid extends Component {
     : this.renderRepairableBid();
   }
 }
+
+export default connect(
+  () => ({}),
+  dispatch => ({
+    getNameInfo: tld => dispatch(names.getNameInfo(tld)),
+    showError: (message) => dispatch(showError(message)),
+  }),
+)(RepairBid);
