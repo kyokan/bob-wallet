@@ -16,3 +16,13 @@ export function toBaseUnits(bal) {
 export function toDisplayUnits(bal) {
   return new BigNumber(bal).div(UNIT_DIVISOR).toFixed(DECIMALS);
 }
+
+export function parseFloatValue(val) {
+  const value = val.match(/[0-9]*\.?[0-9]{0,6}/g)[0];
+  const parsed = parseFloat(value);
+  if (Number.isNaN(parsed))
+    return;
+  if (value * consensus.COIN > consensus.MAX_MONEY)
+    return;
+  return parsed;
+}

@@ -5,6 +5,7 @@ import { finalizeWithPayment } from '../../ducks/names';
 import { connect } from 'react-redux';
 import {consensus} from 'hsd/lib/protocol';
 import { waitForPassphrase } from '../../ducks/walletActions';
+import {parseFloatValue} from "../../utils/balances";
 
 const wallet = wClientStub(() => require('electron').ipcRenderer);
 
@@ -76,13 +77,11 @@ export class FinalizeWithPaymentModal extends Component {
   }
 
   processValue = (val) => {
-    const value = val.match(/[0-9]*\.?[0-9]{0,6}/g)[0];
-    if (Number.isNaN(parseFloat(value)))
-      return;
-    if (value * consensus.COIN > consensus.MAX_MONEY)
-      return;
-    this.setState({price: value});
-  }
+    const value = parseFloatValue(val);
+    if (typeof value === 'number') {
+      this.setState({price: value});
+    }
+  };
 
   renderForm() {
     const isValid = !!this.state.price && (
