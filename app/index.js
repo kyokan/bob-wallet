@@ -1,4 +1,4 @@
-import {clearDeeplink, setDeeplink} from "./ducks/app";
+import {clearDeeplink, setDeeplink, setDeeplinkParams} from "./ducks/app";
 
 require('./sentry');
 
@@ -37,8 +37,22 @@ function handleDeeplink(message) {
     pathname: url.pathname,
   });
 
-  let name;
+  let name, txt;
   switch (url.pathname) {
+    case "//updaterecord":
+      name = params.get('name');
+      txt = params.get('txt');
+
+      if (txt) {
+        store.dispatch(setDeeplinkParams({ txt }));
+      }
+
+      if (isLocked) {
+        store.dispatch(setDeeplink(message));
+      } else {
+        history.push(`/domain_manager/${name}`);
+      }
+      return;
     case "//openauction":
       name = params.get('name');
 

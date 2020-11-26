@@ -121,7 +121,7 @@ class MyDomain extends Component {
 
   render() {
     const {name, history, domain = {}} = this.props;
-    
+
     const viewOnExplorer = () => {
       shell.openExternal(this.props.explorer.name.replace('%s', this.props.domain.name))
     }

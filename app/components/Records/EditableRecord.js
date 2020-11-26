@@ -7,6 +7,7 @@ import Dropdown from '../Dropdown';
 
 class EditableRecord extends Component {
   static propTypes = {
+    className: PropTypes.string,
     record: PropTypes.object.isRequired,
     onEdit: PropTypes.func.isRequired,
     onRemove: PropTypes.func.isRequired,
@@ -111,8 +112,9 @@ class EditableRecord extends Component {
   }
 
   renderEditableRow() {
+    const {className = ''} = this.props;
     return (
-      <TableRow className="records-table__create-record">
+      <TableRow className={`records-table__create-record ${className}`}>
         <div className="records-table__create-record__error-message">
           {this.state.errorMessage}
         </div>
@@ -144,8 +146,9 @@ class EditableRecord extends Component {
   }
 
   renderRow() {
+    const {className = ''} = this.props;
     return (
-      <TableRow>
+      <TableRow className={className}>
         <TableItem>{DROPDOWN_TYPES[this.state.currentTypeIndex].label}</TableItem>
         <TableItem>{this.state.value}</TableItem>
         <TableItem>
