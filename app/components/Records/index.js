@@ -25,7 +25,7 @@ const DEFAULT_RESOURCE = {
   records: [],
 };
 
-class Records extends Component {
+export class Records extends Component {
   static propTypes = {
     name: PropTypes.string.isRequired,
     resource: PropTypes.object,
