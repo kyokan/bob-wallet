@@ -106,7 +106,7 @@ class ZapTXsModal extends Component {
             but may not completely remove them from the network. They may still be
             relayed between nodes and confirmed in blocks. By deleting pending
             transactions this wallet may re-spend "stuck" coins, but those
-            new transactions are not garunteed to replace the originals.
+            new transactions are not guaranteed to replace the originals.
           </div>
         </div>
         <div className="">
