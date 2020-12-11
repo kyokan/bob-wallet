@@ -1,4 +1,5 @@
 import { BigNumber } from 'bignumber.js';
+import {consensus} from "hsd/lib/protocol";
 
 const DECIMALS = 6;
 const UNIT_DIVISOR = 1000000;

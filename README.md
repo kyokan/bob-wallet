@@ -1,4 +1,4 @@
-<p align="center"><img src="./resources/icons/128x128.png"></p>
+<p align="center"><img src="./resources/icons/logowithtext.png"></p>
 
 # Bob Wallet: A Handshake Wallet and Full Node
 

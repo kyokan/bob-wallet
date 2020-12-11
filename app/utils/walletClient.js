@@ -4,7 +4,7 @@ import { clientStub as nodeClientStub } from '../background/node/client';
 const wallet = walletClientStub(() => require('electron').ipcRenderer);
 const node = nodeClientStub(() => require('electron').ipcRenderer);
 
-const client = {
+const walletClient = {
   sendRawAirdrop: async (data) => {
     return node.sendRawAirdrop(data);
   },
@@ -17,4 +17,4 @@ const client = {
   ...wallet,
 };
 
-export default client;
+export default walletClient;

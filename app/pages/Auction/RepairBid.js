@@ -6,14 +6,7 @@ import walletClient from '../../utils/walletClient';
 import * as names from '../../ducks/names';
 import { showError } from '../../ducks/notifications';
 
-@connect(
-  () => ({}),
-  dispatch => ({
-    getNameInfo: tld => dispatch(names.getNameInfo(tld)),
-    showError: (message) => dispatch(showError(message)),
-  }),
-)
-export default class RepairBid extends Component {
+export class RepairBid extends Component {
   static propTypes = {
     bid: PropTypes.object.isRequired,
     getNameInfo: PropTypes.func.isRequired,
@@ -27,7 +20,7 @@ export default class RepairBid extends Component {
       value: "",
       isCorrect: false,
     };
-  }
+  };
 
   renderRepairableBid() {
     return (
@@ -64,7 +57,7 @@ export default class RepairBid extends Component {
       return;
 
     return this.verifyBid(parsed);
-  }
+  };
 
   async verifyBid(value) {
     const {bid} = this.props;
@@ -97,3 +90,11 @@ export default class RepairBid extends Component {
     : this.renderRepairableBid();
   }
 }
+
+export default connect(
+  () => ({}),
+  dispatch => ({
+    getNameInfo: tld => dispatch(names.getNameInfo(tld)),
+    showError: (message) => dispatch(showError(message)),
+  }),
+)(RepairBid);

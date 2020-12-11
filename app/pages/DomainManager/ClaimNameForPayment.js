@@ -1,9 +1,11 @@
+import { Amount } from 'hsd/lib/ui';
 import React, { Component } from 'react';
 import { MiniModal } from '../../components/Modal/MiniModal';
 import { MTX } from 'hsd/lib/primitives';
 import { connect } from 'react-redux';
 import { showSuccess } from '../../ducks/notifications';
 import { claimPaidTransfer } from '../../ducks/names';
+import { waitForPassphrase, hasAddress } from '../../ducks/walletActions';
 
 @connect(
   (state) => ({
@@ -12,6 +14,8 @@ import { claimPaidTransfer } from '../../ducks/names';
   (dispatch) => ({
     showSuccess: (message) => dispatch(showSuccess(message)),
     claimPaidTransfer: (hex) => dispatch(claimPaidTransfer(hex)),
+    waitForPassphrase: () => dispatch(waitForPassphrase()),
+    hasAddress: (address) => dispatch(hasAddress(address)),
   }),
 )
 export default class ClaimNameForPayment extends Component {
@@ -20,12 +24,13 @@ export default class ClaimNameForPayment extends Component {
     this.state = {
       step: 0,
       hex: '',
+      isConfirming: false,
     };
   }
 
-  onClickVerify = () => {
+  onClickVerify = async () => {
     try {
-      const {network} = this.props;
+      const {network, hasAddress} = this.props;
       const mtx = MTX.decode(Buffer.from(this.state.hex, 'hex'));
       const firstOutput = mtx.outputs[0];
       const nameReceiveAddr = firstOutput.address.toString(network);
@@ -33,14 +38,22 @@ export default class ClaimNameForPayment extends Component {
       const secondOutput = mtx.outputs[1];
       const fundingAddr = secondOutput.address.toString(network);
       const price = secondOutput.value;
+      const isOwn = await hasAddress(nameReceiveAddr);
 
-      this.setState({
-        step: 1,
-        name,
-        nameReceiveAddr,
-        fundingAddr,
-        price,
-      });
+      if (!isOwn && !this.state.isConfirming) {
+        this.setState({
+          isConfirming: true,
+          hexError: 'Receiving address is not yours. Are you are you want to pay for this name?',
+        });
+      } else {
+        this.setState({
+          step: 1,
+          name,
+          nameReceiveAddr,
+          fundingAddr,
+          price,
+        });
+      }
     } catch (e) {
       this.setState({
         hexError: 'Invalid hex value.',
@@ -142,7 +155,7 @@ export default class ClaimNameForPayment extends Component {
           <dt>Address Receiving Funds</dt>
           <dd>{this.state.fundingAddr}</dd>
           <dt>Price</dt>
-          <dd>{Math.floor(this.state.price / 1e6)} HNS</dd>
+          <dd>{Amount.fromValue(this.state.price).toCoins()} HNS</dd>
         </dl>
 
         <div className="claim-name-for-payment__verification-buttons">

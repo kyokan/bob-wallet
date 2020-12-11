@@ -3,6 +3,8 @@ import { MiniModal } from '../../components/Modal/MiniModal';
 import { clientStub as wClientStub } from '../../background/wallet/client';
 import { finalizeWithPayment } from '../../ducks/names';
 import { connect } from 'react-redux';
+import {consensus} from 'hsd/lib/protocol';
+import { waitForPassphrase } from '../../ducks/walletActions';
 
 const wallet = wClientStub(() => require('electron').ipcRenderer);
 
@@ -12,7 +14,6 @@ export class FinalizeWithPaymentModal extends Component {
 
     this.state = {
       error: '',
-      recipient: '',
       price: '',
       hex: '',
     };
@@ -24,8 +25,8 @@ export class FinalizeWithPaymentModal extends Component {
       const hex = await this.props.finalizeWithPayment(
         this.props.name,
         fundingAddr,
-        this.state.recipient,
-        Number(this.state.price),
+        this.props.transferTo,
+        this.state.price,
       );
       this.setState({
         hex,
@@ -74,16 +75,26 @@ export class FinalizeWithPaymentModal extends Component {
     );
   }
 
+  processValue = (val) => {
+    const value = val.match(/[0-9]*\.?[0-9]{0,6}/g)[0];
+    if (Number.isNaN(parseFloat(value)))
+      return;
+    if (value * consensus.COIN > consensus.MAX_MONEY)
+      return;
+    this.setState({price: value});
+  }
+
   renderForm() {
-    const isValid = !!this.state.recipient && !!this.state.price && (
+    const isValid = !!this.state.price && (
       !!this.state.price && Number(this.state.price) <= 2000
     );
 
     return (
       <>
         <p>
-          To require payment to finalize this transfer, please
-          fill out the steps below.
+          To require payment to finalize this transfer,
+          verify the recipient's name transfer address and
+          enter the agreed price in HNS below.
         </p>
 
         <p>
@@ -96,27 +107,19 @@ export class FinalizeWithPaymentModal extends Component {
         <div className="send__to">
           <div className="send__input">
             <input
-              type="text"
-              value={this.state.recipient}
-              onChange={(e) => this.setState({
-                recipient: e.target.value,
-              })}
-              placeholder="Enter a recipient for the name..."
+              type="number"
+              min={0}
+              placeholder="0.000000"
+              onChange={(e) => this.processValue(e.target.value)}
+              value={this.state.price}
             />
           </div>
         </div>
         <div className="send__to">
-          <div className="send__input">
-            <input
-              type="number"
-              min={0}
-              placeholder="0.000000"
-              onChange={(e) => this.setState({
-                price: e.target.value,
-              })}
-              value={this.state.price}
-            />
-          </div>
+          Name recipient address:
+        </div>
+        <div className="send__to">
+          {this.props.transferTo}
         </div>
         <div className="send__actions">
           <button
@@ -136,5 +139,6 @@ export default connect(
   () => ({}),
   (dispatch) => ({
     finalizeWithPayment: (name, fundingAddr, recipient, price) => dispatch(finalizeWithPayment(name, fundingAddr, recipient, price)),
+    waitForPassphrase: () => dispatch(waitForPassphrase()),
   }),
 )(FinalizeWithPaymentModal);

@@ -1,14 +1,15 @@
 import { WalletClient } from 'hs-client';
-import { displayBalance, toBaseUnits, toDisplayUnits } from '../../utils/balances';
-import { service as nodeService } from '../node/service';
 import BigNumber from 'bignumber.js';
-import { NETWORKS } from '../../constants/networks';
 import path from 'path';
 import { app } from 'electron';
 import rimraf from 'rimraf';
-import { ConnectionTypes, getConnection } from '../connections/service';
 import crypto from 'crypto';
+import { Amount } from 'hsd/lib/ui';
+import { ConnectionTypes, getConnection } from '../connections/service';
 import { dispatchToMainWindow } from '../../mainWindow';
+import { NETWORKS } from '../../constants/networks';
+import { displayBalance, toBaseUnits, toDisplayUnits } from '../../utils/balances';
+import { service as nodeService } from '../node/service';
 import {
   SET_BALANCE,
   SET_WALLETS,
@@ -17,16 +18,15 @@ import {
   SYNC_WALLET_PROGRESS
 } from '../../ducks/walletReducer';
 import {SET_FEE_INFO, SET_NODE_INFO} from "../../ducks/nodeReducer";
-
 const WalletNode = require('hsd/lib/wallet/node');
 const TX = require('hsd/lib/primitives/tx');
 const {Output, MTX, Address, Coin} = require('hsd/lib/primitives');
 const Script = require('hsd/lib/script/script');
 const {hashName, types} = require('hsd/lib/covenants/rules');
-
 const MasterKey = require('hsd/lib/wallet/masterkey');
 const Mnemonic = require('hsd/lib/hd/mnemonic');
 const Covenant = require('hsd/lib/primitives/covenant');
+const common = require('hsd/lib/wallet/common');
 
 const randomAddrs = {
   [NETWORKS.TESTNET]: 'ts1qfcljt5ylsa9rcyvppvl8k8gjnpeh079drfrmzq',
@@ -81,6 +81,16 @@ class WalletService {
       console.error(e);
       return false;
     }
+  };
+
+  hasAddress = async (addressHash) => {
+    if (!this.name) return false;
+    await this._ensureClient();
+    const wallet = await this.node.wdb.get(this.name);
+
+    if (!wallet) return null;
+
+    return wallet.hasPath(new Address(addressHash, this.network));
   };
 
   getAPIKey = async () => {
@@ -230,7 +240,19 @@ class WalletService {
     }
 
     const wallet = await this.node.wdb.get(this.name);
-    return wallet.getHistory('default');
+    const txs = await wallet.getHistory('default');
+
+    common.sortTX(txs);
+
+    const details = await wallet.toDetails(txs);
+
+    const result = [];
+
+    for (const item of details) {
+      result.push(item.getJSON(this.network, this.lastKnownChainHeight));
+    }
+
+    return result;
   };
 
   getPendingTransactions = async () => {
@@ -317,7 +339,7 @@ class WalletService {
 
   sendOpen = (name) => this._ledgerProxy(
     () => this._executeRPC('createopen', [name]),
-    () => this._executeRPC('sendopen', [name]),
+    () => this._executeRPC('sendopen', [name], this.lock),
   );
 
   sendBid = (name, amount, lockup) => this._ledgerProxy(
@@ -328,73 +350,78 @@ class WalletService {
     () => this._executeRPC(
       'sendbid',
       [name, Number(displayBalance(amount)), Number(displayBalance(lockup))],
+      this.lock,
     ),
   );
 
   sendRegister = (name) => this._ledgerProxy(
     () => this._executeRPC('createupdate', [name, {records: []}]),
-    () => this._executeRPC('sendupdate', [name, {records: []}]),
+    () => this._executeRPC('sendupdate', [name, {records: []}], this.lock),
   );
 
   sendUpdate = (name, json) => this._ledgerProxy(
     () => this._executeRPC('createupdate', [name, json]),
-    () => this._executeRPC('sendupdate', [name, json]),
+    () => this._executeRPC('sendupdate', [name, json], this.lock),
   );
 
   sendReveal = (name) => this._ledgerProxy(
     () => this._executeRPC('createreveal', [name]),
-    () => this._executeRPC('sendreveal', [name]),
+    () => this._executeRPC('sendreveal', [name], this.lock),
   );
 
   sendRedeem = (name) => this._ledgerProxy(
     () => this._executeRPC('createredeem', [name]),
-    () => this._executeRPC('sendredeem', [name]),
+    () => this._executeRPC('sendredeem', [name], this.lock),
   );
 
   sendRevealAll = () => this._ledgerProxy(
     () => this._executeRPC('createreveal', ['']),
-    () => this._executeRPC('sendreveal', ['']),
+    () => this._executeRPC('sendreveal', [''], this.lock),
   );
 
   sendRedeemAll = () => this._ledgerProxy(
     () => this._executeRPC('createredeem', ['']),
-    () => this._executeRPC('sendredeem', ['']),
+    () => this._executeRPC('sendredeem', [''], this.lock),
   );
 
   sendRenewal = (name) => this._ledgerProxy(
     () => this._executeRPC('createrenewal', [name]),
-    () => this._executeRPC('sendrenewal', [name]),
+    () => this._executeRPC('sendrenewal', [name], this.lock),
   );
 
   sendTransfer = (name, recipient) => this._ledgerProxy(
     () => this._executeRPC('createtransfer', [name, recipient]),
-    () => this._executeRPC('sendtransfer', [name, recipient]),
+    () => this._executeRPC('sendtransfer', [name, recipient], this.lock),
   );
 
   cancelTransfer = (name) => this._ledgerProxy(
     () => this._executeRPC('createcancel', [name]),
-    () => this._executeRPC('sendcancel', [name]),
+    () => this._executeRPC('sendcancel', [name], this.lock),
   );
 
   finalizeTransfer = (name) => this._ledgerProxy(
     () => this._executeRPC('createfinalize', [name]),
-    () => this._executeRPC('sendfinalize', [name]),
+    () => this._executeRPC('sendfinalize', [name], this.lock),
   );
 
   revokeName = (name) => this._ledgerProxy(
     () => this._executeRPC('createrevoke', [name]),
-    () => this._executeRPC('sendrevoke', [name]),
+    () => this._executeRPC('sendrevoke', [name], this.lock),
   );
 
   send = (to, amount, fee) => this._ledgerProxy(
     () => this._executeRPC('createsendtoaddress', [to, Number(amount), '', '', false, 'default']),
-    () => this.client.send(this.name, {
-      rate: Number(toBaseUnits(fee)),
-      outputs: [{
-        value: Number(toBaseUnits(amount)),
-        address: to,
-      }],
-    }),
+    async () => {
+      const res = await this.client.send(this.name, {
+        rate: Number(toBaseUnits(fee)),
+        outputs: [{
+          value: Number(toBaseUnits(amount)),
+          address: to,
+        }],
+      });
+      await this.lock();
+      return res;
+    },
   );
 
   lock = () => this._ledgerProxy(
@@ -447,12 +474,14 @@ class WalletService {
 
   // price is in WHOLE HNS!
   finalizeWithPayment = async (name, fundingAddr, nameReceiveAddr, price) => {
+    await this._ensureClient();
+
     if (price > 2000) {
       throw new Error('Refusing to create a transfer for more than 2000 HNS.');
     }
 
     const {wdb} = this.node;
-    const wallet = await wdb.get('allison');
+    const wallet = await wdb.get(this.name);
     const ns = await wallet.getNameStateByName(name);
     const owner = ns.owner;
     const coin = await wallet.getCoin(owner.hash, owner.index);
@@ -497,8 +526,10 @@ class WalletService {
   };
 
   claimPaidTransfer = async (txHex) => {
+    await this._ensureClient();
+
     const {wdb} = this.node;
-    const wallet = await wdb.get('allison');
+    const wallet = await wdb.get(this.name);
     const mtx = MTX.decode(Buffer.from(txHex, 'hex'));
 
     // Bob should verify all the data in the MTX to ensure everything is valid,
@@ -543,21 +574,6 @@ class WalletService {
     //                 (null) --- output 2: payment to Alice
     const tx = await wallet.sendMTX(mtx);
     assert(tx.verify(mtx.view));
-
-    const hash = tx.hash();
-    // Wait for mempool and check
-    for (let i = 0; i < 10; i++) {
-      const mp = await this.nodeService.getRawMempool(false);
-      if (!mp[hash]) {
-        console.log('Transaction did not appear in the mempool, retrying...');
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-        continue;
-      }
-
-      return;
-    }
-
-    throw new Error('Transaction never appeared in the mempool.');
   };
 
   /**
@@ -599,9 +615,6 @@ class WalletService {
 
     const node = new WalletNode({
       network: networkName,
-      // nodeUrl: conn.type === ConnectionTypes.Custom
-      //   ? conn.url || 'http://127.0.0.1:12037'
-      //   : undefined,
       nodeHost: conn.type === ConnectionTypes.Custom
         ? conn.host
         : undefined,
@@ -793,9 +806,11 @@ class WalletService {
     }, onNonLedger, false);
   };
 
-  async _executeRPC(method, args) {
+  async _executeRPC(method, args, cb) {
     await this._selectWallet();
-    return this.client.execute(method, args);
+    const res = await this.client.execute(method, args);
+    if (cb) cb(res);
+    return res;
   }
 }
 
@@ -825,6 +840,7 @@ const methods = {
   getPendingTransactions: service.getPendingTransactions,
   getBids: service.getBids,
   getMasterHDKey: service.getMasterHDKey,
+  hasAddress: service.hasAddress,
   setPassphrase: service.setPassphrase,
   revealSeed: service.revealSeed,
   estimateTxFee: service.estimateTxFee,

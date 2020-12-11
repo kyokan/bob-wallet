@@ -13,7 +13,7 @@ import SuccessModal from '../../../components/SuccessModal';
 import Checkbox from '../../../components/Checkbox';
 import * as nameActions from '../../../ducks/names';
 import { showError, showSuccess } from '../../../ducks/notifications';
-import { displayBalance, toBaseUnits } from '../../../utils/balances';
+import {displayBalance, toBaseUnits} from '../../../utils/balances';
 import * as logger from '../../../utils/logClient';
 import { clientStub as aClientStub } from '../../../background/analytics/client';
 import walletClient from '../../../utils/walletClient';
@@ -103,7 +103,7 @@ class BidNow extends Component {
       await this.props.stopWalletSync();
       this.props.showError(e.message);
     }
-  }
+  };
 
   processValue = (val, field) => {
     const value = val.match(/[0-9]*\.?[0-9]{0,6}/g)[0];
@@ -112,7 +112,7 @@ class BidNow extends Component {
     if (value * consensus.COIN > consensus.MAX_MONEY)
       return;
     this.setState({[field]: value});
-  }
+  };
 
   render() {
     const {domain} = this.props;

@@ -105,6 +105,10 @@ export const fetchWallet = () => async (dispatch, getState) => {
   }));
 };
 
+export const hasAddress = (address) => async () => {
+  return walletClient.hasAddress(address);
+};
+
 export const revealSeed = (passphrase) => async () => {
   return walletClient.revealSeed(passphrase);
 };
@@ -217,7 +221,8 @@ export const fetchTransactions = () => async (dispatch, getState) => {
   let payload = new Map();
 
   for (let i = 0; i < txs.length; i++) {
-    const {tx, time, block} = txs[i];
+    const tx = txs[i];
+    const {time, block} = tx;
     const existing = currentTXs.get(tx.hash);
 
     if (existing) {
@@ -271,7 +276,7 @@ export const fetchPendingTransactions = () => async (dispatch, getState) => {
   const payload = await walletClient.getPendingTransactions();
   dispatch({
     type: SET_PENDING_TRANSACTIONS,
-    payload,
+    payload: payload || [],
   });
 };
 
@@ -292,6 +297,13 @@ export const closeGetPassphrase = () => ({
   type: GET_PASSPHRASE,
   payload: {get: false},
 });
+
+export const waitForPassphrase = () => async (dispatch) => {
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
+  return null;
+};
 
 export const watchActivity = () => dispatch => {
   if (!idleInterval) {
@@ -332,7 +344,9 @@ async function parseInputsOutputs(net, tx) {
 
     // Track normal receive amounts for later
     if (covenant.action === 'NONE') {
-      totalValue += output.value;
+      if (output.path) {
+        totalValue += output.value;
+      }
       continue;
     }
     // Stay focused on the first non-NONE covenant type, ignore other types

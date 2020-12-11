@@ -49,3 +49,4 @@ dll
 .idea
 *.iml
 npm-debug.log.*
+test-dist/

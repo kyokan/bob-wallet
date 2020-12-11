@@ -164,6 +164,10 @@ export class NodeService extends EventEmitter {
     await this.start(this.networkName);
   }
 
+  async generateToAddress(numblocks, address) {
+    return this._execRPC('generatetoaddress', [numblocks, address]);
+  }
+
   async getAPIKey() {
     await this._ensureStarted();
     return this.apiKey;
@@ -336,6 +340,7 @@ const methods = {
   getNameByHash: (hash) => service.getNameByHash(hash),
   getAuctionInfo: (name) => service.getAuctionInfo(name),
   getBlock: (height) => service.getBlock(height),
+  generateToAddress: (numblocks, address) => service.generateToAddress(numblocks, address),
   getTXByAddresses: (addresses) => service.getTXByAddresses(addresses),
   getBlockByHeight: (height, verbose, details) => service.getBlockByHeight(height, verbose, details),
   getTx: (hash) => service.getTx(hash),
