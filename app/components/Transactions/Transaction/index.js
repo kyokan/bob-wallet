@@ -178,7 +178,7 @@ class Transaction extends Component {
   }
 
   onClickTitle = () => {
-    shell.openExternal(`https://hnscan.com/tx/${this.props.transaction.id}`);
+    shell.openExternal(`https://hnsnetwork.com/txs/${this.props.transaction.id}`);
   };
 };
 
