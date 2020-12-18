@@ -27,7 +27,7 @@ if (
 
 if (process.env.NODE_ENV === 'development' && process.platform === 'win32') {
   app.setAsDefaultProtocolClient('bob-dev', process.execPath, [
-    path.resolve(path.join(process.cwd(), 'dist', 'main.js')),
+    path.resolve(path.join(app.getAppPath(), 'main.js')),
   ]);
 } else {
   app.setAsDefaultProtocolClient('bob');
