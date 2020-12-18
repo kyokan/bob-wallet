@@ -40,6 +40,7 @@ function handleDeeplink(message) {
   let name, txt;
   switch (url.pathname) {
     case "//updaterecord":
+    case "//updaterecord/":
       name = params.get('name');
       txt = params.get('txt');
 
@@ -54,6 +55,7 @@ function handleDeeplink(message) {
       }
       return;
     case "//openname":
+    case "//openname/":
       name = params.get('name');
 
       if (isLocked) {
@@ -63,6 +65,7 @@ function handleDeeplink(message) {
       }
       return;
     case "//openmanager":
+    case "//openmanager/":
       name = params.get('name');
 
       if (isLocked) {
