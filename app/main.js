@@ -26,11 +26,31 @@ if (
 
 app.setAsDefaultProtocolClient('bob');
 
-// Protocol handler for osx
+// Deeplink handler for osx
 app.on('open-url', function (event, url) {
   event.preventDefault();
   sendDeeplinkToMainWindow(url);
 });
+
+// Deeplink handler for win
+// https://stackoverflow.com/questions/38458857/electron-url-scheme-open-url-event
+let deeplinkingUrl;
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (gotTheLock) {
+  app.on('second-instance', (e, argv) => {
+    // Someone tried to run a second instance, we should focus our window.
+
+    // Protocol handler for win32
+    // argv: An array of the second instance’s (command line / deep linked) arguments
+    if (process.platform === 'win32') {
+      // Keep only command line / deep linked arguments
+      deeplinkingUrl = argv.slice(1)
+    }
+
+    sendDeeplinkToMainWindow(url);
+  })
+}
 
 app.on('ready', async () => {
   // start the IPC server
