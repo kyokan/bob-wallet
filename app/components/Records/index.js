@@ -53,16 +53,12 @@ export class Records extends Component {
 
   static getDerivedStateFromProps(props, state) {
     let updatedResource = JSON.parse(JSON.stringify(state.updatedResource));
+    const isDefault = updatedResource.__isDefault__;
 
-    if (updatedResource.__isDefault__) {
+    if (isDefault) {
       if (props.resource) {
         updatedResource = props.resource;
       }
-
-      return {
-        ...state,
-        updatedResource: updatedResource,
-      };
     }
 
     if (props.deeplinkParams.txt && props.domain && props.domain.isOwner) {
@@ -77,6 +73,13 @@ export class Records extends Component {
         txt: [props.deeplinkParams.txt],
       });
 
+      return {
+        ...state,
+        updatedResource: updatedResource,
+      };
+    }
+
+    if (isDefault) {
       return {
         ...state,
         updatedResource: updatedResource,

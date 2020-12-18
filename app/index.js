@@ -53,7 +53,7 @@ function handleDeeplink(message) {
         history.push(`/domain_manager/${name}`);
       }
       return;
-    case "//openauction":
+    case "//openname":
       name = params.get('name');
 
       if (isLocked) {
@@ -62,7 +62,7 @@ function handleDeeplink(message) {
         history.push(`/domain/${name}`);
       }
       return;
-    case "//opendomain":
+    case "//openmanager":
       name = params.get('name');
 
       if (isLocked) {
