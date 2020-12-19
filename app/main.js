@@ -26,7 +26,11 @@ if (
 }
 
 if (process.env.NODE_ENV === 'development' && process.platform === 'win32') {
-  app.setAsDefaultProtocolClient('bob-dev', process.execPath, [
+  app.setAsDefaultProtocolClient('bob', process.execPath, [
+    path.resolve(path.join(app.getAppPath(), 'dist', 'main.js')),
+  ]);
+} else if (process.platform === 'win32') {
+  app.setAsDefaultProtocolClient('bob', process.execPath, [
     path.resolve(path.join(app.getAppPath(), 'main.js')),
   ]);
 } else {
@@ -53,7 +57,7 @@ if (isPrimaryInstance) {
     // argv: An array of the second instance’s (command line / deep linked) arguments
     if (process.platform === 'win32') {
       // Keep only command line / deep linked arguments
-      deeplinkingUrl = argv.slice(3)
+      deeplinkingUrl = argv[argv.length - 1];
     }
 
     sendDeeplinkToMainWindow(deeplinkingUrl);
