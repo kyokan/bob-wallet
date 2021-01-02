@@ -1,6 +1,10 @@
 ---
 name: Bug Report
 about: Create a bug report to help us improve Bob.
+title: ''
+labels: ''
+assignees: ''
+
 ---
 
 <!--- Provide a general summary of the issue in the Title above -->
