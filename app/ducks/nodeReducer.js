@@ -34,9 +34,9 @@ export function getInitialState() {
     },
     newBlockStatus: '',
     explorer: {
-      label: 'HNScan',
-      tx: 'https://hnscan.com/tx/%s',
-      name: 'https://hnscan.com/name/%s',
+      label: '',
+      tx: '',
+      name: '',
     },
   };
 }
