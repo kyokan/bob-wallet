@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
+import { shell } from 'electron';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import * as names from '../../ducks/names';
@@ -28,6 +29,7 @@ class MyDomain extends Component {
     showError: PropTypes.func.isRequired,
     showSuccess: PropTypes.func.isRequired,
     sendRenewal: PropTypes.func.isRequired,
+    explorer: PropTypes.object.isRequired,
   };
 
   async componentWillMount() {
@@ -84,6 +86,10 @@ class MyDomain extends Component {
 
   render() {
     const {name, history, domain = {}} = this.props;
+    
+    const viewOnExplorer = () => {
+      shell.openExternal(this.props.explorer.name.replace('%s', this.props.domain.name))
+    }
 
     return (
       <div className="my-domain">
@@ -94,7 +100,12 @@ class MyDomain extends Component {
           Back
         </div>
         <div className="my-domain__header">
-          <div className="my-domain__header__title">{formatName(name)}</div>
+          <div className="my-domain__header__title">
+            {formatName(name)}
+            <div
+              className="my-domain__header__title__explorer-open-icon"
+              onClick={viewOnExplorer} />
+          </div>
           <div className="my-domain__header__expires-text">
             {this.renderExpireText()}
           </div>
@@ -147,6 +158,7 @@ export default withRouter(
       name: ownProps.match.params.name,
       domain: state.names[ownProps.match.params.name],
       chain: state.node.chain,
+      explorer: state.node.explorer,
     })),
     (dispatch, ownProps) => ({
       getNameInfo: () => dispatch(names.getNameInfo(ownProps.match.params.name)),

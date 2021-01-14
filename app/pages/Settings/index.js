@@ -256,7 +256,7 @@ export default class Settings extends Component {
               )}
               {this.renderSection(
                 'Blockchain Explorer',
-                'Transactions will be opened on this explorer',
+                'Transactions and names will be opened on this explorer',
                 null,
                 null,
                 <ExplorerPicker />,
