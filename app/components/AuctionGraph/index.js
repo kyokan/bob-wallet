@@ -53,7 +53,7 @@ export default class AuctionGraph extends Component {
       this.setState({ 
         currentStep: ISBIDDING, 
         openProgress: 100,
-        biddingProgress: (1 - (stats.bidPeriodEnd - this.props.chain.height) / (stats.bidPeriodEnd - stats.bidPeriodStart)) * 100,
+        biddingProgress: (1 - (stats.bidPeriodEnd - 1 - this.props.chain.height) / (stats.bidPeriodEnd - 1 - stats.bidPeriodStart)) * 100,
       }); 
     } else if (isReveal(domain)) {
       this.setState({ 
