@@ -6,35 +6,7 @@ import connect from "react-redux/es/connect/connect";
 import * as nodeActions from "../../ducks/node";
 import c from "classnames";
 import "./explorer-picker.scss";
-
-
-export const explorers = [
-  {
-    label: 'HNScan',
-    tx: 'https://hnscan.com/tx/%s',
-    name: 'https://hnscan.com/name/%s',
-  },
-  {
-    label: 'HNS Network',
-    tx: 'https://hnsnetwork.com/txs/%s',
-    name: 'https://hnsnetwork.com/names/%s',
-  },
-  {
-    label: 'Shake Scan',
-    tx: 'https://shakescan.com/transaction/%s',
-    name: 'https://shakescan.com/name/%s',
-  },
-  {
-    label: 'HNS Fans',
-    tx: 'https://e.hnsfans.com/tx/%s',
-    name: 'https://e.hnsfans.com/name/%s',
-  },
-  {
-    label: 'Handshake Explorer',
-    tx: 'https://hnsxplorer.com/tx/%s',
-    name: 'https://hnsxplorer.com/name/%s',
-  },
-];
+import { EXPLORERS } from '../../constants/explorers';
 
 @withRouter
 @connect(
@@ -63,11 +35,10 @@ export default class ExplorerPicker extends Component {
       <div className={c("explorer-picker", className)}>
         <Dropdown
           reversed
-          items={explorers}
-          currentIndex={explorers.findIndex((x) => x.label == explorer.label)}
+          items={EXPLORERS}
+          currentIndex={EXPLORERS.findIndex((x) => x.label == explorer.label)}
           onChange={(i) => {
-            // console.log("Change explorer to", explorers[i]);
-            changeExplorer(explorers[i]);
+            changeExplorer(EXPLORERS[i]);
           }}
         />
       </div>
