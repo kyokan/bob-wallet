@@ -18,6 +18,7 @@ import {
   START_RPC_TEST,
   END_NODE_STATUS_CHANGE,
   END_RPC_TEST,
+  SET_EXPLORER,
 } from './nodeReducer';
 import { VALID_NETWORKS } from '../constants/networks';
 import {ConnectionTypes} from "../background/connections/service";
@@ -199,3 +200,8 @@ export const changeCustomNetwork = (network) => async (dispatch) => {
     });
   }
 };
+
+export const setExplorer = (explorer) => ({
+  type: SET_EXPLORER,
+  payload: explorer,
+});

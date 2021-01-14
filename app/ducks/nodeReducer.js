@@ -11,6 +11,7 @@ export const START_NODE_STATUS_CHANGE = 'node/START_NODE_STATUS_CHANGE';
 export const END_NODE_STATUS_CHANGE = 'node/END_NODE_STATUS_CHANGE';
 export const START_RPC_TEST = 'node/START_RPC_TEST';
 export const END_RPC_TEST = 'node/END_RPC_TEST';
+export const SET_EXPLORER = 'node/SET_EXPLORER';
 
 export function getInitialState() {
   return {
@@ -31,7 +32,12 @@ export function getInitialState() {
       height: 0,
       tip: '',
     },
-    newBlockStatus: ''
+    newBlockStatus: '',
+    explorer: {
+      label: 'HNScan',
+      tx: 'https://hnscan.com/tx/%s',
+      name: 'https://hnscan.com/name/%s',
+    },
   };
 }
 
@@ -76,6 +82,11 @@ export default function nodeReducer(state = getInitialState(), action = {}) {
       return {
         ...state,
         newBlockStatus: action.payload,
+      };
+    case SET_EXPLORER:
+      return {
+        ...state,
+        explorer: action.payload,
       };
     default:
       return state;
