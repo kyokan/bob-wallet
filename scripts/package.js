@@ -101,6 +101,7 @@ function main() {
     'sentry.js',
     'mainWindow.js',
     'preload.js',
+    'ducks/nodeReducer.js',
     'ducks/walletReducer.js'
   ];
   const babelizeFiles = () => {

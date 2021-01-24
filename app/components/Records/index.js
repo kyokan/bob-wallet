@@ -16,6 +16,7 @@ import * as logger from '../../utils/logClient';
 import { showSuccess } from '../../ducks/notifications';
 import { clientStub as aClientStub } from '../../background/analytics/client';
 import './records.scss';
+import {clearDeeplinkParams} from "../../ducks/app";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -24,13 +25,15 @@ const DEFAULT_RESOURCE = {
   records: [],
 };
 
-class Records extends Component {
+export class Records extends Component {
   static propTypes = {
     name: PropTypes.string.isRequired,
     resource: PropTypes.object,
     pendingData: PropTypes.object,
+    deeplinkParams: PropTypes.object.isRequired,
     showSuccess: PropTypes.func.isRequired,
     sendUpdate: PropTypes.func.isRequired,
+    clearDeeplinkParams: PropTypes.func.isRequired,
     transferring: PropTypes.bool.isRequired,
     editable: PropTypes.bool,
   };
@@ -49,10 +52,37 @@ class Records extends Component {
   }
 
   static getDerivedStateFromProps(props, state) {
-    if (state.updatedResource.__isDefault__ && props.resource) {
+    let updatedResource = JSON.parse(JSON.stringify(state.updatedResource));
+    const isDefault = updatedResource.__isDefault__;
+
+    if (isDefault) {
+      if (props.resource) {
+        updatedResource = props.resource;
+      }
+    }
+
+    if (props.deeplinkParams.txt && props.domain && props.domain.isOwner) {
+      props.clearDeeplinkParams();
+
+      if (props.resource) {
+        updatedResource = props.resource;
+      }
+
+      updatedResource.records.push({
+        type: 'TXT',
+        txt: [props.deeplinkParams.txt],
+      });
+
       return {
         ...state,
-        updatedResource: props.resource,
+        updatedResource: updatedResource,
+      };
+    }
+
+    if (isDefault) {
+      return {
+        ...state,
+        updatedResource: updatedResource,
       };
     }
 
@@ -121,15 +151,21 @@ class Records extends Component {
 
   renderRows() {
     const resource = this.state.updatedResource;
+    const oldResource = this.props.resource;
+
+
     if (this.props.editable) {
       return resource.records.map((record, i) => {
+        const oldrecord = oldResource && oldResource.records[i];
         return (
           <EditableRecord
             key={`${this.props.name}-${record.type}-${i}`}
+            className={deepEqual(oldrecord, record) ? '' : 'edited-record'}
             name={this.props.name}
             record={record}
             onEdit={this.makeOnEdit(i)}
             onRemove={() => this.onRemove(i)}
+            disabled={!this.props.domain || !this.props.domain.isOwner}
           />
         );
       });
@@ -149,11 +185,17 @@ class Records extends Component {
   }
 
   renderCreateRecord() {
-    return <CreateRecord name={this.props.name} onCreate={this.onCreate} />;
+    return (
+      <CreateRecord
+        name={this.props.name}
+        onCreate={this.onCreate}
+        disabled={!this.props.domain || !this.props.domain.isOwner}
+      />
+    );
   }
 
   renderActionRow() {
-    return (
+    return (this.props.domain && this.props.domain.isOwner) && (
       <TableRow className="records-table__action-row">
         <div className="records-table__action-row__error-message">
           {this.state.errorMessage}
@@ -262,6 +304,7 @@ export default withRouter(
     (state, ownProps) => {
       const domain = state.names[ownProps.name];
       const resource = getDecodedResource(domain);
+      const deeplinkParams = state.app.deeplinkParams;
 
       return {
         domain,
@@ -269,11 +312,13 @@ export default withRouter(
         pendingData: getPendingData(domain),
         currentHeight: state.node.chain.height,
         network: state.node.network,
+        deeplinkParams,
       };
     },
     dispatch => ({
       sendUpdate: (name, json) => dispatch(nameActions.sendUpdate(name, json)),
       showSuccess: (message) => dispatch(showSuccess(message)),
+      clearDeeplinkParams: () => dispatch(clearDeeplinkParams()),
     }),
   )(Records),
 );

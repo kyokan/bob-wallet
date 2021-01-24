@@ -132,8 +132,12 @@
 }
 
 .records-table {
-  margin-top: 1rem;
+  margin-top: 2rem;
   position: relative;
+
+  .edited-record {
+    background-color: rgba($school-bus-yellow, .1);
+  }
 
   &__actions {
     @extend %row-nowrap;

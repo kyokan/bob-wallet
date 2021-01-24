@@ -26,6 +26,12 @@
   "build": {
     "productName": "Bob",
     "appId": "com.kyokan.BobRelease",
+    "protocols": {
+      "name": "bob-wallet",
+      "schemes": [
+        "bob"
+      ]
+    },
     "files": [
       "dist/",
       "package.json",
@@ -109,8 +115,8 @@
     "electron": "9.1.1",
     "electron-builder": "22.7.0",
     "electron-devtools-installer": "2.2.4",
-    "enzyme": "3.3.0",
-    "enzyme-adapter-react-16": "1.1.1",
+    "enzyme": "^3.8.0",
+    "enzyme-adapter-react-16": "^1.9.1",
     "file-loader": "2.0.0",
     "jsdom": "^16.4.0",
     "jsdom-global": "^3.0.2",
