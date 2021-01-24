@@ -7,7 +7,7 @@ import * as names from '../../ducks/names';
 import './my-domain.scss';
 import Collapsible from '../../components/Collapsible';
 import DomainDetails from './DomainDetails';
-import Records from './Records';
+import Records from '../../components/Records';
 import BidHistory from '../Auction/BidHistory';
 import { formatName } from '../../utils/nameHelpers';
 import { showError, showSuccess } from '../../ducks/notifications';
@@ -107,6 +107,7 @@ class MyDomain extends Component {
           <Records
             name={name}
             transferring={!!domain.info && domain.info.transfer !== 0}
+            editable
           />
         </Collapsible>
         <Collapsible className="my-domain__info-panel" title="Your Bids" defaultCollapsed>
