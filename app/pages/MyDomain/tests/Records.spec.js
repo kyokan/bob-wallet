@@ -2,7 +2,7 @@ import React from 'react';
 const test = require('tape');
 const sinon = require('sinon');
 import {mount} from 'enzyme';
-import {Records} from "../Records";
+import {Records} from "../../../components/Records";
 
 test('<Records>', async t => {
   const showSuccess = sinon.stub();
