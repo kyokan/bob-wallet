@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import {consensus} from 'hsd/lib/protocol';
+import Network from 'hsd/lib/protocol/network'
 import {
   AuctionPanel,
   AuctionPanelFooter,
@@ -35,6 +36,7 @@ class BidNow extends Component {
     waitForWalletSync: PropTypes.func.isRequired,
     startWalletSync: PropTypes.func.isRequired,
     stopWalletSync: PropTypes.func.isRequired,
+    network: PropTypes.string.isRequired,
   };
 
   state = {
@@ -53,15 +55,18 @@ class BidNow extends Component {
     const {stats} = info || {};
     const {hoursUntilReveal} = stats || {};
 
-    if (hoursUntilReveal < 24) {
-      const hours = Math.floor(hoursUntilReveal % 24);
-      const mins = Math.floor((hoursUntilReveal % 1) * 60);
+    const network = Network.get(this.props.network || 'main');
+    const timeLeftToBid = hoursUntilReveal - (network.pow.targetSpacing / 60 / 60) // seconds to hours
+
+    if (timeLeftToBid < 24) {
+      const hours = Math.floor(timeLeftToBid % 24);
+      const mins = Math.floor((timeLeftToBid % 1) * 60);
       return `~${hours}h ${mins}m`;
     }
 
-    const days = Math.floor(hoursUntilReveal / 24);
-    const hours = Math.floor(hoursUntilReveal % 24);
-    const mins = Math.floor((hoursUntilReveal % 1) * 60);
+    const days = Math.floor(timeLeftToBid / 24);
+    const hours = Math.floor(timeLeftToBid % 24);
+    const mins = Math.floor((timeLeftToBid % 1) * 60);
     return `~${days}d ${hours}h ${mins}m`;
   };
 
@@ -141,7 +146,7 @@ class BidNow extends Component {
           )
         }
         <AuctionPanelHeader title="Auction Details">
-          <AuctionPanelHeaderRow label="Reveal Ends:">
+          <AuctionPanelHeaderRow label="Bidding Ends:">
             <div className="domains__bid-now__info__time-remaining">
               <div>
                 {this.getTimeRemaining()}

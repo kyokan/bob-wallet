@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
+import { shell } from 'electron';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import cn from 'classnames';
@@ -24,6 +25,7 @@ import AuctionGraph from '../../components/AuctionGraph';
 import { showError, showSuccess } from '../../ducks/notifications';
 import VickreyProcess from './VickreyProcess';
 import BidHistory from './BidHistory';
+import Records from '../../components/Records';
 import './domains.scss';
 import { clientStub as aClientStub } from '../../background/analytics/client';
 
@@ -38,6 +40,7 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
     return {
       domain: state.names[name],
       chain: state.node.chain,
+      explorer: state.node.explorer
     };
   },
   dispatch => ({
@@ -70,6 +73,7 @@ export default class Auction extends Component {
     fetchPendingTransactions: PropTypes.func.isRequired,
     domain: PropTypes.object,
     chain: PropTypes.object,
+    explorer: PropTypes.object.isRequired,
   };
 
   async componentWillMount() {
@@ -137,10 +141,19 @@ export default class Auction extends Component {
   renderContent() {
     const domainName = this.getDomain();
 
+    const viewOnExplorer = () => {
+      shell.openExternal(this.props.explorer.name.replace('%s', this.props.domain.name))
+    }
+
     return (
       <React.Fragment>
         <div className="domains__content">
-          <div className="domains__content__title">{formatName(domainName)}</div>
+          <div className="domains__content__title">
+            {formatName(domainName)}
+            <div
+              className="domains__content__title__explorer-open-icon"
+              onClick={viewOnExplorer} />
+          </div>
           <div className="domains__content__info-wrapper">
             <div className="domains__content__info-panel">
               {this.renderAuctionDetails()}
@@ -181,7 +194,7 @@ export default class Auction extends Component {
     if (isAvailable(domain) || isOpening(domain) || isBidding(domain) || isReveal(domain)) {
       return (
         <React.Fragment>
-          <Collapsible className="domains__content__info-panel" title="Your Bids" pillContent={pillContent}>
+          <Collapsible className="domains__content__info-panel" title="Bids" pillContent={pillContent}>
             {this.props.domain ?
               <BidHistory
                 bids={this.props.domain.bids}
@@ -196,7 +209,14 @@ export default class Auction extends Component {
         </React.Fragment>
       );
     } else {
-      return <noscript />;
+      return (
+        <Collapsible className="domains__content__info-panel" title="Records">
+          <Records
+            name={domain.name}
+            transferring={!!domain.info && domain.info.transfer !== 0}
+          />
+        </Collapsible>
+      );
     }
 
   }

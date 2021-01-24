@@ -11,6 +11,7 @@ import * as logger from '../../utils/logClient';
 import * as walletActions from '../../ducks/walletActions';
 import * as nodeActions from '../../ducks/node';
 import NetworkPicker from '../NetworkPicker';
+import ExplorerPicker from '../ExplorerPicker';
 import { clientStub as aClientStub } from '../../background/analytics/client';
 const pkg = require('../../../package.json');
 import c from "classnames";
@@ -252,6 +253,14 @@ export default class Settings extends Component {
                 'Download log for debugging',
                 'Download',
                 this.onDownload,
+              )}
+              {this.renderSection(
+                'Blockchain Explorer',
+                'Transactions and names will be opened on this explorer',
+                null,
+                null,
+                <ExplorerPicker />,
+                false,
               )}
             </>
           </Route>

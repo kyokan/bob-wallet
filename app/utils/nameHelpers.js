@@ -74,6 +74,13 @@ function checkState(name, expectedState) {
     return false;
   }
 
+  // This check is needed for #278:
+  // When the current height is 1 less than bidPeriodEnd,
+  // no new bids can be added as the last bid block is already being mined.
+  if (info.stats.blocksUntilReveal === 1) {
+    if (expectedState == 'BIDDING') return false;
+    if (expectedState == 'REVEAL') return true;
+  }
   return info.state === expectedState;
 }
 
