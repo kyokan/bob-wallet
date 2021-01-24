@@ -25,6 +25,7 @@ import AuctionGraph from '../../components/AuctionGraph';
 import { showError, showSuccess } from '../../ducks/notifications';
 import VickreyProcess from './VickreyProcess';
 import BidHistory from './BidHistory';
+import Records from '../../components/Records';
 import './domains.scss';
 import { clientStub as aClientStub } from '../../background/analytics/client';
 
@@ -208,7 +209,14 @@ export default class Auction extends Component {
         </React.Fragment>
       );
     } else {
-      return <noscript />;
+      return (
+        <Collapsible className="domains__content__info-panel" title="Records">
+          <Records
+            name={domain.name}
+            transferring={!!domain.info && domain.info.transfer !== 0}
+          />
+        </Collapsible>
+      );
     }
 
   }

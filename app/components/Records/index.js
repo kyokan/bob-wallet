@@ -1,17 +1,19 @@
 import React, { Component } from 'react';
-import { HeaderItem, HeaderRow, Table, TableRow } from '../../components/Table';
+import { HeaderItem, HeaderRow, Table, TableRow } from '../Table';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import connect from 'react-redux/es/connect/connect';
 import cn from 'classnames';
 import { Resource } from 'hsd/lib/dns/resource';
 import CreateRecord from './CreateRecord';
+import Record from './Record';
 import EditableRecord from './EditableRecord';
 import * as nameActions from '../../ducks/names';
 import deepEqual from 'deep-equal';
 import * as logger from '../../utils/logClient';
 import { showSuccess } from '../../ducks/notifications';
 import { clientStub as aClientStub } from '../../background/analytics/client';
+import './records.scss';
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -28,6 +30,7 @@ class Records extends Component {
     showSuccess: PropTypes.func.isRequired,
     sendUpdate: PropTypes.func.isRequired,
     transferring: PropTypes.bool.isRequired,
+    editable: PropTypes.bool,
   };
 
   shouldComponentUpdate(nextProps, nextState, nextContext) {
@@ -128,17 +131,31 @@ class Records extends Component {
 
   renderRows() {
     const resource = this.state.updatedResource;
-    return resource.records.map((record, i) => {
-      return (
-        <EditableRecord
-          key={`${this.props.name}-${record.type}-${i}`}
-          name={this.props.name}
-          record={record}
-          onEdit={this.makeOnEdit(i)}
-          onRemove={() => this.onRemove(i)}
-        />
-      );
-    });
+    if (this.props.editable) {
+      return resource.records.map((record, i) => {
+        return (
+          <EditableRecord
+            key={`${this.props.name}-${record.type}-${i}`}
+            name={this.props.name}
+            record={record}
+            onEdit={this.makeOnEdit(i)}
+            onRemove={() => this.onRemove(i)}
+          />
+        );
+      });
+
+    } else {
+      const records = (this.props.resource && this.props.resource.records) || [];
+      return records.map((record, i) => {
+        return (
+          <Record
+            key={`${this.props.name}-${record.type}-${i}`}
+            name={this.props.name}
+            record={record}
+          />
+        );
+      });
+    }
   }
 
   renderCreateRecord() {
@@ -187,10 +204,18 @@ class Records extends Component {
 
   render() {
     const {
+      editable,
       pendingData,
       transferring,
       domain = {},
+      resource
     } = this.props;
+
+    if (!editable && (!resource || !resource.records.length)) {
+      return <div className="auction-panel__header__content">None</div>
+    }
+
+
     return (
       <div>
         <Table
@@ -200,8 +225,8 @@ class Records extends Component {
         >
           {Records.renderHeaders()}
           {this.renderRows()}
-          {!pendingData ? this.renderCreateRecord() : null}
-          {!pendingData ? this.renderActionRow() : null}
+          {(!pendingData && editable) ? this.renderCreateRecord() : null}
+          {(!pendingData && editable) ? this.renderActionRow() : null}
           {pendingData ? this.renderPendingUpdateOverlay() : null}
           {transferring || domain.pendingOperation === 'TRANSFER' ? this.renderTransferringOverlay() : null}
         </Table>
