@@ -121,8 +121,13 @@
 }
 
 .tree-update {
-  margin-top: 0.6rem;
-  font-size: .8rem;
+  overflow-y: visible;
+  white-space: nowrap;
+  position: absolute;
+  top: .4875rem;
+  right: .25rem;
+  padding: 0 .25rem;
+  font-size: .625rem;
   color: $manatee-gray;
 }
 

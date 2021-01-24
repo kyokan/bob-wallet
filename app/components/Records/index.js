@@ -39,18 +39,6 @@ class Records extends Component {
     return !deepEqual(this.props, nextProps) || !deepEqual(this.state, nextState);
   }
 
-  static renderHeaders() {
-    return (
-      <HeaderRow>
-        <HeaderItem>
-          <div>Type</div>
-        </HeaderItem>
-        <HeaderItem>Value</HeaderItem>
-        <HeaderItem />
-      </HeaderRow>
-    );
-  }
-
   constructor(props) {
     super(props);
     this.state = {
@@ -220,6 +208,22 @@ class Records extends Component {
     );
   }
 
+  renderHeaders() {
+    return (
+      <HeaderRow>
+        <HeaderItem>
+          <div>Type</div>
+        </HeaderItem>
+        <HeaderItem>
+          Value
+        </HeaderItem>
+        <HeaderItem>
+          {this.renderTreeUpdateInfo()}
+        </HeaderItem>
+      </HeaderRow>
+    );
+  }
+
   render() {
     const {
       editable,
@@ -236,13 +240,12 @@ class Records extends Component {
 
     return (
       <div>
-        {this.renderTreeUpdateInfo()}
         <Table
           className={cn('records-table', {
             'records-table--pending': pendingData,
           })}
         >
-          {Records.renderHeaders()}
+          {this.renderHeaders()}
           {this.renderRows()}
           {(!pendingData && editable) ? this.renderCreateRecord() : null}
           {(!pendingData && editable) ? this.renderActionRow() : null}
