@@ -1,5 +1,6 @@
 import { clientStub } from '../background/node/client';
 import { clientStub as connClientStub } from '../background/connections/client';
+import { clientStub as settingClientStub } from '../background/setting/client';
 import { getNetwork, setNetwork, getInitializationState } from '../db/system';
 import { fetchWallet, fetchTransactions, listWallets } from './walletActions';
 import { getWatching } from './watching';
@@ -18,6 +19,7 @@ import {
   START_RPC_TEST,
   END_NODE_STATUS_CHANGE,
   END_RPC_TEST,
+  SET_EXPLORER,
 } from './nodeReducer';
 import { VALID_NETWORKS } from '../constants/networks';
 import {ConnectionTypes} from "../background/connections/service";
@@ -26,6 +28,7 @@ const Network = require('hsd/lib/protocol/network');
 
 const nodeClient = clientStub(() => require('electron').ipcRenderer);
 const connClient = connClientStub(() => require('electron').ipcRenderer);
+const settingClient = settingClientStub(() => require('electron').ipcRenderer);
 
 let hasAppStarted = false;
 
@@ -198,4 +201,12 @@ export const changeCustomNetwork = (network) => async (dispatch) => {
       type: END_NETWORK_CHANGE,
     });
   }
+};
+
+export const setExplorer = (explorer) => async (dispatch) => {
+  await settingClient.setExplorer(explorer);
+  dispatch({
+    type: SET_EXPLORER,
+    payload: explorer,
+  })
 };

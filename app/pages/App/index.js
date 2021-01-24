@@ -33,9 +33,11 @@ import IdleModal from '../../components/IdleModal';
 import {LedgerModal} from "../../components/LedgerModal";
 import Notification from "../../components/Notification";
 import {clientStub as cClientStub} from "../../background/connections/client";
+import {clientStub as sClientStub} from "../../background/setting/client";
 import {ConnectionTypes} from "../../background/connections/service";
 import AppHeader from "../AppHeader";
 const connClient = cClientStub(() => require('electron').ipcRenderer);
+const settingClient = sClientStub(() => require('electron').ipcRenderer);
 
 @connect(
   (state) => ({
@@ -43,6 +45,7 @@ const connClient = cClientStub(() => require('electron').ipcRenderer);
   }),
   (dispatch) => ({
     listWallets: () => dispatch(listWallets()),
+    setExplorer: (explorer) => dispatch(nodeActions.setExplorer(explorer)),
   }),
 )
 class App extends Component {
@@ -75,6 +78,10 @@ class App extends Component {
       this.setState({ customRPCNetworkType: '' })
     }
 
+    this.fetchExplorer().then(explorer => {
+      this.props.setExplorer(explorer)
+    })
+
     setTimeout(() => this.setState({isLoading: false}), 1000);
   }
 
@@ -83,6 +90,15 @@ class App extends Component {
     this.setState({
       customRPCNetworkType: conn.networkType || 'main',
     });
+  }
+
+  async fetchExplorer() {
+    const explorer = await settingClient.getExplorer();
+    return explorer || {
+      label: 'HNS Network',
+      tx: 'https://hnsnetwork.com/txs/%s',
+      name: 'https://hnsnetwork.com/names/%s',
+    }
   }
 
   render() {

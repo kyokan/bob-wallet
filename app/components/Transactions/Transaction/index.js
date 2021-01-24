@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { withRouter } from 'react-router';
@@ -24,8 +25,15 @@ const TRANSFER = 'TRANSFER';
 const REVOKE = 'REVOKE';
 const FINALIZE = 'FINALIZE';
 
+@connect(
+  state => ({
+    explorer: state.node.explorer
+  })
+)
+
 class Transaction extends Component {
   static propTypes = {
+    explorer: PropTypes.object.isRequired,
     transaction: PropTypes.object.isRequired,
   };
 
@@ -153,7 +161,7 @@ class Transaction extends Component {
   );
 
   render() {
-    const {transaction} = this.props;
+    const {explorer, transaction} = this.props;
 
     return (
       <div className="transaction">
@@ -178,7 +186,7 @@ class Transaction extends Component {
   }
 
   onClickTitle = () => {
-    shell.openExternal(`https://hnscan.com/tx/${this.props.transaction.id}`);
+    shell.openExternal(this.props.explorer.tx.replace('%s', this.props.transaction.id));
   };
 };
 

@@ -35,6 +35,7 @@ const GAS_TO_ESTIMATES = {
     fees: state.node.fees,
     spendableBalance: state.wallet.balance.spendable,
     network: state.node.network,
+    explorer: state.node.explorer,
   }),
   dispatch => ({
     send: (to, amount, fee) => dispatch(walletActions.send(to, amount, fee)),
@@ -46,6 +47,7 @@ class SendModal extends Component {
     address: PropTypes.string.isRequired,
     spendableBalance: PropTypes.number.isRequired,
     network: PropTypes.string.isRequired,
+    explorer: PropTypes.object.isRequired,
   };
 
   constructor(props) {
@@ -378,8 +380,8 @@ class SendModal extends Component {
               amount,
             )} HNS to an external Handshake address.`}
           </div>
-          <div className="send__sent__details send__sent__details-first" onClick={this.viewOnHNScan}>
-            View on HNScan
+          <div className="send__sent__details send__sent__details-first" onClick={this.viewOnExplorer}>
+            View on Explorer
           </div>
           <div className="send__sent__details" onClick={() => this.resetState()}>Create New Transaction</div>
         </div>
@@ -401,8 +403,8 @@ class SendModal extends Component {
     return this.renderContent();
   }
 
-  viewOnHNScan = () => {
-    shell.openExternal(`https://hnscan.com/tx/${this.state.transactionHash}`);
+  viewOnExplorer = () => {
+    shell.openExternal(this.props.explorer.tx.replace('%s', this.state.transactionHash));
   };
 
   renderConfirmTime() {
