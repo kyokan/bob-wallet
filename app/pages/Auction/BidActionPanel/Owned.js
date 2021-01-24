@@ -19,6 +19,7 @@ class Owned extends Component {
     chain: PropTypes.object.isRequired,
     name: PropTypes.string.isRequired,
     sendRenewal: PropTypes.func.isRequired,
+    sendRegister: PropTypes.func.isRequired,
     showSuccess: PropTypes.func.isRequired,
     showError: PropTypes.func.isRequired,
     history: PropTypes.shape({
@@ -32,12 +33,19 @@ class Owned extends Component {
       .catch(e => this.props.showError(e.message))
   };
 
+  sendRegister = () => {
+    this.props.sendRegister()
+      .then(() => this.props.showSuccess('Your register request is submitted! Please wait around 15 minutes for it to be confirmed.'))
+      .catch(e => this.props.showError(e.message))
+  };
+
   render() {
     const { domain, history, name, chain } = this.props;
     const { info, bids = [] } = domain || {};
     const { highest, stats } = info || {};
     const { renewalPeriodStart, renewalPeriodEnd } = stats || {};
-    const isPending = domain.pendingOperation === 'RENEW';
+    const isPendingRenew = domain.pendingOperation === 'RENEW';
+    const isPendingRegister = domain.pendingOperation === 'REGISTER';
 
     return (
       <AuctionPanel>
@@ -56,13 +64,23 @@ class Owned extends Component {
           </AuctionPanelHeaderRow>
         </AuctionPanelHeader>
         <AuctionPanelFooter className="domains__action-panel__owned-actions">
-          <button
-            className="domains__action-panel__renew-domain-btn"
-            onClick={this.sendRenewal}
-            disabled={isPending || !chain || chain.height < renewalPeriodStart}
-          >
-            { isPending ? 'Renewing': 'Renew my domain' }
-          </button>
+          { info.registered ? 
+            <button
+              className="domains__action-panel__renew-domain-btn"
+              onClick={this.sendRenewal}
+              disabled={isPendingRenew || !chain || chain.height < renewalPeriodStart}
+            >
+              { isPendingRenew ? 'Renewing': 'Renew my domain' }
+            </button>
+            :
+            <button
+              className="domains__action-panel__renew-domain-btn"
+              onClick={this.sendRegister}
+              disabled={isPendingRegister}
+            >
+              { isPendingRegister ? 'Registering': 'Register my domain' }
+            </button>
+          }
           <button
             className="domains__action-panel__manage-domain-btn"
             onClick={() => history.push(`/domain_manager/${name}`)}
@@ -82,6 +100,7 @@ export default withRouter(
     }),
     (dispatch, { name }) => ({
       sendRenewal: () => dispatch(names.sendRenewal(name)),
+      sendRegister: () => dispatch(names.sendRegister(name)),
       showSuccess: (message) => dispatch(showSuccess(message)),
       showError: (message) => dispatch(showError(message)),
     })

@@ -99,6 +99,16 @@ class TransferDetails extends Component {
       );
     }
 
+    if (!info.registered) {
+      return (
+        <div className="transfer-details">
+          <p>
+            This domain can only be transferred after it is registered.
+          </p>
+        </div>
+      );
+    }
+
     if (domain.pendingOperation === 'TRANSFER') {
       return (
         <div className="transfer-details">

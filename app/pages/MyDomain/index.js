@@ -41,6 +41,15 @@ class MyDomain extends Component {
     analytics.screenView('My Domains');
   }
 
+  handleRegister = () => {
+    this.props.sendRegister(this.props.name)
+      .then(() => {
+        this.props.showSuccess('Your register request is submitted! Please wait around 15 minutes for it to be confirmed.');
+        analytics.track('registered domain');
+      })
+      .catch(e => this.props.showError(e.message));
+  };
+
   handleRenew = () => {
     this.props.sendRenewal(this.props.name)
       .then(() => {
@@ -50,7 +59,7 @@ class MyDomain extends Component {
       .catch(e => this.props.showError(e.message));
   };
 
-  renderRenewal() {
+  renderRegisterOrRenewal() {
     const {chain} = this.props;
     const domain = this.props.domain || {};
     const info = domain.info || {};
@@ -64,24 +73,48 @@ class MyDomain extends Component {
       return;
     }
 
-    if (domain.pendingOperation === 'RENEW') {
+    // If registered, show renew
+    if (info.registered) {
+      if (domain.pendingOperation === 'RENEW') {
+        return (
+          <div
+            className="my-domain__header__renewing-link"
+          >
+            Renewing...
+          </div>
+        );
+      }
+
       return (
         <div
-          className="my-domain__header__renewing-link"
+          className="my-domain__header__reveal-link"
+          onClick={this.handleRenew}
         >
-          Renewing...
+          Send Renewal
+        </div>
+      );
+
+    // Else, show register
+    } else {
+      if (domain.pendingOperation === 'REGISTER') {
+        return (
+          <div
+            className="my-domain__header__renewing-link"
+          >
+            Registering...
+          </div>
+        );
+      }
+
+      return (
+        <div
+          className="my-domain__header__reveal-link"
+          onClick={this.handleRegister}
+        >
+          Send Register
         </div>
       );
     }
-
-    return (
-      <div
-        className="my-domain__header__reveal-link"
-        onClick={this.handleRenew}
-      >
-        Send Renewal
-      </div>
-    );
   }
 
   render() {
@@ -109,7 +142,7 @@ class MyDomain extends Component {
           <div className="my-domain__header__expires-text">
             {this.renderExpireText()}
           </div>
-          {this.renderRenewal()}
+          {this.renderRegisterOrRenewal()}
         </div>
         <Collapsible className="my-domain__info-panel" title="Domain Details" defaultCollapsed>
           <DomainDetails name={name} />
@@ -121,7 +154,7 @@ class MyDomain extends Component {
             editable
           />
         </Collapsible>
-        <Collapsible className="my-domain__info-panel" title="Your Bids" defaultCollapsed>
+        <Collapsible className="my-domain__info-panel" title="Bids" defaultCollapsed>
           {
             this.props.domain
               ? (
@@ -164,6 +197,7 @@ export default withRouter(
     (dispatch, ownProps) => ({
       getNameInfo: () => dispatch(names.getNameInfo(ownProps.match.params.name)),
       sendRenewal: tld => dispatch(names.sendRenewal(tld)),
+      sendRegister: tld => dispatch(names.sendRegister(tld)),
       showSuccess: (message) => dispatch(showSuccess(message)),
       showError: (message) => dispatch(showError(message)),
       fetchPendingTransactions: () => dispatch(fetchPendingTransactions()),
