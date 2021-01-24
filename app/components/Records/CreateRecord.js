@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import { TableItem, TableRow } from '../../components/Table';
+import { TableItem, TableRow } from '../Table';
 import { deserializeRecord, validate } from '../../utils/recordHelpers';
 import { DROPDOWN_TYPES } from '../../ducks/names';
-import Dropdown from '../../components/Dropdown';
+import Dropdown from '../Dropdown';
 
 class CreateRecord extends Component {
   state = {

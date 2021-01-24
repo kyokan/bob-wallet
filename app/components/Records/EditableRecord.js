@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { TableItem, TableRow } from '../../components/Table';
+import { TableItem, TableRow } from '../Table';
 import { DROPDOWN_TYPES } from '../../ducks/names';
 import { deserializeRecord, serializeRecord, validate } from '../../utils/recordHelpers';
-import Dropdown from '../../components/Dropdown';
+import Dropdown from '../Dropdown';
 
 class EditableRecord extends Component {
   static propTypes = {
