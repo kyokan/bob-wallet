@@ -33,7 +33,7 @@
 
   &__row {
     @extend %row-nowrap;
-    height: 2.8rem;
+    min-height: 2.8rem;
     align-items: center;
     border: 1px solid darken($athens-gray, 5);
     border-top: none;
@@ -44,6 +44,9 @@
       font-size: .8rem;
       font-weight: 400;
       padding-left: 1rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     &__item:nth-of-type(1) {

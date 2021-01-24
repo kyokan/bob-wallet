@@ -12,6 +12,7 @@
     &__title {
       font-weight: 500;
       font-size: 2.5rem;
+      overflow-wrap: break-word;
 
       &__explorer-open-icon {
         background-image: url("../../assets/images/open-new-window.svg");
