@@ -53,7 +53,7 @@ export default class AuctionGraph extends Component {
       this.setState({ 
         currentStep: ISBIDDING, 
         openProgress: 100,
-        biddingProgress: (1 - (stats.bidPeriodEnd - this.props.chain.height) / (stats.bidPeriodEnd - stats.bidPeriodStart)) * 100,
+        biddingProgress: (1 - (stats.bidPeriodEnd - 1 - this.props.chain.height) / (stats.bidPeriodEnd - 1 - stats.bidPeriodStart)) * 100,
       }); 
     } else if (isReveal(domain)) {
       this.setState({ 
@@ -142,7 +142,7 @@ export default class AuctionGraph extends Component {
           <div className="auction-graph__column__headline">Reveal Period</div>
           <ProgressBar percentage={revealProgress}/>
           <div className="auction-graph__column__text__row">
-            { this.maybeRenderDateBlock(() => isBidding(domain), stats.bidPeriodEnd, stats.hoursUntilReveal) || this.maybeRenderDateBlock(() => isReveal(domain), stats.revealPeriodStart, stats.hoursUntilClose) || this.renderPlaceholder(REVEALING < currentStep)}
+            { this.maybeRenderDateBlock(() => isBidding(domain), stats.bidPeriodEnd, stats.hoursUntilReveal) || this.maybeRenderDateBlock(() => isReveal(domain), stats.revealPeriodStart || stats.bidPeriodEnd, stats.hoursUntilClose) || this.renderPlaceholder(REVEALING < currentStep)}
             { this.maybeRenderDateBlock(() => isReveal(domain), stats.revealPeriodEnd, stats.hoursUntilClose, true) || this.renderPlaceholder(REVEALING < currentStep, true)}
           </div>
         </div>
