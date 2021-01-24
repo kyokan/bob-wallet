@@ -25,6 +25,8 @@ class CreateRecord extends Component {
     const {value, currentTypeIndex} = this.state;
     const {label: type} = DROPDOWN_TYPES[currentTypeIndex];
 
+    if (this.props.disabled) return;
+
     let record;
     try {
       record = deserializeRecord({ type, value });
@@ -62,6 +64,7 @@ class CreateRecord extends Component {
           currentIndex={this.state.currentTypeIndex}
           onChange={i => this.setState({currentTypeIndex: i, errorMessage: ''})}
           items={DROPDOWN_TYPES}
+          disabled={this.props.disabled}
         />
       </TableItem>
     );
@@ -77,6 +80,7 @@ class CreateRecord extends Component {
             [name]: e.target.value,
             errorMessage: '',
           })}
+          disabled={this.props.disabled}
         />
       </TableItem>
     );
@@ -110,7 +114,7 @@ class CreateRecord extends Component {
   }
 
   renderCreateButton() {
-    return (
+    return !this.props.disabled && (
       <TableRow className="records-table__create-record">
         <button
           className="records-table__create-record__create-btn"

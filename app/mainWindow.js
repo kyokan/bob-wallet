@@ -54,3 +54,7 @@ export function getMainWindow() {
 export function dispatchToMainWindow(reduxAction) {
   mainWindow.webContents.send('ipcToRedux', reduxAction);
 }
+
+export function sendDeeplinkToMainWindow(url) {
+  mainWindow.webContents.send('deeplink', url);
+}

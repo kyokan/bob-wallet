@@ -16,9 +16,9 @@ import * as nameActions from '../../../ducks/names';
 import { showError, showSuccess } from '../../../ducks/notifications';
 import {displayBalance, toBaseUnits} from '../../../utils/balances';
 import * as logger from '../../../utils/logClient';
-import { clientStub as aClientStub } from '../../../background/analytics/client';
 import walletClient from '../../../utils/walletClient';
 import * as walletActions from '../../../ducks/walletActions';
+import { clientStub as aClientStub } from '../../../background/analytics/client';
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 

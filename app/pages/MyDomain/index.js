@@ -65,6 +65,8 @@ class MyDomain extends Component {
     const info = domain.info || {};
     const stats = info.stats || {};
 
+    if (!domain.isOwner) return;
+
     if (!stats.renewalPeriodStart) {
       return;
     }
@@ -119,7 +121,7 @@ class MyDomain extends Component {
 
   render() {
     const {name, history, domain = {}} = this.props;
-    
+
     const viewOnExplorer = () => {
       shell.openExternal(this.props.explorer.name.replace('%s', this.props.domain.name))
     }
@@ -166,9 +168,13 @@ class MyDomain extends Component {
               : 'Loading...'
           }
         </Collapsible>
-        <Collapsible className="my-domain__info-panel" title="Transfer" defaultCollapsed>
-          <TransferDetails name={name} />
-        </Collapsible>
+        {
+          domain.isOwner && (
+            <Collapsible className="my-domain__info-panel" title="Transfer" defaultCollapsed>
+              <TransferDetails name={name} />
+            </Collapsible>
+          )
+        }
       </div>
     );
   }

@@ -61,17 +61,27 @@ class Sold extends Component {
   }
 
   renderFooter() {
-    const { hasRedeemableReveals, domain } = this.props;
+    const { hasRedeemableReveals, domain, history, name } = this.props;
     const isPending = domain.pendingOperation === 'REDEEM';
 
-    return hasRedeemableReveals && (
+    return (
       <AuctionPanelFooter className="domains__action-panel__owned-actions">
+        {
+          hasRedeemableReveals && (
+            <button
+              className="domains__action-panel__redeem-btn"
+              onClick={this.sendRedeem}
+              disabled={isPending}
+            >
+              { isPending ? 'Redeeming' : 'Redeem my bid'}
+            </button>
+          )
+        }
         <button
-          className="domains__action-panel__redeem-btn"
-          onClick={this.sendRedeem}
-          disabled={isPending}
+          className="domains__action-panel__manage-domain-btn"
+          onClick={() => history.push(`/domain_manager/${name}`)}
         >
-          { isPending ? 'Redeeming' : 'Redeem my bid'}
+          View records
         </button>
       </AuctionPanelFooter>
     )
