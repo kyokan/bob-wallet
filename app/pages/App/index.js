@@ -95,9 +95,9 @@ class App extends Component {
   async fetchExplorer() {
     const explorer = await settingClient.getExplorer();
     return explorer || {
-      label: 'HNScan',
-      tx: 'https://hnscan.com/tx/%s',
-      name: 'https://hnscan.com/name/%s',
+      label: 'HNS Network',
+      tx: 'https://hnsnetwork.com/txs/%s',
+      name: 'https://hnsnetwork.com/names/%s',
     }
   }
 
