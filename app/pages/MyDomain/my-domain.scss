@@ -26,6 +26,22 @@
       font-size: 1.75rem;
       font-weight: 500;
       padding: 1.5rem 0;
+
+      &__explorer-open-icon {
+        background-image: url("../../assets/images/open-new-window.svg");
+        display: inline-block;
+        margin-left: 6px;
+        height: 13px * 1.2;
+        width: 14px * 1.2;
+        background-position: center;
+        background-size: cover;
+        transition: 0.2s ease-in-out;
+  
+        &:hover {
+          cursor: pointer;
+          opacity: 0.8;
+        }
+      }
     }
 
     &__expires-text {

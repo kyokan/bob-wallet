@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
+import { shell } from 'electron';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import cn from 'classnames';
@@ -39,6 +40,7 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
     return {
       domain: state.names[name],
       chain: state.node.chain,
+      explorer: state.node.explorer
     };
   },
   dispatch => ({
@@ -71,6 +73,7 @@ export default class Auction extends Component {
     fetchPendingTransactions: PropTypes.func.isRequired,
     domain: PropTypes.object,
     chain: PropTypes.object,
+    explorer: PropTypes.object.isRequired,
   };
 
   async componentWillMount() {
@@ -138,10 +141,19 @@ export default class Auction extends Component {
   renderContent() {
     const domainName = this.getDomain();
 
+    const viewOnExplorer = () => {
+      shell.openExternal(this.props.explorer.name.replace('%s', this.props.domain.name))
+    }
+
     return (
       <React.Fragment>
         <div className="domains__content">
-          <div className="domains__content__title">{formatName(domainName)}</div>
+          <div className="domains__content__title">
+            {formatName(domainName)}
+            <div
+              className="domains__content__title__explorer-open-icon"
+              onClick={viewOnExplorer} />
+          </div>
           <div className="domains__content__info-wrapper">
             <div className="domains__content__info-panel">
               {this.renderAuctionDetails()}
