@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
 import { HeaderItem, HeaderRow, Table, TableRow } from '../Table';
+import Blocktime from '../../components/Blocktime';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import connect from 'react-redux/es/connect/connect';
 import cn from 'classnames';
 import { Resource } from 'hsd/lib/dns/resource';
+import Network from 'hsd/lib/protocol/network';
 import CreateRecord from './CreateRecord';
 import Record from './Record';
 import EditableRecord from './EditableRecord';
@@ -35,18 +37,6 @@ class Records extends Component {
 
   shouldComponentUpdate(nextProps, nextState, nextContext) {
     return !deepEqual(this.props, nextProps) || !deepEqual(this.state, nextState);
-  }
-
-  static renderHeaders() {
-    return (
-      <HeaderRow>
-        <HeaderItem>
-          <div>Type</div>
-        </HeaderItem>
-        <HeaderItem>Value</HeaderItem>
-        <HeaderItem />
-      </HeaderRow>
-    );
   }
 
   constructor(props) {
@@ -202,6 +192,38 @@ class Records extends Component {
     );
   }
 
+  renderTreeUpdateInfo() {
+    const network = Network.get(this.props.network);
+    const nextTreeUpdateBlock = this.props.currentHeight + (network.names.treeInterval - this.props.currentHeight % network.names.treeInterval);
+
+    return (
+      <div className="tree-update">
+        Next tree update: Block {nextTreeUpdateBlock} (
+          <Blocktime
+            height={nextTreeUpdateBlock}
+            fromNow={true}
+          />
+        )
+      </div>
+    );
+  }
+
+  renderHeaders() {
+    return (
+      <HeaderRow>
+        <HeaderItem>
+          <div>Type</div>
+        </HeaderItem>
+        <HeaderItem>
+          Value
+        </HeaderItem>
+        <HeaderItem>
+          {this.renderTreeUpdateInfo()}
+        </HeaderItem>
+      </HeaderRow>
+    );
+  }
+
   render() {
     const {
       editable,
@@ -223,7 +245,7 @@ class Records extends Component {
             'records-table--pending': pendingData,
           })}
         >
-          {Records.renderHeaders()}
+          {this.renderHeaders()}
           {this.renderRows()}
           {(!pendingData && editable) ? this.renderCreateRecord() : null}
           {(!pendingData && editable) ? this.renderActionRow() : null}
@@ -245,6 +267,8 @@ export default withRouter(
         domain,
         resource,
         pendingData: getPendingData(domain),
+        currentHeight: state.node.chain.height,
+        network: state.node.network,
       };
     },
     dispatch => ({
