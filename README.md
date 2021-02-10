@@ -3,8 +3,8 @@
 # Bob Wallet: A Handshake Wallet and Full Node
 
 Bob Wallet is a [Handshake](https://handshake.org) wallet with an integrated full node.
-This is beta software.
-(As with all wallet GUIs, please use with care, and at your own risk.)
+
+**Status**: This is beta software. As with all wallet GUIs, please use with care, and at your own risk.
 
 ## How to Install Bob Wallet
 
@@ -13,8 +13,9 @@ Most users should use the prebuilt binaries in this repo's [releases](https://gi
 ![Screen Shot 2020-02-22 at 11 08 18 AM](https://user-images.githubusercontent.com/8230144/75097836-06f48480-5564-11ea-85db-64251184e7bf.png)
 
 Note: this screenshot is unlikely to age well but the filetypes are highlighted so you know what to install. It says 0.2.6 here but you should always look for the latest version.
-.dmg - mac
-.msi - windows
+
+* OSX: .dmg
+* Windows: .msi
 
 ### Linux
 
@@ -25,19 +26,19 @@ git clone https://github.com/kyokan/bob-wallet
 cd bob-wallet; npm install
 ```
 
-Optionaly, Test it works before building
+Optionally, test it works before building:
 
 ```bash
 npm run dev
 ```
 
-Latsly build the app package
+Lastly, build the app package:
 
 ```bash
 npm run package-linux
 ``` 
 
-The output app will be created in `/release` folder. Open `Bob-x.x.x.AppImage` to start the wallet.
+The output app will be created in the `/release` folder. Open `Bob-x.x.x.AppImage` to start the wallet.
 
 
 ## Features
@@ -58,7 +59,7 @@ Bob supports all of the following features:
 
 Contributions are most welcome.  Some contributor activity occurs on [Telegram/bobwallet](https://t.me/bobwallet).
 
-Inquires to integrate with hardware wallets, ecosystem DNS/website infrastructure, and offers to collaborate with other Handshake-aligned projects are also most welcome.  Please make inquiries via Telegram, to `[at]sdtsui`.
+Inquiries to integrate with hardware wallets, ecosystem DNS/website infrastructure, and offers to collaborate with other Handshake-aligned projects are also most welcome. Please make inquiries via Telegram, to `[at]sdtsui`.
 
 If you are an individual developer looking to add a feature, fix a bug, or create new documentation -- please feel free to reach out, even if just to say hello.  We are also exploring incentivization mechanisms, potentially ramping up from small bounties to ecosystem-funded full-time developers.
 
@@ -74,8 +75,12 @@ Please see this [guide](https://gist.github.com/pinheadmz/314aed5123d29cb89bfc6a
 
 ### Non-Security Issues
 
-Please report issues on Github issues on this repo. Please file bugs with the provided template.
+Please report issues using Github issues on this repo. Please file bugs with the provided template.
 
 ### Security Issues
 
 Please don't report security issues on GitHub. Instead, send an e-mail to dtsui [at] kyokan [dot] io (`4096R/395CD3B2`) describing your issue.
+
+## License
+
+[GNU](LICENSE)
