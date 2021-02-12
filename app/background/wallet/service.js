@@ -185,6 +185,41 @@ class WalletService {
     return res;
   };
 
+  updateAccountDepths = async (changeDepth, receiveDepth) => {
+    if (!this.name) return null;
+
+    await this._ensureClient();
+    const wallet = await this.node.wdb.get(this.name);
+
+    if (!wallet) return null;
+
+    const account = await wallet.getAccount('default');
+    const initChange = 0;
+    const initReceive = 0;
+    const b = this.node.wdb.db.batch();
+
+    // account.changeDepth = changeDepth;
+    // account.receiveDepth = receiveDepth;
+    // await account.save(b);
+
+
+    if (changeDepth) {
+      for (let i = initChange; i < changeDepth; i++) {
+        const key = account.deriveChange(i);
+        await account.saveKey(b, key);
+      }
+    }
+
+    if (receiveDepth) {
+      for (let j = initReceive; j < receiveDepth; j++) {
+        const key = account.deriveReceive(j);
+        await account.saveKey(b, key);
+      }
+    }
+
+    await b.write();
+  };
+
   rescan = async (height = 0) => {
     await this._ensureClient();
     const wdb = this.node.wdb;
@@ -218,7 +253,7 @@ class WalletService {
       payload: uniq([...wids, name]),
     });
 
-    this.rescan(0);
+    // this.rescan(0);
     return res;
   };
 
@@ -848,6 +883,7 @@ const methods = {
   estimateTxFee: service.estimateTxFee,
   estimateMaxSend: service.estimateMaxSend,
   removeWalletById: service.removeWalletById,
+  updateAccountDepths: service.updateAccountDepths,
   rescan: service.rescan,
   reset: service.reset,
   sendOpen: service.sendOpen,

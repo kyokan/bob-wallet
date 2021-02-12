@@ -34,6 +34,8 @@ export const setWallet = opts => {
     type = NONE,
     balance = {},
     apiKey = '',
+    changeDepth,
+    receiveDepth,
   } = opts;
 
   return {
@@ -45,6 +47,8 @@ export const setWallet = opts => {
       type,
       balance,
       apiKey,
+      changeDepth,
+      receiveDepth,
     },
   };
 };
@@ -93,6 +97,12 @@ export const fetchWallet = () => async (dispatch, getState) => {
 
   const apiKey = await walletClient.getAPIKey();
 
+
+  const {
+    changeDepth = 0,
+    receiveDepth = 0,
+  } = accountInfo || {};
+
   dispatch(setWallet({
     wid: accountInfo ? accountInfo.wid : '',
     initialized: isInitialized,
@@ -102,8 +112,14 @@ export const fetchWallet = () => async (dispatch, getState) => {
       ...getInitialState().balance,
     },
     apiKey,
+    changeDepth,
+    receiveDepth,
   }));
 };
+
+export const setAccountDepths = (changeDepth = 0, receiveDepth = 0) => async () => {
+  return walletClient.updateAccountDepths(changeDepth, receiveDepth);
+}
 
 export const hasAddress = (address) => async () => {
   return walletClient.hasAddress(address);

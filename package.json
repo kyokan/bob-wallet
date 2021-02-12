@@ -147,7 +147,7 @@
     "electron-updater": "4.1.2",
     "history": "4.7.2",
     "hs-client": "https://github.com/handshake-org/hs-client.git",
-    "hsd": "https://github.com/kyokan/hsd/tarball/1e1292d",
+    "hsd": "https://github.com/handshake-org/hsd/tarball/a94ce87",
     "isomorphic-fetch": "^2.2.1",
     "lodash.isequal": "4.5.0",
     "lodash.throttle": "4.1.1",

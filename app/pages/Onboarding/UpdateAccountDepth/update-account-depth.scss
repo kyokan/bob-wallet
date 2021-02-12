@@ -1,0 +1,62 @@
+@import '../../../variables';
+
+.update-account-depth {
+  @extend %col-nowrap;
+  height: 100%;
+  width: 400px;
+
+  &__header_text {
+    @extend %row-nowrap;
+    padding: 1.125rem 1.625rem 0.5rem;
+  }
+
+
+  &__input {
+    @extend %box-input;
+    width: calc(100% - 48px);
+    box-sizing: border-box;
+    margin: 12px 24px;
+    border: none;
+
+    input {
+      width: 100%;
+    }
+
+    &--error {
+      box-shadow: 0 0 0 1.25px rgba($orange-red, 0.5);
+    }
+  }
+
+  &__button {
+    width: 100%;
+    height: 2.375rem;
+    margin-bottom: 0.5rem;
+    padding: 0 1rem;
+    color: #a2a2a6;
+    border-radius: 8px;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    line-height: 0.8rem;
+    cursor: pointer;
+    outline: 0;
+    border: 1px solid $grey;
+    box-shadow: 0 0 0 0.5px $grey;
+    transition: 200ms ease-in-out;
+  }
+}
+
+.update-account-depth_subheader {
+  color: $manatee-gray;
+  padding: 1.125rem 1.625rem 0.5rem;
+}
+
+.update-account-depth_cta {
+  width: calc(100% - 48px) !important;
+  height: 50px;
+  font-size: 18px;
+  font-weight: 500;
+  margin: 12px 24px;
+}
