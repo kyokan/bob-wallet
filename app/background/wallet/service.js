@@ -185,7 +185,7 @@ class WalletService {
     return res;
   };
 
-  updateAccountDepths = async (changeDepth, receiveDepth) => {
+  updateAccountDepth = async (changeDepth, receiveDepth) => {
     if (!this.name) return null;
 
     await this._ensureClient();
@@ -197,7 +197,7 @@ class WalletService {
     const initChange = 0;
     const initReceive = 0;
     const b = this.node.wdb.db.batch();
-    
+
     if (changeDepth) {
       for (let i = initChange; i < changeDepth; i++) {
         const key = account.deriveChange(i);
@@ -877,7 +877,7 @@ const methods = {
   estimateTxFee: service.estimateTxFee,
   estimateMaxSend: service.estimateMaxSend,
   removeWalletById: service.removeWalletById,
-  updateAccountDepths: service.updateAccountDepths,
+  updateAccountDepth: service.updateAccountDepth,
   rescan: service.rescan,
   reset: service.reset,
   sendOpen: service.sendOpen,
