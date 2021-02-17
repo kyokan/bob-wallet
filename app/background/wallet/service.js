@@ -4,7 +4,6 @@ import path from 'path';
 import { app } from 'electron';
 import rimraf from 'rimraf';
 import crypto from 'crypto';
-import { Amount } from 'hsd/lib/ui';
 import { ConnectionTypes, getConnection } from '../connections/service';
 import { dispatchToMainWindow } from '../../mainWindow';
 import { NETWORKS } from '../../constants/networks';
@@ -631,6 +630,9 @@ class WalletService {
         ? HSD_DATA_DIR
         : path.join(HSD_DATA_DIR, networkName),
       migrate: 0,
+      logFile: true,
+      logConsole: false,
+      logLevel: 'debug',
     });
 
     if (this.closeP) await this.closeP;
