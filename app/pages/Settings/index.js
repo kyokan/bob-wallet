@@ -35,6 +35,8 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
     walletApiKey: state.wallet.apiKey,
     walletSync: state.wallet.walletSync,
     wid: state.wallet.wid,
+    changeDepth: state.wallet.changeDepth,
+    receiveDepth: state.wallet.receiveDepth,
     isRunning: state.node.isRunning,
     isChangingNodeStatus: state.node.isChangingNodeStatus,
     isTestingCustomRPC: state.node.isTestingCustomRPC,
@@ -183,7 +185,6 @@ export default class Settings extends Component {
           'Logout',
           lockWallet,
         )}
-
         {this.renderSection(
           'Rescan Wallet',
           <div>

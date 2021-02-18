@@ -35,6 +35,8 @@ export function getInitialState() {
       lockedConfirmed: 0,
       lockedUnconfirmed: 0,
     },
+    changeDepth: 0,
+    receiveDepth: 0,
     transactions: new Map(),
     idle: 0,
     walletSync: false,
@@ -63,6 +65,8 @@ export default function walletReducer(state = getInitialState(), {type, payload}
           lockedConfirmed: payload.balance.lockedConfirmed,
           spendable: payload.balance.unconfirmed - payload.balance.lockedUnconfirmed,
         },
+        changeDepth: payload.changeDepth,
+        receiveDepth: payload.receiveDepth,
         initialized: typeof payload.initialized === 'undefined' ? state.initialized : payload.initialized,
         apiKey: payload.apiKey,
       };
