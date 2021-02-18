@@ -134,7 +134,7 @@ class ImportSeedFlow extends Component {
           <OptInAnalytics
             currentStep={5}
             totalSteps={5}
-            onBack={() => this.setState({currentStep: ENTRY_STEP})}
+            onBack={() => this.goTo(UPDATE_ACCOUNT_DEPTH)}
             onNext={async (optInState) => {
               await analytics.setOptIn(optInState);
               await this.finishFlow(this.state.mnemonic);

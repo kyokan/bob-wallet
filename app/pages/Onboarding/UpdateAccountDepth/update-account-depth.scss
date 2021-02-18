@@ -10,6 +10,21 @@
     padding: 1.125rem 1.625rem 0.5rem;
   }
 
+  &__error {
+    color: $orange-red;
+    font-size: 0.75rem;
+    margin: 0 24px;
+
+    &:empty {
+      margin: 0;
+    }
+  }
+
+  &__content {
+    display: flex;
+    flex-flow: column nowrap;
+    flex: 1 1 auto;
+  }
 
   &__input {
     @extend %box-input;
@@ -25,6 +40,12 @@
     &--error {
       box-shadow: 0 0 0 1.25px rgba($orange-red, 0.5);
     }
+  }
+
+  &__footer {
+    @extend %col-nowrap;
+    flex: 1 1 auto;
+    justify-content: flex-end;
   }
 
   &__button {
@@ -48,15 +69,26 @@
   }
 }
 
-.update-account-depth_subheader {
+.update-account-depth__subheader {
   color: $manatee-gray;
   padding: 1.125rem 1.625rem 0.5rem;
 }
 
-.update-account-depth_cta {
+
+.update-account-depth__cta {
   width: calc(100% - 48px) !important;
   height: 50px;
   font-size: 18px;
   font-weight: 500;
-  margin: 12px 24px;
+  margin: 12px 24px 24px;
+}
+
+.update-account-depth__secondary-cta {
+  background-color: transparent !important;
+  color: #2480fd !important;
+  width: calc(100% - 48px) !important;
+  height: 50px;
+  font-size: 18px;
+  font-weight: 500;
+  margin: 12px 24px 0;
 }
