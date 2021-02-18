@@ -117,7 +117,7 @@ export const fetchWallet = () => async (dispatch, getState) => {
   }));
 };
 
-export const setAccountDepths = (changeDepth = 0, receiveDepth = 0) => async () => {
+export const setAccountDepth = (changeDepth = 0, receiveDepth = 0) => async () => {
   return walletClient.updateAccountDepth(changeDepth, receiveDepth);
 }
 
