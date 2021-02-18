@@ -198,6 +198,10 @@ class WalletService {
     const initReceive = 0;
     const b = this.node.wdb.db.batch();
 
+    account.changeDepth = changeDepth;
+    account.receiveDepth = receiveDepth;
+    await account.save(b);
+
     if (changeDepth) {
       for (let i = initChange; i < changeDepth; i++) {
         const key = account.deriveChange(i);

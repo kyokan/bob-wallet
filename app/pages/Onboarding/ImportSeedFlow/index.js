@@ -158,6 +158,7 @@ class ImportSeedFlow extends Component {
     try {
       await walletClient.importSeed(this.state.name, this.state.passphrase, mnemonic);
       if (accountDepth > 200) {
+
         await walletClient.updateAccountDepth(accountDepth, accountDepth);
       }
       walletClient.rescan(0);
