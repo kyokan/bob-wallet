@@ -265,6 +265,8 @@
     }
 
     &__record-type-dropdown {
+      overflow: visible;
+      
       .dropdown {
         align-self: center;
 
