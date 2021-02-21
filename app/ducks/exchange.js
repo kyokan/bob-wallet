@@ -105,9 +105,11 @@ export const getExchangeAuctions = (page = 1) => async (dispatch, getState) => {
   for (const listing of listings) {
     let transferTx;
     let finalizeTx;
+    let finalizeCoin;
     try {
       transferTx = await nodeClient.getTx(listing.nameLock.transferTxHash);
       finalizeTx = listing.finalizeLock ? await nodeClient.getTx(listing.finalizeLock.finalizeTxHash) : null;
+      finalizeCoin = listing.finalizeLock ? await nodeClient.getCoin(listing.finalizeLock.finalizeTxHash, listing.finalizeLock.finalizeOutputIdx) : null;
     } catch (e) {
       listing.status = 'NOT_FOUND';
       continue;
@@ -133,7 +135,11 @@ export const getExchangeAuctions = (page = 1) => async (dispatch, getState) => {
       continue;
     }
 
-    listing.status = 'ACTIVE';
+    if (finalizeCoin) {
+      listing.status = 'ACTIVE';
+    }
+
+    listing.status = 'SOLD';
   }
 
   dispatch({

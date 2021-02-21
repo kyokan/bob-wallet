@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { clientStub as aClientStub } from '../../background/analytics/client.js';
+import { clientStub as sClientStub } from '../../background/shakedex/client.js';
 import { HeaderItem, HeaderRow, Table, TableItem, TableRow } from '../../components/Table';
 import { connect } from 'react-redux';
 import {
@@ -13,8 +14,10 @@ import moment from 'moment';
 import PlaceBidModal from './PlaceBidModal.js';
 import './exchange.scss';
 import PlaceListingModal from './PlaceListingModal.js';
+import * as logger from '../../utils/logClient.js';
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
+const shakedex = sClientStub(() => require('electron').ipcRenderer);
 
 class Exchange extends Component {
   constructor(props) {
@@ -29,6 +32,25 @@ class Exchange extends Component {
     analytics.screenView('Exchange');
     this.props.getExchangeAuctions();
   }
+
+  onClickDownload = async (auction) => {
+    try {
+      const content = (await shakedex.downloadProofs(auction)).data;
+      const data = `data:text/plain;charset=utf-8,${content}\r\n`;
+      const encodedUri = encodeURI(data);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `${auction.name}.txt`);
+      document.body.appendChild(link); // Required for FF
+      link.click();
+      link.remove();
+    } catch (e) {
+      logger.error(e.message);
+      setTimeout(() => {
+        throw e;
+      }, 0);
+    }
+  };
 
   render() {
     if (this.props.isLoading) {
@@ -54,7 +76,6 @@ class Exchange extends Component {
             <HeaderItem>Status</HeaderItem>
             <HeaderItem>Start Bid</HeaderItem>
             <HeaderItem>End Bid</HeaderItem>
-            <HeaderItem>Time Remaining</HeaderItem>
             <HeaderItem />
           </HeaderRow>
           {!this.props.listings.length && (
@@ -70,7 +91,6 @@ class Exchange extends Component {
               <TableItem>{l.status}</TableItem>
               <TableItem>{displayBalance(l.params.startPrice, true)}</TableItem>
               <TableItem>{displayBalance(l.params.endPrice, true)}</TableItem>
-              <TableItem>Foo</TableItem>
               <TableItem>
                 {l.status === 'TRANSFER_CONFIRMED' && (
                   <div
@@ -93,13 +113,13 @@ class Exchange extends Component {
           ))}
         </Table>
 
-        <h2>Your Bids</h2>
+        <h2>Your Fills</h2>
         <Table className="exchange-table">
           <HeaderRow>
             <HeaderItem>Name</HeaderItem>
             <HeaderItem>Status</HeaderItem>
             <HeaderItem>Amount</HeaderItem>
-            <HeaderItem>Bid Placed At</HeaderItem>
+            <HeaderItem>Fill Placed At</HeaderItem>
             <HeaderItem />
           </HeaderRow>
 
@@ -177,14 +197,22 @@ class Exchange extends Component {
         <TableItem>{displayBalance(auction.bids[0].price, true)}</TableItem>
         <TableItem>{this.renderNextBid(auction)}</TableItem>
         <TableItem>
-          <div
-            className="bid-action__link"
-            onClick={() => this.setState({
-              placingAuction: auction,
-              placingCurrentBid: currentBid,
-            })}
-          >
-            Place Bid
+          <div className="exchange__auction-row-buttons">
+            <div
+              className="bid-action__link"
+              onClick={() => this.setState({
+                placingAuction: auction,
+                placingCurrentBid: currentBid,
+              })}
+            >
+              Fill
+            </div>
+            <div
+              className="bid-action__link"
+              onClick={() => this.onClickDownload(auction)}
+            >
+              Download Proofs
+            </div>
           </div>
         </TableItem>
       </TableRow>

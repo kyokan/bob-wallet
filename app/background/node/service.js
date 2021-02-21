@@ -8,10 +8,10 @@ import tcpPortUsed from 'tcp-port-used';
 import EventEmitter from 'events';
 import { NodeClient } from 'hs-client';
 import { BigNumber } from 'bignumber.js';
-import {ConnectionTypes, getConnection, getCustomRPC} from '../connections/service';
+import { ConnectionTypes, getConnection, getCustomRPC } from '../connections/service';
 import FullNode from 'hsd/lib/node/fullnode';
-import {prefixHash} from "../../db/names";
-import {get, put} from "../db/service";
+import { prefixHash } from '../../db/names';
+import { get, put } from '../db/service';
 
 const Network = require('hsd/lib/protocol/network');
 
@@ -266,10 +266,10 @@ export class NodeService extends EventEmitter {
   }
 
   async getCoin(hash, index) {
-    return this.client.getCoin(hash, index)
+    return this.client.getCoin(hash, index);
   }
 
-  async getRawMempool(verbose=false) {
+  async getRawMempool(verbose = false) {
     return this._execRPC('getrawmempool', [verbose ? 1 : 0]);
   }
 
@@ -348,6 +348,7 @@ const methods = {
   sendRawAirdrop: (data) => service.sendRawAirdrop(data),
   getFees: () => service.getFees(),
   getAverageBlockTime: () => service.getAverageBlockTime(),
+  getCoin: (hash, index) => service.getCoin(hash, index),
 };
 
 export async function start(server) {

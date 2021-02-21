@@ -1,5 +1,5 @@
 import { Context } from 'shakedex/src/context.js';
-import { SwapProof } from 'shakedex/src/swapProof.js';
+import { SwapProof, writeProofStream } from 'shakedex/src/swapProof.js';
 import { service as nodeService } from '../node/service';
 import { service as walletService } from '../wallet/service';
 import {
@@ -12,6 +12,7 @@ import { put, iteratePrefix, get } from '../db/service.js';
 import { SwapFulfillment } from 'shakedex/src/swapFulfillment.js';
 import { Auction, linearReductionStrategy } from 'shakedex/src/auction.js';
 import { NameLockFinalize } from 'shakedex/src/nameLock.js';
+import stream from 'stream';
 
 export async function fulfillSwap(auction, bid) {
   const context = getContext();
@@ -155,6 +156,34 @@ export async function launchAuction(nameLock) {
   return proposals.map(p => p.toJSON(context));
 }
 
+async function downloadProofs(auction) {
+  const context = getContext();
+  const proofs = [];
+  for (const bid of auction.bids) {
+    proofs.push(new SwapProof({
+      lockingTxHash: auction.lockingTxHash,
+      lockingOutputIdx: auction.lockingOutputIdx,
+      name: auction.name,
+      publicKey: auction.publicKey,
+      paymentAddr: auction.paymentAddr,
+      price: bid.price,
+      lockTime: bid.lockTime / 1000,
+      signature: bid.signature,
+    }));
+  }
+  const data = [];
+  const writable = new stream.Writable({
+    write: function (chunk, encoding, next) {
+      data.push(chunk);
+      next();
+    },
+  });
+  await writeProofStream(writable, proofs, context);
+  return {
+    data: data.join(''),
+  };
+}
+
 function getContext() {
   const walletId = walletService.name;
   const {apiKey, networkName} = nodeService;
@@ -176,6 +205,7 @@ const methods = {
   finalizeLock,
   getListings,
   launchAuction,
+  downloadProofs,
 };
 
 export async function start(server) {
