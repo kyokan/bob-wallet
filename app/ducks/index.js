@@ -9,6 +9,7 @@ import bids from './bids';
 import watching from './watching';
 import ledger from './ledger';
 import app from './app';
+import exchange from './exchange.js';
 
 export default function createRootReducer(history) {
   const root = combineReducers({
@@ -22,6 +23,7 @@ export default function createRootReducer(history) {
     watching,
     ledger,
     app,
+    exchange,
   });
 
   return (state, action) => {

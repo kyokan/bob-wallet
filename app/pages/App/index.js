@@ -36,6 +36,7 @@ import {clientStub as cClientStub} from "../../background/connections/client";
 import {clientStub as sClientStub} from "../../background/setting/client";
 import {ConnectionTypes} from "../../background/connections/service";
 import AppHeader from "../AppHeader";
+import Exchange from '../Exchange';
 const connClient = cClientStub(() => require('electron').ipcRenderer);
 const settingClient = sClientStub(() => require('electron').ipcRenderer);
 
@@ -217,6 +218,12 @@ class App extends Component {
             wallets={this.props.wallets}
             path="/domain/:name?"
             render={this.routeRenderer('Browse Domains', Auction, false)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/exchange"
+            render={this.routeRenderer('Exchange', Exchange, true)}
           />
           <Redirect to="/login" />
         </Switch>

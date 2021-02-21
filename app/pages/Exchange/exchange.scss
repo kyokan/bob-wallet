@@ -1,0 +1,45 @@
+@import '../../variables';
+
+.exchange {
+  h2 {
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 1rem 0;
+  }
+}
+
+.place-bid-modal__table {
+  margin-left: -3px;
+
+  td {
+    padding-right: .5rem;
+  }
+}
+
+.place-bid-modal__buttons {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+
+  button {
+    width: 50%;
+  }
+}
+
+.place-bid-modal__cancel {
+  @extend %btn-primary;
+  background-color: #cecece;
+  border-color: #cecece;
+  color: #333;
+  margin-right: 0.2rem;
+
+  &:hover {
+    background-color: #aaa;
+    border-color: #aaa;
+  }
+}
+
+.place-bid-modal__send {
+  @extend %btn-primary;
+  margin-left: 0.2rem;
+}

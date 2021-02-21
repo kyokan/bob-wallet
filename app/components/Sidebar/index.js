@@ -123,6 +123,13 @@ class Sidebar extends Component {
           >
             Watching
           </NavLink>
+          <NavLink
+            className="sidebar__action"
+            to="/exchange"
+            activeClassName="sidebar__action--selected"
+          >
+            Exchange
+          </NavLink>
         </div>
       </React.Fragment>
     );
