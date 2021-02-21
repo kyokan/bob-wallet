@@ -2,12 +2,17 @@ import React, { Component } from 'react';
 import { clientStub as aClientStub } from '../../background/analytics/client.js';
 import { HeaderItem, HeaderRow, Table, TableItem, TableRow } from '../../components/Table';
 import { connect } from 'react-redux';
-import { getExchangeAuctions, finalizeExchangeBid } from '../../ducks/exchange.js';
+import {
+  getExchangeAuctions,
+  finalizeExchangeBid,
+  finalizeExchangeLock,
+  launchExchangeAuction,
+} from '../../ducks/exchange.js';
 import { displayBalance } from '../../utils/balances.js';
 import moment from 'moment';
 import PlaceBidModal from './PlaceBidModal.js';
 import './exchange.scss';
-
+import PlaceListingModal from './PlaceListingModal.js';
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -16,6 +21,7 @@ class Exchange extends Component {
     super(props);
     this.state = {
       placingAuction: null,
+      isPlacingListing: false,
     };
   }
 
@@ -31,6 +37,62 @@ class Exchange extends Component {
 
     return (
       <div className="exchange">
+        <div className="exchange__button-header">
+          <h2>Your Listings</h2>
+          <button
+            className="exchange__button-header-button extension_cta_button"
+            onClick={() => this.setState({
+              isPlacingListing: true,
+            })}
+          >
+            Place Listing
+          </button>
+        </div>
+        <Table className="exchange-table">
+          <HeaderRow>
+            <HeaderItem>Name</HeaderItem>
+            <HeaderItem>Status</HeaderItem>
+            <HeaderItem>Start Bid</HeaderItem>
+            <HeaderItem>End Bid</HeaderItem>
+            <HeaderItem>Time Remaining</HeaderItem>
+            <HeaderItem />
+          </HeaderRow>
+          {!this.props.listings.length && (
+            <TableRow>
+              <TableItem>
+                No listings found.
+              </TableItem>
+            </TableRow>
+          )}
+          {!!this.props.listings.length && this.props.listings.map(l => (
+            <TableRow key={l.nameLock.name}>
+              <TableItem>{l.nameLock.name}</TableItem>
+              <TableItem>{l.status}</TableItem>
+              <TableItem>{displayBalance(l.params.startPrice, true)}</TableItem>
+              <TableItem>{displayBalance(l.params.endPrice, true)}</TableItem>
+              <TableItem>Foo</TableItem>
+              <TableItem>
+                {l.status === 'TRANSFER_CONFIRMED' && (
+                  <div
+                    className="bid-action__link"
+                    onClick={() => this.props.finalizeExchangeLock(l.nameLock)}
+                  >
+                    {this.props.finalizingName === l.nameLock.name ? 'Finalizing...' : 'Finalize Lockup'}
+                  </div>
+                )}
+                {l.status === 'FINALIZE_CONFIRMED' && (
+                  <div
+                    className="bid-action__link"
+                    onClick={() => this.props.launchExchangeAuction(l.nameLock)}
+                  >
+                    Launch Auction
+                  </div>
+                )}
+              </TableItem>
+            </TableRow>
+          ))}
+        </Table>
+
         <h2>Your Bids</h2>
         <Table className="exchange-table">
           <HeaderRow>
@@ -41,7 +103,7 @@ class Exchange extends Component {
             <HeaderItem />
           </HeaderRow>
 
-          {this.props.fulfillments.length && this.props.fulfillments.map(f => (
+          {!!this.props.fulfillments.length && this.props.fulfillments.map(f => (
             <TableRow>
               <TableItem>{f.fulfillment.name}</TableItem>
               <TableItem>{f.status}</TableItem>
@@ -59,17 +121,24 @@ class Exchange extends Component {
               </TableItem>
             </TableRow>
           ))}
+          {!this.props.fulfillments.length && (
+            <TableRow>
+              <TableItem>No fills found.</TableItem>
+            </TableRow>
+          )}
         </Table>
 
         <h2>Live Auctions</h2>
         <Table className="exchange-table">
           <Header />
-          {this.props.auctions.length && this.props.auctions.map(this.renderAuctionRow)}
+          {!!this.props.auctions.length && this.props.auctions.map(this.renderAuctionRow)}
 
           {!this.props.auctions.length && (
-            <div>
-              No auctions found.
-            </div>
+            <TableRow>
+              <TableItem>
+                No auctions found.
+              </TableItem>
+            </TableRow>
           )}
           {this.props.isError && (
             <div>
@@ -87,6 +156,13 @@ class Exchange extends Component {
             })}
           />
         )}
+        {this.state.isPlacingListing && (
+          <PlaceListingModal
+            onClose={() => this.setState({
+              isPlacingListing: false,
+            })}
+          />
+        )}
       </div>
     );
   }
@@ -95,7 +171,7 @@ class Exchange extends Component {
     const currentBid = this.getCurrentBid(auction);
 
     return (
-      <TableRow>
+      <TableRow key={auction.id}>
         <TableItem>{auction.name}</TableItem>
         <TableItem>{displayBalance(currentBid.price, true)}</TableItem>
         <TableItem>{displayBalance(auction.bids[0].price, true)}</TableItem>
@@ -163,10 +239,13 @@ export default connect(
   (state) => ({
     auctions: state.exchange.auctionIds.map(id => state.exchange.auctions[id]),
     fulfillments: state.exchange.fulfillments,
+    listings: state.exchange.listings,
     finalizingName: state.exchange.finalizingName,
   }),
   (dispatch) => ({
     getExchangeAuctions: (page) => dispatch(getExchangeAuctions(page)),
     finalizeExchangeBid: (fulfillment) => dispatch(finalizeExchangeBid(fulfillment)),
+    finalizeExchangeLock: (nameLock) => dispatch(finalizeExchangeLock(nameLock)),
+    launchExchangeAuction: (nameLock) => dispatch(launchExchangeAuction(nameLock)),
   }),
 )(Exchange);

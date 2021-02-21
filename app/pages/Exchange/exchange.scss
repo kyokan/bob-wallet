@@ -8,6 +8,27 @@
   }
 }
 
+.exchange__input {
+  margin-bottom: 0.8rem;
+}
+
+.exchange__label {
+  font-weight: bold;
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.exchange__button-header {
+  display: flex;
+  align-items: center;
+}
+
+.exchange__button-header-button {
+  margin-left: auto;
+  width: auto !important;
+}
+
 .place-bid-modal__table {
   margin-left: -3px;
 

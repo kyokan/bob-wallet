@@ -4,4 +4,8 @@ export const clientStub = ipcRendererInjector => makeClient(ipcRendererInjector,
   'fulfillSwap',
   'getFulfillments',
   'finalizeSwap',
+  'transferLock',
+  'getListings',
+  'finalizeLock',
+  'launchAuction'
 ]);
