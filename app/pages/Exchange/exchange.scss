@@ -6,6 +6,8 @@
     font-weight: 500;
     padding: 1rem 0;
   }
+
+  cursor: default;
 }
 
 .exchange__input {
@@ -67,4 +69,111 @@
 
 .exchange__auction-row-buttons {
   display: flex;
+}
+
+.exchange-table {
+  .table {
+    &__header__item,
+    &__row__item {
+      &:nth-of-type(1) {
+        @extend %ellipsify;
+        flex: 0 0 8rem;
+      }
+
+      &:nth-of-type(2) {
+        flex: 1 0 8rem;
+      }
+
+      &:nth-of-type(3) {
+        flex: 0 0 9rem;
+      }
+
+      &:nth-of-type(4) {
+        flex: 0 0 9rem;
+      }
+
+      &:nth-of-type(5) {
+        flex: 0 0 10rem;
+      }
+    }
+  }
+
+  &__listing-status {
+    @extend %row-nowrap;
+    @extend %ellipsify;
+    align-items: center;
+    font-size: .625rem;
+    font-weight: 500;
+    color: $dark-grey;
+
+    &:before {
+      flex: 0 0 auto;
+      display: block;
+      content: '';
+      width: .5rem;
+      height: .5rem;
+      border-radius: 50%;
+      background-color: $manatee-gray;
+      margin-right: .5rem;
+    }
+
+    &--active {
+      &:before {
+        background-color: $success-green;
+      }
+    }
+
+    &--transfer-confirmed {
+      &:before {
+        background-color: $school-bus-yellow;
+      }
+    }
+
+    &--transfer-confirming {
+      &:before {
+        background-color: $school-bus-yellow;
+      }
+    }
+
+    &--sold {
+
+    }
+
+    &--not-found {
+      &:before {
+        background-color: $orange-red;
+      }
+    }
+
+    &--finalized-confirmed {
+      &:before {
+        background-color: $school-bus-yellow;
+      }
+    }
+
+    &--finalized-confirming {
+      &:before {
+        background-color: $school-bus-yellow;
+      }
+    }
+
+    &--transfer-cofirmed-lockup {
+      &:before {
+        background-color: $school-bus-yellow;
+      }
+    }
+
+  }
+}
+
+.exchange__place-listing-modal {
+  p {
+    &:nth-of-type(1) {
+      margin-top: 0;
+    }
+  }
+
+  .alert {
+    margin-top: 1rem;
+  }
 }

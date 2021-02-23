@@ -4,6 +4,8 @@ import { connect } from 'react-redux';
 import { getMyNames } from '../../ducks/myDomains.js';
 import Dropdown from '../../components/Dropdown';
 import { transferExchangeLock } from '../../ducks/exchange.js';
+import Anchor from "../../components/Anchor";
+import Alert from "../../components/Alert";
 
 export class PlaceListingModal extends Component {
   constructor(props) {
@@ -16,6 +18,7 @@ export class PlaceListingModal extends Component {
       endPrice: '',
       nameIdx: 0,
       durationIdx: 0,
+      errorMessage: '',
     };
   }
 
@@ -36,6 +39,21 @@ export class PlaceListingModal extends Component {
     }
   }
 
+  createListing = async () => {
+    try {
+      await this.props.transferExchangeLock(
+        this.props.names[this.state.nameIdx],
+        Number(this.state.startPrice) * 1e6,
+        Number(this.state.endPrice) * 1e6,
+        this.durationOpts[this.state.durationIdx]
+      );
+    } catch (e) {
+      this.setState({
+        errorMessage: e.message,
+      });
+    }
+  };
+
   render() {
     const {onClose, names} = this.props;
 
@@ -46,13 +64,14 @@ export class PlaceListingModal extends Component {
       Number(this.state.startPrice) > Number(this.state.endPrice);
 
     return (
-      <MiniModal title="Place Listing" onClose={onClose}>
+      <MiniModal title="Create Listing" onClose={onClose}>
         <div className="exchange__place-listing-modal">
           <p>
-            Placing a listing transfers your name to a locking address. Cancellation is possible, but
-            requires an on-chain transaction.
+            In order to list your name for auction on secondary market, you will first need to transfer your name to a listing address that you control.
           </p>
-
+          <p>
+            Transfer takes about 48 hours. For more detail on how secondary market works, checkout the <Anchor href="https://github.com/kurumiimari/shakedex#selling-a-name">documentation</Anchor>.
+          </p>
           <div className="exchange__label">Choose Name:</div>
           <div className="exchange__input">
             <Dropdown
@@ -61,6 +80,7 @@ export class PlaceListingModal extends Component {
               }))}
               onChange={(i) => this.setState({
                 nameIdx: i,
+                errorMessage: '',
               })}
               currentIndex={this.state.nameIdx}
             />
@@ -73,6 +93,7 @@ export class PlaceListingModal extends Component {
               value={this.state.startPrice}
               onChange={(e) => this.setState({
                 startPrice: e.target.value,
+                errorMessage: '',
               })}
             />
           </div>
@@ -84,6 +105,7 @@ export class PlaceListingModal extends Component {
               value={this.state.endPrice}
               onChange={(e) => this.setState({
                 endPrice: e.target.value,
+                errorMessage: '',
               })}
             />
           </div>
@@ -95,10 +117,11 @@ export class PlaceListingModal extends Component {
             }))}
             onChange={(i) => this.setState({
               durationIdx: i,
+              errorMessage: '',
             })}
             currentIndex={this.state.durationIdx}
           />
-
+          <Alert type="error" message={this.state.errorMessage} />
           <div className="place-bid-modal__buttons">
             <button
               className="place-bid-modal__cancel"
@@ -110,12 +133,7 @@ export class PlaceListingModal extends Component {
 
             <button
               className="place-bid-modal__send"
-              onClick={() => this.props.transferExchangeLock(
-                this.props.names[this.state.nameIdx],
-                Number(this.state.startPrice) * 1e6,
-                Number(this.state.endPrice) * 1e6,
-                this.durationOpts[this.state.durationIdx]
-              )}
+              onClick={this.createListing}
               disabled={this.props.isPlacingListing || !isValid}
             >
               {this.props.isPlacingListing ? 'Loading...' : 'Place Listing'}

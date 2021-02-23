@@ -11,10 +11,13 @@ import {
 } from '../../ducks/exchange.js';
 import { displayBalance } from '../../utils/balances.js';
 import moment from 'moment';
+import classNames from 'classnames';
 import PlaceBidModal from './PlaceBidModal.js';
 import './exchange.scss';
 import PlaceListingModal from './PlaceListingModal.js';
 import * as logger from '../../utils/logClient.js';
+import {getExchangeFullfillments, getExchangeListings, LISTING_STATUS, submitToShakedex} from "../../ducks/exchange";
+import {formatName} from "../../utils/nameHelpers";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 const shakedex = sClientStub(() => require('electron').ipcRenderer);
@@ -31,7 +34,41 @@ class Exchange extends Component {
   componentDidMount() {
     analytics.screenView('Exchange');
     this.props.getExchangeAuctions();
+    this.props.getExchangeFullfillments();
+    this.props.getExchangeListings();
   }
+
+  onDownloadPresigns = async (proposals) => {
+    try {
+      const first = proposals[0];
+      const submission = {
+        name: first.name,
+        lockingTxHash: first.lockingTxHash,
+        lockingOutputIdx: first.lockingOutputIdx,
+        publicKey: first.publicKey,
+        paymentAddr: first.paymentAddr,
+        data: proposals.map(p => ({
+          price: p.price,
+          lockTime: p.lockTime,
+          signature: p.signature,
+        })),
+      };
+      const content = JSON.stringify(submission);
+      const data = `data:text/plain;charset=utf-8,${content}\r\n`;
+      const encodedUri = encodeURI(data);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `${submission.name}-presigns.json`);
+      document.body.appendChild(link); // Required for FF
+      link.click();
+      link.remove();
+    } catch (e) {
+      logger.error(e.message);
+      setTimeout(() => {
+        throw e;
+      }, 0);
+    }
+  };
 
   onClickDownload = async (auction) => {
     try {
@@ -52,6 +89,49 @@ class Exchange extends Component {
     }
   };
 
+  renderListingStatus(status) {
+    let statusText = status;
+
+    switch (status) {
+      case LISTING_STATUS.NOT_FOUND:
+        statusText = 'NOT FOUND';
+        break;
+      case LISTING_STATUS.SOLD:
+        statusText = 'SOLD';
+        break;
+      case LISTING_STATUS.ACTIVE:
+        statusText = 'ACTIVE';
+        break;
+      case LISTING_STATUS.TRANSFER_CONFIRMING:
+        statusText = 'TRANSFERRING TO LISTING ADDRESS';
+        break;
+      case LISTING_STATUS.TRANSFER_CONFIRMED:
+        statusText = 'READY TO FINALIZE LISTING';
+        break;
+      case LISTING_STATUS.FINALIZE_CONFIRMING:
+        statusText = 'FINALIZING LISTING';
+        break;
+      case LISTING_STATUS.FINALIZE_CONFIRMED:
+        statusText = 'READY TO START AUCTION';
+        break;
+    }
+
+    return (
+      <div className={classNames('exchange-table__listing-status', {
+        'exchange-table__listing-status--active': status === LISTING_STATUS.ACTIVE,
+        'exchange-table__listing-status--transfer-confirmed': status === LISTING_STATUS.TRANSFER_CONFIRMED,
+        'exchange-table__listing-status--transfer-confirming': status === LISTING_STATUS.TRANSFER_CONFIRMING,
+        'exchange-table__listing-status--sold': status === LISTING_STATUS.SOLD,
+        'exchange-table__listing-status--not-found': status === LISTING_STATUS.NOT_FOUND,
+        'exchange-table__listing-status--finalized-confirmed': status === LISTING_STATUS.FINALIZE_CONFIRMED,
+        'exchange-table__listing-status--finalized-confirming': status === LISTING_STATUS.FINALIZE_CONFIRMING,
+        'exchange-table__listing-status--transfer-cofirmed-lockup': status === LISTING_STATUS.TRANSFER_CONFIRMED_LOCKUP,
+      })}>
+        {statusText}
+      </div>
+    )
+  }
+
   render() {
     if (this.props.isLoading) {
       return 'Loading...';
@@ -67,7 +147,7 @@ class Exchange extends Component {
               isPlacingListing: true,
             })}
           >
-            Place Listing
+            Create Listing
           </button>
         </div>
         <Table className="exchange-table">
@@ -87,25 +167,45 @@ class Exchange extends Component {
           )}
           {!!this.props.listings.length && this.props.listings.map(l => (
             <TableRow key={l.nameLock.name}>
-              <TableItem>{l.nameLock.name}</TableItem>
-              <TableItem>{l.status}</TableItem>
-              <TableItem>{displayBalance(l.params.startPrice, true)}</TableItem>
-              <TableItem>{displayBalance(l.params.endPrice, true)}</TableItem>
+              <TableItem>{formatName(l.nameLock.name)}</TableItem>
+              <TableItem>{this.renderListingStatus(l.status)}</TableItem>
+              <TableItem>{displayBalance(l.params.startPrice)}</TableItem>
+              <TableItem>{displayBalance(l.params.endPrice)}</TableItem>
               <TableItem>
-                {l.status === 'TRANSFER_CONFIRMED' && (
-                  <div
-                    className="bid-action__link"
-                    onClick={() => this.props.finalizeExchangeLock(l.nameLock)}
-                  >
-                    {this.props.finalizingName === l.nameLock.name ? 'Finalizing...' : 'Finalize Lockup'}
+                {l.status === LISTING_STATUS.TRANSFER_CONFIRMED && (
+                  <div className="bid-action">
+                    <div
+                      className="bid-action__link"
+                      onClick={() => this.props.finalizeExchangeLock(l.nameLock)}
+                    >
+                      {this.props.finalizingName === l.nameLock.name ? 'Finalizing...' : 'Finalize Listing'}
+                    </div>
                   </div>
                 )}
-                {l.status === 'FINALIZE_CONFIRMED' && (
-                  <div
-                    className="bid-action__link"
-                    onClick={() => this.props.launchExchangeAuction(l.nameLock)}
-                  >
-                    Launch Auction
+                {l.status === LISTING_STATUS.FINALIZE_CONFIRMED && (
+                  <div className="bid-action">
+                    <div
+                      className="bid-action__link"
+                      onClick={() => this.props.launchExchangeAuction(l.nameLock)}
+                    >
+                      Generate Presigns
+                    </div>
+                  </div>
+                )}
+                {l.status === LISTING_STATUS.ACTIVE && (
+                  <div className="bid-action">
+                    <div
+                      className="bid-action__link"
+                      onClick={() => this.onDownloadPresigns(l.proposals)}
+                    >
+                      Download
+                    </div>
+                    <div
+                      className="bid-action__link"
+                      onClick={() => this.props.submitToShakedex(l.proposals)}
+                    >
+                      Submit
+                    </div>
                   </div>
                 )}
               </TableItem>
@@ -125,17 +225,19 @@ class Exchange extends Component {
 
           {!!this.props.fulfillments.length && this.props.fulfillments.map(f => (
             <TableRow>
-              <TableItem>{f.fulfillment.name}</TableItem>
+              <TableItem>{formatName(f.fulfillment.name)}</TableItem>
               <TableItem>{f.status}</TableItem>
               <TableItem>{displayBalance(f.fulfillment.price, true)}</TableItem>
               <TableItem>{moment(f.fulfillment.broadcastAt).format('MM/DD/YYYY HH:MM:SS')}</TableItem>
               <TableItem>
                 {f.status === 'CONFIRMED_FINALIZABLE' && (
-                  <div
-                    className="bid-action__link"
-                    onClick={() => this.props.finalizeExchangeBid(f.fulfillment)}
-                  >
-                    {this.props.finalizingName === f.name ? 'Finalizing...' : 'Finalize'}
+                  <div className="bid-action">
+                    <div
+                      className="bid-action__link"
+                      onClick={() => this.props.finalizeExchangeBid(f.fulfillment)}
+                    >
+                      {this.props.finalizingName === f.name ? 'Finalizing...' : 'Finalize'}
+                    </div>
                   </div>
                 )}
               </TableItem>
@@ -192,7 +294,7 @@ class Exchange extends Component {
 
     return (
       <TableRow key={auction.id}>
-        <TableItem>{auction.name}</TableItem>
+        <TableItem>{formatName(auction.name)}</TableItem>
         <TableItem>{displayBalance(currentBid.price, true)}</TableItem>
         <TableItem>{displayBalance(auction.bids[0].price, true)}</TableItem>
         <TableItem>{this.renderNextBid(auction)}</TableItem>
@@ -272,8 +374,11 @@ export default connect(
   }),
   (dispatch) => ({
     getExchangeAuctions: (page) => dispatch(getExchangeAuctions(page)),
+    getExchangeFullfillments: (page) => dispatch(getExchangeFullfillments(page)),
+    getExchangeListings: (page) => dispatch(getExchangeListings(page)),
     finalizeExchangeBid: (fulfillment) => dispatch(finalizeExchangeBid(fulfillment)),
     finalizeExchangeLock: (nameLock) => dispatch(finalizeExchangeLock(nameLock)),
     launchExchangeAuction: (nameLock) => dispatch(launchExchangeAuction(nameLock)),
+    submitToShakedex: (proposals) => dispatch(submitToShakedex(proposals)),
   }),
 )(Exchange);

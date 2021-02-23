@@ -30,6 +30,12 @@ $school-bus-yellow: #ffe000;
   flex-flow: row nowrap;
 }
 
+%ellipsify {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
 %link {
   color: $azure-blue;
   cursor: pointer;

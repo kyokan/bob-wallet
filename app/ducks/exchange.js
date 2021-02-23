@@ -16,6 +16,15 @@ const client = new Client({
 export const GET_EXCHANGE_AUCTIONS = 'GET/EXCHANGE_AUCTIONS';
 export const GET_EXCHANGE_AUCTIONS_OK = 'GET/EXCHANGE_AUCTIONS/OK';
 export const GET_EXCHANGE_AUCTIONS_ERR = 'GET/EXCHANGE_AUCTIONS/ERR';
+
+export const GET_EXCHANGE_FULLFILLMENTS = 'GET/EXCHANGE_FULLFILLMENTS';
+export const GET_EXCHANGE_FULLFILLMENTS_OK = 'GET/EXCHANGE_FULLFILLMENTS/OK';
+export const GET_EXCHANGE_FULLFILLMENTS_ERR = 'GET/EXCHANGE_FULLFILLMENTS/ERR';
+
+export const GET_EXCHANGE_LISTINGS = 'GET/EXCHANGE_LISTINGS';
+export const GET_EXCHANGE_LISTINGS_OK = 'GET/EXCHANGE_LISTINGS/OK';
+export const GET_EXCHANGE_LISTINGS_ERR = 'GET/EXCHANGE_LISTINGS/ERR';
+
 export const PLACE_EXCHANGE_BID = 'PLACE_EXCHANGE_BID';
 export const PLACE_EXCHANGE_BID_OK = 'PLACE_EXCHANGE_BID/OK';
 export const PLACE_EXCHANGE_BID_ERR = 'PLACE_EXCHANGE_BID/ERR';
@@ -33,6 +42,17 @@ export const FINALIZE_EXCHANGE_LOCK_ERR = 'FINALIZE_EXCHANGE_LOCK/ERR';
 export const LAUNCH_EXCHANGE_AUCTION = 'LAUNCH_EXCHANGE_AUCTION';
 export const LAUNCH_EXCHANGE_AUCTION_OK = 'LAUNCH_EXCHANGE_AUCTION/OK';
 export const LAUNCH_EXCHANGE_AUCTION_ERR = 'LAUNCH_EXCHANGE_AUCTION/ERR';
+
+export const LISTING_STATUS = {
+  NOT_FOUND: 'NOT_FOUND',
+  TRANSFER_CONFIRMING: 'TRANSFER_CONFIRMING',
+  TRANSFER_CONFIRMED: 'TRANSFER_CONFIRMED',
+  TRANSFER_CONFIRMED_LOCKUP: 'TRANSFER_CONFIRMED_LOCKUP',
+  FINALIZE_CONFIRMING: 'FINALIZE_CONFIRMING',
+  FINALIZE_CONFIRMED: 'FINALIZE_CONFIRMED',
+  ACTIVE: 'ACTIVE',
+  SOLD: 'SOLD',
+};
 
 
 function getInitialState() {
@@ -58,15 +78,37 @@ export const getExchangeAuctions = (page = 1) => async (dispatch, getState) => {
   });
 
   let auctions;
-  let fulfillments;
-  let listings;
   try {
     auctions = await client.get(`api/v1/auctions?page=${page}`);
-    fulfillments = await shakedex.getFulfillments();
-    listings = await shakedex.getListings();
   } catch (e) {
     dispatch({
       type: GET_EXCHANGE_AUCTIONS_ERR,
+      payload: {
+        message: e.message,
+      },
+    });
+    return;
+  }
+
+  dispatch({
+    type: GET_EXCHANGE_AUCTIONS_OK,
+    payload: {
+      auctions: auctions.auctions,
+    },
+  });
+};
+
+export const getExchangeFullfillments = () => async dispatch => {
+  dispatch({
+    type: GET_EXCHANGE_FULLFILLMENTS,
+  });
+
+  let fulfillments;
+  try {
+    fulfillments = await shakedex.getFulfillments();
+  } catch (e) {
+    dispatch({
+      type: GET_EXCHANGE_FULLFILLMENTS_ERR,
       payload: {
         message: e.message,
       },
@@ -102,6 +144,35 @@ export const getExchangeAuctions = (page = 1) => async (dispatch, getState) => {
     fulfillment.status = finalizeTx && finalizeTx.height > -1 ? 'FINALIZED' : 'FINALIZING';
   }
 
+  dispatch({
+    type: GET_EXCHANGE_FULLFILLMENTS_OK,
+    payload: {
+      fulfillments,
+    },
+  });
+};
+
+export const getExchangeListings = (page = 1) => async (dispatch, getState) => {
+  dispatch({
+    type: GET_EXCHANGE_LISTINGS,
+  });
+
+  let listings;
+  try {
+    listings = await shakedex.getListings();
+  } catch (e) {
+    dispatch({
+      type: GET_EXCHANGE_LISTINGS_ERR,
+      payload: {
+        message: e.message,
+      },
+    });
+    return;
+  }
+
+  const info = await nodeClient.getInfo();
+  const transferLockup = networks[info.network].names.transferLockup;
+
   for (const listing of listings) {
     let transferTx;
     let finalizeTx;
@@ -111,42 +182,43 @@ export const getExchangeAuctions = (page = 1) => async (dispatch, getState) => {
       finalizeTx = listing.finalizeLock ? await nodeClient.getTx(listing.finalizeLock.finalizeTxHash) : null;
       finalizeCoin = listing.finalizeLock ? await nodeClient.getCoin(listing.finalizeLock.finalizeTxHash, listing.finalizeLock.finalizeOutputIdx) : null;
     } catch (e) {
-      listing.status = 'NOT_FOUND';
+      listing.status = LISTING_STATUS.NOT_FOUND;
       continue;
     }
 
     if (!transferTx || transferTx.height === -1) {
-      listing.status = 'TRANSFER_CONFIRMING';
+      listing.status = LISTING_STATUS.TRANSFER_CONFIRMING;
       continue;
     }
 
     if (!finalizeTx) {
-      listing.status = info.chain.height - transferTx.height > transferLockup ?
-        'TRANSFER_CONFIRMED' : 'TRANSFER_CONFIRMED_LOCKUP';
+      listing.status = info.chain.height - transferTx.height > transferLockup
+        ? LISTING_STATUS.TRANSFER_CONFIRMED
+        : LISTING_STATUS.TRANSFER_CONFIRMED_LOCKUP;
       continue;
     }
 
     if (finalizeTx.height === -1) {
-      listing.status = 'FINALIZE_CONFIRMING';
+      listing.status = LISTING_STATUS.FINALIZE_CONFIRMING;
+      continue;
     }
 
     if (!listing.proposals) {
-      listing.status = 'FINALIZE_CONFIRMED';
+      listing.status = LISTING_STATUS.FINALIZE_CONFIRMED;
       continue;
     }
 
     if (finalizeCoin) {
-      listing.status = 'ACTIVE';
+      listing.status = LISTING_STATUS.ACTIVE;
+      continue;
     }
 
-    listing.status = 'SOLD';
+    listing.status = LISTING_STATUS.SOLD;
   }
 
   dispatch({
-    type: GET_EXCHANGE_AUCTIONS_OK,
+    type: GET_EXCHANGE_LISTINGS_OK,
     payload: {
-      auctions: auctions.auctions,
-      fulfillments,
       listings,
     },
   });
@@ -214,9 +286,8 @@ export const transferExchangeLock = (name, startPrice, endPrice, durationDays) =
     type: PLACE_EXCHANGE_LISTING,
   });
 
-  await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
-
   try {
+    await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
     await shakedex.transferLock(name, startPrice, endPrice, durationDays);
   } catch (e) {
     dispatch({
@@ -225,10 +296,10 @@ export const transferExchangeLock = (name, startPrice, endPrice, durationDays) =
         message: e.message,
       },
     });
-    return;
+    throw e;
   }
 
-  dispatch(getExchangeAuctions());
+  dispatch(getExchangeListings());
   dispatch({
     type: PLACE_EXCHANGE_LISTING_OK,
   });
@@ -242,9 +313,9 @@ export const finalizeExchangeLock = (nameLock) => async (dispatch, getState) => 
     },
   });
 
-  await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
 
   try {
+    await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
     await shakedex.finalizeLock(nameLock);
   } catch (e) {
     dispatch({
@@ -257,7 +328,7 @@ export const finalizeExchangeLock = (nameLock) => async (dispatch, getState) => 
     return;
   }
 
-  dispatch(getExchangeAuctions());
+  dispatch(getExchangeListings());
   dispatch({
     type: FINALIZE_EXCHANGE_LOCK_OK,
   });
@@ -269,39 +340,42 @@ export const launchExchangeAuction = (nameLock) => async (dispatch, getState) =>
     type: LAUNCH_EXCHANGE_AUCTION,
   });
 
-  await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
 
-  let proposals;
   try {
-    proposals = await shakedex.launchAuction(nameLock);
+    await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
+    await shakedex.launchAuction(nameLock);
   } catch (e) {
     dispatch({
       type: LAUNCH_EXCHANGE_AUCTION_ERR,
     });
-    dispatch(showError('Failed to launch auction. Please try again.'));
+    dispatch(showError('Failed to generate presigns. Please try again.'));
     return;
   }
 
-  const first = proposals[0];
-  const submission = {
-    name: first.name,
-    lockingTxHash: first.lockingTxHash,
-    lockingOutputIdx: first.lockingOutputIdx,
-    publicKey: first.publicKey,
-    paymentAddr: first.paymentAddr,
-    data: proposals.map(p => ({
-      price: p.price,
-      lockTime: p.lockTime,
-      signature: p.signature,
-    })),
-  };
-
-  dispatch(getExchangeAuctions());
+  dispatch(getExchangeListings());
   dispatch({
     type: LAUNCH_EXCHANGE_AUCTION_OK,
   });
 
+  dispatch(showSuccess('Successfully generated presigns! You can post your auctions to Shakedex, or download and distribute however you wish.'));
+};
+
+export const submitToShakedex = (proposals = []) => async dispatch => {
   try {
+    const first = proposals[0];
+    const submission = {
+      name: first.name,
+      lockingTxHash: first.lockingTxHash,
+      lockingOutputIdx: first.lockingOutputIdx,
+      publicKey: first.publicKey,
+      paymentAddr: first.paymentAddr,
+      data: proposals.map(p => ({
+        price: p.price,
+        lockTime: p.lockTime,
+        signature: p.signature,
+      })),
+    };
+
     // use fetch here since bcurl crashes
     const res = await fetch(`http://localhost:8080/api/v1/auctions`, {
       method: 'POST',
@@ -316,13 +390,12 @@ export const launchExchangeAuction = (nameLock) => async (dispatch, getState) =>
     if (res.status !== 201) {
       throw new Error('Error creating auction.');
     }
+
+    dispatch(showError('Your auction is now listed on Shakedex Web'));
   } catch (e) {
     console.error(e);
-    dispatch(showError('Your auction was successfully launched, however ShakeDex Web rejected it. You can still download your proofs and distribute them.'));
-    return;
+    dispatch(showError('Failed to post to Shakedex Web. You can still download your proofs and distribute them.'));
   }
-
-  dispatch(showSuccess('Successfully launched auction!'));
 };
 
 export default function (state = getInitialState(), action) {
@@ -333,7 +406,8 @@ export default function (state = getInitialState(), action) {
         isLoading: true,
         isError: false,
       };
-    case GET_EXCHANGE_AUCTIONS_OK: {
+
+    case GET_EXCHANGE_AUCTIONS_OK:
       const auctionIds = [];
       const auctions = action.payload.auctions.reduce((acc, curr) => {
         auctionIds.push(curr.id);
@@ -350,14 +424,44 @@ export default function (state = getInitialState(), action) {
         isLoading: false,
         isError: false,
       };
-    }
-    case GET_EXCHANGE_AUCTIONS_ERR: {
+
+    case GET_EXCHANGE_AUCTIONS_ERR:
       return {
         ...state,
         isLoading: false,
         isError: true,
       };
-    }
+
+    case GET_EXCHANGE_FULLFILLMENTS_OK:
+      return {
+        ...state,
+        fulfillments: action.payload.fulfillments,
+        isLoading: false,
+        isError: false,
+      };
+
+    case GET_EXCHANGE_FULLFILLMENTS_ERR:
+      return {
+        ...state,
+        isLoading: false,
+        isError: true,
+      };
+
+    case GET_EXCHANGE_LISTINGS_OK:
+      return {
+        ...state,
+        listings: action.payload.listings,
+        isLoading: false,
+        isError: false,
+      };
+
+    case GET_EXCHANGE_LISTINGS_ERR:
+      return {
+        ...state,
+        isLoading: false,
+        isError: true,
+      };
+
     case PLACE_EXCHANGE_BID: {
       return {
         ...state,
