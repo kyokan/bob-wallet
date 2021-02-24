@@ -13,6 +13,7 @@ import { SwapFulfillment } from 'shakedex/src/swapFulfillment.js';
 import { Auction, linearReductionStrategy } from 'shakedex/src/auction.js';
 import { NameLockFinalize } from 'shakedex/src/nameLock.js';
 import stream from 'stream';
+import {encrypt, decrypt} from "../../utils/encrypt";
 
 export async function fulfillSwap(auction, bid) {
   const context = getContext();
@@ -74,12 +75,15 @@ function listingPrefix() {
   return `exchange/listings/${walletName}`;
 }
 
-export async function transferLock(name, startPrice, endPrice, durationDays) {
+export async function transferLock(name, startPrice, endPrice, durationDays, password) {
   const context = getContext();
   const nameLock = await transferNameLock(context, name);
-  const nameLockJSON = nameLock.toJSON();
+  const {privateKey, ...nameLockJSON} = nameLock.toJSON();
   const out = {
-    nameLock: nameLockJSON,
+    nameLock: {
+      ...nameLockJSON,
+      encryptedPrivateKey: encrypt(privateKey, password)
+    },
     params: {
       startPrice,
       endPrice,
@@ -93,16 +97,22 @@ export async function transferLock(name, startPrice, endPrice, durationDays) {
   return out;
 }
 
-export async function finalizeLock(nameLock) {
+export async function finalizeLock(nameLock, password) {
   const context = getContext();
-  const finalizeLock = await finalizeNameLock(context, nameLock);
-  const finalizeLockJSON = finalizeLock.toJSON();
+  const finalizeLock = await finalizeNameLock(context, {
+    ...nameLock,
+    privateKey: decrypt(nameLock.encryptedPrivateKey, password),
+  });
+  const {privateKey, ...finalizeLockJSON} = finalizeLock.toJSON();
   const existing = await get(
     `${listingPrefix()}/${nameLock.name}/${nameLock.transferTxHash}`,
   );
   const out = {
     ...existing,
-    finalizeLock: finalizeLockJSON,
+    finalizeLock: {
+      ...finalizeLockJSON,
+      encryptedPrivateKey: encrypt(privateKey, password),
+    },
   };
   await put(
     `${listingPrefix()}/${nameLock.name}/${nameLock.transferTxHash}`,
@@ -122,7 +132,7 @@ export async function getListings() {
   return listings;
 }
 
-export async function launchAuction(nameLock) {
+export async function launchAuction(nameLock, passphrase) {
   const context = getContext();
   const key = `${listingPrefix()}/${nameLock.name}/${nameLock.transferTxHash}`;
   const listing = await get(
@@ -156,7 +166,10 @@ export async function launchAuction(nameLock) {
   });
   const proposals = await auction.generateProposals(
     context,
-    new NameLockFinalize(listing.finalizeLock),
+    new NameLockFinalize({
+      ...listing.finalizeLock,
+      privateKey: decrypt(listing.finalizeLock.encryptedPrivateKey, passphrase)
+    }),
   );
   listing.proposals = proposals;
   await put(

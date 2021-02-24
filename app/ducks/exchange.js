@@ -297,8 +297,8 @@ export const transferExchangeLock = (name, startPrice, endPrice, durationDays) =
   });
 
   try {
-    await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
-    await shakedex.transferLock(name, startPrice, endPrice, durationDays);
+    const passphrase = await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
+    await shakedex.transferLock(name, startPrice, endPrice, durationDays, passphrase);
   } catch (e) {
     dispatch({
       type: PLACE_EXCHANGE_LISTING_ERR,
@@ -325,8 +325,8 @@ export const finalizeExchangeLock = (nameLock) => async (dispatch, getState) => 
 
 
   try {
-    await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
-    await shakedex.finalizeLock(nameLock);
+    const passphrase = await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
+    await shakedex.finalizeLock(nameLock, passphrase);
   } catch (e) {
     dispatch({
       type: FINALIZE_EXCHANGE_LOCK_ERR,
@@ -352,8 +352,8 @@ export const launchExchangeAuction = (nameLock) => async (dispatch, getState) =>
 
 
   try {
-    await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
-    await shakedex.launchAuction(nameLock);
+    const passphrase = await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
+    await shakedex.launchAuction(nameLock, passphrase);
   } catch (e) {
     dispatch({
       type: LAUNCH_EXCHANGE_AUCTION_ERR,

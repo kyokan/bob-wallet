@@ -142,6 +142,7 @@
     "bignumber.js": "8.0.1",
     "classnames": "2.2.6",
     "copy-to-clipboard": "3.0.8",
+    "crypto-js": "^4.0.0",
     "deep-equal": "2.0.1",
     "devtron": "1.4.0",
     "electron-debug": "2.0.0",

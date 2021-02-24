@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Link, Route, Switch, withRouter } from 'react-router-dom';
+import { Route, Switch, withRouter } from 'react-router-dom';
 import { ContentArea } from '../ContentArea';
 import { connect } from 'react-redux';
 import './index.scss';
@@ -26,9 +26,13 @@ import walletClient from "../../utils/walletClient";
 import InterstitialWarningModal from "./InterstitialWarningModal";
 import DeepCleanAndRescanModal from "./DeepCleanAndRescanModal";
 import {showError, showSuccess} from "../../ducks/notifications";
+import BackupListingModal from "./BackupListingModal";
+import fs from "fs";
 const {dialog} = require('electron').remote;
+import {clientStub as sClientStub} from "../../background/shakedex/client";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
+const shakedex = sClientStub(() => require('electron').ipcRenderer);
 
 @withRouter
 @connect(
@@ -121,7 +125,26 @@ export default class Settings extends Component {
     } catch (e) {
       this.props.showError(e.message);
     }
+  };
 
+  onDownloadExchangeBackup = async () => {
+    const listings = await shakedex.getListings();
+    const data = JSON.stringify(listings);
+    const savePath = dialog.showSaveDialogSync({
+      filters: [{name: 'exchange-listing', extensions: ['json']}],
+    });
+
+    return new Promise((resolve, reject) => {
+      if (savePath) {
+        fs.writeFile(savePath, data, (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(savePath);
+          }
+        });
+      }
+    });
   };
 
   renderNav() {
@@ -152,6 +175,17 @@ export default class Settings extends Component {
           onClick={() => history.push("/settings/connection")}
         >
           Network & Connection
+        </div>
+        <div
+          className={c("settings__nav__item", {
+            'settings__nav__item--selected': location.pathname === '/settings/exchange',
+          })}
+          onClick={() => history.push("/settings/exchange")}
+        >
+          Exchange
+        </div>
+        <div className="settings__footer">
+          Bob v{pkg.version}
         </div>
       </div>
     );
@@ -274,6 +308,20 @@ export default class Settings extends Component {
     );
   }
 
+  renderExchange() {
+    const { history } = this.props;
+    return (
+      <>
+        {this.renderSection(
+          'Backup listing',
+          'Download backup of all your listings',
+          'Download',
+          () => history.push('/settings/exchange/backup'),
+        )}
+      </>
+    )
+  }
+
   renderContent() {
     const {
       isRunning,
@@ -365,6 +413,9 @@ export default class Settings extends Component {
           <Route path="/settings/wallet">
             {this.renderWallet()}
           </Route>
+          <Route path="/settings/exchange">
+            {this.renderExchange()}
+          </Route>
           <Route>
             <Redirect to="/settings/general" />
           </Route>
@@ -435,6 +486,15 @@ export default class Settings extends Component {
           <Route path="/settings/wallet/deep-clean-and-rescan">
             <DeepCleanAndRescanModal />
           </Route>
+          <Route
+            path="/settings/exchange/backup"
+            render={() => (
+              <BackupListingModal
+                nextAction={this.onDownloadExchangeBackup}
+                nextRoute="/settings/exchange"
+              />
+            )}
+          />
         </Switch>
       </ContentArea>
     );

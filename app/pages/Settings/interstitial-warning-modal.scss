@@ -14,6 +14,10 @@
   align-items: center;
 }
 
+.interstitial-warning-modal__checkbox-box {
+  flex: 0 0 auto;
+}
+
 .interstitial-warning-modal__checkbox-label {
   margin-left: 12px;
   font-size: 14px;
@@ -58,4 +62,8 @@
     background-color: $hover-color;
     border-color: lighten($orange-red, 10%);
   }
+}
+
+.backup-listing-modal__download-button {
+  @extend %btn-primary;
 }

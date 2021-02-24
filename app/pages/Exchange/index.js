@@ -31,8 +31,6 @@ import {fromAuctionJSON, validateAuction} from "../../utils/shakedex";
 import nodeClient from '../../utils/nodeClient';
 import './exchange.scss';
 
-
-
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 const shakedex = sClientStub(() => require('electron').ipcRenderer);
 
@@ -483,24 +481,3 @@ export default connect(
     showError: (errorMessage) => dispatch(showError(errorMessage)),
   }),
 )(Exchange);
-
-function assertAuctionFile(options) {
-  const {
-    name,
-    startTime,
-    endTime,
-    startPrice,
-    endPrice,
-    reductionTimeMS,
-  } = options;
-
-  if (typeof name !== 'string') throw new Error('name must be string');
-  if (typeof startTime !== 'number') throw new Error ('startTime must be number');
-  if (typeof endTime !== 'number') throw new Error ('endTime must be number');
-  if (!(startTime > 0 && endTime > startTime)) throw new Error('startTime must be before endTime');
-  if (typeof startPrice !== 'number') throw new Error ('startPrice must be number');
-  if (typeof endPrice !== 'number') throw new Error ('endPrice must be number');
-  if (!(endPrice > 0 && startPrice > endPrice)) throw new Error('startPrice must be greater than endPrice');
-  if (typeof reductionTimeMS !== 'number') throw new Error ('reductionTimeMS must be number');
-  if (reductionTimeMS <= 0) throw new Error('reducetionTimeMS must be greater than 0');
-}
