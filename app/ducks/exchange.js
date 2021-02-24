@@ -9,8 +9,8 @@ const shakedex = shakedexClientStub(() => require('electron').ipcRenderer);
 const nodeClient = nodeClientStub(() => require('electron').ipcRenderer);
 
 const client = new Client({
-  host: 'localhost',
-  port: 8080,
+  host: 'shakex.com',
+  // port: 8080,
 });
 
 export const GET_EXCHANGE_AUCTIONS = 'GET/EXCHANGE_AUCTIONS';
@@ -52,6 +52,15 @@ export const LISTING_STATUS = {
   FINALIZE_CONFIRMED: 'FINALIZE_CONFIRMED',
   ACTIVE: 'ACTIVE',
   SOLD: 'SOLD',
+};
+
+export const FULFILLMENT_STATUS = {
+  NOT_FOUND: 'NOT_FOUND',
+  CONFIRMING: 'CONFIRMING',
+  CONFIRMED: 'CONFIRMED',
+  CONFIRMED_LOCKUP: 'CONFIRMED_LOCKUP',
+  FINALIZED: 'FINALIZED',
+  FINALIZING: 'FINALIZING',
 };
 
 
@@ -126,22 +135,22 @@ export const getExchangeFullfillments = () => async dispatch => {
       fulfillTx = await nodeClient.getTx(fulfillment.fulfillment.fulfillmentTxHash);
       finalizeTx = fulfillment.finalize ? await nodeClient.getTx(fulfillment.finalize.finalizeTxHash) : null;
     } catch (e) {
-      fulfillment.status = 'NOT_FOUND';
+      fulfillment.status = FULFILLMENT_STATUS.NOT_FOUND;
       continue;
     }
 
     if (!fulfillTx || fulfillTx.height === -1) {
-      fulfillment.status = 'CONFIRMING';
+      fulfillment.status = FULFILLMENT_STATUS.CONFIRMING;
       continue;
     }
 
     if (!finalizeTx) {
       fulfillment.status = info.chain.height - fulfillTx.height > transferLockup ?
-        'CONFIRMED' : 'CONFIRMED_LOCKUP';
+        FULFILLMENT_STATUS.CONFIRMED : FULFILLMENT_STATUS.CONFIRMED_LOCKUP;
       continue;
     }
 
-    fulfillment.status = finalizeTx && finalizeTx.height > -1 ? 'FINALIZED' : 'FINALIZING';
+    fulfillment.status = finalizeTx && finalizeTx.height > -1 ? FULFILLMENT_STATUS.FINALIZED : FULFILLMENT_STATUS.FINALIZING;
   }
 
   dispatch({
@@ -229,12 +238,12 @@ export const placeExchangeBid = (auction, bid) => async (dispatch, getState) => 
     type: PLACE_EXCHANGE_BID,
   });
 
-  await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
-
   let fulfillment;
   try {
+    await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
     fulfillment = await shakedex.fulfillSwap(auction, bid);
   } catch (e) {
+    console.error(e);
     dispatch({
       type: PLACE_EXCHANGE_BID_ERR,
       payload: {
@@ -244,7 +253,8 @@ export const placeExchangeBid = (auction, bid) => async (dispatch, getState) => 
     return;
   }
 
-  dispatch(getExchangeAuctions());
+  dispatch(getExchangeListings());
+  dispatch(getExchangeFullfillments());
   dispatch({
     type: PLACE_EXCHANGE_BID_OK,
   });
@@ -274,7 +284,7 @@ export const finalizeExchangeBid = (fulfillment) => async (dispatch, getState) =
     return;
   }
 
-  dispatch(getExchangeAuctions());
+  dispatch(getExchangeFullfillments());
   dispatch({
     type: FINALIZE_EXCHANGE_BID_OK,
   });

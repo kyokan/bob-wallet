@@ -1,8 +1,13 @@
 import React, { Component } from 'react';
+import fs from "fs";
+import { connect } from 'react-redux';
+import moment from 'moment';
+import classNames from 'classnames';
+const {dialog} = require('electron').remote;
+
 import { clientStub as aClientStub } from '../../background/analytics/client.js';
 import { clientStub as sClientStub } from '../../background/shakedex/client.js';
 import { HeaderItem, HeaderRow, Table, TableItem, TableRow } from '../../components/Table';
-import { connect } from 'react-redux';
 import {
   getExchangeAuctions,
   finalizeExchangeBid,
@@ -10,14 +15,23 @@ import {
   launchExchangeAuction,
 } from '../../ducks/exchange.js';
 import { displayBalance } from '../../utils/balances.js';
-import moment from 'moment';
-import classNames from 'classnames';
 import PlaceBidModal from './PlaceBidModal.js';
-import './exchange.scss';
 import PlaceListingModal from './PlaceListingModal.js';
 import * as logger from '../../utils/logClient.js';
-import {getExchangeFullfillments, getExchangeListings, LISTING_STATUS, submitToShakedex} from "../../ducks/exchange";
+import {
+  FULFILLMENT_STATUS,
+  getExchangeFullfillments,
+  getExchangeListings,
+  LISTING_STATUS,
+  submitToShakedex,
+} from "../../ducks/exchange";
 import {formatName} from "../../utils/nameHelpers";
+import {showError} from "../../ducks/notifications";
+import {fromAuctionJSON, validateAuction} from "../../utils/shakedex";
+import nodeClient from '../../utils/nodeClient';
+import './exchange.scss';
+
+
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 const shakedex = sClientStub(() => require('electron').ipcRenderer);
@@ -28,6 +42,7 @@ class Exchange extends Component {
     this.state = {
       placingAuction: null,
       isPlacingListing: false,
+      isUploadingFile: false,
     };
   }
 
@@ -37,6 +52,45 @@ class Exchange extends Component {
     this.props.getExchangeFullfillments();
     this.props.getExchangeListings();
   }
+
+  onUploadPresigns = async () => {
+    this.setState({
+      isUploadingFile: true,
+    });
+
+    try {
+      const {
+        filePaths: [filepath]
+      } = await dialog.showOpenDialog({
+        properties: ['openFile'],
+        filters: {
+          extensions: ['json'],
+        },
+      });
+
+      const buf = await fs.promises.readFile(filepath);
+      const content = buf.toString('utf-8');
+      const auctionJSON = JSON.parse(content);
+
+      await validateAuction(auctionJSON, nodeClient);
+
+      const auction = fromAuctionJSON(auctionJSON);
+      const currentBid = this.getCurrentBid(auction);
+
+      this.setState({
+        placingAuction: auction,
+        placingCurrentBid: currentBid,
+        isUploadingFile: false,
+      });
+    } catch (e) {
+      this.props.showError(e.message);
+      this.setState({
+        placingAuction: null,
+        placingCurrentBid: null,
+        isUploadingFile: false,
+      });
+    }
+  };
 
   onDownloadPresigns = async (proposals) => {
     try {
@@ -112,7 +166,7 @@ class Exchange extends Component {
         statusText = 'FINALIZING LISTING';
         break;
       case LISTING_STATUS.FINALIZE_CONFIRMED:
-        statusText = 'READY TO START AUCTION';
+        statusText = 'READY TO GENERATE AUCTION FILE';
         break;
     }
 
@@ -126,6 +180,43 @@ class Exchange extends Component {
         'exchange-table__listing-status--finalized-confirmed': status === LISTING_STATUS.FINALIZE_CONFIRMED,
         'exchange-table__listing-status--finalized-confirming': status === LISTING_STATUS.FINALIZE_CONFIRMING,
         'exchange-table__listing-status--transfer-cofirmed-lockup': status === LISTING_STATUS.TRANSFER_CONFIRMED_LOCKUP,
+      })}>
+        {statusText}
+      </div>
+    )
+  }
+
+  renderFulfillmentStatus(status) {
+    let statusText = status;
+
+    switch (status) {
+      case FULFILLMENT_STATUS.NOT_FOUND:
+        statusText = 'NOT FOUND';
+        break;
+      case FULFILLMENT_STATUS.CONFIRMING:
+        statusText = 'TRANSFERRING NAME';
+        break;
+      case FULFILLMENT_STATUS.CONFIRMED:
+        statusText = 'READY TO FINALIZE TRANSFER';
+        break;
+      case FULFILLMENT_STATUS.CONFIRMED_LOCKUP:
+        break;
+      case FULFILLMENT_STATUS.FINALIZING:
+        statusText = 'FINALIZING TRANSFER';
+        break;
+      case FULFILLMENT_STATUS.FINALIZED:
+        statusText = 'AUCTION FULFILLED';
+        break;
+    }
+
+    return (
+      <div className={classNames('exchange-table__listing-status', {
+        'exchange-table__listing-status--active': status === FULFILLMENT_STATUS.FINALIZED,
+        'exchange-table__listing-status--not-found': status === FULFILLMENT_STATUS.NOT_FOUND,
+        'exchange-table__listing-status--transfer-confirmed': status === FULFILLMENT_STATUS.CONFIRMING,
+        'exchange-table__listing-status--transfer-confirming': status === FULFILLMENT_STATUS.CONFIRMED,
+        'exchange-table__listing-status--finalized-confirmed': status === FULFILLMENT_STATUS.CONFIRMED_LOCKUP,
+        'exchange-table__listing-status--finalized-confirming': status === FULFILLMENT_STATUS.FINALIZING,
       })}>
         {statusText}
       </div>
@@ -178,7 +269,7 @@ class Exchange extends Component {
                       className="bid-action__link"
                       onClick={() => this.props.finalizeExchangeLock(l.nameLock)}
                     >
-                      {this.props.finalizingName === l.nameLock.name ? 'Finalizing...' : 'Finalize Listing'}
+                      {this.props.finalizingName === l.nameLock.name ? 'Finalizing...' : 'Finalize'}
                     </div>
                   </div>
                 )}
@@ -188,7 +279,7 @@ class Exchange extends Component {
                       className="bid-action__link"
                       onClick={() => this.props.launchExchangeAuction(l.nameLock)}
                     >
-                      Generate Presigns
+                      Generate
                     </div>
                   </div>
                 )}
@@ -213,7 +304,15 @@ class Exchange extends Component {
           ))}
         </Table>
 
-        <h2>Your Fills</h2>
+        <div className="exchange__button-header">
+          <h2>Your Fills</h2>
+          <button
+            className="exchange__button-header-button extension_cta_button"
+            onClick={this.onUploadPresigns}
+          >
+            Upload Auction File
+          </button>
+        </div>
         <Table className="exchange-table">
           <HeaderRow>
             <HeaderItem>Name</HeaderItem>
@@ -226,11 +325,11 @@ class Exchange extends Component {
           {!!this.props.fulfillments.length && this.props.fulfillments.map(f => (
             <TableRow>
               <TableItem>{formatName(f.fulfillment.name)}</TableItem>
-              <TableItem>{f.status}</TableItem>
+              <TableItem>{this.renderFulfillmentStatus(f.status)}</TableItem>
               <TableItem>{displayBalance(f.fulfillment.price, true)}</TableItem>
               <TableItem>{moment(f.fulfillment.broadcastAt).format('MM/DD/YYYY HH:MM:SS')}</TableItem>
               <TableItem>
-                {f.status === 'CONFIRMED_FINALIZABLE' && (
+                {f.status === FULFILLMENT_STATUS.CONFIRMED && (
                   <div className="bid-action">
                     <div
                       className="bid-action__link"
@@ -380,5 +479,27 @@ export default connect(
     finalizeExchangeLock: (nameLock) => dispatch(finalizeExchangeLock(nameLock)),
     launchExchangeAuction: (nameLock) => dispatch(launchExchangeAuction(nameLock)),
     submitToShakedex: (proposals) => dispatch(submitToShakedex(proposals)),
+    showError: (errorMessage) => dispatch(showError(errorMessage)),
   }),
 )(Exchange);
+
+function assertAuctionFile(options) {
+  const {
+    name,
+    startTime,
+    endTime,
+    startPrice,
+    endPrice,
+    reductionTimeMS,
+  } = options;
+
+  if (typeof name !== 'string') throw new Error('name must be string');
+  if (typeof startTime !== 'number') throw new Error ('startTime must be number');
+  if (typeof endTime !== 'number') throw new Error ('endTime must be number');
+  if (!(startTime > 0 && endTime > startTime)) throw new Error('startTime must be before endTime');
+  if (typeof startPrice !== 'number') throw new Error ('startPrice must be number');
+  if (typeof endPrice !== 'number') throw new Error ('endPrice must be number');
+  if (!(endPrice > 0 && startPrice > endPrice)) throw new Error('startPrice must be greater than endPrice');
+  if (typeof reductionTimeMS !== 'number') throw new Error ('reductionTimeMS must be number');
+  if (reductionTimeMS <= 0) throw new Error('reducetionTimeMS must be greater than 0');
+}

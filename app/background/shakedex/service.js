@@ -23,14 +23,14 @@ export async function fulfillSwap(auction, bid) {
     publicKey: auction.publicKey,
     paymentAddr: auction.paymentAddr,
     price: bid.price,
-    lockTime: bid.lockTime / 1000,
+    lockTime: Math.floor(bid.lockTime / 1000),
     signature: bid.signature,
   });
 
   const fulfillment = await sdFulfillSwap(context, proof);
   const fulfillmentJSON = fulfillment.toJSON();
   await put(
-    `exchange/fills/${fulfillmentJSON.name}/${fulfillmentJSON.fulfillmentTxHash}`,
+    `${fillsPrefix()}/${fulfillmentJSON.name}/${fulfillmentJSON.fulfillmentTxHash}`,
     {
       fulfillment: fulfillmentJSON,
     },
@@ -47,7 +47,7 @@ export async function finalizeSwap(fulfillmentJSON) {
     finalize: finalize.toJSON(),
   };
   await put(
-    `exchange/fills/${fulfillmentJSON.name}/${fulfillmentJSON.fulfillmentTxHash}`,
+    `${fillsPrefix()}/${fulfillmentJSON.name}/${fulfillmentJSON.fulfillmentTxHash}`,
     out,
   );
   return out;
@@ -56,12 +56,22 @@ export async function finalizeSwap(fulfillmentJSON) {
 export async function getFulfillments() {
   const swaps = [];
   await iteratePrefix(
-    'exchange/fills',
+    fillsPrefix(),
     (key, value) => swaps.push(
       JSON.parse(value.toString('utf-8')),
     ),
   );
   return swaps;
+}
+
+function fillsPrefix() {
+  const walletName = walletService.name;
+  return `exchange/fills/${walletName}`;
+}
+
+function listingPrefix() {
+  const walletName = walletService.name;
+  return `exchange/listings/${walletName}`;
 }
 
 export async function transferLock(name, startPrice, endPrice, durationDays) {
@@ -77,7 +87,7 @@ export async function transferLock(name, startPrice, endPrice, durationDays) {
     },
   };
   await put(
-    `exchange/listings/${nameLockJSON.name}/${nameLockJSON.transferTxHash}`,
+    `${listingPrefix()}/${nameLockJSON.name}/${nameLockJSON.transferTxHash}`,
     out,
   );
   return out;
@@ -88,14 +98,14 @@ export async function finalizeLock(nameLock) {
   const finalizeLock = await finalizeNameLock(context, nameLock);
   const finalizeLockJSON = finalizeLock.toJSON();
   const existing = await get(
-    `exchange/listings/${nameLock.name}/${nameLock.transferTxHash}`,
+    `${listingPrefix()}/${nameLock.name}/${nameLock.transferTxHash}`,
   );
   const out = {
     ...existing,
     finalizeLock: finalizeLockJSON,
   };
   await put(
-    `exchange/listings/${nameLock.name}/${nameLock.transferTxHash}`,
+    `${listingPrefix()}/${nameLock.name}/${nameLock.transferTxHash}`,
     out,
   );
   return out;
@@ -104,7 +114,7 @@ export async function finalizeLock(nameLock) {
 export async function getListings() {
   const listings = [];
   await iteratePrefix(
-    'exchange/listing',
+    listingPrefix(),
     (key, value) => listings.push(
       JSON.parse(value.toString('utf-8')),
     ),
@@ -114,7 +124,7 @@ export async function getListings() {
 
 export async function launchAuction(nameLock) {
   const context = getContext();
-  const key = `exchange/listings/${nameLock.name}/${nameLock.transferTxHash}`;
+  const key = `${listingPrefix()}/${nameLock.name}/${nameLock.transferTxHash}`;
   const listing = await get(
     key,
   );
