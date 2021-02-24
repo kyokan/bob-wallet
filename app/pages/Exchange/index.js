@@ -200,6 +200,7 @@ class Exchange extends Component {
         statusText = 'READY TO FINALIZE TRANSFER';
         break;
       case FULFILLMENT_STATUS.CONFIRMED_LOCKUP:
+        statusText = 'READY TO FINALIZE TRANSFER';
         break;
       case FULFILLMENT_STATUS.FINALIZING:
         statusText = 'FINALIZING TRANSFER';
@@ -329,7 +330,7 @@ class Exchange extends Component {
               <TableItem>{displayBalance(f.fulfillment.price, true)}</TableItem>
               <TableItem>{moment(f.fulfillment.broadcastAt).format('MM/DD/YYYY HH:MM:SS')}</TableItem>
               <TableItem>
-                {f.status === FULFILLMENT_STATUS.CONFIRMED && (
+                {[FULFILLMENT_STATUS.CONFIRMED, FULFILLMENT_STATUS.CONFIRMED_LOCKUP].includes(f.status)  && (
                   <div className="bid-action">
                     <div
                       className="bid-action__link"
