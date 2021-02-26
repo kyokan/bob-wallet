@@ -24,6 +24,9 @@ import {fetchWalletAPIKey} from "../../ducks/walletActions";
 import Anchor from "../../components/Anchor";
 import walletClient from "../../utils/walletClient";
 import InterstitialWarningModal from "./InterstitialWarningModal";
+import DeepCleanAndRescanModal from "./DeepCleanAndRescanModal";
+import {showError, showSuccess} from "../../ducks/notifications";
+const {dialog} = require('electron').remote;
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -50,6 +53,8 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
     startNode: () => dispatch(nodeActions.start()),
     setCustomRPCStatus: isConnected => dispatch(setCustomRPCStatus(isConnected)),
     fetchWalletAPIKey: () => dispatch(fetchWalletAPIKey()),
+    showError: (message) => dispatch(showError(message)),
+    showSuccess: (message) => dispatch(showSuccess(message)),
   }),
 )
 export default class Settings extends Component {
@@ -57,6 +62,8 @@ export default class Settings extends Component {
     network: PropTypes.string.isRequired,
     apiKey: PropTypes.string.isRequired,
     wid: PropTypes.string.isRequired,
+    changeDepth: PropTypes.number.isRequired,
+    receiveDepth: PropTypes.number.isRequired,
     walletApiKey: PropTypes.string.isRequired,
     isRunning: PropTypes.bool.isRequired,
     walletSync: PropTypes.bool.isRequired,
@@ -68,6 +75,15 @@ export default class Settings extends Component {
     setCustomRPCStatus: PropTypes.func.isRequired,
     transactions: PropTypes.object.isRequired,
   };
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      changeDepth: props.changeDepth,
+      receiveDepth: props.receiveDepth,
+      isUpdatingDepth: false,
+    }
+  }
 
   componentDidMount() {
     analytics.screenView('Settings');
@@ -92,6 +108,20 @@ export default class Settings extends Component {
         throw e;
       }, 0);
     }
+  };
+
+  onBackupWDB = async () => {
+    try {
+      let savePath = dialog.showOpenDialogSync({
+        properties: ["openDirectory", "promptToCreate", "createDirectory"],
+      });
+
+      await walletClient.backup(savePath[0]);
+      this.props.showSuccess(`WalletDB backup successfully`);
+    } catch (e) {
+      this.props.showError(e.message);
+    }
+
   };
 
   renderNav() {
@@ -195,7 +225,22 @@ export default class Settings extends Component {
           null,
           walletSync,
         )}
-
+        {this.renderSection(
+          'Backup WalletDB',
+          <div>
+            <div>{`Back up wallet database and files to a directory.`}</div>
+          </div>,
+          'Backup WalletDB',
+          this.onBackupWDB,
+        )}
+        {this.renderSection(
+          'Deep Clean and Rescan Wallet',
+          <div>
+            <div>For more information on deep clean, please see <Anchor href="https://github.com/handshake-org/hsd/blob/master/CHANGELOG.md#wallet-api-changes-1">here</Anchor></div>
+          </div>,
+          'Deep Clean + Rescan',
+          () => history.push('/settings/wallet/deep-clean-and-rescan'),
+        )}
         {this.renderSection(
           'API Key',
           <span>
@@ -387,47 +432,11 @@ export default class Settings extends Component {
               </button>
             </MiniModal>
           </Route>
+          <Route path="/settings/wallet/deep-clean-and-rescan">
+            <DeepCleanAndRescanModal />
+          </Route>
         </Switch>
       </ContentArea>
     );
   }
-}
-
-function SettingSection(props) {
-  const {
-    disabled = false,
-    title = '',
-    description = '',
-    children,
-    cta,
-    onClick,
-  } = props;
-  return (
-    <div
-      className={c("settings__content__section", {
-        'settings__content__section--disabled': disabled,
-      })}
-    >
-      <div className="settings__content__section__info">
-        <div className="settings__content__section__info__title">
-          {title}
-        </div>
-        <div className="settings__content__section__info__description">
-          {description}
-        </div>
-      </div>
-      <div className="settings__content__section__footer">
-        {children}
-        {cta && (
-          <button
-            className="settings__content__section__cta"
-            onClick={onClick}
-            disabled={disabled}
-          >
-            {cta}
-          </button>
-        )}
-      </div>
-    </div>
-  );
 }

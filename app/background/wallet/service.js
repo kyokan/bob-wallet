@@ -185,38 +185,10 @@ class WalletService {
     return res;
   };
 
-  updateAccountDepth = async (changeDepth, receiveDepth) => {
-    if (!this.name) return null;
-
+  backup = async (path) => {
+    if (!path) throw new Error('path must not be undefined');
     await this._ensureClient();
-    const wallet = await this.node.wdb.get(this.name);
-
-    if (!wallet) return null;
-
-    const account = await wallet.getAccount('default');
-    const initChange = 0;
-    const initReceive = 0;
-    const b = this.node.wdb.db.batch();
-
-    account.changeDepth = changeDepth;
-    account.receiveDepth = receiveDepth;
-    await account.save(b);
-
-    if (changeDepth) {
-      for (let i = initChange; i < changeDepth; i++) {
-        const key = account.deriveChange(i);
-        await account.saveKey(b, key);
-      }
-    }
-
-    if (receiveDepth) {
-      for (let j = initReceive; j < receiveDepth; j++) {
-        const key = account.deriveReceive(j);
-        await account.saveKey(b, key);
-      }
-    }
-
-    await b.write();
+    return this.client.execute('backupwallet', [path]);
   };
 
   rescan = async (height = 0) => {
@@ -230,6 +202,13 @@ class WalletService {
     });
 
     await wdb.rescan(height);
+  };
+
+  deepClean = async () => {
+    await this._ensureClient();
+    const wdb = this.node.wdb;
+
+    await wdb.deepClean();
   };
 
   importSeed = async (name, passphrase, mnemonic) => {
@@ -882,7 +861,9 @@ const methods = {
   estimateMaxSend: service.estimateMaxSend,
   removeWalletById: service.removeWalletById,
   updateAccountDepth: service.updateAccountDepth,
+  backup: service.backup,
   rescan: service.rescan,
+  deepClean: service.deepClean,
   reset: service.reset,
   sendOpen: service.sendOpen,
   sendBid: service.sendBid,

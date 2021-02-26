@@ -24,7 +24,6 @@ const CREATE_PASSWORD = 'CREATE_PASSWORD';
 const ENTRY_STEP = 'ENTRY';
 const OPT_IN_ANALYTICS = 'ANALYTICS';
 const SET_NAME = 'SET_NAME';
-const UPDATE_ACCOUNT_DEPTH = 'UPDATE_ACCOUNT_DEPTH';
 
 class ImportSeedFlow extends Component {
   static propTypes = {
@@ -46,7 +45,6 @@ class ImportSeedFlow extends Component {
     passphrase: '',
     mnemonic: '',
     isLoading: false,
-    accountDepth: 200,
   };
 
   render() {
@@ -103,38 +101,23 @@ class ImportSeedFlow extends Component {
         return (
           <ImportSeedEnterMnemonic
             currentStep={3}
-            totalSteps={5}
+            totalSteps={4}
             onBack={() => this.goTo(CREATE_PASSWORD)}
             onNext={(mnemonic) => {
               this.setState({
                 mnemonic,
               });
-              this.goTo(UPDATE_ACCOUNT_DEPTH);
-            }}
-            onCancel={() => this.props.history.push('/funding-options')}
-          />
-        );
-      case UPDATE_ACCOUNT_DEPTH:
-        return (
-          <UpdateAccountDepth
-            currentStep={4}
-            totalSteps={5}
-            onBack={() => this.goTo(ENTRY_STEP)}
-            onNext={(accountDepth) => {
-              this.setState({
-                accountDepth,
-              });
               this.goTo(OPT_IN_ANALYTICS);
             }}
             onCancel={() => this.props.history.push('/funding-options')}
           />
-        )
+        );
       case OPT_IN_ANALYTICS:
         return (
           <OptInAnalytics
-            currentStep={5}
-            totalSteps={5}
-            onBack={() => this.goTo(UPDATE_ACCOUNT_DEPTH)}
+            currentStep={4}
+            totalSteps={4}
+            onBack={() => this.setState({currentStep: ENTRY_STEP})}
             onNext={async (optInState) => {
               await analytics.setOptIn(optInState);
               await this.finishFlow(this.state.mnemonic);
@@ -153,14 +136,9 @@ class ImportSeedFlow extends Component {
   }
 
   finishFlow = async mnemonic => {
-    const {accountDepth} = this.state;
     this.setState({isLoading: true});
     try {
       await walletClient.importSeed(this.state.name, this.state.passphrase, mnemonic);
-      if (accountDepth > 200) {
-
-        await walletClient.updateAccountDepth(accountDepth, accountDepth);
-      }
       walletClient.rescan(0);
       await this.props.completeInitialization(this.state.name, this.state.passphrase);
       await this.props.fetchWallet();
