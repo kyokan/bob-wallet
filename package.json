@@ -169,7 +169,7 @@
     "redux-thunk": "2.3.0",
     "rimraf": "2.6.2",
     "sha3": "2.0.0",
-    "shakedex": "0.0.5",
+    "shakedex": "0.0.6",
     "source-map-support": "0.5.9",
     "tcp-port-used": "1.0.1",
     "uuid": "3.3.3",

@@ -1,19 +1,70 @@
 import { Context } from 'shakedex/src/context.js';
-import { SwapProof, writeProofStream } from 'shakedex/src/swapProof.js';
+import { SwapProof } from 'shakedex/src/swapProof.js';
 import { service as nodeService } from '../node/service';
 import { service as walletService } from '../wallet/service';
 import {
-  fulfillSwap as sdFulfillSwap,
+  fillSwap as sdFulfillSwap,
   finalizeSwap as sdFinalizeSwap,
   transferNameLock,
   finalizeNameLock,
 } from 'shakedex/src/swapService.js';
-import { put, iteratePrefix, get } from '../db/service.js';
-import { SwapFulfillment } from 'shakedex/src/swapFulfillment.js';
-import { Auction, linearReductionStrategy } from 'shakedex/src/auction.js';
+import { SwapFill } from 'shakedex/src/swapFill.js';
+import { Auction, AuctionFactory, linearReductionStrategy } from 'shakedex/src/auction.js';
 import { NameLockFinalize } from 'shakedex/src/nameLock.js';
 import stream from 'stream';
 import {encrypt, decrypt} from "../../utils/encrypt";
+import path from "path";
+import {app} from "electron";
+import bdb from "bdb";
+
+let db;
+
+export async function openDB() {
+  if (db) {
+    return;
+  }
+
+  const loc = path.join(app.getPath('userData'), 'exchange_db');
+  let tdb = bdb.create(loc);
+  await tdb.open();
+  db = tdb;
+}
+
+export async function closeDB() {
+  ensureDB();
+  await db.close();
+  db = null;
+}
+
+export async function put(key, value) {
+  ensureDB();
+  return db.put(Buffer.from(key, 'utf-8'), Buffer.from(JSON.stringify(value), 'utf-8'));
+}
+
+export async function get(key) {
+  ensureDB();
+  const data = await db.get(Buffer.from(key, 'utf-8'));
+  if (data === null) {
+    return null;
+  }
+
+  return JSON.parse(data.toString('utf-8'));
+}
+
+export async function del(key) {
+  ensureDB();
+  return db.del(Buffer.from(key, 'utf-8'));
+}
+
+export async function iteratePrefix(prefix, cb) {
+  const gt = Buffer.from(prefix, 'utf-8');
+  const iter = db.iterator({
+    gt,
+    lt: Buffer.concat([gt, Buffer.from([0xFF])]),
+    values: true,
+  });
+  await iter.each(cb);
+}
 
 export async function fulfillSwap(auction, bid) {
   const context = getContext();
@@ -41,7 +92,7 @@ export async function fulfillSwap(auction, bid) {
 
 export async function finalizeSwap(fulfillmentJSON) {
   const context = getContext();
-  const fulfillment = new SwapFulfillment(fulfillmentJSON);
+  const fulfillment = new SwapFill(fulfillmentJSON);
   const finalize = await sdFinalizeSwap(context, fulfillment);
   const out = {
     fulfillment: fulfillmentJSON,
@@ -155,7 +206,7 @@ export async function launchAuction(nameLock, passphrase) {
       break;
   }
 
-  const auction = new Auction({
+  const auctionFactory = new AuctionFactory({
     name: listing.nameLock.name,
     startTime: Date.now(),
     endTime: Date.now() + durationDays * 24 * 60 * 60 * 1000,
@@ -164,36 +215,36 @@ export async function launchAuction(nameLock, passphrase) {
     reductionTimeMS,
     reductionStrategy: linearReductionStrategy,
   });
-  const proposals = await auction.generateProposals(
+  const auction = await auctionFactory.createAuction(
     context,
     new NameLockFinalize({
       ...listing.finalizeLock,
       privateKey: decrypt(listing.finalizeLock.encryptedPrivateKey, passphrase)
     }),
   );
-  listing.proposals = proposals;
+  const auctionJSON = auction.toJSON(context);
+  listing.auction = auctionJSON;
   await put(
     key,
     listing,
   );
-  return proposals.map(p => p.toJSON(context));
+  return auctionJSON;
 }
 
-async function downloadProofs(auction) {
+async function downloadProofs(auctionJSON) {
   const context = getContext();
   const proofs = [];
   for (const bid of auction.bids) {
     proofs.push(new SwapProof({
-      lockingTxHash: auction.lockingTxHash,
-      lockingOutputIdx: auction.lockingOutputIdx,
-      name: auction.name,
-      publicKey: auction.publicKey,
-      paymentAddr: auction.paymentAddr,
       price: bid.price,
       lockTime: bid.lockTime / 1000,
       signature: bid.signature,
     }));
   }
+  const auction = new Auction({
+    ...auctionJSON,
+    data: proofs,
+  });
   const data = [];
   const writable = new stream.Writable({
     write: function (chunk, encoding, next) {
@@ -201,7 +252,7 @@ async function downloadProofs(auction) {
       next();
     },
   });
-  await writeProofStream(writable, proofs, context);
+  await auction.writeToStream(context, writable);
   return {
     data: data.join(''),
   };
@@ -232,5 +283,12 @@ const methods = {
 };
 
 export async function start(server) {
+  await openDB();
   server.withService(sName, methods);
+}
+
+function ensureDB() {
+  if (!db) {
+    throw new Error('db not open');
+  }
 }

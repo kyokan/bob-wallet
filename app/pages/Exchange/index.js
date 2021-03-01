@@ -90,21 +90,21 @@ class Exchange extends Component {
     }
   };
 
-  onDownloadPresigns = async (proposals) => {
+  onDownloadPresigns = async (listing) => {
     try {
-      const first = proposals[0];
-      const submission = {
-        name: first.name,
-        lockingTxHash: first.lockingTxHash,
-        lockingOutputIdx: first.lockingOutputIdx,
-        publicKey: first.publicKey,
-        paymentAddr: first.paymentAddr,
-        data: proposals.map(p => ({
-          price: p.price,
-          lockTime: p.lockTime,
-          signature: p.signature,
-        })),
-      };
+      const submission = listing.auction;
+      // const submission = {
+      //   name: listing.name,
+      //   lockingTxHash: listing.lockingTxHash,
+      //   lockingOutputIdx: listing.lockingOutputIdx,
+      //   publicKey: listing.publicKey,
+      //   paymentAddr: listing.paymentAddr,
+      //   data: proposals.map(p => ({
+      //     price: p.price,
+      //     lockTime: p.lockTime,
+      //     signature: p.signature,
+      //   })),
+      // };
       const content = JSON.stringify(submission);
       const data = `data:text/plain;charset=utf-8,${content}\r\n`;
       const encodedUri = encodeURI(data);
@@ -198,7 +198,7 @@ class Exchange extends Component {
         statusText = 'READY TO FINALIZE TRANSFER';
         break;
       case FULFILLMENT_STATUS.CONFIRMED_LOCKUP:
-        statusText = 'READY TO FINALIZE TRANSFER';
+        statusText = 'TRANSFERRING NAME TO YOU';
         break;
       case FULFILLMENT_STATUS.FINALIZING:
         statusText = 'FINALIZING TRANSFER';
@@ -286,7 +286,7 @@ class Exchange extends Component {
                   <div className="bid-action">
                     <div
                       className="bid-action__link"
-                      onClick={() => this.onDownloadPresigns(l.proposals)}
+                      onClick={() => this.onDownloadPresigns(l)}
                     >
                       Download
                     </div>
@@ -328,7 +328,7 @@ class Exchange extends Component {
               <TableItem>{displayBalance(f.fulfillment.price, true)}</TableItem>
               <TableItem>{moment(f.fulfillment.broadcastAt).format('MM/DD/YYYY HH:MM:SS')}</TableItem>
               <TableItem>
-                {[FULFILLMENT_STATUS.CONFIRMED, FULFILLMENT_STATUS.CONFIRMED_LOCKUP].includes(f.status)  && (
+                {[FULFILLMENT_STATUS.CONFIRMED].includes(f.status)  && (
                   <div className="bid-action">
                     <div
                       className="bid-action__link"

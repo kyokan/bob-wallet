@@ -188,8 +188,12 @@ export const getExchangeListings = (page = 1) => async (dispatch, getState) => {
     let finalizeCoin;
     try {
       transferTx = await nodeClient.getTx(listing.nameLock.transferTxHash);
-      finalizeTx = listing.finalizeLock ? await nodeClient.getTx(listing.finalizeLock.finalizeTxHash) : null;
-      finalizeCoin = listing.finalizeLock ? await nodeClient.getCoin(listing.finalizeLock.finalizeTxHash, listing.finalizeLock.finalizeOutputIdx) : null;
+      finalizeTx = listing.finalizeLock
+        ? await nodeClient.getTx(listing.finalizeLock.finalizeTxHash)
+        : null;
+      finalizeCoin = listing.finalizeLock
+        ? await nodeClient.getCoin(listing.finalizeLock.finalizeTxHash, listing.finalizeLock.finalizeOutputIdx)
+        : null;
     } catch (e) {
       listing.status = LISTING_STATUS.NOT_FOUND;
       continue;
@@ -212,7 +216,7 @@ export const getExchangeListings = (page = 1) => async (dispatch, getState) => {
       continue;
     }
 
-    if (!listing.proposals) {
+    if (!listing.auction) {
       listing.status = LISTING_STATUS.FINALIZE_CONFIRMED;
       continue;
     }
