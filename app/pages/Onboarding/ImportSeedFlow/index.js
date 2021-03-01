@@ -14,7 +14,6 @@ import OptInAnalytics from '../OptInAnalytics';
 import { clientStub as aClientStub } from '../../../background/analytics/client';
 import { showError } from '../../../ducks/notifications';
 import SetName from '../SetName';
-import UpdateAccountDepth from "../UpdateAccountDepth";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -53,7 +52,7 @@ class ImportSeedFlow extends Component {
         return (
           <Terms
             currentStep={0}
-            totalSteps={5}
+            totalSteps={4}
             onAccept={() => this.setState({currentStep: WARNING_STEP})}
             onBack={() => this.props.history.push('/existing-options')}
           />
@@ -62,7 +61,7 @@ class ImportSeedFlow extends Component {
         return (
           <ImportSeedWarning
             currentStep={0}
-            totalSteps={5}
+            totalSteps={4}
             onBack={() => this.setState({currentStep: TERMS_OF_USE})}
             onNext={() => this.goTo(SET_NAME)}
             onCancel={() => this.props.history.push('/funding-options')}
@@ -72,7 +71,7 @@ class ImportSeedFlow extends Component {
         return (
           <SetName
             currentStep={1}
-            totalSteps={5}
+            totalSteps={4}
             onBack={() => this.setState({
               currentStep: WARNING_STEP,
             })}
@@ -86,7 +85,7 @@ class ImportSeedFlow extends Component {
         return (
           <CreatePassword
             currentStep={2}
-            totalSteps={5}
+            totalSteps={4}
             onBack={() => this.setState({currentStep: WARNING_STEP})}
             onNext={passphrase => {
               this.setState({
@@ -117,7 +116,7 @@ class ImportSeedFlow extends Component {
           <OptInAnalytics
             currentStep={4}
             totalSteps={4}
-            onBack={() => this.setState({currentStep: ENTRY_STEP})}
+            onBack={() => this.goTo(ENTRY_STEP)}
             onNext={async (optInState) => {
               await analytics.setOptIn(optInState);
               await this.finishFlow(this.state.mnemonic);
