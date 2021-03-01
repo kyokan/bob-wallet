@@ -32,6 +32,7 @@ import * as walletActions from '../../ducks/walletActions';
       progress,
       unconfirmedBalance: state.wallet.balance.unconfirmed,
       spendableBalance: state.wallet.balance.spendable,
+      walletId: state.wallet.wid,
       walletSync: state.wallet.walletSync,
       walletHeight: state.wallet.walletHeight,
       chainHeight: state.node.chain.height,
@@ -51,6 +52,7 @@ class Topbar extends Component {
     location: PropTypes.shape({
       pathname: PropTypes.string.isRequired
     }).isRequired,
+    walletId: PropTypes.string.isRequired,
     getNameInfo: PropTypes.func.isRequired,
     isSynchronizing: PropTypes.bool.isRequired,
     isSynchronized: PropTypes.bool.isRequired,
@@ -150,7 +152,7 @@ class Topbar extends Component {
   }
 
   renderSettingIcon() {
-    const { unconfirmedBalance, spendableBalance } = this.props;
+    const { unconfirmedBalance, spendableBalance, walletId } = this.props;
     const { isShowingSettingMenu } = this.state;
     return (
       <div
@@ -164,18 +166,9 @@ class Topbar extends Component {
             ? (
               <div className="setting-menu">
                 <div className="setting-menu__balance-container">
-                  <div className="setting-menu__balance-container__item">
-                    <div className="setting-menu__balance-container__item__label">Total Balance</div>
-                    <div className="setting-menu__balance-container__item__amount">
-                      {`HNS ${displayBalance(unconfirmedBalance)}`}
-                    </div>
-                  </div>
-                  <div className="setting-menu__balance-container__item">
-                    <div className="setting-menu__balance-container__item__label">Spendable Balance</div>
-                    <div className="setting-menu__balance-container__item__amount">
-                      {`HNS ${displayBalance(spendableBalance)}`}
-                    </div>
-                  </div>
+                  {this.renderSettingGroup('Wallet ID', walletId)}
+                  {this.renderSettingGroup('Total Balance', `HNS ${displayBalance(unconfirmedBalance)}`)}
+                  {this.renderSettingGroup('Spendable Balance', `HNS ${displayBalance(spendableBalance)}`)}
                 </div>
                 <div className="setting-menu__items">
                   <div
@@ -203,6 +196,17 @@ class Topbar extends Component {
             )
             : null
         }
+      </div>
+    )
+  }
+
+  renderSettingGroup(label, content) {
+    return (
+      <div className="setting-menu__balance-container__item">
+        <div className="setting-menu__balance-container__item__label">{label}</div>
+        <div className="setting-menu__balance-container__item__amount">
+          {content}
+        </div>
       </div>
     )
   }

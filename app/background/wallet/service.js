@@ -4,6 +4,7 @@ import path from 'path';
 import { app } from 'electron';
 import rimraf from 'rimraf';
 import crypto from 'crypto';
+const Validator = require('bval');
 import { ConnectionTypes, getConnection } from '../connections/service';
 import { dispatchToMainWindow } from '../../mainWindow';
 import { NETWORKS } from '../../constants/networks';
@@ -647,6 +648,8 @@ class WalletService {
       logLevel: 'debug',
     });
 
+    node.http.post('/unsafe-update-account-depth', this.handleUnsafeUpdateAccountDepth);
+
     if (this.closeP) await this.closeP;
 
     await node.open();
@@ -683,6 +686,29 @@ class WalletService {
       resolve();
     })
 
+  };
+
+  handleUnsafeUpdateAccountDepth = async (req, res) => {
+    if (!req.admin) {
+      res.json(403);
+      return;
+    }
+
+    const valid = Validator.fromRequest(req);
+
+    const disclaimer = valid.bool('I_KNOW_WHAT_IM_DOING', false);
+
+    enforce(
+      disclaimer,
+      'Unsafe endpoints requires I_KNOW_WHAT_IM_DOING=true'
+    );
+
+    const changeDepth = valid.u64('changeDepth');
+    const receiveDepth = valid.u64('receiveDepth');
+
+
+    await this.updateAccountDepth(changeDepth, receiveDepth);
+    res.json(200, { success: true });
   };
 
   refreshWalletInfo = async () => {
@@ -971,4 +997,12 @@ function uniq(list) {
   }
 
   return ret;
+}
+
+function enforce(value, msg) {
+  if (!value) {
+    const err = new Error(msg);
+    err.statusCode = 400;
+    throw err;
+  }
 }
