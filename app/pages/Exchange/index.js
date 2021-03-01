@@ -93,18 +93,6 @@ class Exchange extends Component {
   onDownloadPresigns = async (listing) => {
     try {
       const submission = listing.auction;
-      // const submission = {
-      //   name: listing.name,
-      //   lockingTxHash: listing.lockingTxHash,
-      //   lockingOutputIdx: listing.lockingOutputIdx,
-      //   publicKey: listing.publicKey,
-      //   paymentAddr: listing.paymentAddr,
-      //   data: proposals.map(p => ({
-      //     price: p.price,
-      //     lockTime: p.lockTime,
-      //     signature: p.signature,
-      //   })),
-      // };
       const content = JSON.stringify(submission);
       const data = `data:text/plain;charset=utf-8,${content}\r\n`;
       const encodedUri = encodeURI(data);
