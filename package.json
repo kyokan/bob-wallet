@@ -137,12 +137,12 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "5.5.0",
     "@sentry/electron": "0.17.4",
+    "bcrypto": "^5.4.0",
     "bcurl": "^0.1.9",
     "bdb": "^1.2.2",
     "bignumber.js": "8.0.1",
     "classnames": "2.2.6",
     "copy-to-clipboard": "3.0.8",
-    "crypto-js": "^4.0.0",
     "deep-equal": "2.0.1",
     "devtron": "1.4.0",
     "electron-debug": "2.0.0",

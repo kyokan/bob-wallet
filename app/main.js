@@ -10,6 +10,7 @@ import {app, dialog} from 'electron';
 import MenuBuilder from './menu';
 import showMainWindow, {dispatchToMainWindow, sendDeeplinkToMainWindow} from './mainWindow';
 import path from 'path';
+import {encrypt} from "./utils/encrypt";
 
 const Sentry = require('@sentry/electron');
 

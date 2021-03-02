@@ -37,6 +37,7 @@ import {clientStub as sClientStub} from "../../background/setting/client";
 import {ConnectionTypes} from "../../background/connections/service";
 import AppHeader from "../AppHeader";
 import Exchange from '../Exchange';
+import {decrypt, encrypt} from "../../utils/encrypt";
 const connClient = cClientStub(() => require('electron').ipcRenderer);
 const settingClient = sClientStub(() => require('electron').ipcRenderer);
 
