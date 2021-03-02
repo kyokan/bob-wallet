@@ -30,6 +30,8 @@ import BackupListingModal from "./BackupListingModal";
 import fs from "fs";
 const {dialog} = require('electron').remote;
 import {clientStub as sClientStub} from "../../background/shakedex/client";
+import {auctionSchema, finalizeLockScheme, nameLockSchema, paramSchema, validateAuction} from "../../utils/shakedex";
+import {showError, showSuccess} from "../../ducks/notifications";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 const shakedex = sClientStub(() => require('electron').ipcRenderer);
@@ -76,6 +78,8 @@ export default class Settings extends Component {
     reset: PropTypes.func.isRequired,
     stopNode: PropTypes.func.isRequired,
     startNode: PropTypes.func.isRequired,
+    showError: PropTypes.func.isRequired,
+    showSuccess: PropTypes.func.isRequired,
     setCustomRPCStatus: PropTypes.func.isRequired,
     transactions: PropTypes.object.isRequired,
   };
@@ -145,6 +149,29 @@ export default class Settings extends Component {
         });
       }
     });
+  };
+
+  onRestoreExchangeListing = async () => {
+    const {
+      filePaths: [filepath]
+    } = await dialog.showOpenDialog({
+      properties: ['openFile'],
+      filters: {
+        extensions: ['json'],
+      },
+    });
+
+    try {
+      const buf = await fs.promises.readFile(filepath);
+      const listings = JSON.parse(buf);
+
+      for (let listing of listings) {
+        await shakedex.restoreOneListing(listing)
+      }
+      await this.props.showSuccess(`Restored ${listings.length} auctions.`);
+    } catch (e) {
+      this.props.showError(e.message);
+    }
   };
 
   renderNav() {
@@ -317,6 +344,12 @@ export default class Settings extends Component {
           'Download backup of all your listings',
           'Download',
           () => history.push('/settings/exchange/backup'),
+        )}
+        {this.renderSection(
+          'Restore listing',
+          'Restore your listing from backup',
+          'Restore',
+          this.onRestoreExchangeListing,
         )}
       </>
     )

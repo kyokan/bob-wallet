@@ -10,12 +10,14 @@ import {
 } from 'shakedex/src/swapService.js';
 import { SwapFill } from 'shakedex/src/swapFill.js';
 import { Auction, AuctionFactory, linearReductionStrategy } from 'shakedex/src/auction.js';
+const jsonSchemaValidate = require('jsonschema').validate;
 import { NameLockFinalize } from 'shakedex/src/nameLock.js';
 import stream from 'stream';
 import {encrypt, decrypt} from "../../utils/encrypt";
 import path from "path";
 import {app} from "electron";
 import bdb from "bdb";
+import {auctionSchema, finalizeLockScheme, nameLockSchema, paramSchema} from "../../utils/shakedex";
 
 let db;
 
@@ -146,6 +148,29 @@ export async function transferLock(name, startPrice, endPrice, durationDays, pas
     out,
   );
   return out;
+}
+
+export async function restoreOneListing(listing) {
+  const {valid: auctionValid} = jsonSchemaValidate(listing.auction, auctionSchema);
+  const {valid: finalizeValid} = jsonSchemaValidate(listing.finalizeLock, finalizeLockScheme);
+  const {valid: nameLockValid} = jsonSchemaValidate(listing.nameLock || {}, nameLockSchema);
+  const {valid: paramsValid} = jsonSchemaValidate(listing.params, paramSchema);
+
+  if (!auctionValid || !finalizeValid || !nameLockValid || !paramsValid) {
+    throw new Error('Invalid backup file schema');
+  }
+  const {nameLock} = listing;
+  const existing = await get(
+    `${listingPrefix()}/${nameLock.name}/${nameLock.transferTxHash}`,
+  );
+  if (existing) {
+    throw new Error(`Auction for ${nameLock.name} already exist.`);
+  }
+
+  await put(
+    `${listingPrefix()}/${nameLock.name}/${nameLock.transferTxHash}`,
+    listing,
+  );
 }
 
 export async function finalizeLock(nameLock, password) {
@@ -280,6 +305,7 @@ const methods = {
   getListings,
   launchAuction,
   downloadProofs,
+  restoreOneListing,
 };
 
 export async function start(server) {

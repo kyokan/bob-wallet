@@ -8,5 +8,6 @@ export const clientStub = ipcRendererInjector => makeClient(ipcRendererInjector,
   'getListings',
   'finalizeLock',
   'launchAuction',
-  'downloadProofs'
+  'downloadProofs',
+  'restoreOneListing',
 ]);

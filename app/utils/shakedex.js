@@ -9,7 +9,7 @@ const hexRegex = (len = null) => {
 
 const addressRegex = /^(hs|rs|ts|ss)1[a-zA-HJ-NP-Z0-9]{25,39}$/i;
 
-const auctionSchema = {
+export const auctionSchema = {
   type: 'object',
   required: [
     'name',
@@ -64,6 +64,127 @@ const auctionSchema = {
           },
         },
       },
+    },
+  },
+};
+
+export const paramSchema = {
+  type: 'object',
+  required: [
+    'durationDays',
+    'endPrice',
+    'startPrice',
+  ],
+  properties: {
+    durationDays: {
+      type: 'integer',
+      minimum: 0,
+    },
+    endPrice: {
+      type: 'integer',
+      minimum: 0,
+    },
+    startPrice: {
+      type: 'integer',
+      minimum: 0,
+    },
+  },
+};
+
+export const finalizeLockScheme = {
+  type: 'object',
+  required: [
+    'broadcastAt',
+    'encryptedPrivateKey',
+    'finalizeOutputIdx',
+    'finalizeTxHash',
+    'name',
+    'publicKey',
+  ],
+  properties: {
+    broadcastAt: {
+      type: 'integer',
+    },
+    encryptedPrivateKey: {
+      type: 'string',
+      pattern: hexRegex(160),
+    },
+    finalizeOutputIdx: {
+      type: 'integer',
+      minimum: 0,
+    },
+    finalizeTxHash: {
+      type: 'string',
+      pattern: hexRegex(64),
+    },
+    name: {
+      type: 'string',
+    },
+    publicKey: {
+      type: 'string',
+      pattern: hexRegex(66),
+    },
+  },
+};
+
+export const nameLockSchema = {
+  type: 'object',
+  required: [
+    'broadcastAt',
+    'encryptedPrivateKey',
+    'lockScriptAddr',
+    'name',
+    'publicKey',
+    'transferTxHash',
+  ],
+  properties: {
+    broadcastAt: {
+      type: 'integer',
+    },
+    encryptedPrivateKey: {
+      type: 'string',
+      pattern: hexRegex(160),
+    },
+    lockScriptAddr: {
+      type: 'object',
+      required: [
+        'hash',
+        'version',
+      ],
+      properties: {
+        hash: {
+          type: 'object',
+          required: [
+            'data',
+            'type',
+          ],
+          properties: {
+            type: {
+              type: 'string',
+            },
+            data: {
+              type: 'array',
+              items: {
+                type: 'integer',
+              },
+            },
+          },
+        },
+        version: {
+          type: 'integer',
+        },
+      },
+    },
+    transferTxHash: {
+      type: 'string',
+      pattern: hexRegex(64),
+    },
+    name: {
+      type: 'string',
+    },
+    publicKey: {
+      type: 'string',
+      pattern: hexRegex(66),
     },
   },
 };
