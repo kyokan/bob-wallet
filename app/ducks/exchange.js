@@ -9,8 +9,8 @@ const shakedex = shakedexClientStub(() => require('electron').ipcRenderer);
 const nodeClient = nodeClientStub(() => require('electron').ipcRenderer);
 
 const client = new Client({
-  host: 'shakex.com',
-  // port: 8080,
+  host: 'shakedex.com',
+  ssl: true,
 });
 
 export const GET_EXCHANGE_AUCTIONS = 'GET/EXCHANGE_AUCTIONS';
@@ -374,32 +374,17 @@ export const launchExchangeAuction = (nameLock) => async (dispatch, getState) =>
   dispatch(showSuccess('Successfully generated presigns! You can post your auctions to Shakedex, or download and distribute however you wish.'));
 };
 
-export const submitToShakedex = (proposals = []) => async dispatch => {
+export const submitToShakedex = (auction) => async dispatch => {
   try {
-    const first = proposals[0];
-    const submission = {
-      name: first.name,
-      lockingTxHash: first.lockingTxHash,
-      lockingOutputIdx: first.lockingOutputIdx,
-      publicKey: first.publicKey,
-      paymentAddr: first.paymentAddr,
-      data: proposals.map(p => ({
-        price: p.price,
-        lockTime: p.lockTime,
-        signature: p.signature,
-      })),
-    };
-
     // use fetch here since bcurl crashes
-    const res = await fetch(`http://localhost:8080/api/v1/auctions`, {
+    const res = await fetch(`https://www.shakedex.com/api/v1/auctions`, {
       method: 'POST',
-      mode: 'cors',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        auction: submission,
-      })
+        auction,
+      }),
     });
     if (res.status !== 201) {
       throw new Error('Error creating auction.');
@@ -433,8 +418,6 @@ export default function (state = getInitialState(), action) {
         ...state,
         auctionIds,
         auctions,
-        fulfillments: action.payload.fulfillments,
-        listings: action.payload.listings,
         isLoading: false,
         isError: false,
       };

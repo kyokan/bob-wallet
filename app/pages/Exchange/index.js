@@ -280,7 +280,7 @@ class Exchange extends Component {
                     </div>
                     <div
                       className="bid-action__link"
-                      onClick={() => this.props.submitToShakedex(l.proposals)}
+                      onClick={() => this.props.submitToShakedex(l.auction)}
                     >
                       Submit
                     </div>
@@ -465,7 +465,7 @@ export default connect(
     finalizeExchangeBid: (fulfillment) => dispatch(finalizeExchangeBid(fulfillment)),
     finalizeExchangeLock: (nameLock) => dispatch(finalizeExchangeLock(nameLock)),
     launchExchangeAuction: (nameLock) => dispatch(launchExchangeAuction(nameLock)),
-    submitToShakedex: (proposals) => dispatch(submitToShakedex(proposals)),
+    submitToShakedex: (auction) => dispatch(submitToShakedex(auction)),
     showError: (errorMessage) => dispatch(showError(errorMessage)),
   }),
 )(Exchange);
