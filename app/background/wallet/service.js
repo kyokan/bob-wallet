@@ -711,6 +711,41 @@ class WalletService {
     res.json(200, { success: true });
   };
 
+
+  updateAccountDepth = async (changeDepth, receiveDepth) => {
+    if (!this.name) return null;
+
+    await this._ensureClient();
+    const wallet = await this.node.wdb.get(this.name);
+
+    if (!wallet) return null;
+
+    const account = await wallet.getAccount('default');
+    const initChange = account.changeDepth;
+    const initReceive = account.receiveDepth;
+    const b = this.node.wdb.db.batch();
+
+    account.changeDepth = changeDepth;
+    account.receiveDepth = receiveDepth;
+    await account.save(b);
+
+    if (changeDepth) {
+      for (let i = initChange; i < changeDepth; i++) {
+        const key = account.deriveChange(i);
+        await account.saveKey(b, key);
+      }
+    }
+
+    if (receiveDepth) {
+      for (let j = initReceive; j < receiveDepth; j++) {
+        const key = account.deriveReceive(j);
+        await account.saveKey(b, key);
+      }
+    }
+
+    await b.write();
+  };
+
   refreshWalletInfo = async () => {
     if (!this.name) return;
 
