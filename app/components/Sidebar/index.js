@@ -16,6 +16,7 @@ const nodeClient = clientStub(() => require('electron').ipcRenderer);
     chainHeight: state.node.chain.height,
     tip: state.node.chain.tip,
     newBlockStatus: state.node.newBlockStatus,
+    walletId: state.wallet.wid,
     walletSync: state.wallet.walletSync,
     walletHeight: state.wallet.walletHeight,
     address: state.wallet.address,
@@ -33,6 +34,7 @@ class Sidebar extends Component {
       pathname: PropTypes.string.isRequired
     }).isRequired,
     chainHeight: PropTypes.number.isRequired,
+    walletId: PropTypes.string.isRequired,
     tip: PropTypes.string.isRequired,
     newBlockStatus: PropTypes.string.isRequired,
     walletSync: PropTypes.bool.isRequired,
@@ -60,7 +62,7 @@ class Sidebar extends Component {
   renderNav() {
     return (
       <React.Fragment>
-        <div className="sidebar__section">Wallet</div>
+        <div className="sidebar__section">{`Wallet (${this.props.walletId})`}</div>
         <div className="sidebar__actions">
           <NavLink
             className="sidebar__action"
