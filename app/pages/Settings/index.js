@@ -153,9 +153,6 @@ export default class Settings extends Component {
         >
           Network & Connection
         </div>
-        <div className="settings__footer">
-          Bob v{pkg.version}
-        </div>
       </div>
     );
   }
@@ -372,6 +369,9 @@ export default class Settings extends Component {
             <Redirect to="/settings/general" />
           </Route>
         </Switch>
+        <div className="settings__footer">
+          Bob v{pkg.version}
+        </div>
       </div>
     )
   }

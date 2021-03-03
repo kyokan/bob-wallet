@@ -1,9 +1,10 @@
 import React, {Component} from "react";
 import MiniModal from "../../components/Modal/MiniModal";
-import {Route, withRouter} from "react-router-dom";
+import {withRouter} from "react-router-dom";
 import Checkbox from "../../components/Checkbox";
 import Anchor from "../../components/Anchor";
 import Alert from "../../components/Alert";
+import walletClient from '../../utils/walletClient';
 
 @withRouter
 export default class DeepCleanAndRescanModal extends Component {
@@ -34,7 +35,7 @@ export default class DeepCleanAndRescanModal extends Component {
             checked={hasBackup}
           />
           <div className="interstitial-warning-modal__checkbox-label">
-            I have my recovery seed phrase backed up.
+            I have backed up my Wallet DB.
           </div>
         </div>
         <button
