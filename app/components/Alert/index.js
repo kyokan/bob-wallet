@@ -6,21 +6,25 @@ export default class Alert extends Component {
   static propTypes = {
     type: PropTypes.oneOf([
       'error',
+      'warning',
       'success'
     ]).isRequired,
-    message: PropTypes.string.isRequired
+    message: PropTypes.string,
+    children: PropTypes.node,
   };
 
   render() {
-    if (!this.props.message) {
+    const { message, type, children} = this.props;
+
+    if (!message && !children) {
       return null;
     }
 
-    const name = `alert alert--${this.props.type}`;
+    const name = `alert alert--${type}`;
 
     return (
       <div className={name}>
-        {this.props.message}
+        {children || message}
       </div>
     );
   }
