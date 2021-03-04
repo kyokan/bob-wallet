@@ -30,8 +30,6 @@ import BackupListingModal from "./BackupListingModal";
 import fs from "fs";
 const {dialog} = require('electron').remote;
 import {clientStub as sClientStub} from "../../background/shakedex/client";
-import {auctionSchema, finalizeLockScheme, nameLockSchema, paramSchema, validateAuction} from "../../utils/shakedex";
-import {showError, showSuccess} from "../../ducks/notifications";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 const shakedex = sClientStub(() => require('electron').ipcRenderer);
@@ -210,9 +208,6 @@ export default class Settings extends Component {
           onClick={() => history.push("/settings/exchange")}
         >
           Exchange
-        </div>
-        <div className="settings__footer">
-          Bob v{pkg.version}
         </div>
       </div>
     );

@@ -95,6 +95,7 @@ export class NodeService extends EventEmitter {
       indexAddress: true,
       indexTX: true,
       apiKey: this.apiKey,
+      cors: true,
     });
 
     await hsd.ensure();
