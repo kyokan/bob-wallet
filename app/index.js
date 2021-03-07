@@ -37,7 +37,7 @@ function handleDeeplink(message) {
     pathname: url.pathname,
   });
 
-  let name, txt;
+  let name, txt, presignJSONString;
   switch (url.pathname) {
     case "//updaterecord":
     case "//updaterecord/":
@@ -72,6 +72,21 @@ function handleDeeplink(message) {
         store.dispatch(setDeeplink(message));
       } else if (name) {
         history.push(`/domain_manager/${name}`);
+      }
+      return;
+    case "//fulfillauction":
+    case "//fulfillauction/":
+      name = params.get('name');
+      presignJSONString = params.get('presign');
+
+      if (presignJSONString) {
+        store.dispatch(setDeeplinkParams({ presignJSONString }));
+      }
+
+      if (isLocked) {
+        store.dispatch(setDeeplink(message));
+      } else if (name) {
+        history.push(`/exchange`);
       }
       return;
     default:

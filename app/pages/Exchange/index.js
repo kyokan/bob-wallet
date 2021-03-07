@@ -30,15 +30,23 @@ import {showError} from "../../ducks/notifications";
 import {fromAuctionJSON, validateAuction} from "../../utils/shakedex";
 import nodeClient from '../../utils/nodeClient';
 import './exchange.scss';
+import PropTypes from "prop-types";
+import {clearDeeplinkParams} from "../../ducks/app";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 const shakedex = sClientStub(() => require('electron').ipcRenderer);
 
 class Exchange extends Component {
+  static propTypes = {
+    deeplinkParams: PropTypes.object.isRequired,
+    clearDeeplinkParams: PropTypes.func.isRequired,
+  };
+
   constructor(props) {
     super(props);
     this.state = {
       placingAuction: null,
+      placingCurrentBid: null,
       isPlacingListing: false,
       isUploadingFile: false,
     };
@@ -49,6 +57,30 @@ class Exchange extends Component {
     this.props.getExchangeAuctions();
     this.props.getExchangeFullfillments();
     this.props.getExchangeListings();
+  }
+
+  static getDerivedStateFromProps(props, state) {
+    try {
+      const { presignJSONString } = props.deeplinkParams;
+      let auction, currentBid;
+
+      if (presignJSONString) {
+        props.clearDeeplinkParams();
+        auction = fromAuctionJSON(JSON.parse(presignJSONString));
+        currentBid = getCurrentBid(auction);
+        return {
+          ...state,
+          placingAuction: auction,
+          placingCurrentBid: currentBid,
+          isUploadingFile: false,
+        };
+      }
+
+      return state;
+    } catch (e) {
+      props.clearDeeplinkParams();
+      return state;
+    }
   }
 
   onUploadPresigns = async () => {
@@ -73,7 +105,7 @@ class Exchange extends Component {
       await validateAuction(auctionJSON, nodeClient);
 
       const auction = fromAuctionJSON(auctionJSON);
-      const currentBid = this.getCurrentBid(auction);
+      const currentBid = getCurrentBid(auction);
 
       this.setState({
         placingAuction: auction,
@@ -376,7 +408,7 @@ class Exchange extends Component {
   }
 
   renderAuctionRow = (auction) => {
-    const currentBid = this.getCurrentBid(auction);
+    const currentBid = getCurrentBid(auction);
 
     return (
       <TableRow key={auction.id}>
@@ -406,19 +438,6 @@ class Exchange extends Component {
       </TableRow>
     );
   };
-
-  getCurrentBid(auction) {
-    const now = Date.now();
-    let out;
-    for (let i = 0; i < auction.bids.length; i++) {
-      const bid = auction.bids[i];
-      if (bid.lockTime > now) {
-        break;
-      }
-      out = bid;
-    }
-    return out;
-  }
 
   renderNextBid(auction) {
     const now = Date.now();
@@ -457,6 +476,7 @@ export default connect(
     fulfillments: state.exchange.fulfillments,
     listings: state.exchange.listings,
     finalizingName: state.exchange.finalizingName,
+    deeplinkParams: state.app.deeplinkParams,
   }),
   (dispatch) => ({
     getExchangeAuctions: (page) => dispatch(getExchangeAuctions(page)),
@@ -467,5 +487,19 @@ export default connect(
     launchExchangeAuction: (nameLock) => dispatch(launchExchangeAuction(nameLock)),
     submitToShakedex: (auction) => dispatch(submitToShakedex(auction)),
     showError: (errorMessage) => dispatch(showError(errorMessage)),
+    clearDeeplinkParams: () => dispatch(clearDeeplinkParams()),
   }),
 )(Exchange);
+
+function getCurrentBid(auction) {
+  const now = Date.now();
+  let out;
+  for (let i = 0; i < auction.bids.length; i++) {
+    const bid = auction.bids[i];
+    if (bid.lockTime > now) {
+      break;
+    }
+    out = bid;
+  }
+  return out;
+}
