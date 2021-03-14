@@ -32,6 +32,8 @@ import nodeClient from '../../utils/nodeClient';
 import './exchange.scss';
 import PropTypes from "prop-types";
 import {clearDeeplinkParams} from "../../ducks/app";
+import {Link} from "react-router-dom";
+import GenerateListingModal from "./GenerateListingModal";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 const shakedex = sClientStub(() => require('electron').ipcRenderer);
@@ -49,6 +51,8 @@ class Exchange extends Component {
       placingCurrentBid: null,
       isPlacingListing: false,
       isUploadingFile: false,
+      isGeneratingListing: false,
+      generatingListing: null,
     };
   }
 
@@ -250,7 +254,7 @@ class Exchange extends Component {
     return (
       <div className="exchange">
         <div className="exchange__button-header">
-          <h2>Your Listings</h2>
+          <h2>Your Listings </h2>
           <button
             className="exchange__button-header-button extension_cta_button"
             onClick={() => this.setState({
@@ -259,6 +263,9 @@ class Exchange extends Component {
           >
             Create Listing
           </button>
+        </div>
+        <div className="exchange__button-header__sub">
+          Reminder: Don't forget to backup your exchange data in <Link to="/settings/exchange/backup">Settings/Exchange</Link>
         </div>
         <Table className="exchange-table">
           <HeaderRow>
@@ -275,52 +282,7 @@ class Exchange extends Component {
               </TableItem>
             </TableRow>
           )}
-          {!!this.props.listings.length && this.props.listings.map(l => (
-            <TableRow key={l.nameLock.name}>
-              <TableItem>{formatName(l.nameLock.name)}</TableItem>
-              <TableItem>{this.renderListingStatus(l.status)}</TableItem>
-              <TableItem>{displayBalance(l.params.startPrice)}</TableItem>
-              <TableItem>{displayBalance(l.params.endPrice)}</TableItem>
-              <TableItem>
-                {l.status === LISTING_STATUS.TRANSFER_CONFIRMED && (
-                  <div className="bid-action">
-                    <div
-                      className="bid-action__link"
-                      onClick={() => this.props.finalizeExchangeLock(l.nameLock)}
-                    >
-                      {this.props.finalizingName === l.nameLock.name ? 'Finalizing...' : 'Finalize'}
-                    </div>
-                  </div>
-                )}
-                {l.status === LISTING_STATUS.FINALIZE_CONFIRMED && (
-                  <div className="bid-action">
-                    <div
-                      className="bid-action__link"
-                      onClick={() => this.props.launchExchangeAuction(l.nameLock)}
-                    >
-                      Generate
-                    </div>
-                  </div>
-                )}
-                {l.status === LISTING_STATUS.ACTIVE && (
-                  <div className="bid-action">
-                    <div
-                      className="bid-action__link"
-                      onClick={() => this.onDownloadPresigns(l)}
-                    >
-                      Download
-                    </div>
-                    <div
-                      className="bid-action__link"
-                      onClick={() => this.props.submitToShakedex(l.auction)}
-                    >
-                      Submit
-                    </div>
-                  </div>
-                )}
-              </TableItem>
-            </TableRow>
-          ))}
+          {!!this.props.listings.length && this.props.listings.map(l => this.renderListingRow(l))}
         </Table>
 
         <div className="exchange__button-header">
@@ -386,7 +348,7 @@ class Exchange extends Component {
             </div>
           )}
         </Table>
-        {this.state.placingAuction && (
+        {this.state.placingAuction && this.state.placingCurrentBid && (
           <PlaceBidModal
             auction={this.state.placingAuction}
             bid={this.state.placingCurrentBid}
@@ -403,9 +365,89 @@ class Exchange extends Component {
             })}
           />
         )}
+        {this.state.isGeneratingListing && (
+          <GenerateListingModal
+            listing={this.state.generatingListing}
+            onClose={() => this.setState({
+              isGeneratingListing: false,
+              generatingListing: null,
+            })}
+          />
+        )}
       </div>
     );
   }
+
+  renderListingRow = (l) => {
+    const { auction } = l;
+    const { data = [] } = auction || {};
+    const lastBid = data[data.length - 1];
+    const { lockTime = 0 } = lastBid || {}
+    const now = Date.now();
+    const hasLastBidReleased = now > lockTime * 1000;
+    return (
+      <TableRow key={l.nameLock.name}>
+        <TableItem>{formatName(l.nameLock.name)}</TableItem>
+        <TableItem>{this.renderListingStatus(l.status)}</TableItem>
+        <TableItem>{displayBalance(l.params.startPrice)}</TableItem>
+        <TableItem>{displayBalance(l.params.endPrice)}</TableItem>
+        <TableItem>
+          {l.status === LISTING_STATUS.TRANSFER_CONFIRMED && (
+            <div className="bid-action">
+              <div
+                className="bid-action__link"
+                onClick={() => this.props.finalizeExchangeLock(l.nameLock)}
+              >
+                {this.props.finalizingName === l.nameLock.name ? 'Finalizing...' : 'Finalize'}
+              </div>
+            </div>
+          )}
+          {l.status === LISTING_STATUS.FINALIZE_CONFIRMED && (
+            <div className="bid-action">
+              <div
+                className="bid-action__link"
+                onClick={() => this.setState({
+                  isGeneratingListing: true,
+                  generatingListing: l,
+                })}
+              >
+                Generate
+              </div>
+            </div>
+          )}
+          {l.status === LISTING_STATUS.ACTIVE && (
+            <div className="bid-action">
+              {
+                (!auction && hasLastBidReleased) && (
+                  <div
+                    className="bid-action__link"
+                    onClick={() => this.setState({
+                      isGeneratingListing: true,
+                      generatingListing: l,
+                    })}
+                  >
+                    Regenerate
+                  </div>
+                )
+              }
+              <div
+                className="bid-action__link"
+                onClick={() => this.onDownloadPresigns(l)}
+              >
+                Download
+              </div>
+              <div
+                className="bid-action__link"
+                onClick={() => this.props.submitToShakedex(l.auction)}
+              >
+                Submit
+              </div>
+            </div>
+          )}
+        </TableItem>
+      </TableRow>
+    );
+  };
 
   renderAuctionRow = (auction) => {
     const currentBid = getCurrentBid(auction);
@@ -413,33 +455,46 @@ class Exchange extends Component {
     return (
       <TableRow key={auction.id}>
         <TableItem>{formatName(auction.name)}</TableItem>
-        <TableItem>{displayBalance(currentBid.price, true)}</TableItem>
+        <TableItem>{displayBalance(currentBid?.price, true)}</TableItem>
         <TableItem>{displayBalance(auction.bids[0].price, true)}</TableItem>
         <TableItem>{this.renderNextBid(auction)}</TableItem>
         <TableItem>
-          <div className="exchange__auction-row-buttons">
-            <div
-              className="bid-action__link"
-              onClick={() => this.setState({
-                placingAuction: auction,
-                placingCurrentBid: currentBid,
-              })}
-            >
-              Fill
-            </div>
-            <div
-              className="bid-action__link"
-              onClick={() => this.onClickDownload(auction)}
-            >
-              Download Proofs
-            </div>
-          </div>
+          {
+            !auction.spendingStatus && (
+              <div className="exchange__auction-row-buttons">
+                <div
+                  className="bid-action__link"
+                  onClick={() => this.setState({
+                    placingAuction: auction,
+                    placingCurrentBid: currentBid,
+                  })}
+                >
+                  Fill
+                </div>
+                <div
+                  className="bid-action__link"
+                  onClick={() => this.onClickDownload(auction)}
+                >
+                  Download Proofs
+                </div>
+              </div>
+            )
+          }
         </TableItem>
       </TableRow>
     );
   };
 
   renderNextBid(auction) {
+    if (auction.spendingStatus) {
+      switch (auction.spendingStatus) {
+        case "COMPLETED":
+          return 'Sold';
+        case "CANCELLED":
+          return 'Cancelled';
+      }
+    }
+
     const now = Date.now();
     let nextBid = null;
     for (let i = 0; i < auction.bids.length; i++) {

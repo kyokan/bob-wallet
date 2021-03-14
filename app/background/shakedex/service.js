@@ -17,7 +17,7 @@ import {encrypt, decrypt} from "../../utils/encrypt";
 import path from "path";
 import {app} from "electron";
 import bdb from "bdb";
-import {auctionSchema, finalizeLockScheme, nameLockSchema, paramSchema} from "../../utils/shakedex";
+import {auctionSchema, finalizeLockScheme, fulfillmentSchema, nameLockSchema, paramSchema} from "../../utils/shakedex";
 
 let db;
 
@@ -68,8 +68,8 @@ export async function iteratePrefix(prefix, cb) {
   await iter.each(cb);
 }
 
-export async function fulfillSwap(auction, bid) {
-  const context = getContext();
+export async function fulfillSwap(auction, bid, passphrase) {
+  const context = getContext(passphrase);
   const proof = new SwapProof({
     lockingTxHash: auction.lockingTxHash,
     lockingOutputIdx: auction.lockingOutputIdx,
@@ -92,8 +92,8 @@ export async function fulfillSwap(auction, bid) {
   return fulfillmentJSON;
 }
 
-export async function finalizeSwap(fulfillmentJSON) {
-  const context = getContext();
+export async function finalizeSwap(fulfillmentJSON, passphrase) {
+  const context = getContext(passphrase);
   const fulfillment = new SwapFill(fulfillmentJSON);
   const finalize = await sdFinalizeSwap(context, fulfillment);
   const out = {
@@ -129,7 +129,7 @@ function listingPrefix() {
 }
 
 export async function transferLock(name, startPrice, endPrice, durationDays, password) {
-  const context = getContext();
+  const context = getContext(password);
   const nameLock = await transferNameLock(context, name);
   const {privateKey, ...nameLockJSON} = nameLock.toJSON();
   const out = {
@@ -173,8 +173,29 @@ export async function restoreOneListing(listing) {
   );
 }
 
+export async function restoreOneFill(fill) {
+  const {valid} = jsonSchemaValidate(fill.fulfillment, fulfillmentSchema);
+
+  if (!valid) {
+    throw new Error('Invalid backup file schema');
+  }
+  const {fulfillment} = fill;
+  const existing = await get(
+    `${fillsPrefix()}/${fulfillment.name}/${fulfillment.fulfillmentTxHash}`,
+  );
+
+  if (existing) {
+    throw new Error(`Auction for ${fulfillment.name} already exist.`);
+  }
+
+  await put(
+    `${fillsPrefix()}/${fulfillment.name}/${fulfillment.fulfillmentTxHash}`,
+    fill,
+  );
+}
+
 export async function finalizeLock(nameLock, password) {
-  const context = getContext();
+  const context = getContext(password);
   const finalizeLock = await finalizeNameLock(context, {
     ...nameLock,
     privateKey: decrypt(nameLock.encryptedPrivateKey, password),
@@ -208,14 +229,17 @@ export async function getListings() {
   return listings;
 }
 
-export async function launchAuction(nameLock, passphrase) {
+export async function launchAuction(nameLock, passphrase, paramsOverride) {
   const context = getContext();
   const key = `${listingPrefix()}/${nameLock.name}/${nameLock.transferTxHash}`;
-  const listing = await get(
-    key,
-  );
+  const listing = await get(key);
 
-  const {startPrice, endPrice, durationDays} = listing.params;
+  const {startPrice, endPrice, durationDays} = paramsOverride || listing.params;
+
+  if (paramsOverride) {
+    listing.params = paramsOverride;
+  }
+
   let reductionTimeMS;
   switch (durationDays) {
     case 1:
@@ -259,7 +283,7 @@ export async function launchAuction(nameLock, passphrase) {
 async function downloadProofs(auctionJSON) {
   const context = getContext();
   const proofs = [];
-  for (const bid of auction.bids) {
+  for (const bid of auctionJSON.bids) {
     proofs.push(new SwapProof({
       price: bid.price,
       lockTime: bid.lockTime / 1000,
@@ -283,7 +307,7 @@ async function downloadProofs(auctionJSON) {
   };
 }
 
-function getContext() {
+function getContext(passphrase = null) {
   const walletId = walletService.name;
   const {apiKey, networkName} = nodeService;
 
@@ -291,7 +315,7 @@ function getContext() {
     networkName,
     walletId,
     apiKey,
-    () => Promise.resolve(null),
+    () => Promise.resolve(passphrase),
   );
 }
 
@@ -306,6 +330,7 @@ const methods = {
   launchAuction,
   downloadProofs,
   restoreOneListing,
+  restoreOneFill,
 };
 
 export async function start(server) {

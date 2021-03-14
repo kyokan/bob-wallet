@@ -244,8 +244,8 @@ export const placeExchangeBid = (auction, bid) => async (dispatch, getState) => 
 
   let fulfillment;
   try {
-    await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
-    fulfillment = await shakedex.fulfillSwap(auction, bid);
+    const passphrase = await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
+    fulfillment = await shakedex.fulfillSwap(auction, bid, passphrase);
   } catch (e) {
     console.error(e);
     dispatch({
@@ -273,10 +273,10 @@ export const finalizeExchangeBid = (fulfillment) => async (dispatch, getState) =
     },
   });
 
-  await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
+  const passphrase = await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
 
   try {
-    await shakedex.finalizeSwap(fulfillment);
+    await shakedex.finalizeSwap(fulfillment, passphrase);
   } catch (e) {
     dispatch({
       type: FINALIZE_EXCHANGE_BID_ERR,
@@ -349,15 +349,14 @@ export const finalizeExchangeLock = (nameLock) => async (dispatch, getState) => 
   dispatch(showSuccess('Successfully finalized auction! Please wait 15 minutes for it to confirm on-chain.'));
 };
 
-export const launchExchangeAuction = (nameLock) => async (dispatch, getState) => {
+export const launchExchangeAuction = (nameLock, overrideParams) => async (dispatch, getState) => {
   dispatch({
     type: LAUNCH_EXCHANGE_AUCTION,
   });
 
-
   try {
     const passphrase = await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
-    await shakedex.launchAuction(nameLock, passphrase);
+    await shakedex.launchAuction(nameLock, passphrase, overrideParams);
   } catch (e) {
     dispatch({
       type: LAUNCH_EXCHANGE_AUCTION_ERR,
@@ -377,7 +376,7 @@ export const launchExchangeAuction = (nameLock) => async (dispatch, getState) =>
 export const submitToShakedex = (auction) => async dispatch => {
   try {
     // use fetch here since bcurl crashes
-    const res = await fetch(`https://www.shakedex.com/api/v1/auctions`, {
+    const res = await fetch(`https://api.shakedex.com/api/v1/auctions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -386,11 +385,13 @@ export const submitToShakedex = (auction) => async dispatch => {
         auction,
       }),
     });
-    if (res.status !== 201) {
-      throw new Error('Error creating auction.');
+    const json = await res.json();
+    if (json.error) {
+      dispatch(showError(json.error.message));
+      return;
     }
 
-    dispatch(showError('Your auction is now listed on Shakedex Web'));
+    dispatch(showSuccess('Your auction is now listed on Shakedex Web'));
   } catch (e) {
     console.error(e);
     dispatch(showError('Failed to post to Shakedex Web. You can still download your proofs and distribute them.'));

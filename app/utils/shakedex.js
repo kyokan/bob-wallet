@@ -1,13 +1,44 @@
 // Extract from https://github.com/kurumiimari/shakedex-api/blob/9b6d111afad8b14b4ccf3af7eca4945c3d193bb6/src/service/auctions.js
 
 const jsonSchemaValidate = require('jsonschema').validate;
-import { SwapProof } from 'shakedex/src/swapProof.js';
 
 const hexRegex = (len = null) => {
   return new RegExp(`^[a-f0-9]${len ? `{${len}}` : '+'}$`);
 };
 
 const addressRegex = /^(hs|rs|ts|ss)1[a-zA-HJ-NP-Z0-9]{25,39}$/i;
+
+export const fulfillmentSchema = {
+  type: 'object',
+  required: [
+    'broadcastAt',
+    'fulfillmentTxHash',
+    'lockingPublicKey',
+    'name',
+    'price',
+  ],
+  properties: {
+    name: {
+      type: 'string',
+    },
+    lockingPublicKey: {
+      type: 'string',
+      pattern: hexRegex(66),
+    },
+    fulfillmentTxHash: {
+      type: 'string',
+      pattern: hexRegex(64),
+    },
+    price: {
+      type: 'integer',
+      minimum: 0,
+    },
+    broadcastAt: {
+      type: 'integer',
+      minimum: 0,
+    },
+  }
+}
 
 export const auctionSchema = {
   type: 'object',
@@ -195,23 +226,24 @@ export async function validateAuction(auction, nodeClient) {
     throw new Error('Invalid auction schema.');
   }
 
-  const proofs = auction.data.map(a => new SwapProof({
-    name: auction.name,
-    lockingTxHash: auction.lockingTxHash,
-    lockingOutputIdx: auction.lockingOutputIdx,
-    publicKey: auction.publicKey,
-    paymentAddr: auction.paymentAddr,
-    price: a.price,
-    lockTime: a.lockTime,
-    signature: a.signature,
-  }));
+  // const proofs = auction.data.map(a => new SwapProof({
+  //   name: auction.name,
+  //   lockingTxHash: auction.lockingTxHash,
+  //   lockingOutputIdx: auction.lockingOutputIdx,
+  //   publicKey: auction.publicKey,
+  //   paymentAddr: auction.paymentAddr,
+  //   price: a.price,
+  //   lockTime: a.lockTime,
+  //   signature: a.signature,
+  // }));
 
-  for (const proof of proofs) {
-    const ok = await proof.verify({ nodeClient });
-    if (!ok) {
-      throw new Error('Swap proofs failed validation.');
-    }
-  }
+
+  // for (const proof of proofs) {
+  //   const ok = await proof.verify({ nodeClient });
+  //   if (!ok) {
+  //     throw new Error('Swap proofs failed validation.');
+  //   }
+  // }
 }
 
 export function fromAuctionJSON(json) {

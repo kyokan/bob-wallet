@@ -131,7 +131,8 @@ export default class Settings extends Component {
 
   onDownloadExchangeBackup = async () => {
     const listings = await shakedex.getListings();
-    const data = JSON.stringify(listings);
+    const fills = await shakedex.getFulfillments();
+    const data = JSON.stringify({listings, fills});
     const savePath = dialog.showSaveDialogSync({
       filters: [{name: 'exchange-listing', extensions: ['json']}],
     });
@@ -161,12 +162,17 @@ export default class Settings extends Component {
 
     try {
       const buf = await fs.promises.readFile(filepath);
-      const listings = JSON.parse(buf);
+      const {listings, fills} = JSON.parse(buf);
 
       for (let listing of listings) {
         await shakedex.restoreOneListing(listing)
       }
-      await this.props.showSuccess(`Restored ${listings.length} auctions.`);
+
+      for (let fill of fills) {
+        await shakedex.restoreOneFill(fill)
+      }
+
+      await this.props.showSuccess(`Restored ${listings.length + fills.length} auctions.`);
     } catch (e) {
       this.props.showError(e.message);
     }
@@ -336,7 +342,7 @@ export default class Settings extends Component {
       <>
         {this.renderSection(
           'Backup listing',
-          'Download backup of all your listings',
+          'Download backup of all your listings and fulfillments',
           'Download',
           () => history.push('/settings/exchange/backup'),
         )}

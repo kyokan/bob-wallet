@@ -24,6 +24,12 @@
 .exchange__button-header {
   display: flex;
   align-items: center;
+
+  &__sub {
+    @extend %h6;
+    color: $manatee-gray;
+    margin-bottom: .5rem;
+  }
 }
 
 .exchange__button-header-button {
@@ -93,7 +99,7 @@
       }
 
       &:nth-of-type(5) {
-        flex: 0 0 10rem;
+        flex: 0 0 11rem;
       }
     }
   }
