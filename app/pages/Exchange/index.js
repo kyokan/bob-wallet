@@ -149,12 +149,24 @@ class Exchange extends Component {
 
   onClickDownload = async (auction) => {
     try {
-      const content = (await shakedex.downloadProofs(auction)).data;
+      const submission = {
+        lockingOutputIdx: auction.lockingOutputIdx,
+        lockingTxHash: auction.lockingTxHash,
+        name: auction.name,
+        paymentAddr: auction.paymentAddr,
+        publicKey: auction.publicKey,
+        data: auction.bids.map(bid => ({
+          price: bid.price,
+          lockTime: bid.lockTime,
+          signature: bid.signature,
+        })),
+      };
+      const content = JSON.stringify(submission);
       const data = `data:text/plain;charset=utf-8,${content}\r\n`;
       const encodedUri = encodeURI(data);
       const link = document.createElement('a');
       link.setAttribute('href', encodedUri);
-      link.setAttribute('download', `${auction.name}.txt`);
+      link.setAttribute('download', `${submission.name}-presigns.json`);
       document.body.appendChild(link); // Required for FF
       link.click();
       link.remove();
