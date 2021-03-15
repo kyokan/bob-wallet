@@ -1,5 +1,6 @@
 import { Context } from 'shakedex/src/context.js';
 import { SwapProof } from 'shakedex/src/swapProof.js';
+const secp256k1 = require('bcrypto/lib/secp256k1.js');
 import { service as nodeService } from '../node/service';
 import { service as walletService } from '../wallet/service';
 import {
@@ -7,6 +8,8 @@ import {
   finalizeSwap as sdFinalizeSwap,
   transferNameLock,
   finalizeNameLock,
+  transferNameLockCancel,
+  finalizeNameLockCancel,
 } from 'shakedex/src/swapService.js';
 import { SwapFill } from 'shakedex/src/swapFill.js';
 import { Auction, AuctionFactory, linearReductionStrategy } from 'shakedex/src/auction.js';
@@ -147,6 +150,62 @@ export async function transferLock(name, startPrice, endPrice, durationDays, pas
     `${listingPrefix()}/${nameLockJSON.name}/${nameLockJSON.transferTxHash}`,
     out,
   );
+  return out;
+}
+
+export async function transferCancel(nameLock, password) {
+  const context = getContext(password);
+  const existing = await get(
+    `${listingPrefix()}/${nameLock.name}/${nameLock.transferTxHash}`,
+  );
+  const {finalizeLock} = existing;
+  const cancelNameLock = await transferNameLockCancel(context, {
+    ...finalizeLock,
+    publicKey: Buffer.from(finalizeLock.publicKey, 'hex'),
+    privateKey: Buffer.from(decrypt(nameLock.encryptedPrivateKey, password), 'hex'),
+  });
+  const {privateKey, ...cancelLockJSON} = cancelNameLock.toJSON(context);
+
+  const out = {
+    ...existing,
+    nameLockCancel: {
+      ...cancelLockJSON,
+      encryptedPrivateKey: encrypt(privateKey, password)
+    },
+  };
+
+  await put(
+    `${listingPrefix()}/${nameLock.name}/${nameLock.transferTxHash}`,
+    out,
+  );
+
+  return out;
+}
+
+export async function finalizeCancel(nameLock, password) {
+  const context = getContext(password);
+  const existing = await get(
+    `${listingPrefix()}/${nameLock.name}/${nameLock.transferTxHash}`,
+  );
+  const {nameLockCancel} = existing;
+  const decrypted = Buffer.from(decrypt(nameLockCancel.encryptedPrivateKey, password), 'hex');
+  const finalizeCancelLock = await finalizeNameLockCancel(context, {
+    ...nameLockCancel,
+    publicKey: secp256k1.publicKeyCreate(decrypted),
+    privateKey: decrypted,
+  });
+  const finalizeCancelLockJSON = finalizeCancelLock.toJSON(context);
+
+  const out = {
+    ...existing,
+    cancelFinalize: finalizeCancelLockJSON,
+  };
+
+  await put(
+    `${listingPrefix()}/${nameLock.name}/${nameLock.transferTxHash}`,
+    out,
+  );
+
   return out;
 }
 
@@ -326,6 +385,8 @@ const methods = {
   finalizeSwap,
   transferLock,
   finalizeLock,
+  finalizeCancel,
+  transferCancel,
   getListings,
   launchAuction,
   downloadProofs,

@@ -28,9 +28,19 @@ export const GET_EXCHANGE_LISTINGS_ERR = 'GET/EXCHANGE_LISTINGS/ERR';
 export const PLACE_EXCHANGE_BID = 'PLACE_EXCHANGE_BID';
 export const PLACE_EXCHANGE_BID_OK = 'PLACE_EXCHANGE_BID/OK';
 export const PLACE_EXCHANGE_BID_ERR = 'PLACE_EXCHANGE_BID/ERR';
+
 export const FINALIZE_EXCHANGE_BID = 'FINALIZE_EXCHANGE_BID';
 export const FINALIZE_EXCHANGE_BID_OK = 'FINALIZE_EXCHANGE_BID/OK';
 export const FINALIZE_EXCHANGE_BID_ERR = 'FINALIZE_EXCHANGE_BID/ERR';
+
+export const CANCEL_EXCHANGE_LISTING = 'CANCEL_EXCHANGE_LISTING';
+export const CANCEL_EXCHANGE_LISTING_OK = 'CANCEL_EXCHANGE_LISTING/OK';
+export const CANCEL_EXCHANGE_LISTING_ERR = 'CANCEL_EXCHANGE_LISTING/ERR';
+
+export const FINALIZE_CANCEL_EXCHANGE_LISTING = 'FINALIZE_CANCEL_EXCHANGE_LISTING';
+export const FINALIZE_CANCEL_EXCHANGE_LISTING_OK = 'FINALIZE_CANCEL_EXCHANGE_LISTING/OK';
+export const FINALIZE_CANCEL_EXCHANGE_LISTING_ERR = 'FINALIZE_CANCEL_EXCHANGE_LISTING/ERR';
+
 export const PLACE_EXCHANGE_LISTING = 'PLACE_EXCHANGE_LISTING';
 export const PLACE_EXCHANGE_LISTING_OK = 'PLACE_EXCHANGE_LISTING/OK';
 export const PLACE_EXCHANGE_LISTING_ERR = 'PLACE_EXCHANGE_LISTING/ERR';
@@ -52,6 +62,10 @@ export const LISTING_STATUS = {
   FINALIZE_CONFIRMED: 'FINALIZE_CONFIRMED',
   ACTIVE: 'ACTIVE',
   SOLD: 'SOLD',
+  CANCEL_CONFIRMING: 'CANCEL_CONFIRMING',
+  CANCEL_CONFIRMED: 'CANCEL_CONFIRMED',
+  FINALIZE_CANCEL_CONFIRMING: 'FINALIZE_CANCEL_CONFIRMING',
+  FINALIZE_CANCEL_CONFIRMED: 'FINALIZE_CANCEL_CONFIRMED',
 };
 
 export const FULFILLMENT_STATUS = {
@@ -186,6 +200,9 @@ export const getExchangeListings = (page = 1) => async (dispatch, getState) => {
     let transferTx;
     let finalizeTx;
     let finalizeCoin;
+    let cancelTx;
+    let cancelFinalizeTx;
+    let cancelCoin;
     try {
       transferTx = await nodeClient.getTx(listing.nameLock.transferTxHash);
       finalizeTx = listing.finalizeLock
@@ -193,6 +210,15 @@ export const getExchangeListings = (page = 1) => async (dispatch, getState) => {
         : null;
       finalizeCoin = listing.finalizeLock
         ? await nodeClient.getCoin(listing.finalizeLock.finalizeTxHash, listing.finalizeLock.finalizeOutputIdx)
+        : null;
+      cancelTx = listing.nameLockCancel
+        ? await nodeClient.getTx(listing.nameLockCancel.transferTxHash)
+        : null;
+      cancelFinalizeTx = listing.cancelFinalize
+        ? await nodeClient.getTx(listing.cancelFinalize.finalizeTxHash)
+        : null;
+      cancelCoin = listing.cancelFinalize
+        ? await nodeClient.getCoin(listing.cancelFinalize.finalizeTxHash, listing.cancelFinalize.finalizeOutputIdx)
         : null;
     } catch (e) {
       listing.status = LISTING_STATUS.NOT_FOUND;
@@ -223,6 +249,24 @@ export const getExchangeListings = (page = 1) => async (dispatch, getState) => {
 
     if (finalizeCoin) {
       listing.status = LISTING_STATUS.ACTIVE;
+      continue;
+    }
+
+    if (cancelTx && !cancelFinalizeTx) {
+      listing.status = cancelTx.height > 0 && info.chain.height - cancelTx.height > transferLockup
+        ? LISTING_STATUS.CANCEL_CONFIRMED
+        : LISTING_STATUS.CANCEL_CONFIRMING;
+      continue;
+    }
+
+    if (cancelFinalizeTx && cancelFinalizeTx.height === -1) {
+      listing.status = LISTING_STATUS.FINALIZE_CANCEL_CONFIRMING;
+      continue;
+    }
+
+
+    if (cancelCoin) {
+      listing.status = LISTING_STATUS.FINALIZE_CANCEL_CONFIRMED;
       continue;
     }
 
@@ -317,6 +361,59 @@ export const transferExchangeLock = (name, startPrice, endPrice, durationDays) =
   dispatch({
     type: PLACE_EXCHANGE_LISTING_OK,
   });
+};
+
+
+export const cancelExchangeLock = (nameLock) => async (dispatch) => {
+  dispatch({
+    type: CANCEL_EXCHANGE_LISTING,
+  });
+
+  try {
+    const passphrase = await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
+    await shakedex.transferCancel(nameLock, passphrase);
+  } catch (e) {
+    dispatch({
+      type: CANCEL_EXCHANGE_LISTING_ERR,
+      payload: {
+        message: e.message,
+      },
+    });
+    dispatch(showError(e.message));
+    throw e;
+  }
+
+  dispatch(getExchangeListings());
+  dispatch({
+    type: CANCEL_EXCHANGE_LISTING_OK,
+  });
+  dispatch(showSuccess('Transferring name back to your wallet. Don\'t forget to finalize after transfer period is over.'));
+};
+
+export const finalizeCancelExchangeLock = (nameLock) => async (dispatch) => {
+  dispatch({
+    type: FINALIZE_CANCEL_EXCHANGE_LISTING,
+  });
+
+  try {
+    const passphrase = await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
+    await shakedex.finalizeCancel(nameLock, passphrase);
+  } catch (e) {
+    dispatch({
+      type: FINALIZE_CANCEL_EXCHANGE_LISTING_ERR,
+      payload: {
+        message: e.message,
+      },
+    });
+    dispatch(showError(e.message));
+    throw e;
+  }
+
+  dispatch(getExchangeListings());
+  dispatch({
+    type: FINALIZE_CANCEL_EXCHANGE_LISTING_OK,
+  });
+  dispatch(showSuccess('Successfully finalized transfer! Please wait 15 minutes for it to confirm on-chain.'));
 };
 
 export const finalizeExchangeLock = (nameLock) => async (dispatch, getState) => {

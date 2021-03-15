@@ -19,6 +19,7 @@ import PlaceBidModal from './PlaceBidModal.js';
 import PlaceListingModal from './PlaceListingModal.js';
 import * as logger from '../../utils/logClient.js';
 import {
+  cancelExchangeLock, finalizeCancelExchangeLock,
   FULFILLMENT_STATUS,
   getExchangeFullfillments,
   getExchangeListings,
@@ -190,14 +191,36 @@ class Exchange extends Component {
       case LISTING_STATUS.FINALIZE_CONFIRMED:
         statusText = 'READY TO GENERATE AUCTION FILE';
         break;
+      case LISTING_STATUS.CANCEL_CONFIRMING:
+        statusText = 'CANCELLING LISTING';
+        break;
+      case LISTING_STATUS.CANCEL_CONFIRMED:
+        statusText = 'READY TO FINALIZE CANCEL';
+        break;
+      case LISTING_STATUS.FINALIZE_CANCEL_CONFIRMING:
+        statusText = 'FINALIZING CANCEL';
+        break;
+      case LISTING_STATUS.FINALIZE_CANCEL_CONFIRMED:
+        statusText = 'CANCELLED';
+        break;
     }
 
     return (
       <div className={classNames('exchange-table__listing-status', {
         'exchange-table__listing-status--active': status === LISTING_STATUS.ACTIVE,
-        'exchange-table__listing-status--transfer-confirmed': status === LISTING_STATUS.TRANSFER_CONFIRMED,
-        'exchange-table__listing-status--transfer-confirming': status === LISTING_STATUS.TRANSFER_CONFIRMING,
-        'exchange-table__listing-status--sold': status === LISTING_STATUS.SOLD,
+        'exchange-table__listing-status--transfer-confirmed': [
+          LISTING_STATUS.TRANSFER_CONFIRMED,
+          LISTING_STATUS.CANCEL_CONFIRMED,
+        ].includes(status),
+        'exchange-table__listing-status--transfer-confirming': [
+          LISTING_STATUS.TRANSFER_CONFIRMING,
+          LISTING_STATUS.CANCEL_CONFIRMING,
+          LISTING_STATUS.FINALIZE_CANCEL_CONFIRMING,
+        ].includes(status),
+        'exchange-table__listing-status--sold': [
+          LISTING_STATUS.SOLD,
+          LISTING_STATUS.FINALIZE_CANCEL_CONFIRMED,
+        ].includes(status),
         'exchange-table__listing-status--not-found': status === LISTING_STATUS.NOT_FOUND,
         'exchange-table__listing-status--finalized-confirmed': status === LISTING_STATUS.FINALIZE_CONFIRMED,
         'exchange-table__listing-status--finalized-confirming': status === LISTING_STATUS.FINALIZE_CONFIRMING,
@@ -415,6 +438,16 @@ class Exchange extends Component {
               </div>
             </div>
           )}
+          {l.status === LISTING_STATUS.CANCEL_CONFIRMED && (
+            <div className="bid-action">
+              <div
+                className="bid-action__link"
+                onClick={() => this.props.finalizeCancelExchangeLock(l.nameLock)}
+              >
+                Finalize Cancel
+              </div>
+            </div>
+          )}
           {l.status === LISTING_STATUS.ACTIVE && (
             <div className="bid-action">
               {
@@ -441,6 +474,13 @@ class Exchange extends Component {
                 onClick={() => this.props.submitToShakedex(l.auction)}
               >
                 Submit
+              </div>
+
+              <div
+                className="bid-action__link"
+                onClick={() => this.props.cancelExchangeLock(l.nameLock)}
+              >
+                Cancel
               </div>
             </div>
           )}
@@ -539,6 +579,8 @@ export default connect(
     getExchangeListings: (page) => dispatch(getExchangeListings(page)),
     finalizeExchangeBid: (fulfillment) => dispatch(finalizeExchangeBid(fulfillment)),
     finalizeExchangeLock: (nameLock) => dispatch(finalizeExchangeLock(nameLock)),
+    cancelExchangeLock: (nameLock) => dispatch(cancelExchangeLock(nameLock)),
+    finalizeCancelExchangeLock: (nameLock) => dispatch(finalizeCancelExchangeLock(nameLock)),
     launchExchangeAuction: (nameLock) => dispatch(launchExchangeAuction(nameLock)),
     submitToShakedex: (auction) => dispatch(submitToShakedex(auction)),
     showError: (errorMessage) => dispatch(showError(errorMessage)),
