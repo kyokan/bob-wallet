@@ -14,7 +14,6 @@ import {displayBalance} from "../../utils/balances";
 import {getPageIndices} from "../../utils/pageable";
 import c from "classnames";
 import Dropdown from "../../components/Dropdown";
-import dbClient from "../../utils/dbClient";
 import BulkTransfer from "./BulkTransfer";
 import * as networks from "hsd/lib/protocol/networks";
 import {finalizeMany} from "../../ducks/names";
