@@ -5,9 +5,12 @@
 
   &__buttons {
     button {
+      @extend %btn-primary;
       display: inline-block;
       width: auto;
       margin-right: 1rem;
+      height: 1.75rem;
+      padding: 0 1rem;
     }
   }
 
@@ -301,8 +304,64 @@
     margin-left: 0.5rem;
     @extend %btn-primary;
   }
+
+
 }
 
 .claim-name-for-payment-invalid {
   color: $orange-red;
+}
+
+.bulk-transfer {
+  select {
+    width: 100%;
+  }
+
+  option {
+    @extend %h4;
+    padding: .25rem .5rem;
+  }
+
+  p {
+    &:nth-of-type(1) {
+      margin-top: 0;
+    }
+  }
+
+  &__label {
+    color: rgba($black, 0.4);
+    font-weight: 600;
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
+  }
+
+  &__input {
+    @extend %box-input;
+    @extend %row-nowrap;
+
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 1rem;
+
+    input {
+      outline: none;
+      flex: 1 1 auto;
+      width: 0;
+      font-size: 0.85rem;
+      border: none;
+    }
+  }
+
+  &__actions {
+    @extend %row-nowrap;
+    justify-content: center;
+    width: 100%;
+    margin-top: 1rem;
+
+    button {
+      @extend %btn-primary;
+      flex: 1 0 auto;
+    }
+  }
 }

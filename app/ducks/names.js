@@ -304,6 +304,31 @@ export const sendRenewal = (name) => async (dispatch) => {
   await walletClient.sendRenewal(name);
 };
 
+export const transferMany = (names, recipient) => async (dispatch) => {
+  if (!names || !names.length) {
+    return;
+  }
+  if (!recipient) {
+    return;
+  }
+
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
+  await walletClient.transferMany(names, recipient);
+};
+
+export const finalizeMany = (names) => async (dispatch) => {
+  if (!names || !names.length) {
+    return;
+  }
+
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
+  await walletClient.finalizeMany(names);
+};
+
 export const sendTransfer = (name, recipient) => async (dispatch) => {
   if (!name) {
     return;

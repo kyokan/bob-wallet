@@ -15,6 +15,10 @@ import {getPageIndices} from "../../utils/pageable";
 import c from "classnames";
 import Dropdown from "../../components/Dropdown";
 import dbClient from "../../utils/dbClient";
+import BulkTransfer from "./BulkTransfer";
+import * as networks from "hsd/lib/protocol/networks";
+import {finalizeMany} from "../../ducks/names";
+import {showError, showSuccess} from "../../ducks/notifications";
 
 const {dialog} = require('electron').remote;
 
@@ -39,6 +43,7 @@ class DomainManager extends Component {
 
   state = {
     isShowingNameClaimForPayment: false,
+    isShowingBulkTransfer: false,
     currentPageIndex: 0,
     itemsPerPage: 10,
   };
@@ -47,6 +52,7 @@ class DomainManager extends Component {
     return this.props.namesList.join('') !== nextProps.namesList.join('')
       || this.props.isFetching !== nextProps.isFetching
       || this.state.isShowingNameClaimForPayment !== nextState.isShowingNameClaimForPayment
+      || this.state.isShowingBulkTransfer !== nextState.isShowingBulkTransfer
       || this.state.currentPageIndex !== nextState.currentPageIndex
       || this.state.itemsPerPage !== nextState.itemsPerPage;
   }
@@ -80,6 +86,33 @@ class DomainManager extends Component {
       });
     }
   }
+
+  handleFinalizeMany = async () => {
+    const {
+      names,
+      namesList,
+      finalizeMany,
+      showError,
+      showSuccess,
+    } = this.props;
+
+    try {
+      const finalizables = [];
+
+      for (const name of namesList) {
+        const domain = names[name];
+        const remainingBlocks = (domain.transfer + networks[this.props.network].names.transferLockup) - this.props.height;
+        if (domain.transfer && remainingBlocks <= 0) {
+          finalizables.push(name);
+        }
+      }
+
+      await finalizeMany(finalizables);
+      showSuccess(`Your finalize request is submitted! Please wait around 15 minutes for it to be confirmed.`)
+    } catch (e) {
+      showError(e.message);
+    }
+  };
 
   renderGoTo(namesList) {
     const { currentPageIndex, itemsPerPage } = this.state;
@@ -167,6 +200,29 @@ class DomainManager extends Component {
     )
   }
 
+  renderBulkFinalize() {
+    const {names, namesList} = this.props;
+    const finalizables = [];
+
+
+    for (const name of namesList) {
+      const domain = names[name];
+      const remainingBlocks = (domain.transfer + networks[this.props.network].names.transferLockup) - this.props.height;
+      if (domain.transfer && remainingBlocks <= 0) {
+        finalizables.push(name);
+      }
+    }
+
+    return !!finalizables.length && (
+      <button
+        className="extension_cta_button domain-manager__export-btn"
+        onClick={this.handleFinalizeMany}
+      >
+        {`Bulk Finalize (${finalizables.length})`}
+      </button>
+    )
+  }
+
   renderList() {
     const {namesList, history} = this.props;
     const {
@@ -184,7 +240,7 @@ class DomainManager extends Component {
             className="extension_cta_button domain-manager__export-btn"
             onClick={this.handleExportClick.bind(this)}
           >
-            Export All Names
+            Export
           </button>
           <button
             className="extension_cta_button domain-manager__export-btn"
@@ -192,8 +248,17 @@ class DomainManager extends Component {
               isShowingNameClaimForPayment: true,
             })}
           >
-            Claim Name For Payment
+            Claim Paid Transfer
           </button>
+          <button
+            className="extension_cta_button domain-manager__export-btn"
+            onClick={() => this.setState({
+              isShowingBulkTransfer: true,
+            })}
+          >
+            Bulk Transfer
+          </button>
+          {this.renderBulkFinalize()}
         </div>
         <Table className="domain-manager__table">
           <HeaderRow>
@@ -260,6 +325,13 @@ class DomainManager extends Component {
       <>
         {this.renderBody()}
         {this.renderControls()}
+        {this.state.isShowingBulkTransfer && (
+          <BulkTransfer
+            onClose={() => this.setState({
+              isShowingBulkTransfer: false,
+            })}
+          />
+        )}
         {this.state.isShowingNameClaimForPayment && (
           <ClaimNameForPayment
             onClose={() => this.setState({
@@ -278,9 +350,14 @@ export default withRouter(
       names: state.myDomains.names,
       isFetching: state.myDomains.isFetching,
       namesList: Object.keys(state.myDomains.names),
+      height: state.node.chain.height,
+      network: state.node.network,
     }),
     dispatch => ({
       getMyNames: () => dispatch(myDomainsActions.getMyNames()),
+      finalizeMany: (names) => dispatch(finalizeMany(names)),
+      showSuccess: (message) => dispatch(showSuccess(message)),
+      showError: (message) => dispatch(showError(message)),
     }),
   )(DomainManager),
 );

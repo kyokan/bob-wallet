@@ -91,6 +91,7 @@ class Transaction extends Component {
   renderDescription = tx => {
     let description = '';
     let content = '';
+
     if (tx.type === SEND) {
       description = 'Sent Funds';
       content = ellipsify(tx.meta.to, 12);
