@@ -16,6 +16,7 @@ import fs from "fs";
 import Dropdown from "../../components/Dropdown";
 import {getPageIndices} from "../../utils/pageable";
 import {verifyName} from "../../utils/nameChecker";
+import dbClient from "../../utils/dbClient";
 const {dialog} = require('electron').remote;
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
@@ -26,6 +27,8 @@ const ITEM_PER_DROPDOWN = [
   { label: '20', value: 20 },
   { label: '50', value: 50 },
 ];
+
+const WATCHING_ITEMS_PER_PAGE_KEY = 'watching-items-per-page';
 
 class Watching extends Component {
   static propTypes = {
@@ -46,6 +49,14 @@ class Watching extends Component {
     isConfirmingReset: false,
     isImporting: false,
   };
+
+  async componentWillMount() {
+    const itemsPerPage = await dbClient.get(WATCHING_ITEMS_PER_PAGE_KEY);
+
+    this.setState({
+      itemsPerPage: itemsPerPage || 10,
+    });
+  }
 
   componentDidMount() {
     analytics.screenView('Watching');
@@ -310,10 +321,13 @@ class Watching extends Component {
           <Dropdown
             className="domain-manager__go-to__dropdown transactions__items-per__dropdown"
             items={ITEM_PER_DROPDOWN}
-            onChange={itemsPerPage => this.setState({
-              itemsPerPage,
-              currentPageIndex: 0,
-            })}
+            onChange={async itemsPerPage => {
+              await dbClient.put(WATCHING_ITEMS_PER_PAGE_KEY, itemsPerPage);
+              this.setState({
+                itemsPerPage,
+                currentPageIndex: 0,
+              })
+            }}
             currentIndex={ITEM_PER_DROPDOWN.findIndex(({ value }) => {
               return value === this.state.itemsPerPage;
             })}
