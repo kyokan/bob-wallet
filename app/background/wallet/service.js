@@ -19,6 +19,7 @@ import {
 } from '../../ducks/walletReducer';
 import {SET_FEE_INFO, SET_NODE_INFO} from "../../ducks/nodeReducer";
 import createRegisterAll from "./create-register-all";
+import {finalizeMany, transferMany} from "./bulk-transfer";
 const WalletNode = require('hsd/lib/wallet/node');
 const TX = require('hsd/lib/primitives/tx');
 const {Output, MTX, Address, Coin} = require('hsd/lib/primitives');
@@ -400,7 +401,18 @@ class WalletService {
     } finally {
       unlock();
     }
+  };
 
+  transferMany = async (names, address) => {
+    const {wdb} = this.node;
+    const wallet = await wdb.get(this.name);
+    await transferMany(wallet, names, address);
+  };
+
+  finalizeMany = async (names) => {
+    const {wdb} = this.node;
+    const wallet = await wdb.get(this.name);
+    await finalizeMany(wallet, names);
   };
 
   sendRevealAll = () => this._ledgerProxy(
@@ -953,6 +965,8 @@ const methods = {
   sendRedeemAll: service.sendRedeemAll,
   sendRegisterAll: service.sendRegisterAll,
   sendRenewal: service.sendRenewal,
+  transferMany: service.transferMany,
+  finalizeMany: service.finalizeMany,
   sendTransfer: service.sendTransfer,
   cancelTransfer: service.cancelTransfer,
   finalizeTransfer: service.finalizeTransfer,

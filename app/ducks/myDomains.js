@@ -12,7 +12,7 @@ const initialState = {
   errorMessage: '',
 };
 
-export const setNames = (names = []) => ({
+export const setNames = (names = {}) => ({
   type: SET_NAMES,
   payload: names,
 });
@@ -20,7 +20,6 @@ export const setNames = (names = []) => ({
 export const getMyNames = () => async (dispatch, getState) => {
   const {
     myDomains: {
-      names,
       isFetching,
     },
   } = getState();
@@ -38,17 +37,15 @@ export const getMyNames = () => async (dispatch, getState) => {
       const domain = result[i];
       const {owner, name} = domain;
 
-      if (!names[name]) {
-        const coin = await walletClient.getCoin(owner.hash, owner.index);
-        if (coin) {
-          ret[name] = domain;
-          len++;
-        }
+      const coin = await walletClient.getCoin(owner.hash, owner.index);
+      if (coin) {
+        ret[name] = domain;
+        len++;
       }
     }
 
     dispatch({
-      type: ADD_NAMES,
+      type: SET_NAMES,
       payload: ret,
     });
 

@@ -138,7 +138,7 @@ export const unlockWallet = (name, passphrase) => async (dispatch, getState) => 
       payload: new Map(),
     });
 
-    dispatch(setNames([]));
+    dispatch(setNames({}));
     dispatch(setYourBids([]));
   }
 
