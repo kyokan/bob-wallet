@@ -3,6 +3,7 @@
 .account {
   width: 100%;
   justify-content: stretch;
+  overflow-y: auto;
 
   &__address {
     @extend %row-nowrap;

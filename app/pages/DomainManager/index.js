@@ -14,6 +14,7 @@ import {displayBalance} from "../../utils/balances";
 import {getPageIndices} from "../../utils/pageable";
 import c from "classnames";
 import Dropdown from "../../components/Dropdown";
+import dbClient from "../../utils/dbClient";
 
 const {dialog} = require('electron').remote;
 
@@ -25,6 +26,8 @@ const ITEM_PER_DROPDOWN = [
   { label: '20', value: 20 },
   { label: '50', value: 50 },
 ];
+
+const DM_ITEMS_PER_PAGE_KEY = 'domain-manager-items-per-page';
 
 class DomainManager extends Component {
   static propTypes = {
@@ -52,8 +55,13 @@ class DomainManager extends Component {
     analytics.screenView('Domain Manager');
   }
 
-  componentWillMount() {
+  async componentWillMount() {
     this.props.getMyNames();
+    const itemsPerPage = await dbClient.get(DM_ITEMS_PER_PAGE_KEY);
+
+    this.setState({
+      itemsPerPage: itemsPerPage || 10,
+    });
   }
 
   handleExportClick() {
@@ -83,10 +91,13 @@ class DomainManager extends Component {
           <Dropdown
             className="domain-manager__go-to__dropdown transactions__items-per__dropdown"
             items={ITEM_PER_DROPDOWN}
-            onChange={itemsPerPage => this.setState({
-              itemsPerPage,
-              currentPageIndex: 0,
-            })}
+            onChange={async itemsPerPage => {
+              await dbClient.put(DM_ITEMS_PER_PAGE_KEY, itemsPerPage);
+              this.setState({
+                itemsPerPage,
+                currentPageIndex: 0,
+              })
+            }}
             currentIndex={ITEM_PER_DROPDOWN.findIndex(({ value }) => value === this.state.itemsPerPage)}
           />
         </div>
