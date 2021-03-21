@@ -61,7 +61,7 @@ class YourBids extends Component {
 
     try {
       await sendRegisterAll();
-      showSuccess('Your redeem request is submitted! Please wait about 15 minutes for it to complete.');
+      showSuccess('Your register request is submitted! Please wait about 15 minutes for it to complete.');
     } catch (e) {
       showError(e.message)
     }
