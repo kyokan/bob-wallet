@@ -78,6 +78,15 @@
 }
 
 .exchange-table {
+  .loader {
+    height: 1rem;
+    width: 100%;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    margin: 1rem auto;
+  }
+
   .table {
     &__header__item,
     &__row__item {

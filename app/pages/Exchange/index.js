@@ -23,7 +23,7 @@ import {
   FULFILLMENT_STATUS,
   getExchangeFullfillments,
   getExchangeListings,
-  LISTING_STATUS,
+  LISTING_STATUS, setAuctionPage,
   submitToShakedex,
 } from "../../ducks/exchange";
 import {formatName} from "../../utils/nameHelpers";
@@ -35,6 +35,9 @@ import PropTypes from "prop-types";
 import {clearDeeplinkParams} from "../../ducks/app";
 import {Link} from "react-router-dom";
 import GenerateListingModal from "./GenerateListingModal";
+import {getPageIndices} from "../../utils/pageable";
+import Dropdown from "../../components/Dropdown";
+import SpinnerSVG from '../../assets/images/brick-loader.svg';
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 const shakedex = sClientStub(() => require('electron').ipcRenderer);
@@ -54,14 +57,25 @@ class Exchange extends Component {
       isUploadingFile: false,
       isGeneratingListing: false,
       generatingListing: null,
+      isLoading: true,
     };
   }
 
   componentDidMount() {
     analytics.screenView('Exchange');
-    this.props.getExchangeAuctions();
     this.props.getExchangeFullfillments();
     this.props.getExchangeListings();
+    this.fetchShakedex();
+  }
+
+  async fetchShakedex() {
+    try {
+      this.setState({ isLoading: true });
+      await this.props.getExchangeAuctions();
+      this.setState({ isLoading: false });
+    } catch (e) {
+      this.setState({ isLoading: false });
+    }
   }
 
   static getDerivedStateFromProps(props, state) {
@@ -368,9 +382,14 @@ class Exchange extends Component {
         <h2>Live Auctions</h2>
         <Table className="exchange-table">
           <Header />
-          {!!this.props.auctions.length && this.props.auctions.map(this.renderAuctionRow)}
-
-          {!this.props.auctions.length && (
+          {this.state.isLoading && (
+            <TableRow>
+              <div className="loader" style={{ backgroundImage: `url(${SpinnerSVG})`}} />
+            </TableRow>
+          )}
+          {!this.state.isLoading && !!this.props.auctions.length && this.props.auctions.map(this.renderAuctionRow)}
+          {this.renderListingControls()}
+          {!this.state.isLoading && !this.props.auctions.length && (
             <TableRow>
               <TableItem>
                 No auctions found.
@@ -411,6 +430,77 @@ class Exchange extends Component {
         )}
       </div>
     );
+  }
+
+  renderListingControls = () => {
+    const {
+      auctions,
+      total,
+      currentPage: currentPageIndex,
+    } = this.props;
+
+    if (!auctions.length) {
+      return null;
+    }
+
+    const totalPages = Math.ceil(total / 20);
+    const pageIndices = getPageIndices(Array(total).fill(0), 20, currentPageIndex - 1);
+
+    return (
+      <div className="domain-manager__page-control">
+        <div className="domain-manager__page-control__numbers">
+          <div
+            className="domain-manager__page-control__start"
+            onClick={async () => {
+              this.props.setAuctionPage(Math.max(currentPageIndex - 1, 1));
+              this.fetchShakedex();
+            }}
+          />
+          {pageIndices.map((pageIndex, i) => {
+            if (pageIndex === '...') {
+              return (
+                <div key={`${pageIndex}-${i}`} className="domain-manager__page-control__ellipsis">...</div>
+              );
+            }
+
+            return (
+              <div
+                key={`${pageIndex}-${i}`}
+                className={classNames('domain-manager__page-control__page', {
+                  'domain-manager__page-control__page--active': currentPageIndex === pageIndex + 1,
+                })}
+                onClick={async () => {
+                  this.props.setAuctionPage(pageIndex + 1);
+                  this.fetchShakedex();
+                }}
+              >
+                {pageIndex + 1}
+              </div>
+            )
+          })}
+          <div
+            className="domain-manager__page-control__end"
+            onClick={async () => {
+              this.props.setAuctionPage(Math.min(currentPageIndex + 1, totalPages));
+              this.fetchShakedex();
+            }}
+          />
+        </div>
+        <div className="domain-manager__go-to">
+          <div className="domain-manager__go-to__text">Page</div>
+          <Dropdown
+            className="domain-manager__go-to__dropdown"
+            items={Array(totalPages).fill(0).map((_, i) => ({ label: `${i + 1}` }))}
+            onChange={async currentPageIndex => {
+              this.props.setAuctionPage(currentPageIndex + 1);
+              this.fetchShakedex();
+            }}
+            currentIndex={currentPageIndex - 1}
+          />
+          <div className="domain-manager__go-to__total">of {totalPages}</div>
+        </div>
+      </div>
+    )
   }
 
   renderListingRow = (l) => {
@@ -580,13 +670,16 @@ function Header() {
 export default connect(
   (state) => ({
     auctions: state.exchange.auctionIds.map(id => state.exchange.auctions[id]),
+    total: state.exchange.total,
+    currentPage: state.exchange.currentPage,
     fulfillments: state.exchange.fulfillments,
     listings: state.exchange.listings,
     finalizingName: state.exchange.finalizingName,
     deeplinkParams: state.app.deeplinkParams,
   }),
   (dispatch) => ({
-    getExchangeAuctions: (page) => dispatch(getExchangeAuctions(page)),
+    setAuctionPage: (page) => dispatch(setAuctionPage(page)),
+    getExchangeAuctions: () => dispatch(getExchangeAuctions()),
     getExchangeFullfillments: (page) => dispatch(getExchangeFullfillments(page)),
     getExchangeListings: (page) => dispatch(getExchangeListings(page)),
     finalizeExchangeBid: (fulfillment) => dispatch(finalizeExchangeBid(fulfillment)),

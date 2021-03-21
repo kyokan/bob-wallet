@@ -18,6 +18,7 @@ import BulkTransfer from "./BulkTransfer";
 import * as networks from "hsd/lib/protocol/networks";
 import {finalizeMany} from "../../ducks/names";
 import {showError, showSuccess} from "../../ducks/notifications";
+import dbClient from "../../utils/dbClient";
 
 const {dialog} = require('electron').remote;
 
