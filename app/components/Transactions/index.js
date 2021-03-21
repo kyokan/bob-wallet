@@ -10,6 +10,7 @@ import { fetchTransactions, fetchPendingTransactions } from '../../ducks/walletA
 import Dropdown from '../Dropdown';
 import BidSearchInput from '../BidSearchInput';
 import Fuse from '../../vendor/fuse';
+import dbClient from "../../utils/dbClient";
 
 const SORT_BY_TYPES = {
   DATE_DESCENDING: 'Date - Descending',
@@ -28,6 +29,8 @@ const ITEM_PER_DROPDOWN = [
   { label: '50', value: 50 },
 ];
 
+const TX_VIEW_ITEMS_PER_PAGE_KEY = 'main-tx-items-per-page';
+
 @connect(
   (state) => ({
     transactions: state.wallet.transactions,
@@ -41,6 +44,14 @@ export default class Transactions extends Component {
   static propTypes = {
     transactions: PropTypes.instanceOf(Map).isRequired,
   };
+
+  async componentWillMount() {
+    const itemsPerPage = await dbClient.get(TX_VIEW_ITEMS_PER_PAGE_KEY);
+
+    this.setState({
+      itemsPerPage: itemsPerPage || 5,
+    });
+  }
 
   async componentDidMount() {
     await this.props.fetchTransactions();
@@ -147,10 +158,13 @@ export default class Transactions extends Component {
           <Dropdown
             className="transactions__go-to__dropdown transactions__items-per__dropdown"
             items={ITEM_PER_DROPDOWN}
-            onChange={itemsPerPage => this.setState({
-              itemsPerPage,
-              currentPageIndex: 0,
-            })}
+            onChange={async itemsPerPage => {
+              await dbClient.put(TX_VIEW_ITEMS_PER_PAGE_KEY, itemsPerPage);
+              this.setState({
+                itemsPerPage,
+                currentPageIndex: 0,
+              })
+            }}
             currentIndex={ITEM_PER_DROPDOWN.findIndex(({ value }) => value === this.state.itemsPerPage)}
           />
         </div>

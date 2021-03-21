@@ -18,6 +18,7 @@ import {getPageIndices} from "../../utils/pageable";
 import c from "classnames";
 import * as nameActions from "../../ducks/names";
 import * as notifActions from "../../ducks/notifications";
+import dbClient from "../../utils/dbClient";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -27,6 +28,8 @@ const ITEM_PER_DROPDOWN = [
   { label: '20', value: 20 },
   { label: '50', value: 50 },
 ];
+
+const YOUR_BIDS_ITEMS_PER_PAGE_KEY = 'your-bids-items-per-page';
 
 class YourBids extends Component {
   static propTypes = {
@@ -45,12 +48,19 @@ class YourBids extends Component {
     query: '',
   };
 
-  componentDidMount() {
+  async componentDidMount() {
     analytics.screenView('Your Bids');
     this.props.getYourBids();
+    const itemsPerPage = await dbClient.get(YOUR_BIDS_ITEMS_PER_PAGE_KEY);
+
+    this.setState({
+      itemsPerPage: itemsPerPage || 10,
+    });
   }
 
-  handleOnChange = e => this.setState({ query: e.target.value });
+  handleOnChange = async e => {
+    this.setState({ query: e.target.value });
+  };
 
   onRedeemAll = async () => {
     const {
@@ -126,10 +136,13 @@ class YourBids extends Component {
           <Dropdown
             className="domain-manager__go-to__dropdown transactions__items-per__dropdown"
             items={ITEM_PER_DROPDOWN}
-            onChange={itemsPerPage => this.setState({
-              itemsPerPage,
-              currentPageIndex: 0,
-            })}
+            onChange={async itemsPerPage => {
+              await dbClient.put(YOUR_BIDS_ITEMS_PER_PAGE_KEY, itemsPerPage);
+              this.setState({
+                itemsPerPage,
+                currentPageIndex: 0,
+              })
+            }}
             currentIndex={ITEM_PER_DROPDOWN.findIndex(({ value }) => value === this.state.itemsPerPage)}
           />
         </div>
