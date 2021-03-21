@@ -284,6 +284,14 @@ export const sendRevealAll = () => async (dispatch) => {
   await walletClient.sendRevealAll();
 };
 
+export const sendRegisterAll = () => async (dispatch) => {
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
+
+  await walletClient.sendRegisterAll();
+};
+
 export const sendRenewal = (name) => async (dispatch) => {
   if (!name) {
     return;
