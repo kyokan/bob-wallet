@@ -3,6 +3,10 @@ import { clientStub as nodeClientStub } from '../background/node/client';
 const node = nodeClientStub(() => require('electron').ipcRenderer);
 
 const client = {
+  getCoin: async (hash, index) => {
+    return node.getCoin(hash, index);
+  },
+
   getInfo: async () => {
     return node.getInfo();
   },

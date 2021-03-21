@@ -153,6 +153,7 @@
 .bid-action {
   @extend %row-nowrap;
   justify-content: flex-end;
+  overflow-x: auto;
 
   &__delete-icon {
     width: 1rem;

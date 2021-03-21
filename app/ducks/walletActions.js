@@ -315,10 +315,9 @@ export const closeGetPassphrase = () => ({
 });
 
 export const waitForPassphrase = () => async (dispatch) => {
-  await new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     dispatch(getPassphrase(resolve, reject));
   });
-  return null;
 };
 
 export const watchActivity = () => dispatch => {

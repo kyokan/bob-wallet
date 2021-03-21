@@ -41,6 +41,16 @@ export async function del(key) {
   return db.del(Buffer.from(key, 'utf-8'));
 }
 
+export async function iteratePrefix(prefix, cb) {
+  const gt = Buffer.from(prefix, 'utf-8');
+  const iter = db.iterator({
+    gt,
+    lt: Buffer.concat([gt, Buffer.from([0xFF])]),
+    values: true,
+  });
+  await iter.each(cb);
+}
+
 function ensureDB() {
   if (!db) {
     throw new Error('db not open');
@@ -53,7 +63,8 @@ const methods = {
   close,
   put,
   get,
-  del
+  del,
+  iteratePrefix,
 };
 
 export async function start(server) {

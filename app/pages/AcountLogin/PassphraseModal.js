@@ -5,7 +5,6 @@ import c from 'classnames';
 import * as walletActions from '../../ducks/walletActions';
 import './login.scss';
 import Submittable from '../../components/Submittable';
-import { Link } from 'react-router-dom';
 import MiniModal from '../../components/Modal/MiniModal';
 
 @connect(
@@ -40,7 +39,7 @@ export default class PassphraseModal extends Component {
       const {wid, unlockWallet, getPassphrase, closeGetPassphrase} = this.props;
       await unlockWallet(wid, passphrase);
       this.setState({passphrase: ''});
-      getPassphrase.resolve();
+      getPassphrase.resolve(passphrase);
       closeGetPassphrase();
     } catch (error) {
       return this.setState({ showError: true });

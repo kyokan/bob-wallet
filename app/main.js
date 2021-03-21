@@ -10,6 +10,7 @@ import {app, dialog} from 'electron';
 import MenuBuilder from './menu';
 import showMainWindow, {dispatchToMainWindow, sendDeeplinkToMainWindow} from './mainWindow';
 import path from 'path';
+import {encrypt} from "./utils/encrypt";
 
 const Sentry = require('@sentry/electron');
 
@@ -66,6 +67,7 @@ if (isPrimaryInstance) {
   app.on('ready', async () => {
     // start the IPC server
     const dbService = require('./background/db/service');
+    const shakedexService = require('./background/shakedex/service.js');
     try {
       const server = require('./background/ipc/service').start();
       require('./background/logger/service').start(server);
@@ -75,6 +77,7 @@ if (isPrimaryInstance) {
       await require('./background/analytics/service').start(server);
       await require('./background/connections/service').start(server);
       await require('./background/setting/service').start(server);
+      await shakedexService.start(server);
     } catch (e) {
       dialog.showMessageBox(null, {
         type: 'error',
@@ -103,7 +106,10 @@ if (isPrimaryInstance) {
       }
       event.preventDefault();
       didFireQuitHandlers = true;
-      dbService.close()
+
+      shakedexService.closeDB()
+        .catch((e) => console.error('Error in shutdown:', e))
+        .then(dbService.close)
         .catch((e) => console.error('Error in shutdown:', e))
         .then(() => app.quit());
     }
