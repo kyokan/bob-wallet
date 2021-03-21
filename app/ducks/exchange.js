@@ -9,7 +9,7 @@ const shakedex = shakedexClientStub(() => require('electron').ipcRenderer);
 const nodeClient = nodeClientStub(() => require('electron').ipcRenderer);
 
 const client = new Client({
-  host: 'shakedex.com',
+  host: 'api.shakedex.com',
   ssl: true,
 });
 
@@ -53,6 +53,8 @@ export const LAUNCH_EXCHANGE_AUCTION = 'LAUNCH_EXCHANGE_AUCTION';
 export const LAUNCH_EXCHANGE_AUCTION_OK = 'LAUNCH_EXCHANGE_AUCTION/OK';
 export const LAUNCH_EXCHANGE_AUCTION_ERR = 'LAUNCH_EXCHANGE_AUCTION/ERR';
 
+export const SET_AUCTIONS_PAGE = 'SET_AUCTION_PAGE';
+
 export const LISTING_STATUS = {
   NOT_FOUND: 'NOT_FOUND',
   TRANSFER_CONFIRMING: 'TRANSFER_CONFIRMING',
@@ -85,6 +87,7 @@ function getInitialState() {
     auctionIds: [],
     auctions: {},
     total: 0,
+    currentPage: 1,
     isLoading: false,
     isError: false,
     isPlacingBid: false,
@@ -95,14 +98,26 @@ function getInitialState() {
   };
 }
 
-export const getExchangeAuctions = (page = 1) => async (dispatch, getState) => {
+export const setAuctionPage = (page) => ({
+  type: SET_AUCTIONS_PAGE,
+  payload: page,
+});
+
+export const getExchangeAuctions = () => async (dispatch, getState) => {
   dispatch({
     type: GET_EXCHANGE_AUCTIONS,
   });
 
   let auctions;
+
+  const {
+    exchange: {
+      currentPage,
+    },
+  } = getState();
+
   try {
-    auctions = await client.get(`api/v1/auctions?page=${page}`);
+    auctions = await client.get(`api/v1/auctions?page=${currentPage}&per_page=20`);
   } catch (e) {
     dispatch({
       type: GET_EXCHANGE_AUCTIONS_ERR,
@@ -117,6 +132,7 @@ export const getExchangeAuctions = (page = 1) => async (dispatch, getState) => {
     type: GET_EXCHANGE_AUCTIONS_OK,
     payload: {
       auctions: auctions.auctions,
+      total: +auctions.total,
     },
   });
 };
@@ -518,6 +534,7 @@ export default function (state = getInitialState(), action) {
         auctions,
         isLoading: false,
         isError: false,
+        total: action.payload.total,
       };
 
     case GET_EXCHANGE_AUCTIONS_ERR:
@@ -629,6 +646,11 @@ export default function (state = getInitialState(), action) {
         finalizingName: null,
       };
     }
+    case SET_AUCTIONS_PAGE:
+      return {
+        ...state,
+        currentPage: action.payload,
+      };
     default:
       return state;
   }
