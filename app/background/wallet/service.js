@@ -730,14 +730,14 @@ class WalletService {
     await account.save(b);
 
     if (changeDepth) {
-      for (let i = initChange; i < changeDepth; i++) {
+      for (let i = initChange; i <= changeDepth; i++) {
         const key = account.deriveChange(i);
         await account.saveKey(b, key);
       }
     }
 
     if (receiveDepth) {
-      for (let j = initReceive; j < receiveDepth; j++) {
+      for (let j = initReceive; j <= receiveDepth; j++) {
         const key = account.deriveReceive(j);
         await account.saveKey(b, key);
       }
