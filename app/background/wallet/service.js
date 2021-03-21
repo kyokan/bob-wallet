@@ -18,6 +18,7 @@ import {
   SYNC_WALLET_PROGRESS
 } from '../../ducks/walletReducer';
 import {SET_FEE_INFO, SET_NODE_INFO} from "../../ducks/nodeReducer";
+import createRegisterAll from "./create-register-all";
 const WalletNode = require('hsd/lib/wallet/node');
 const TX = require('hsd/lib/primitives/tx');
 const {Output, MTX, Address, Coin} = require('hsd/lib/primitives');
@@ -385,6 +386,22 @@ class WalletService {
     () => this._executeRPC('createredeem', [name]),
     () => this._executeRPC('sendredeem', [name], this.lock),
   );
+
+  sendRegisterAll = async () => {
+    const {wdb} = this.node;
+    const wallet = await wdb.get(this.name);
+    const mtx = await createRegisterAll(wallet);
+    const unlock = await wallet.fundLock.lock();
+
+    try {
+      await wallet.fill(mtx);
+      const finalizedTX = await wallet.finalize(mtx);
+      await wallet.sendMTX(finalizedTX, null);
+    } finally {
+      unlock();
+    }
+
+  };
 
   sendRevealAll = () => this._ledgerProxy(
     () => this._executeRPC('createreveal', ['']),
@@ -934,6 +951,7 @@ const methods = {
   sendRedeem: service.sendRedeem,
   sendRevealAll: service.sendRevealAll,
   sendRedeemAll: service.sendRedeemAll,
+  sendRegisterAll: service.sendRegisterAll,
   sendRenewal: service.sendRenewal,
   sendTransfer: service.sendTransfer,
   cancelTransfer: service.cancelTransfer,

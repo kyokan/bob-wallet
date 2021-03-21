@@ -62,6 +62,21 @@ class YourBids extends Component {
     this.setState({ query: e.target.value });
   };
 
+  onRegisterAll = async () => {
+    const {
+      showError,
+      showSuccess,
+      sendRegisterAll,
+    } = this.props;
+
+    try {
+      await sendRegisterAll();
+      showSuccess('Your register request is submitted! Please wait about 15 minutes for it to complete.');
+    } catch (e) {
+      showError(e.message)
+    }
+  };
+
   onRedeemAll = async () => {
     const {
       showError,
@@ -113,6 +128,12 @@ class YourBids extends Component {
               onClick={this.onRedeemAll}
             >
               Redeem All
+            </button>
+            <button
+              className="bids__top__btn"
+              onClick={this.onRegisterAll}
+            >
+              Register All
             </button>
           </div>
         </div>
@@ -257,6 +278,7 @@ export default withRouter(
       getYourBids: () => dispatch(bidsActions.getYourBids()),
       sendRedeemAll: () => dispatch(nameActions.sendRedeemAll()),
       sendRevealAll: () => dispatch(nameActions.sendRevealAll()),
+      sendRegisterAll: () => dispatch(nameActions.sendRegisterAll()),
       showError: (message) => dispatch(notifActions.showError(message)),
       showSuccess: (message) => dispatch(notifActions.showSuccess(message)),
     })
