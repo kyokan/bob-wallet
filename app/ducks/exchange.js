@@ -117,7 +117,7 @@ export const getExchangeAuctions = () => async (dispatch, getState) => {
   } = getState();
 
   try {
-    auctions = await client.get(`api/v1/auctions?page=${currentPage}&per_page=20`);
+    auctions = await shakedex.getExchangeAuctions(currentPage);
   } catch (e) {
     dispatch({
       type: GET_EXCHANGE_AUCTIONS_ERR,
@@ -488,17 +488,7 @@ export const launchExchangeAuction = (nameLock, overrideParams) => async (dispat
 
 export const submitToShakedex = (auction) => async dispatch => {
   try {
-    // use fetch here since bcurl crashes
-    const res = await fetch(`https://api.shakedex.com/api/v1/auctions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        auction,
-      }),
-    });
-    const json = await res.json();
+    const json = await shakedex.listAuction(auction);
     if (json.error) {
       dispatch(showError(json.error.message));
       return;

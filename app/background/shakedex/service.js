@@ -21,8 +21,14 @@ import path from "path";
 import {app} from "electron";
 import bdb from "bdb";
 import {auctionSchema, finalizeLockScheme, fulfillmentSchema, nameLockSchema, paramSchema} from "../../utils/shakedex";
+import {Client} from "bcurl";
 
 let db;
+
+const client = new Client({
+  host: 'api.shakedex.com',
+  ssl: true,
+});
 
 export async function openDB() {
   if (db) {
@@ -69,6 +75,23 @@ export async function iteratePrefix(prefix, cb) {
     values: true,
   });
   await iter.each(cb);
+}
+
+export async function getExchangeAuctions(currentPage = 1) {
+  return await client.get(`api/v1/auctions?page=${currentPage}&per_page=20`);
+}
+
+export async function listAuction(auction) {
+  const resp = await fetch(`https://api.shakedex.com/api/v1/auctions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      auction,
+    }),
+  });
+  return resp.json();
 }
 
 export async function fulfillSwap(auction, bid, passphrase) {
@@ -392,6 +415,8 @@ const methods = {
   downloadProofs,
   restoreOneListing,
   restoreOneFill,
+  getExchangeAuctions,
+  listAuction,
 };
 
 export async function start(server) {
