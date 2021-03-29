@@ -10,8 +10,7 @@ import { history, store } from './store/configureStore';
 import './global.scss';
 import { showError } from './ducks/notifications';
 import {ipcRenderer} from "electron";
-import { clientStub as aClientStub } from './background/analytics/client';
-const analytics = aClientStub(() => require('electron').ipcRenderer);
+import handleDeeplink from './deeplink'
 
 window.addEventListener('error', (e) => {
   store.dispatch(showError(e.message));
@@ -26,73 +25,6 @@ ipcRenderer.on('ipcToRedux', (_, message) => {
 ipcRenderer.on('deeplink', (_, message) => {
   handleDeeplink(message);
 });
-
-function handleDeeplink(message) {
-  const url = new URL(message);
-  const state = store.getState();
-  const isLocked = state.wallet.isLocked;
-  const params = url.searchParams;
-
-  analytics.track('deeplink', {
-    pathname: url.pathname,
-  });
-
-  let name, txt, presignJSONString;
-  switch (url.pathname) {
-    case "//updaterecord":
-    case "//updaterecord/":
-      name = params.get('name');
-      txt = params.get('txt');
-
-      if (txt) {
-        store.dispatch(setDeeplinkParams({ txt }));
-      }
-
-      if (isLocked) {
-        store.dispatch(setDeeplink(message));
-      } else {
-        history.push(`/domain_manager/${name}`);
-      }
-      return;
-    case "//openname":
-    case "//openname/":
-      name = params.get('name');
-
-      if (isLocked) {
-        store.dispatch(setDeeplink(message));
-      } else {
-        history.push(`/domain/${name}`);
-      }
-      return;
-    case "//openmanager":
-    case "//openmanager/":
-      name = params.get('name');
-
-      if (isLocked) {
-        store.dispatch(setDeeplink(message));
-      } else if (name) {
-        history.push(`/domain_manager/${name}`);
-      }
-      return;
-    case "//fulfillauction":
-    case "//fulfillauction/":
-      name = params.get('name');
-      presignJSONString = params.get('presign');
-
-      if (presignJSONString) {
-        store.dispatch(setDeeplinkParams({ presignJSONString }));
-      }
-
-      if (isLocked) {
-        store.dispatch(setDeeplink(message));
-      } else if (name) {
-        history.push(`/exchange`);
-      }
-      return;
-    default:
-      return;
-  }
-}
 
 history.listen(location => {
   const state = store.getState();
