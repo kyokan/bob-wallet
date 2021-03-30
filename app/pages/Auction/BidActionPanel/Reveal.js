@@ -67,7 +67,7 @@ class Reveal extends Component {
   render() {
     const {domain, hasRevealableBid} = this.props;
     const {bids = [], info} = domain || {};
-    const {highest = 0} = info || {};
+    const highest = Math.max(bids.map(bid => bid.value));
 
     return (
       <AuctionPanel>
@@ -82,8 +82,8 @@ class Reveal extends Component {
           <AuctionPanelHeaderRow label="Total Bids:">
             {bids.length}
           </AuctionPanelHeaderRow>
-          <AuctionPanelHeaderRow label="Highest Mask:">
-            {highest}
+          <AuctionPanelHeaderRow label="Highest Lockup:">
+            {displayBalance(highest, true)}
           </AuctionPanelHeaderRow>
         </AuctionPanelHeader>
         <AuctionPanelFooter>
