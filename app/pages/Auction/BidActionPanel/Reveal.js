@@ -32,21 +32,21 @@ class Reveal extends Component {
   getTimeRemaining = () => {
     const {info} = this.props.domain || {};
     const {stats} = info || {};
-    const {revealPeriodEnd} = stats || {};
+    const {revealPeriodEnd, hoursUntilClose} = stats || {};
 
     if (!revealPeriodEnd) {
       return 'Revealing now!';
     }
 
-    if (revealPeriodEnd < 24) {
-      const hours = Math.floor(revealPeriodEnd % 24);
-      const mins = Math.floor((revealPeriodEnd % 1) * 60);
+    if (hoursUntilClose < 24) {
+      const hours = Math.floor(hoursUntilClose);
+      const mins = Math.floor((hoursUntilClose - hours) * 60);
       return `~${hours}h ${mins}m`;
     }
 
-    const days = Math.floor(revealPeriodEnd / 24);
-    const hours = Math.floor(revealPeriodEnd % 24);
-    const mins = Math.floor((revealPeriodEnd % 1) * 60);
+    const days = Math.floor(hoursUntilClose / 24);
+    const hours = Math.floor(hoursUntilClose - days*24);
+    const mins = Math.floor((hoursUntilClose - days*24 - hours) * 60);
     return `~${days}d ${hours}h ${mins}m`;
   };
 
