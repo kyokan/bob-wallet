@@ -41,6 +41,12 @@ export default class AuctionGraph extends Component {
     await this.getStatusInfo(this.props.domain);
   }
 
+  async componentDidUpdate(prevProps, prevState) {
+    if (this.props.chain.height !== prevProps.chain.height) {
+      await this.getStatusInfo(this.props.domain);
+    }
+  }
+
   getStatusInfo(domain) {
     const stats = domain.info && domain.info.stats || {};
 
