@@ -81,7 +81,7 @@ class Sold extends Component {
           className="domains__action-panel__manage-domain-btn"
           onClick={() => history.push(`/domain_manager/${name}`)}
         >
-          View records
+          View domain details
         </button>
       </AuctionPanelFooter>
     )

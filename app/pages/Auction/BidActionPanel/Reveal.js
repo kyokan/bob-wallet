@@ -116,7 +116,7 @@ class Reveal extends Component {
           <AuctionPanelHeaderRow label="Total Bids:">
             {totalBids < 0 ? '?' : displayBalance(totalBids, true)}
           </AuctionPanelHeaderRow>
-          <AuctionPanelHeaderRow label="Total Masks:">
+          <AuctionPanelHeaderRow label="Total Lockups:">
             {displayBalance(totalMasks, true)}
           </AuctionPanelHeaderRow>
           {this.renderWarning()}

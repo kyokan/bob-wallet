@@ -156,7 +156,7 @@ class BidNow extends Component {
           <AuctionPanelHeaderRow label="Total Bids:">
             {bids.length}
           </AuctionPanelHeaderRow>
-          <AuctionPanelHeaderRow label="Highest Mask:">
+          <AuctionPanelHeaderRow label="Highest Lockup:">
             {highest}
           </AuctionPanelHeaderRow>
           <div className="domains__bid-now__info__disclaimer">
@@ -229,12 +229,12 @@ class BidNow extends Component {
               className="domains__bid-now__mask"
               tooltipContent={(
                 <span className="domains__bid-now__mask-tooltip">
-                  <span>You can disguise your bid amount to cover up your actual bid. Disguise gets added on top of your bid amount, resulting in your mask. The entire mask amount will be frozen during the bidding period. </span>
-                  <span>The disguise amount will be returned after the reveal period, regardless of outcome.</span>
+                  <span>You can add a blind to your bid amount to cover up your actual bid. Your bid + blind is called lockup, which is the only value that other bidders see. The entire lockup will be frozen during the bidding period.</span>
+                  <span>The blind will be returned when it is revealed during the reveal period, whether you win the auction or not.</span>
                 </span>
               )}
             >
-              Disguise
+              Blind
             </Tooltipable>
             <span> Amount:</span>
           </div>
@@ -254,7 +254,7 @@ class BidNow extends Component {
         className="domains__bid-now__form__link"
         onClick={() => this.setState({shouldAddDisguise: true})}
       >
-        Add Disguise
+        Add a blind
       </div>
     );
   }
@@ -270,7 +270,7 @@ class BidNow extends Component {
             <AuctionPanelHeaderRow label="Total Bids:">
               {totalBids < 0 ? '?' : displayBalance(totalBids, true)}
             </AuctionPanelHeaderRow>
-            <AuctionPanelHeaderRow label="Total Masks:">
+            <AuctionPanelHeaderRow label="Total Lockups:">
               {displayBalance(totalMasks, true)}
             </AuctionPanelHeaderRow>
           </div>
@@ -319,7 +319,7 @@ class BidNow extends Component {
                 />
               </div>
             </AuctionPanelHeaderRow>
-            <AuctionPanelHeaderRow label="Disguise Amount:">
+            <AuctionPanelHeaderRow label="Blind Amount:">
               <div className="domains__bid-now__review-info">
                 <div className="domains__bid-now__info__value">
                   {disguiseAmount ? `${disguiseAmount} HNS` : ' - '}
@@ -335,7 +335,7 @@ class BidNow extends Component {
             </AuctionPanelHeaderRow>
             <div className="domains__bid-now__divider" />
             <AuctionPanelHeaderRow
-              label="Total Mask:"
+              label="Total Lockup:"
               className="domains__bid-now__review-total"
             >
               <div className="domains__bid-now__info__value">

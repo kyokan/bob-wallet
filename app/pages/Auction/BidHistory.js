@@ -53,7 +53,7 @@ export default class BidHistory extends Component {
               <th>Date</th>
               <th>Address</th>
               <th>Bid</th>
-              <th>Mask</th>
+              <th>Lockup</th>
             </tr>
           </thead>
           <tbody>
