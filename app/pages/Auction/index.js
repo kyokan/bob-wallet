@@ -191,9 +191,10 @@ export default class Auction extends Component {
     const bids = domain.bids || domain.reveals || [];
     const pillContent = bids.length === 1 ? `${bids.length} bid` : `${bids.length} bids`;
 
-    if (isAvailable(domain) || isOpening(domain) || isBidding(domain) || isReveal(domain)) {
+    if (isAvailable(domain) || isOpening(domain) || isBidding(domain) || isReveal(domain) || isClosed(domain)) {
       return (
         <React.Fragment>
+
           <Collapsible className="domains__content__info-panel" title="Bids" pillContent={pillContent}>
             {this.props.domain ?
               <BidHistory
@@ -203,20 +204,26 @@ export default class Auction extends Component {
               'Loading...'
             }
           </Collapsible>
-          <Collapsible className="domains__content__info-panel" title="Vickrey Auction Process" defaultCollapsed>
-            <VickreyProcess />
-          </Collapsible>
+
+          {!isClosed(domain) ?
+            <Collapsible className="domains__content__info-panel" title="Vickrey Auction Process" defaultCollapsed>
+              <VickreyProcess />
+            </Collapsible> : null
+          }
+
+          {!isAvailable(domain) && domain.info ?
+            <Collapsible className="domains__content__info-panel" title="Records">
+              <Records
+                name={domain.name}
+                transferring={!!domain.info && domain.info.transfer !== 0}
+              />
+            </Collapsible> : null
+          }
+
         </React.Fragment>
       );
     } else {
-      return (
-        <Collapsible className="domains__content__info-panel" title="Records">
-          <Records
-            name={domain.name}
-            transferring={!!domain.info && domain.info.transfer !== 0}
-          />
-        </Collapsible>
-      );
+      return null;
     }
 
   }
