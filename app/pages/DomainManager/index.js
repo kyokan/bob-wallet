@@ -19,6 +19,8 @@ import * as networks from "hsd/lib/protocol/networks";
 import {finalizeMany} from "../../ducks/names";
 import {showError, showSuccess} from "../../ducks/notifications";
 import dbClient from "../../utils/dbClient";
+import MiniModal from "../../components/Modal/MiniModal";
+import BulkFinalizeWarningModal from "./BulkFinalizeWarningModal";
 
 const {dialog} = require('electron').remote;
 
@@ -44,6 +46,7 @@ class DomainManager extends Component {
   state = {
     isShowingNameClaimForPayment: false,
     isShowingBulkTransfer: false,
+    isConfirmingBulkFinalize: false,
     currentPageIndex: 0,
     itemsPerPage: 10,
   };
@@ -53,6 +56,7 @@ class DomainManager extends Component {
       || this.props.isFetching !== nextProps.isFetching
       || this.state.isShowingNameClaimForPayment !== nextState.isShowingNameClaimForPayment
       || this.state.isShowingBulkTransfer !== nextState.isShowingBulkTransfer
+      || this.state.isConfirmingBulkFinalize !== nextState.isConfirmingBulkFinalize
       || this.state.currentPageIndex !== nextState.currentPageIndex
       || this.state.itemsPerPage !== nextState.itemsPerPage;
   }
@@ -96,6 +100,10 @@ class DomainManager extends Component {
       showSuccess,
     } = this.props;
 
+    if (!this.state.isConfirmingBulkFinalize) {
+      return this.setState({ isConfirmingBulkFinalize: true });
+    }
+
     try {
       const finalizables = [];
 
@@ -109,9 +117,12 @@ class DomainManager extends Component {
 
       await finalizeMany(finalizables);
       showSuccess(`Your finalize request is submitted! Please wait around 15 minutes for it to be confirmed.`)
+      this.setState({ isConfirmingBulkFinalize: false });
     } catch (e) {
       showError(e.message);
     }
+
+
   };
 
   renderGoTo(namesList) {
@@ -320,11 +331,23 @@ class DomainManager extends Component {
     return this.renderEmpty();
   }
 
+  renderConfirmFinalizeModal() {
+    if (this.state.isConfirmingBulkFinalize) {
+      return (
+        <BulkFinalizeWarningModal
+          onClose={() => this.setState({ isConfirmingBulkFinalize: false })}
+          onClick={this.handleFinalizeMany}
+        />
+      );
+    }
+  }
+
   render() {
     return (
       <>
         {this.renderBody()}
         {this.renderControls()}
+        {this.renderConfirmFinalizeModal()}
         {this.state.isShowingBulkTransfer && (
           <BulkTransfer
             onClose={() => this.setState({
