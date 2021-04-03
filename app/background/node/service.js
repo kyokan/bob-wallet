@@ -66,6 +66,7 @@ export class NodeService extends EventEmitter {
   }
 
   async startNode() {
+    await put('hsd-2.4.0-migrate', false);
     if (this.hsd) {
       return;
     }
@@ -102,6 +103,10 @@ export class NodeService extends EventEmitter {
     await hsd.open();
     await hsd.connect();
     await hsd.startSync();
+
+    if (!(await get('hsd-2.4.0-migrate'))) {
+      await put('hsd-2.4.0-migrate', true);
+    }
 
     this.hsd = hsd;
   }
