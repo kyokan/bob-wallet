@@ -110,6 +110,7 @@ export async function fulfillSwap(auction, bid, passphrase) {
     publicKey: auction.publicKey,
     paymentAddr: auction.paymentAddr,
     price: bid.price,
+    fee: bid.fee,
     lockTime: Math.floor(bid.lockTime / 1000),
     signature: bid.signature,
   });
@@ -318,12 +319,12 @@ export async function getListings() {
   return listings;
 }
 
-export async function launchAuction(nameLock, passphrase, paramsOverride) {
+export async function launchAuction(nameLock, passphrase, paramsOverride, persist=true) {
   const context = getContext();
   const key = `${listingPrefix()}/${nameLock.name}/${nameLock.transferTxHash}`;
   const listing = await get(key);
 
-  const {startPrice, endPrice, durationDays} = paramsOverride || listing.params;
+  const {startPrice, endPrice, durationDays, feeRate, feeAddr} = paramsOverride || listing.params;
 
   if (paramsOverride) {
     listing.params = paramsOverride;
@@ -363,6 +364,8 @@ export async function launchAuction(nameLock, passphrase, paramsOverride) {
     endPrice: endPrice,
     reductionTimeMS,
     reductionStrategy: linearReductionStrategy,
+    feeRate: feeRate || 0,
+    feeAddr,
   });
 
   const auction = await auctionFactory.createAuction(
@@ -375,12 +378,25 @@ export async function launchAuction(nameLock, passphrase, paramsOverride) {
     }),
   );
   const auctionJSON = auction.toJSON(context);
-  listing.auction = auctionJSON;
-  await put(
-    key,
-    listing,
-  );
+  if (persist) {
+    listing.auction = auctionJSON;
+    await put(
+      key,
+      listing,
+    );
+  }
   return auctionJSON;
+}
+
+export async function getFeeInfo() {
+  const resp = await fetch(`https://api.shakedex.com/api/v1/fee_info`);
+  if (resp.status === 404) {
+    return {
+      rate: 0,
+      address: null
+    };
+  }
+  return resp.json();
 }
 
 async function downloadProofs(auctionJSON) {
@@ -438,6 +454,7 @@ const methods = {
   restoreOneFill,
   getExchangeAuctions,
   listAuction,
+  getFeeInfo,
 };
 
 export async function start(server) {

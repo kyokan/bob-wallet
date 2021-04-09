@@ -38,6 +38,7 @@ import GenerateListingModal from "./GenerateListingModal";
 import {getPageIndices} from "../../utils/pageable";
 import Dropdown from "../../components/Dropdown";
 import SpinnerSVG from '../../assets/images/brick-loader.svg';
+import ConfirmFeeModal from './ConfirmFeeModal.js';
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 const shakedex = sClientStub(() => require('electron').ipcRenderer);
@@ -56,6 +57,8 @@ class Exchange extends Component {
       isPlacingListing: false,
       isUploadingFile: false,
       isGeneratingListing: false,
+      isShowingFeeConfirmationFor: false,
+      feeInfo: null,
       generatingListing: null,
       isLoading: true,
     };
@@ -191,6 +194,18 @@ class Exchange extends Component {
       }, 0);
     }
   };
+
+  onClickSubmitShakedex = async (listing) => {
+    const feeInfo = await shakedex.getFeeInfo();
+    if (feeInfo.rate === 0) {
+      return this.props.submitToShakedex(listing.auction);
+    }
+
+    this.setState({
+      isShowingFeeConfirmationFor: listing,
+      feeInfo,
+    });
+  }
 
   renderListingStatus(status) {
     let statusText = status;
@@ -348,6 +363,7 @@ class Exchange extends Component {
             <HeaderItem>Name</HeaderItem>
             <HeaderItem>Status</HeaderItem>
             <HeaderItem>Amount</HeaderItem>
+            <HeaderItem>Fee</HeaderItem>
             <HeaderItem>Fill Placed At</HeaderItem>
             <HeaderItem />
           </HeaderRow>
@@ -357,6 +373,7 @@ class Exchange extends Component {
               <TableItem>{formatName(f.fulfillment.name)}</TableItem>
               <TableItem>{this.renderFulfillmentStatus(f.status)}</TableItem>
               <TableItem>{displayBalance(f.fulfillment.price, true)}</TableItem>
+              <TableItem>{displayBalance(f.fulfillment.fee || 0, true)}</TableItem>
               <TableItem>{moment(f.fulfillment.broadcastAt).format('MM/DD/YYYY HH:MM:SS')}</TableItem>
               <TableItem>
                 {[FULFILLMENT_STATUS.CONFIRMED].includes(f.status)  && (
@@ -425,6 +442,16 @@ class Exchange extends Component {
             onClose={() => this.setState({
               isGeneratingListing: false,
               generatingListing: null,
+            })}
+          />
+        )}
+        {this.state.isShowingFeeConfirmationFor && (
+          <ConfirmFeeModal
+            listing={this.state.isShowingFeeConfirmationFor}
+            feeInfo={this.state.feeInfo}
+            onClose={() => this.setState({
+              isShowingFeeConfirmationFor: null,
+              feeInfo: null,
             })}
           />
         )}
@@ -573,7 +600,7 @@ class Exchange extends Component {
               </div>
               <div
                 className="bid-action__link"
-                onClick={() => this.props.submitToShakedex(l.auction)}
+                onClick={() => this.onClickSubmitShakedex(l)}
               >
                 Submit
               </div>
@@ -600,6 +627,7 @@ class Exchange extends Component {
         <TableItem>{displayBalance(currentBid?.price, true)}</TableItem>
         <TableItem>{displayBalance(auction.bids[0].price, true)}</TableItem>
         <TableItem>{this.renderNextBid(auction)}</TableItem>
+        <TableItem>{displayBalance(currentBid?.fee || 0, true)}</TableItem>
         <TableItem>
           {
             !auction.spendingStatus && (
@@ -662,6 +690,7 @@ function Header() {
       <HeaderItem>Current Bid</HeaderItem>
       <HeaderItem>Starting Bid</HeaderItem>
       <HeaderItem>Next Bid</HeaderItem>
+      <HeaderItem>Fee</HeaderItem>
       <HeaderItem />
     </HeaderRow>
   );

@@ -85,6 +85,10 @@ export const auctionSchema = {
             type: 'integer',
             minimum: 0,
           },
+          fee: {
+            type: 'integer',
+            minimum: 0,
+          },
           lockTime: {
             type: 'integer',
             minimum: 1610000000,
