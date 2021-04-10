@@ -3,6 +3,28 @@
 .bids {
   @extend %col-nowrap;
 
+  &__stats {
+    display: grid;
+    width: 80%;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+    margin-bottom: 12px;
+
+    > div {
+      padding: 16px;
+      font-size: 1.2rem;
+      background-color: $athens-gray;
+      border: 1px solid darken($athens-gray, 5);
+      border-radius: 4px;
+    }
+
+    &__subtext {
+      margin: 6px 0 0 0;
+      font-size: 0.9rem;
+      color: rgb(88, 88, 88);
+    }
+  }
+
   &__top {
     @extend %row-nowrap;
     align-items: center;

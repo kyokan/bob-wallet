@@ -351,6 +351,20 @@ class WalletService {
     return value - amount;
   };
 
+  createRevealAll = async () => {
+    const {wdb} = this.node;
+    const wallet = await wdb.get(this.name);
+    await this._ensureSynced();
+    return wallet.createRevealAll().catch(() => null);
+  };
+
+  createRedeemAll = async () => {
+    const {wdb} = this.node;
+    const wallet = await wdb.get(this.name);
+    await this._ensureSynced();
+    return wallet.createRedeemAll().catch(() => null);
+  };
+
   sendOpen = (name) => this._ledgerProxy(
     () => this._executeRPC('createopen', [name]),
     () => this._executeRPC('sendopen', [name], this.lock),
@@ -879,6 +893,20 @@ class WalletService {
     });
   }
 
+  _ensureSynced = async () => {
+    const nodeHeight = (await this.nodeService.getInfo()).chain.height;
+    const wallet = await this.node.wdb.get(this.name);
+    return new Promise(resolve => {
+      const intervalHandle = setInterval(async () => {
+        console.log('Waiting for wallet sync:', wallet.wdb.height, '/', nodeHeight)
+        if (wallet.wdb.height == nodeHeight) {
+          clearInterval(intervalHandle);
+          return resolve(nodeHeight);
+        }
+      }, 500)
+    })
+  }
+
   async _selectWallet() {
     await this._ensureClient();
 
@@ -955,6 +983,8 @@ const methods = {
   rescan: service.rescan,
   deepClean: service.deepClean,
   reset: service.reset,
+  createRevealAll: service.createRevealAll,
+  createRedeemAll: service.createRedeemAll,
   sendOpen: service.sendOpen,
   sendBid: service.sendBid,
   sendRegister: service.sendRegister,

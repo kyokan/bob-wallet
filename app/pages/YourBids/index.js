@@ -9,6 +9,8 @@ import { HeaderItem, HeaderRow, Table, TableItem, TableRow } from '../../compone
 import BidSearchInput from '../../components/BidSearchInput';
 import { displayBalance } from '../../utils/balances';
 import { formatName } from '../../utils/nameHelpers';
+import { hoursToNow } from '../../utils/timeConverter';
+import * as networks from 'hsd/lib/protocol/networks';
 import Fuse from '../../vendor/fuse';
 import './your-bids.scss';
 import { clientStub as aClientStub } from '../../background/analytics/client';
@@ -19,6 +21,7 @@ import c from "classnames";
 import * as nameActions from "../../ducks/names";
 import * as notifActions from "../../ducks/notifications";
 import dbClient from "../../utils/dbClient";
+import walletClient from "../../utils/walletClient";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -46,7 +49,55 @@ class YourBids extends Component {
     currentPageIndex: 0,
     itemsPerPage: 10,
     query: '',
+    bidStats: {
+      toReveal: null,
+      toRedeam: null,
+      revealWithinHrs: null,
+    },
   };
+
+  async getBidStats() {
+    // Reveals
+    walletClient.createRevealAll().then(revealAllTx => {
+      let earliestAuctionStart = null;
+      if (revealAllTx) {
+        // Get earliest auction start from covenant height
+        revealAllTx.inputs.forEach(input => {
+          let auctionStart = Buffer.from(input.coin.covenant.items[1], 'hex').readUInt32LE(0);
+          if (earliestAuctionStart === null || auctionStart < earliestAuctionStart)
+            earliestAuctionStart = auctionStart;
+        });
+      }
+
+      // open period + bidding period + reveal period
+      const fromOpenToReveal = networks[this.props.node.network].names.treeInterval + 1
+                              + networks[this.props.node.network].names.biddingPeriod
+                              + networks[this.props.node.network].names.revealPeriod;
+      this.setState({
+        bidStats: {
+          ...this.state.bidStats,
+          toReveal: revealAllTx ? revealAllTx.inputs.length : null,
+          revealWithinHrs: earliestAuctionStart ? (earliestAuctionStart + fromOpenToReveal - this.props.node.chain.height) * 10 / 60 : null,
+        },
+      });
+    });
+
+    // Redeems
+    walletClient.createRedeemAll().then(redeemAllTx => {
+      let redeemBidsNum = 0;
+      if (redeemAllTx) {
+        redeemBidsNum = redeemAllTx.inputs.filter(input => input.coin.covenant.action === 'REVEAL').length;
+        // TODO: Get sum of values
+      }
+
+      this.setState({
+        bidStats: {
+          ...this.state.bidStats,
+          toRedeem: redeemBidsNum,
+        },
+      });
+    });
+  }
 
   async componentDidMount() {
     analytics.screenView('Your Bids');
@@ -56,6 +107,7 @@ class YourBids extends Component {
     this.setState({
       itemsPerPage: itemsPerPage || 10,
     });
+    this.getBidStats();
   }
 
   handleOnChange = async e => {
@@ -110,6 +162,7 @@ class YourBids extends Component {
   render() {
     return (
       <div className="bids">
+        {this.renderBidStats()}
         <div className="bids__top">
           <BidSearchInput
             className="bids__search"
@@ -144,6 +197,43 @@ class YourBids extends Component {
         </Table>
       </div>
     );
+  }
+
+  renderBidStats() {
+    const { toReveal, toRedeem, revealWithinHrs } = this.state.bidStats;
+    return (
+      <div className="bids__stats">
+
+        {/* Reveals */}
+        <div>
+          {toReveal > 0 ?
+            <div>
+              Reveal{' '}
+              <strong>{toReveal} bid{toReveal !== 1 ? 's' : ''}</strong>
+              <p className="bids__stats__subtext">
+                within <strong>{hoursToNow(revealWithinHrs)}</strong>{' '}
+                for the bid{toReveal !== 1 ? 's' : ''} to count
+              </p>
+            </div>
+            : 'All bids revealed'
+          }
+        </div>
+
+        {/* Redeems */}
+        <div>
+          {toRedeem > 0 ?
+            <div>
+              Redeem{' '}
+              <strong>{toRedeem} bid{toRedeem !== 1 ? 's' : ''}</strong>
+              <p className="bids__stats__subtext">
+                to get back <strong>X HNS</strong>
+              </p>
+            </div>
+            : 'All bids redeemed'
+          }
+        </div>
+      </div>
+    )
   }
 
   renderGoTo() {
@@ -273,6 +363,7 @@ export default withRouter(
   connect(
     state => ({
       yourBids: state.bids.yourBids,
+      node: state.node,
     }),
     dispatch => ({
       getYourBids: () => dispatch(bidsActions.getYourBids()),
