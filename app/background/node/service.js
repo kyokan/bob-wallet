@@ -86,7 +86,7 @@ export class NodeService extends EventEmitter {
       logConsole: false,
       logLevel: 'debug',
       memory: false,
-      workers: false,
+      workers: true,
       network: this.networkName,
       loader: require,
       prefix: this.hsdPrefixDir,
