@@ -790,7 +790,6 @@ class WalletService {
 
   refreshNodeInfo = async () => {
     const info = await nodeService.getInfo().catch(() => null);
-    const fees = await nodeService.getFees().catch(() => null);
 
     if (info) {
       const {chain: {height: chainHeight}} = info;
@@ -801,13 +800,17 @@ class WalletService {
         type: SET_NODE_INFO,
         payload: { info },
       });
-    }
 
-    if (fees) {
-      dispatchToMainWindow({
-        type: SET_FEE_INFO,
-        payload: { fees },
-      });
+      let fees;
+      if (info.chain.progress > 0.99)
+        fees = await nodeService.getFees().catch(() => null);     
+
+      if (fees) {
+        dispatchToMainWindow({
+          type: SET_FEE_INFO,
+          payload: { fees },
+        });
+      }
     }
   };
 
