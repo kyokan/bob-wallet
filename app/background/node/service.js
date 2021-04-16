@@ -200,6 +200,27 @@ export class NodeService extends EventEmitter {
     return name;
   }
 
+  async validateExchangeTransferTx(transferHash, name) {
+    try {
+      const {info: {owner}} = await this.getNameInfo(name);
+      const ownerCoin = await this.getCoin(owner.hash, owner.index);
+      const tx = await this.getTx(ownerCoin.hash);
+
+      if (tx) {
+        for (let input of tx.inputs) {
+          if (input.prevout.hash === transferHash) {
+            return tx;
+          }
+        }
+      }
+
+      return null;
+    } catch (e) {
+      return null;
+    }
+
+  }
+
   async getAuctionInfo(name) {
     return this._execRPC('getauctioninfo', [name]);
   }
@@ -349,6 +370,7 @@ const methods = {
   getTXByAddresses: (addresses) => service.getTXByAddresses(addresses),
   getBlockByHeight: (height, verbose, details) => service.getBlockByHeight(height, verbose, details),
   getTx: (hash) => service.getTx(hash),
+  validateExchangeTransferTx: (hash, name) => service.validateExchangeTransferTx(hash, name),
   broadcastRawTx: (tx) => service.broadcastRawTx(tx),
   sendRawAirdrop: (data) => service.sendRawAirdrop(data),
   getFees: () => service.getFees(),

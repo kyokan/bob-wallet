@@ -337,6 +337,37 @@ export async function launchAuction(nameLock, passphrase, paramsOverride) {
       break;
   }
 
+  let finalizeTx, finalizeCoin, finalizeOutputIdx;
+  finalizeTx = listing.finalizeLock
+    ? await nodeService.getTx(listing.finalizeLock.finalizeTxHash)
+    : await nodeService.validateExchangeTransferTx(
+      listing.nameLock.transferTxHash,
+      listing.nameLock.name,
+    );
+
+  if (listing.finalizeLock) {
+    finalizeCoin = await nodeService.getCoin(
+      listing.finalizeLock.finalizeTxHash,
+      listing.finalizeLock.finalizeOutputIdx,
+    );
+  } else if (finalizeTx) {
+    const txHash = finalizeTx.hash;
+    finalizeOutputIdx = 0;
+
+    for (let i = 0; i < finalizeTx.outputs.length; i++) {
+      if (finalizeTx.outputs[i].covenant.action === 'FINALIZE') {
+        finalizeOutputIdx = i;
+      }
+    }
+
+    finalizeCoin = await nodeService.getCoin(
+      txHash,
+      finalizeOutputIdx,
+    );
+  }
+
+  if (!finalizeCoin) throw new Error('cannot fina finalize coin');
+
   const auctionFactory = new AuctionFactory({
     name: listing.nameLock.name,
     startTime: Date.now(),
@@ -346,11 +377,14 @@ export async function launchAuction(nameLock, passphrase, paramsOverride) {
     reductionTimeMS,
     reductionStrategy: linearReductionStrategy,
   });
+
   const auction = await auctionFactory.createAuction(
     context,
     new NameLockFinalize({
-      ...listing.finalizeLock,
-      privateKey: decrypt(listing.finalizeLock.encryptedPrivateKey, passphrase)
+      ...listing.nameLock,
+      finalizeTxHash: finalizeTx.hash,
+      finalizeOutputIdx,
+      privateKey: decrypt(listing.nameLock.encryptedPrivateKey, passphrase)
     }),
   );
   const auctionJSON = auction.toJSON(context);

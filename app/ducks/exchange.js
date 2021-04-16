@@ -221,12 +221,35 @@ export const getExchangeListings = (page = 1) => async (dispatch, getState) => {
     let cancelCoin;
     try {
       transferTx = await nodeClient.getTx(listing.nameLock.transferTxHash);
+
       finalizeTx = listing.finalizeLock
         ? await nodeClient.getTx(listing.finalizeLock.finalizeTxHash)
-        : null;
-      finalizeCoin = listing.finalizeLock
-        ? await nodeClient.getCoin(listing.finalizeLock.finalizeTxHash, listing.finalizeLock.finalizeOutputIdx)
-        : null;
+        : await nodeClient.validateExchangeTransferTx(
+          listing.nameLock.transferTxHash,
+          listing.nameLock.name,
+        );
+
+      if (listing.finalizeLock) {
+        finalizeCoin = await nodeClient.getCoin(
+          listing.finalizeLock.finalizeTxHash,
+          listing.finalizeLock.finalizeOutputIdx,
+        );
+      } else if (finalizeTx) {
+        const txHash = finalizeTx.hash;
+        let index = 0;
+
+        for (let i = 0; i < finalizeTx.outputs.length; i++) {
+          if (finalizeTx.outputs[i].covenant.action === 'FINALIZE') {
+            index = i;
+          }
+        }
+
+        finalizeCoin = await nodeClient.getCoin(
+          txHash,
+          index,
+        );
+      }
+
       cancelTx = listing.nameLockCancel
         ? await nodeClient.getTx(listing.nameLockCancel.transferTxHash)
         : null;
