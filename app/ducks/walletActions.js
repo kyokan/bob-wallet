@@ -383,12 +383,29 @@ async function parseInputsOutputs(net, tx) {
       covValue += output.value;
     }
 
+    if (covenant.action == 'FINALIZE') {
+      const isSender = output.path == null;
+
+      // Start with no payment for normal Finalizes
+      covValue = 0;
+
+      // containsOtherOutputs: Look for outputs that are not change addresses to self
+      if (isSender) {
+        // If yes, sum all self outputs (payment made by receiver)
+        const containsOtherOutputs = tx.outputs.findIndex(x => x.covenant.action == 'NONE' && x.path === null) !== -1;
+        if (containsOtherOutputs) covValue = tx.outputs.reduce((sum, op) => op.path ? (sum+op.value) : sum, 0);
+      } else {
+        // If yes, sum all outputs to others' addresses (payment made to sender)
+        const containsOtherOutputs = tx.outputs.findIndex(x => x.covenant.action == 'NONE' && x.path !== null) !== -1;
+        if (containsOtherOutputs) covValue = -tx.outputs.reduce((sum, op) => !op.path ? (sum+op.value) : sum, 0);
+      }      
+    }
+
     // Renewals and Updates have a value, but it doesn't
     // affect the spendable balance of the wallet.
     if (covenant.action === 'RENEW' ||
       covenant.action === 'UPDATE' ||
-      covenant.action === 'TRANSFER' ||
-      covenant.action === 'FINALIZE') {
+      covenant.action === 'TRANSFER') {
       covValue = 0;
     }
 

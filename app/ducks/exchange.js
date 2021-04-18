@@ -4,6 +4,7 @@ import { clientStub as shakedexClientStub } from '../background/shakedex/client.
 import { clientStub as nodeClientStub } from '../background/node/client.js';
 import { showSuccess, showError } from './notifications.js';
 import networks from 'hsd/lib/protocol/networks.js';
+import {getFinalizeFromTransferTx} from "../utils/shakedex";
 
 const shakedex = shakedexClientStub(() => require('electron').ipcRenderer);
 const nodeClient = nodeClientStub(() => require('electron').ipcRenderer);
@@ -213,6 +214,7 @@ export const getExchangeListings = (page = 1) => async (dispatch, getState) => {
   const transferLockup = networks[info.network].names.transferLockup;
 
   for (const listing of listings) {
+    console.log({ listing });
     let transferTx;
     let finalizeTx;
     let finalizeCoin;
@@ -221,12 +223,16 @@ export const getExchangeListings = (page = 1) => async (dispatch, getState) => {
     let cancelCoin;
     try {
       transferTx = await nodeClient.getTx(listing.nameLock.transferTxHash);
-      finalizeTx = listing.finalizeLock
-        ? await nodeClient.getTx(listing.finalizeLock.finalizeTxHash)
-        : null;
-      finalizeCoin = listing.finalizeLock
-        ? await nodeClient.getCoin(listing.finalizeLock.finalizeTxHash, listing.finalizeLock.finalizeOutputIdx)
-        : null;
+
+      const finalize = await getFinalizeFromTransferTx(
+        listing.nameLock.transferTxHash,
+        listing.nameLock.name,
+        nodeClient,
+      );
+
+      finalizeTx = finalize.tx;
+      finalizeCoin = finalize.coin;
+
       cancelTx = listing.nameLockCancel
         ? await nodeClient.getTx(listing.nameLockCancel.transferTxHash)
         : null;
