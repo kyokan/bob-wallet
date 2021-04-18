@@ -57,7 +57,7 @@ export class RepairBid extends Component {
       return;
 
     return this.verifyBid(parsed);
-  };
+  }
 
   async verifyBid(value) {
     const {bid} = this.props;
