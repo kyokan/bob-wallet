@@ -103,6 +103,10 @@ export class NodeService extends EventEmitter {
     await hsd.connect();
     await hsd.startSync();
 
+    if (!(await get('hsd-2.4.0-migrate'))) {
+      await put('hsd-2.4.0-migrate', true);
+    }
+
     this.hsd = hsd;
   }
 
