@@ -389,17 +389,18 @@ export default withRouter(
 const DomainRow = connect(
   state => ({
     names: state.myDomains.names,
+    network: state.node.network,
   }),
 )(_DomainRow);
 
 function _DomainRow(props) {
-  const { name, names, onClick } = props;
+  const { name, names, onClick, network } = props;
   return (
     <TableRow key={`${name}`} onClick={onClick}>
       <TableItem>{formatName(name)}</TableItem>
       <TableItem>
         <Blocktime
-          height={names[name].height + 105120}
+          height={names[name].renewal + networks[network].names.renewalWindow}
           format="ll"
           fromNow
         />
