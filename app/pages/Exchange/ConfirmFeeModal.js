@@ -4,6 +4,8 @@ import { MiniModal } from '../../components/Modal/MiniModal.js';
 import { submitToShakedex } from '../../ducks/exchange.js';
 import { clientStub as sClientStub } from '../../background/shakedex/client.js';
 import { getPassphrase } from '../../ducks/walletActions.js';
+import Hash from "../../components/Hash";
+import {shell} from "electron";
 
 const shakedex = sClientStub(() => require('electron').ipcRenderer);
 
@@ -34,12 +36,18 @@ export class ConfirmFeeModal extends Component {
   };
 
   render() {
-    const {onClose, feeInfo} = this.props;
+    const {onClose, feeInfo, explorer} = this.props;
+
+    const address = (
+      <b onClick={() => shell.openExternal(explorer.address.replace('%s', feeInfo.address))}>
+        <Hash value={feeInfo.address}/>
+      </b>
+    );
 
     return (
       <MiniModal title="Confirm Fee" onClose={onClose}>
         <p>
-          The auction provider charges a fee of {feeInfo.rate / 100}%. Do you still want to post
+          The auction provider charges a fee of <b>{feeInfo.rate / 100}%</b>. The fee will be sent to {address}. Do you still want to post
           your auctions?
         </p>
 
@@ -71,7 +79,9 @@ export class ConfirmFeeModal extends Component {
 }
 
 export default connect(
-  () => ({}),
+  state => ({
+    explorer: state.node.explorer,
+  }),
   (dispatch) => ({
     getPassphrase: (resolve, reject) => dispatch(getPassphrase(resolve, reject)),
     submitToShakedex: (auction) => dispatch(submitToShakedex(auction)),

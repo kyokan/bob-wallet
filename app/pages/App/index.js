@@ -100,6 +100,7 @@ class App extends Component {
       label: 'HNS Network',
       tx: 'https://hnsnetwork.com/txs/%s',
       name: 'https://hnsnetwork.com/names/%s',
+      address: 'https://hnsnetwork.com/address/%s',
     }
   }
 

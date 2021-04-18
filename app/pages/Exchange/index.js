@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import moment from 'moment';
 import classNames from 'classnames';
 const {dialog} = require('electron').remote;
-
+import { shell } from 'electron';
 import { clientStub as aClientStub } from '../../background/analytics/client.js';
 import { clientStub as sClientStub } from '../../background/shakedex/client.js';
 import { HeaderItem, HeaderRow, Table, TableItem, TableRow } from '../../components/Table';
@@ -197,6 +197,7 @@ class Exchange extends Component {
 
   onClickSubmitShakedex = async (listing) => {
     const feeInfo = await shakedex.getFeeInfo();
+
     if (feeInfo.rate === 0) {
       return this.props.submitToShakedex(listing.auction);
     }
@@ -205,7 +206,7 @@ class Exchange extends Component {
       isShowingFeeConfirmationFor: listing,
       feeInfo,
     });
-  }
+  };
 
   renderListingStatus(status) {
     let statusText = status;
@@ -622,10 +623,13 @@ class Exchange extends Component {
     const currentBid = getCurrentBid(auction);
 
     return (
-      <TableRow key={auction.id}>
+      <TableRow
+        key={auction.id}
+        className="exchange__auction-listing__row"
+        onClick={() => shell.openExternal(`https://shakedex.com/a/${auction.name}`)}
+      >
         <TableItem>{formatName(auction.name)}</TableItem>
         <TableItem>{displayBalance(currentBid?.price, true)}</TableItem>
-        <TableItem>{displayBalance(auction.bids[0].price, true)}</TableItem>
         <TableItem>{this.renderNextBid(auction)}</TableItem>
         <TableItem>{displayBalance(currentBid?.fee || 0, true)}</TableItem>
         <TableItem>
@@ -634,16 +638,22 @@ class Exchange extends Component {
               <div className="exchange__auction-row-buttons">
                 <div
                   className="bid-action__link"
-                  onClick={() => this.setState({
-                    placingAuction: auction,
-                    placingCurrentBid: currentBid,
-                  })}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    this.setState({
+                      placingAuction: auction,
+                      placingCurrentBid: currentBid,
+                    });
+                  }}
                 >
                   Fill
                 </div>
                 <div
                   className="bid-action__link"
-                  onClick={() => this.onClickDownload(auction)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    this.onClickDownload(auction);
+                  }}
                 >
                   Download Proofs
                 </div>
@@ -688,7 +698,6 @@ function Header() {
     <HeaderRow>
       <HeaderItem>Name</HeaderItem>
       <HeaderItem>Current Bid</HeaderItem>
-      <HeaderItem>Starting Bid</HeaderItem>
       <HeaderItem>Next Bid</HeaderItem>
       <HeaderItem>Fee</HeaderItem>
       <HeaderItem />
