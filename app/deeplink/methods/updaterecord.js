@@ -1,14 +1,11 @@
 import { history, store } from '../../store/configureStore';
 import { setDeeplinkParams } from '../../ducks/app';
+import * as qs from 'querystring';
 
 export default message => {
   const url = new URL(message);
-  const params = url.searchParams;
-  const name = params.get('name');
-  const txt = params.get('txt');
+  const { name, ...params } = qs.parse(url.searchParams.toString());
 
-  if (txt) {
-    store.dispatch(setDeeplinkParams({ txt }));
-  }
+  store.dispatch(setDeeplinkParams(params));
   history.push(`/domain_manager/${name}`);
 };
