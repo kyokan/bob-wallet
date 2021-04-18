@@ -30,6 +30,10 @@
 
 .mini-modal__content {
   padding-top: 27px;
+
+  p:nth-of-type(1) {
+    margin-top: 0;
+  }
 }
 
 .mini-modal--centered {

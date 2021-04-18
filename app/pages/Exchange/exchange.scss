@@ -8,6 +8,10 @@
   }
 
   cursor: default;
+
+  &__auction-listing__row {
+    cursor: pointer;
+  }
 }
 
 .exchange__input {
