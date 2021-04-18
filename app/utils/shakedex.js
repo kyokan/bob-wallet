@@ -225,25 +225,6 @@ export async function validateAuction(auction, nodeClient) {
   if (!res.valid) {
     throw new Error('Invalid auction schema.');
   }
-
-  // const proofs = auction.data.map(a => new SwapProof({
-  //   name: auction.name,
-  //   lockingTxHash: auction.lockingTxHash,
-  //   lockingOutputIdx: auction.lockingOutputIdx,
-  //   publicKey: auction.publicKey,
-  //   paymentAddr: auction.paymentAddr,
-  //   price: a.price,
-  //   lockTime: a.lockTime,
-  //   signature: a.signature,
-  // }));
-
-
-  // for (const proof of proofs) {
-  //   const ok = await proof.verify({ nodeClient });
-  //   if (!ok) {
-  //     throw new Error('Swap proofs failed validation.');
-  //   }
-  // }
 }
 
 export function fromAuctionJSON(json) {
@@ -260,5 +241,53 @@ export function fromAuctionJSON(json) {
         : Math.floor(p.lockTime / 1000) * 1000,
       signature: p.signature,
     })),
+  };
+}
+
+export async function getFinalizeFromTransferTx(transferTxHash, name, nodeClient) {
+  let finalizeTx, finalizeCoin, finalizeOutputIdx;
+
+  const { info: { nameHash }} = await nodeClient.getNameInfo(name);
+  const transferTx = await nodeClient.getTx(transferTxHash);
+  let prevoutIndex;
+  const transferOutput = transferTx?.outputs.filter((output, i) => {
+    if (output.covenant.action === 'TRANSFER'
+      && output.covenant.items
+      && output.covenant.items[0] === nameHash) {
+      prevoutIndex = i;
+      return true;
+    }
+  })[0];
+
+  const transactions = transferOutput && await nodeClient.getTXByAddresses([transferOutput.address]);
+
+  finalizeTx = transactions
+    ? transactions.filter((transaction) => {
+      return transaction.inputs.filter(input => {
+        return input.prevout.hash === transferTx.hash
+          && input.prevout.index === prevoutIndex;
+      })[0];
+    })[0]
+    : null;
+
+  if (finalizeTx) {
+    const txHash = finalizeTx.hash;
+    finalizeOutputIdx = 0;
+
+    for (let i = 0; i < finalizeTx.outputs.length; i++) {
+      if (finalizeTx.outputs[i].covenant.action === 'FINALIZE') {
+        finalizeOutputIdx = i;
+      }
+    }
+
+    finalizeCoin = await nodeClient.getCoin(
+      txHash,
+      finalizeOutputIdx,
+    );
+  }
+
+  return {
+    tx: finalizeTx,
+    coin: finalizeCoin,
   };
 }

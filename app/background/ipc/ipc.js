@@ -20,7 +20,7 @@ function log() {
     return;
   }
 
-  console.log(...arguments);
+  // console.log(...arguments);
 }
 
 // used to scrub sensitive info from RPC calls

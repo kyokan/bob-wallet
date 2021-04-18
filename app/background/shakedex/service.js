@@ -20,7 +20,14 @@ import {encrypt, decrypt} from "../../utils/encrypt";
 import path from "path";
 import {app} from "electron";
 import bdb from "bdb";
-import {auctionSchema, finalizeLockScheme, fulfillmentSchema, nameLockSchema, paramSchema} from "../../utils/shakedex";
+import {
+  auctionSchema,
+  finalizeLockScheme,
+  fulfillmentSchema,
+  getFinalizeFromTransferTx,
+  nameLockSchema,
+  paramSchema
+} from "../../utils/shakedex";
 import {Client} from "bcurl";
 
 let db;
@@ -337,36 +344,16 @@ export async function launchAuction(nameLock, passphrase, paramsOverride) {
       break;
   }
 
-  let finalizeTx, finalizeCoin, finalizeOutputIdx;
-  finalizeTx = listing.finalizeLock
-    ? await nodeService.getTx(listing.finalizeLock.finalizeTxHash)
-    : await nodeService.validateExchangeTransferTx(
-      listing.nameLock.transferTxHash,
-      listing.nameLock.name,
-    );
+  const {
+    tx: finalizeTx,
+    coin: finalizeCoin,
+  } = await getFinalizeFromTransferTx(
+    listing.nameLock.transferTxHash,
+    listing.nameLock.name,
+    nodeService,
+  );
 
-  if (listing.finalizeLock) {
-    finalizeCoin = await nodeService.getCoin(
-      listing.finalizeLock.finalizeTxHash,
-      listing.finalizeLock.finalizeOutputIdx,
-    );
-  } else if (finalizeTx) {
-    const txHash = finalizeTx.hash;
-    finalizeOutputIdx = 0;
-
-    for (let i = 0; i < finalizeTx.outputs.length; i++) {
-      if (finalizeTx.outputs[i].covenant.action === 'FINALIZE') {
-        finalizeOutputIdx = i;
-      }
-    }
-
-    finalizeCoin = await nodeService.getCoin(
-      txHash,
-      finalizeOutputIdx,
-    );
-  }
-
-  if (!finalizeCoin) throw new Error('cannot fina finalize coin');
+  if (!finalizeCoin) throw new Error('cannot find finalize coin');
 
   const auctionFactory = new AuctionFactory({
     name: listing.nameLock.name,
@@ -383,7 +370,7 @@ export async function launchAuction(nameLock, passphrase, paramsOverride) {
     new NameLockFinalize({
       ...listing.nameLock,
       finalizeTxHash: finalizeTx.hash,
-      finalizeOutputIdx,
+      finalizeOutputIdx: finalizeCoin.index,
       privateKey: decrypt(listing.nameLock.encryptedPrivateKey, passphrase)
     }),
   );
