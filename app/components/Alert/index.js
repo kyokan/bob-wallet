@@ -11,10 +11,11 @@ export default class Alert extends Component {
     ]).isRequired,
     message: PropTypes.string,
     children: PropTypes.node,
+    style: PropTypes.object,
   };
 
   render() {
-    const { message, type, children} = this.props;
+    const { message, type, children, style} = this.props;
 
     if (!message && !children) {
       return null;
@@ -23,7 +24,7 @@ export default class Alert extends Component {
     const name = `alert alert--${type}`;
 
     return (
-      <div className={name}>
+      <div className={name} style={style}>
         {children || message}
       </div>
     );
