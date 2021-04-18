@@ -20,7 +20,14 @@ import {encrypt, decrypt} from "../../utils/encrypt";
 import path from "path";
 import {app} from "electron";
 import bdb from "bdb";
-import {auctionSchema, finalizeLockScheme, fulfillmentSchema, nameLockSchema, paramSchema} from "../../utils/shakedex";
+import {
+  auctionSchema,
+  finalizeLockScheme,
+  fulfillmentSchema,
+  getFinalizeFromTransferTx,
+  nameLockSchema,
+  paramSchema
+} from "../../utils/shakedex";
 import {Client} from "bcurl";
 
 let db;
@@ -337,6 +344,17 @@ export async function launchAuction(nameLock, passphrase, paramsOverride) {
       break;
   }
 
+  const {
+    tx: finalizeTx,
+    coin: finalizeCoin,
+  } = await getFinalizeFromTransferTx(
+    listing.nameLock.transferTxHash,
+    listing.nameLock.name,
+    nodeService,
+  );
+
+  if (!finalizeCoin) throw new Error('cannot find finalize coin');
+
   const auctionFactory = new AuctionFactory({
     name: listing.nameLock.name,
     startTime: Date.now(),
@@ -346,11 +364,14 @@ export async function launchAuction(nameLock, passphrase, paramsOverride) {
     reductionTimeMS,
     reductionStrategy: linearReductionStrategy,
   });
+
   const auction = await auctionFactory.createAuction(
     context,
     new NameLockFinalize({
-      ...listing.finalizeLock,
-      privateKey: decrypt(listing.finalizeLock.encryptedPrivateKey, passphrase)
+      ...listing.nameLock,
+      finalizeTxHash: finalizeTx.hash,
+      finalizeOutputIdx: finalizeCoin.index,
+      privateKey: decrypt(listing.nameLock.encryptedPrivateKey, passphrase)
     }),
   );
   const auctionJSON = auction.toJSON(context);
