@@ -364,7 +364,6 @@ class Exchange extends Component {
             <HeaderItem>Name</HeaderItem>
             <HeaderItem>Status</HeaderItem>
             <HeaderItem>Amount</HeaderItem>
-            <HeaderItem>Fee</HeaderItem>
             <HeaderItem>Fill Placed At</HeaderItem>
             <HeaderItem />
           </HeaderRow>
@@ -374,7 +373,6 @@ class Exchange extends Component {
               <TableItem>{formatName(f.fulfillment.name)}</TableItem>
               <TableItem>{this.renderFulfillmentStatus(f.status)}</TableItem>
               <TableItem>{displayBalance(f.fulfillment.price, true)}</TableItem>
-              <TableItem>{displayBalance(f.fulfillment.fee || 0, true)}</TableItem>
               <TableItem>{moment(f.fulfillment.broadcastAt).format('MM/DD/YYYY HH:MM:SS')}</TableItem>
               <TableItem>
                 {[FULFILLMENT_STATUS.CONFIRMED].includes(f.status)  && (
@@ -631,7 +629,6 @@ class Exchange extends Component {
         <TableItem>{formatName(auction.name)}</TableItem>
         <TableItem>{displayBalance(currentBid?.price, true)}</TableItem>
         <TableItem>{this.renderNextBid(auction)}</TableItem>
-        <TableItem>{displayBalance(currentBid?.fee || 0, true)}</TableItem>
         <TableItem>
           {
             !auction.spendingStatus && (
@@ -699,7 +696,6 @@ function Header() {
       <HeaderItem>Name</HeaderItem>
       <HeaderItem>Current Bid</HeaderItem>
       <HeaderItem>Next Bid</HeaderItem>
-      <HeaderItem>Fee</HeaderItem>
       <HeaderItem />
     </HeaderRow>
   );
