@@ -59,18 +59,20 @@ class Transaction extends Component {
           || tx.type === COINBASE
           || tx.type === REVEAL
           || tx.type === REDEEM
-          || tx.type === REGISTER)
+          || tx.type === REGISTER
+          || (tx.type === FINALIZE && tx.value > 0))
         && !tx.pending,
       'transaction__number--neutral':
         (tx.type === UPDATE
           || tx.type === RENEW
           || tx.type === OPEN
           || tx.type === TRANSFER
-          || tx.type === FINALIZE)
+          || (tx.type === FINALIZE && tx.value === 0))
         && !tx.pending,
       'transaction__number--negative':
         (tx.type === SEND
-          || tx.type === BID)
+          || tx.type === BID
+          || (tx.type === FINALIZE && tx.value < 0))
         && !tx.pending,
     });
 
@@ -129,6 +131,8 @@ class Transaction extends Component {
       content = this.formatDomain(tx.meta.domain);
     } else if (tx.type === 'FINALIZE') {
       description = 'Finalized Domain';
+      if (tx.value > 0) description = 'Received Payment for Domain';
+      if (tx.value < 0) description = 'Finalized With Payment';
       content = this.formatDomain(tx.meta.domain);
     } else {
       description = 'Unknown Transaction';
@@ -153,9 +157,10 @@ class Transaction extends Component {
         {' '}
         {
           tx.type === RECEIVE || tx.type === COINBASE || tx.type === REDEEM || tx.type === REVEAL || tx.type === REGISTER ? '+'
-            : tx.type === UPDATE || tx.type === RENEW || tx.type === OPEN ? ''
+            : tx.type === UPDATE || tx.type === RENEW || tx.type === OPEN || tx.type === FINALIZE ? ''
             : '-'
         }
+        { (tx.type === FINALIZE && tx.value > 0) ? '+': '' }
         {displayBalance(tx.value)} HNS
       </div>
     </div>
