@@ -30,9 +30,13 @@ import BackupListingModal from "./BackupListingModal";
 import fs from "fs";
 const {dialog} = require('electron').remote;
 import {clientStub as sClientStub} from "../../background/shakedex/client";
+import ChangeDirectoryModal from "./ChangeDirectoryModal";
+import dbClient from "../../utils/dbClient";
+import {clientStub} from "../../background/node/client";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 const shakedex = sClientStub(() => require('electron').ipcRenderer);
+const nodeClient = clientStub(() => require('electron').ipcRenderer);
 
 @withRouter
 @connect(
@@ -91,9 +95,15 @@ export default class Settings extends Component {
     }
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     analytics.screenView('Settings');
     this.props.fetchWalletAPIKey();
+    const directory = await nodeClient.getDir();
+    const userDir = await dbClient.getUserDir();
+    this.setState({
+      directory,
+      userDir,
+    });
   }
 
   onDownload = async () => {
@@ -429,6 +439,17 @@ export default class Settings extends Component {
                 isRunning || isTestingCustomRPC || isChangingNodeStatus,
               )}
               {this.renderSection(
+                'HSD Home Directory',
+                <div>
+                  <div><small>User Directory: {this.state.userDir}</small></div>
+                  <div><small>HSD Directory: {this.state.directory}</small></div>
+                </div>,
+                'Change Directory',
+                () => history.push("/settings/connection/changeDirectory"),
+                null,
+                isRunning || isChangingNodeStatus,
+              )}
+              {this.renderSection(
                 'Network type',
                 (
                   isCustomRPCConnected
@@ -483,6 +504,7 @@ export default class Settings extends Component {
           <Route path="/settings/wallet/reveal-seed" component={RevealSeedModal} />
           <Route path="/settings/wallet/zap-txs" component={ZapTXsModal} />
           <Route path="/settings/connection/configure" component={CustomRPCConfigModal} />
+          <Route path="/settings/connection/changeDirectory" component={ChangeDirectoryModal} />
           <Route path="/settings/wallet/view-api-key">
             <MiniModal
               closeRoute="/settings/wallet"

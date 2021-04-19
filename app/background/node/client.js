@@ -17,5 +17,9 @@ export const clientStub = ipcRendererInjector => makeClient(ipcRendererInjector,
   'sendRawAirdrop',
   'getFees',
   'getAverageBlockTime',
-  'getCoin'
+  'getCoin',
+  'setNodeDir',
+  'setAPIKey',
+  'getDir',
+  'getAPIKey',
 ]);
