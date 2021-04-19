@@ -17,17 +17,52 @@ const Network = require('hsd/lib/protocol/network');
 
 const MIN_FEE = new BigNumber(0.01);
 const DEFAULT_BLOCK_TIME = 10 * 60 * 1000;
+const HSD_PREFIX_DIR_KEY = 'hsdPrefixDir';
+const NODE_API_KEY = 'nodeApiKey';
 
 export class NodeService extends EventEmitter {
   constructor() {
     super();
+  }
 
-    this.hsdPrefixDir = path.join(app.getPath('userData'), 'hsd_data');
+  async getAPIKey() {
+    const apiKey = await get(NODE_API_KEY);
+
+    if (apiKey) return apiKey;
+
+    const newKey = crypto.randomBytes(20).toString('hex');
+    await put(NODE_API_KEY, newKey);
+    return newKey;
+  }
+
+  async getDir() {
+    const hsdPrefixDir = await get(HSD_PREFIX_DIR_KEY);
+
+    if (hsdPrefixDir) {
+      return hsdPrefixDir;
+    }
+
+    const newPath = path.join(app.getPath('userData'), 'hsd_data');
+    await put(HSD_PREFIX_DIR_KEY, newPath);
+    return newPath;
+  }
+
+  async setNodeDir(dir) {
+    if (!fs.existsSync(dir)) {
+      throw new Error(`${dir} does not exist`);
+    }
+
+    await put(HSD_PREFIX_DIR_KEY, dir);
+  }
+
+  async setAPIKey(apiKey) {
+    await put(NODE_API_KEY, apiKey);
   }
 
   async configurePaths() {
-    if (!fs.existsSync(this.hsdPrefixDir)) {
-      await pify(cb => fs.mkdir(this.hsdPrefixDir, {recursive: true}, cb));
+    const dir = await this.getDir();
+    if (!fs.existsSync(dir)) {
+      await pify(cb => fs.mkdir(dir, {recursive: true}, cb));
     }
   }
 
@@ -56,11 +91,10 @@ export class NodeService extends EventEmitter {
     }
 
     const network = Network.get(networkName);
-    const apiKey = crypto.randomBytes(20).toString('hex');
 
     this.networkName = networkName;
     this.network = network;
-    this.apiKey = apiKey;
+    this.apiKey = await this.getAPIKey();
 
     this.emit('started', this.networkName, this.network, this.apiKey);
   }
@@ -78,6 +112,8 @@ export class NodeService extends EventEmitter {
 
     console.log(`Starting node on ${this.networkName} network.`);
 
+    const dir = await this.getDir();
+
     const hsd = new FullNode({
       config: true,
       argv: true,
@@ -89,7 +125,7 @@ export class NodeService extends EventEmitter {
       workers: false,
       network: this.networkName,
       loader: require,
-      prefix: this.hsdPrefixDir,
+      prefix: dir,
       listen: true,
       bip37: true,
       indexAddress: true,
@@ -171,11 +207,6 @@ export class NodeService extends EventEmitter {
 
   async generateToAddress(numblocks, address) {
     return this._execRPC('generatetoaddress', [numblocks, address]);
-  }
-
-  async getAPIKey() {
-    await this._ensureStarted();
-    return this.apiKey;
   }
 
   async getInfo() {
@@ -354,6 +385,9 @@ const methods = {
   getFees: () => service.getFees(),
   getAverageBlockTime: () => service.getAverageBlockTime(),
   getCoin: (hash, index) => service.getCoin(hash, index),
+  setNodeDir: data => service.setNodeDir(data),
+  setAPIKey: data => service.setAPIKey(data),
+  getDir: () => service.getDir(),
 };
 
 export async function start(server) {

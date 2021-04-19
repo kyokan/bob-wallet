@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import './mini-modal.scss';
 
+@withRouter
 export class MiniModal extends Component {
   static propTypes = {
     closeRoute: PropTypes.string,
