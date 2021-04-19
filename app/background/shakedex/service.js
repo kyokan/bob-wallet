@@ -427,14 +427,23 @@ async function downloadProofs(auctionJSON) {
 }
 
 function getContext(passphrase = null) {
-  const walletId = walletService.name;
-  const {apiKey, networkName} = nodeService;
+  const {
+    name: walletId,
+    walletApiKey,
+  } = walletService;
+  const {
+    apiKey: nodeApiKey,
+    networkName,
+    client,
+  } = nodeService;
 
   return new Context(
     networkName,
     walletId,
-    apiKey,
+    walletApiKey,
     () => Promise.resolve(passphrase),
+    client.host,
+    nodeApiKey,
   );
 }
 
