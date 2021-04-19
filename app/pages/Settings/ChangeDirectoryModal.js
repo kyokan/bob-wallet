@@ -75,7 +75,7 @@ export default class ChangeDirectoryModal extends Component {
         title="Change HSD Directory"
       >
         <Alert type="warning">
-          This will only change your hsd home directory. Your other data, such as user setting and wallet data, will still be saved in <i>{userDir}</i>.
+          This will only change your hsd home directory. Your other data, such as user setting and wallet data, will still be saved in <i>{userDir}</i>. <b>Please restart Bob for new setting to take effect.</b>
         </Alert>
         <div className="settings__input-row">
           <div className="settings__input-title">

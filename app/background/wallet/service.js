@@ -11,6 +11,7 @@ import { NETWORKS } from '../../constants/networks';
 import { displayBalance, toBaseUnits, toDisplayUnits } from '../../utils/balances';
 import { service as nodeService } from '../node/service';
 import {
+  SET_API_KEY,
   SET_BALANCE,
   SET_WALLETS,
   START_SYNC_WALLET,
@@ -20,6 +21,7 @@ import {
 import {SET_FEE_INFO, SET_NODE_INFO} from "../../ducks/nodeReducer";
 import createRegisterAll from "./create-register-all";
 import {finalizeMany, transferMany} from "./bulk-transfer";
+import {get, put} from "../db/service";
 const WalletNode = require('hsd/lib/wallet/node');
 const TX = require('hsd/lib/primitives/tx');
 const {Output, MTX, Address, Coin} = require('hsd/lib/primitives');
@@ -38,6 +40,7 @@ const randomAddrs = {
 };
 
 const HSD_DATA_DIR = path.join(app.getPath('userData'), 'hsd_data');
+const WALLET_API_KEY = 'walletApiKey';
 
 class WalletService {
   constructor() {
@@ -54,6 +57,24 @@ class WalletService {
     this.didSelectWallet = false;
     this.name = name;
   };
+
+  async getAPIKey() {
+    const apiKey = await get(WALLET_API_KEY);
+
+    if (apiKey) return apiKey;
+
+    const newKey = crypto.randomBytes(20).toString('hex');
+    await put(WALLET_API_KEY, newKey);
+    return newKey;
+  }
+
+  async setAPIKey(apiKey) {
+    await put(WALLET_API_KEY, apiKey);
+    dispatchToMainWindow({
+      type: SET_API_KEY,
+      payload: apiKey,
+    });
+  }
 
   reset = async () => {
     await this._ensureClient();
@@ -93,11 +114,6 @@ class WalletService {
     if (!wallet) return null;
 
     return wallet.hasPath(new Address(addressHash, this.network));
-  };
-
-  getAPIKey = async () => {
-    await this._ensureClient();
-    return this.walletApiKey;
   };
 
   getWalletInfo = async () => {
@@ -644,7 +660,7 @@ class WalletService {
 
     this.networkName = networkName;
     this.apiKey = apiKey;
-    this.walletApiKey = apiKey || crypto.randomBytes(20).toString('hex');
+    this.walletApiKey = await this.getAPIKey();
     this.network = network;
 
     const walletOptions = {
@@ -933,6 +949,7 @@ const methods = {
   getWalletInfo: service.getWalletInfo,
   getAccountInfo: service.getAccountInfo,
   getAPIKey: service.getAPIKey,
+  setAPIKey: service.setAPIKey,
   getCoin: service.getCoin,
   getTX: service.getTX,
   getNames: service.getNames,

@@ -33,6 +33,7 @@ import {clientStub as sClientStub} from "../../background/shakedex/client";
 import ChangeDirectoryModal from "./ChangeDirectoryModal";
 import dbClient from "../../utils/dbClient";
 import {clientStub} from "../../background/node/client";
+import APIKeyModal from "./APIKeyModal";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 const shakedex = sClientStub(() => require('electron').ipcRenderer);
@@ -447,7 +448,6 @@ export default class Settings extends Component {
                 'Change Directory',
                 () => history.push("/settings/connection/changeDirectory"),
                 null,
-                isRunning || isChangingNodeStatus,
               )}
               {this.renderSection(
                 'Network type',
@@ -506,38 +506,20 @@ export default class Settings extends Component {
           <Route path="/settings/connection/configure" component={CustomRPCConfigModal} />
           <Route path="/settings/connection/changeDirectory" component={ChangeDirectoryModal} />
           <Route path="/settings/wallet/view-api-key">
-            <MiniModal
+            <APIKeyModal
               closeRoute="/settings/wallet"
               title="Wallet API Key"
-              centered
-            >
-              <input
-                type="text"
-                className="settings__copy-api-key"
-                value={this.props.walletApiKey}
-                readOnly
-              />
-              <button className="settings__btn" onClick={() => copy(this.props.walletApiKey)}>
-                Copy
-              </button>
-            </MiniModal>
+              apiKey={this.props.walletApiKey}
+              updateAPIKey={walletClient.setAPIKey}
+            />
           </Route>
           <Route path="/settings/connection/view-api-key">
-            <MiniModal
+            <APIKeyModal
               closeRoute="/settings/connection"
-              title="API Key"
-              centered
-            >
-              <input
-                type="text"
-                className="settings__copy-api-key"
-                value={this.props.apiKey}
-                readOnly
-              />
-              <button className="settings__btn" onClick={() => copy(this.props.apiKey)}>
-                Copy
-              </button>
-            </MiniModal>
+              title="Node API Key"
+              apiKey={this.props.apiKey}
+              updateAPIKey={nodeClient.setAPIKey}
+            />
           </Route>
           <Route path="/settings/wallet/deep-clean-and-rescan">
             <DeepCleanAndRescanModal />
