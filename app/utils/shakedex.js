@@ -279,8 +279,10 @@ export async function getFinalizeFromTransferTx(transferTxHash, name, nodeClient
     finalizeOutputIdx = 0;
 
     for (let i = 0; i < finalizeTx.outputs.length; i++) {
-      if (finalizeTx.outputs[i].covenant.action === 'FINALIZE') {
+      const covenant = finalizeTx.outputs[i].covenant;
+      if (covenant.action === 'FINALIZE' && covenant.items[0] === nameHash) {
         finalizeOutputIdx = i;
+        continue;
       }
     }
 

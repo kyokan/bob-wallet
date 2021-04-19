@@ -475,8 +475,9 @@ export const launchExchangeAuction = (nameLock, overrideParams) => async (dispat
 
   try {
     const passphrase = await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
-    await shakedex.launchAuction(nameLock, passphrase, overrideParams);
+    await shakedex.launchAuction(nameLock, passphrase, overrideParams, true);
   } catch (e) {
+    console.log(e);
     dispatch({
       type: LAUNCH_EXCHANGE_AUCTION_ERR,
     });
