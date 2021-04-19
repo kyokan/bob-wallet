@@ -1,6 +1,7 @@
 export const START = 'node/START';
 export const START_ERROR = 'node/START_ERROR';
 export const SET_NODE_INFO = 'node/SET_NODE_INFO';
+export const SET_NODE_API = 'node/SET_NODE_API';
 export const SET_FEE_INFO = 'node/SET_FEE_INFO';
 export const SET_CUSTOM_RPC_STATUS = 'node/SET_CUSTOM_RPC_STATUS';
 export const STOP = 'node/STOP';
@@ -66,6 +67,11 @@ export default function nodeReducer(state = getInitialState(), action = {}) {
       return {
         ...state,
         isCustomRPCConnected: action.payload,
+      };
+    case SET_NODE_API:
+      return {
+        ...state,
+        apiKey: action.payload,
       };
     case SET_FEE_INFO:
       return {
