@@ -22,7 +22,6 @@ import {app} from "electron";
 import bdb from "bdb";
 import {
   auctionSchema,
-  finalizeLockScheme,
   fulfillmentSchema,
   getFinalizeFromTransferTx,
   nameLockSchema,
@@ -189,10 +188,20 @@ export async function transferCancel(nameLock, password) {
   const existing = await get(
     `${listingPrefix()}/${nameLock.name}/${nameLock.transferTxHash}`,
   );
-  const {finalizeLock} = existing;
+  const {
+    tx: finalizeTx,
+    coin: finalizeCoin,
+  } = await getFinalizeFromTransferTx(
+    nameLock.transferTxHash,
+    nameLock.name,
+    nodeService,
+  );
+
   const cancelNameLock = await transferNameLockCancel(context, {
-    ...finalizeLock,
-    publicKey: Buffer.from(finalizeLock.publicKey, 'hex'),
+    ...nameLock,
+    finalizeTxHash: finalizeTx.hash,
+    finalizeOutputIdx: finalizeCoin.index,
+    publicKey: Buffer.from(nameLock.publicKey, 'hex'),
     privateKey: Buffer.from(decrypt(nameLock.encryptedPrivateKey, password), 'hex'),
   });
   const {privateKey, ...cancelLockJSON} = cancelNameLock.toJSON(context);
@@ -242,11 +251,10 @@ export async function finalizeCancel(nameLock, password) {
 
 export async function restoreOneListing(listing) {
   const {valid: auctionValid} = jsonSchemaValidate(listing.auction, auctionSchema);
-  const {valid: finalizeValid} = jsonSchemaValidate(listing.finalizeLock, finalizeLockScheme);
   const {valid: nameLockValid} = jsonSchemaValidate(listing.nameLock || {}, nameLockSchema);
   const {valid: paramsValid} = jsonSchemaValidate(listing.params, paramSchema);
 
-  if (!auctionValid || !finalizeValid || !nameLockValid || !paramsValid) {
+  if (!auctionValid || !nameLockValid || !paramsValid) {
     throw new Error('Invalid backup file schema');
   }
   const {nameLock} = listing;
