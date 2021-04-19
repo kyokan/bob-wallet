@@ -1,4 +1,5 @@
-import { history } from '../../store/configureStore';
+import { history, store } from '../../store/configureStore';
+import {setDeeplinkParams} from "../../ducks/app";
 
 export default message => {
   const url = new URL(message);
