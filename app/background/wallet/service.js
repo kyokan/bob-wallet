@@ -43,7 +43,7 @@ const randomAddrs = {
   [NETWORKS.SIMNET]: 'ss1qfrfg6pg7emnx5m53zf4fe24vdtt8thljhyekhj',
 };
 
-const {LedgerHSD} = hsdLedger;
+const {LedgerHSD, LedgerChange} = hsdLedger;
 const {Device} = hsdLedger.USB;
 const ONE_MINUTE = 60000;
 
@@ -161,6 +161,12 @@ class WalletService {
     await this._selectWallet();
     const wallet = await this.node.wdb.get(this.name);
     return wallet.getNames();
+  };
+
+  getPublicKey = async (address) => {
+    await this._ensureClient();
+    const wallet = await this.node.wdb.get(this.name);
+    return wallet.getKey(address);
   };
 
   /**
@@ -928,6 +934,34 @@ class WalletService {
       const res = await onLedger();
       if (shouldConfirmLedger) {
         const mtx = MTX.fromJSON(res);
+
+        // The user does not have to verify change outputs on the device.
+        // What we do is pass metadata about the change output to Ledger,
+        // and the app will verify the change address belongs to the wallet.
+        const options = {};
+        for (let index = 0; index < res.outputs.length; index++) {
+          const output = res.outputs[index];
+          const address = Address.fromString(output.address, this.network);
+          const key = await this.getPublicKey(address);
+
+          if (key.branch === 1) {
+            const path =
+              'm/' +                                  // master
+              '44\'/' +                               // purpose
+              `${this.network.keyPrefix.coinType}\'/` +    // coin type
+              `${key.account}'/` +                    // should be 0 ("default")
+              `${key.branch}/` +                      // should be 1 (change)
+              `${key.index}`;
+
+            options.change = new LedgerChange({
+              index,
+              version: address.version,
+              path
+            });
+            break;
+          }
+        }
+
         const mainWindow = getMainWindow()
         await new Promise((resolve, reject) => {
           const resHandler = async () => {
@@ -939,7 +973,7 @@ class WalletService {
               });
               await device.open();
               const ledger = new LedgerHSD({device, network: this.networkName});
-              const retMtx = await ledger.signTransaction(mtx);
+              const retMtx = await ledger.signTransaction(mtx, options);
               retMtx.check();
               await this.nodeService.broadcastRawTx(retMtx.toHex());
               mainWindow.send('LEDGER/CONNECT_OK');
