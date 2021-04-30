@@ -25,7 +25,7 @@ class ConnectLedgerFlow extends React.Component {
     return this.state.currentStep === TERM_OF_USE ? (
       <Terms
         onAccept={() => this.setState({ currentStep: CONNECT_LEDGER })}
-        onBack={() => this.props.history.push('/existing-options')}
+        onBack={() => this.props.history.push('/funding-options')}
       />
     ) : (
       <ConnectLedger

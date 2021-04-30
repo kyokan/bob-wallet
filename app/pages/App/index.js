@@ -154,7 +154,15 @@ class App extends Component {
               true,
             )}
           />
-          <Route path="/connect-ledger" render={this.uninitializedWrapper(ConnectLedgerFlow)} />
+          <Route
+            path="/connect-ledger"
+            render={this.uninitializedWrapper(
+              ConnectLedgerFlow,
+              false,
+              false,
+              true,
+            )}
+          />
           <ProtectedRoute
             isLocked={this.props.isLocked}
             wallets={this.props.wallets}

@@ -63,7 +63,8 @@ class ConnectLedger extends React.Component {
     // a two-phase process.
     setTimeout(async () => {
       await walletClient.createNewWallet('Ledger', xpub, true);
-      await this.props.completeInitialization('');
+      await this.props.completeInitialization('Ledger');
+      this.props.history.push('/account');
     }, 2000);
   };
 
@@ -92,9 +93,6 @@ class ConnectLedger extends React.Component {
             'create-password__footer__removed-padding-top',
           ])}
         >
-          <div className="connect__support-cta">
-            Need help? Visit support page
-          </div>
           <button
             type="button"
             className="extension_cta_button terms_cta"
