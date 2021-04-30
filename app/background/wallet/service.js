@@ -499,6 +499,7 @@ class WalletService {
   lock = () => this._ledgerProxy(
     () => null,
     () => this.client.lock(this.name),
+    false
   );
 
   unlock = (name, passphrase) => {
