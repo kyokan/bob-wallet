@@ -10,11 +10,15 @@ export async function withLedger(network, action) {
   let ledger;
 
   try {
+    await Device.requestDevice();
     const devices = await Device.getDevices();
-    device = new Device({
-      device: devices[0],
-      timeout: ONE_MINUTE,
+    device = devices[0];
+    device.set({
+      timeout: ONE_MINUTE
     });
+    if (!Device.isLedgerDevice(device))
+      throw new Error('Device should be a Ledger device.');
+
     await device.open();
     // TODO: this network parameter should be passed dynamically.
     ledger = new LedgerHSD({device, network});
