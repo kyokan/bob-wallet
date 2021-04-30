@@ -43,7 +43,7 @@ const randomAddrs = {
   [NETWORKS.SIMNET]: 'ss1qfrfg6pg7emnx5m53zf4fe24vdtt8thljhyekhj',
 };
 
-const {LedgerHSD, LedgerChange} = hsdLedger;
+const {LedgerHSD, LedgerChange, LedgerCovenant} = hsdLedger;
 const {Device} = hsdLedger.USB;
 const ONE_MINUTE = 60000;
 
@@ -936,16 +936,22 @@ class WalletService {
       if (shouldConfirmLedger) {
         const mtx = MTX.fromJSON(res);
 
-        // The user does not have to verify change outputs on the device.
-        // What we do is pass metadata about the change output to Ledger,
-        // and the app will verify the change address belongs to the wallet.
+        // Prepare extra TX data for Ledger.
+        // Unfortunately the MTX returned from the wallet.create____()
+        // functions does not include what we need, so we have to compute it.
         const options = {};
         for (let index = 0; index < res.outputs.length; index++) {
           const output = res.outputs[index];
+
+          // The user does not have to verify change outputs on the device.
+          // What we do is pass metadata about the change output to Ledger,
+          // and the app will verify the change address belongs to the wallet.
           const address = Address.fromString(output.address, this.network);
           const key = await this.getPublicKey(address);
-
           if (key.branch === 1) {
+            if (options.change)
+              throw new Error('Transaction should only have one change output.');
+
             const path =
               'm/' +                                  // master
               '44\'/' +                               // purpose
@@ -959,7 +965,39 @@ class WalletService {
               version: address.version,
               path
             });
-            break;
+          }
+
+          // The user needs to verify the raw ASCII name for every covenant.
+          // Because some covenants contain a name's hash but not the preimage,
+          // we must pass the device the name as an extra virtual covenant item.
+          // The device will confirm the nameHash before asking the user to verify.
+          switch (output.covenant.type) {
+            case types.NONE:
+            case types.OPEN:
+            case types.BID:
+            case types.FINALIZE:
+              break;
+
+            case types.REVEAL:
+            case types.REDEEM:
+            case types.REGISTER:
+            case types.UPDATE:
+            case types.RENEW:
+            case types.TRANSFER:
+            case types.REVOKE: {
+              if (options.covenants == null)
+                options.covenants = [];
+
+              // We could try to just pass the name in from the functions that
+              // call _ledgerProxy(), but that wouldn't work for send____All()
+              const hash = output.covenant.items[0];
+              const name = await this.nodeService.getNameByHash(hash);
+
+              options.covenants.push(new LedgerCovenant({index, name}));
+              break;
+            }
+            default:
+              throw new Error('Unrecognized covenant type.');
           }
         }
 
