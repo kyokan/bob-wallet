@@ -43,7 +43,7 @@ const randomAddrs = {
   [NETWORKS.SIMNET]: 'ss1qfrfg6pg7emnx5m53zf4fe24vdtt8thljhyekhj',
 };
 
-const {LedgerHSD, LedgerChange, LedgerCovenant} = hsdLedger;
+const {LedgerHSD, LedgerChange, LedgerCovenant, LedgerInput} = hsdLedger;
 const {Device} = hsdLedger.USB;
 const ONE_MINUTE = 60000;
 
@@ -583,20 +583,58 @@ class WalletService {
     output1.address = new Address().fromString(fundingAddr);
     output1.value = price * 1e6;
 
-    const mtx = new MTX();
+    let mtx = new MTX();
     mtx.addCoin(coin);
     mtx.outputs.push(output0);
     mtx.outputs.push(output1);
 
     // Sign
-    const rings = await wallet.deriveInputs(mtx);
-    assert(rings.length === 1);
-    const signed = await mtx.sign(
-      rings,
-      Script.hashType.SINGLEREVERSE | Script.hashType.ANYONECANPAY,
+    mtx = await this._ledgerProxy(
+      // With ledger: this function is a little funny because it's
+      // stubbing the wallet.create____() - type functions and must return
+      // an MTX to the guts of _ledgerProxy() for verification & signing.
+      async () => {
+        const key = await wallet.getKey(coin.address);
+        const publicKey = key.publicKey;
+        const path =
+          'm/' +                                    // master
+          '44\'/' +                                 // purpose
+          `${this.network.keyPrefix.coinType}'/` +  // coin type
+          `${key.account}'/` +                      // should be 0 ("default")
+          `${key.branch}/` +                        // should be 1 (change)
+          `${key.index}`;
+
+        const options = {
+          inputs: [
+            new LedgerInput({
+              publicKey,
+              path,
+              coin,
+              input: mtx.inputs[0],
+              index: 0,
+              type: Script.hashType.SINGLEREVERSE | Script.hashType.ANYONECANPAY
+            })
+          ]
+        };
+
+        return [mtx.getJSON(this.network), options];
+      },
+      // No ledger
+      async () => {
+        const rings = await wallet.deriveInputs(mtx);
+        assert(rings.length === 1);
+        const signed = await mtx.sign(
+          rings,
+          Script.hashType.SINGLEREVERSE | Script.hashType.ANYONECANPAY,
+        );
+        assert(signed === 1);
+        assert(mtx.verify());
+        return mtx;
+      },
+      true,    // shouldConfirmLedger (ledger only)
+      false    // broadcast (ledger only)
     );
-    assert(signed === 1);
-    assert(mtx.verify());
+
     return mtx.encode().toString('hex');
   };
 
@@ -929,17 +967,26 @@ class WalletService {
     this.didSelectWallet = true;
   }
 
-  _ledgerProxy = async (onLedger, onNonLedger, shouldConfirmLedger = true) => {
+  _ledgerProxy = async (onLedger, onNonLedger, shouldConfirmLedger = true, broadcast = true) => {
     const info = await this.getWalletInfo();
     if (info.watchOnly) {
-      const res = await onLedger();
+      // I feel terrible about this, but...
+      let res, extra;
+      const oneOrMoreReturnValues = await onLedger();
+      if (!Array.isArray(oneOrMoreReturnValues)) {
+        res = oneOrMoreReturnValues;
+      } else {
+        [res, extra] = oneOrMoreReturnValues;
+      }
+
       if (shouldConfirmLedger) {
         const mtx = MTX.fromJSON(res);
-
         // Prepare extra TX data for Ledger.
         // Unfortunately the MTX returned from the wallet.create____()
         // functions does not include what we need, so we have to compute it.
         const options = {};
+        if (extra)
+          Object.assign(options, extra);
         for (let index = 0; index < res.outputs.length; index++) {
           const output = res.outputs[index];
 
@@ -955,7 +1002,7 @@ class WalletService {
             const path =
               'm/' +                                  // master
               '44\'/' +                               // purpose
-              `${this.network.keyPrefix.coinType}\'/` +    // coin type
+              `${this.network.keyPrefix.coinType}'/` +    // coin type
               `${key.account}'/` +                    // should be 0 ("default")
               `${key.branch}/` +                      // should be 1 (change)
               `${key.index}`;
@@ -1001,8 +1048,8 @@ class WalletService {
           }
         }
 
-        const mainWindow = getMainWindow()
-        await new Promise((resolve, reject) => {
+        const mainWindow = getMainWindow();
+        return new Promise((resolve, reject) => {
           const resHandler = async () => {
             let device;
             try {
@@ -1014,7 +1061,10 @@ class WalletService {
               const ledger = new LedgerHSD({device, network: this.networkName});
               const retMtx = await ledger.signTransaction(mtx, options);
               retMtx.check();
-              await this.nodeService.broadcastRawTx(retMtx.toHex());
+
+              if (broadcast)
+                await this.nodeService.broadcastRawTx(retMtx.toHex());
+
               mainWindow.send('LEDGER/CONNECT_OK');
               ipc.removeListener('LEDGER/CONNECT_RES', resHandler);
               ipc.removeListener('LEDGER/CONNECT_CANCEL', cancelHandler);

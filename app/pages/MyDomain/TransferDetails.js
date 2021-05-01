@@ -135,11 +135,9 @@ class TransferDetails extends Component {
               <button className="extension_cta_button" onClick={this.finalizeTransfer}>
                 Finalize Transfer
               </button>
-              {this.props.wid !== 'Ledger' && (
-                <button className="extension_cta_button" onClick={this.finalizeWithPayment}>
-                  Finalize With Payment
-                </button>
-              )}
+              <button className="extension_cta_button" onClick={this.finalizeWithPayment}>
+                Finalize With Payment
+              </button>
             </p>
             {this.state.isShowingFinalizeWithPayment && (
               <FinalizeWithPaymentModal
