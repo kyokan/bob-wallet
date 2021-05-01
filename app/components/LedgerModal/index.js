@@ -31,6 +31,7 @@ export class LedgerModal extends Component {
       isVisible: false,
       txId: null,
       isLoading: false,
+      errorMessage: '',
     }));
   }
 
@@ -61,6 +62,7 @@ export class LedgerModal extends Component {
     this.setState({
       isVisible: false,
       txId: null,
+      errorMessage: '',
     });
   };
 
