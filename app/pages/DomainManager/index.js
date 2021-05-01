@@ -295,16 +295,14 @@ class DomainManager extends Component {
     return (
       <div className="domain-manager">
         <div className="domain-manager__buttons">
-          {this.props.wid !== 'Ledger' && (
-            <button
-              className="extension_cta_button domain-manager__export-btn"
-              onClick={() => this.setState({
-                isShowingNameClaimForPayment: true,
-              })}
-            >
-              Claim Name For Payment
-            </button>
-          )}
+          <button
+            className="extension_cta_button domain-manager__export-btn"
+            onClick={() => this.setState({
+              isShowingNameClaimForPayment: true,
+            })}
+          >
+            Claim Name For Payment
+          </button>
         </div>
         <div className="domain-manager__empty-text">
           You do not own any domains.

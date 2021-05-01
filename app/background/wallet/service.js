@@ -685,8 +685,41 @@ class WalletService {
     // input 0: TRANSFER UTXO --> output 0: FINALIZE covenant
     // input 1: Bob's funds   --- output 1: change to Bob
     //                 (null) --- output 2: payment to Alice
-    const tx = await wallet.sendMTX(mtx);
-    assert(tx.verify(mtx.view));
+    await this._ledgerProxy(
+      // With ledger: even though we are signing with SIGHASH_ALL,
+      // we still need to provide Ledger with an array of input
+      // data, or else it will try to sign all inputs.
+      async () => {
+        const coin = mtx.view.getCoinFor(mtx.inputs[1]);
+        const key = await wallet.getKey(coin.address);
+        const publicKey = key.publicKey;
+        const path =
+          'm/' +                                    // master
+          '44\'/' +                                 // purpose
+          `${this.network.keyPrefix.coinType}'/` +  // coin type
+          `${key.account}'/` +                      // should be 0 ("default")
+          `${key.branch}/` +                        // should be 1 (change)
+          `${key.index}`;
+
+        const options = {
+          inputs: [
+            new LedgerInput({
+              publicKey,
+              path,
+              coin,
+              input: mtx.inputs[1],
+              index: 1
+            })
+          ]
+        };
+
+        return [mtx.getJSON(this.network), options];
+      },
+      // No ledger.
+      async () => {
+        await wallet.sendMTX(mtx);
+      }
+    );
   };
 
   /**
@@ -995,6 +1028,10 @@ class WalletService {
           // and the app will verify the change address belongs to the wallet.
           const address = Address.fromString(output.address, this.network);
           const key = await this.getPublicKey(address);
+
+          if (!key)
+            continue;
+
           if (key.branch === 1) {
             if (options.change)
               throw new Error('Transaction should only have one change output.');
