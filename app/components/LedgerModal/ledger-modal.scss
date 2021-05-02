@@ -2,27 +2,27 @@
 
 .ledger-modal {
   &__wrapper {
-    width: 20rem;
-    padding: 2rem;
+    width: 14rem;
+    padding: 0.5rem;
   }
 
   &__cta-wrapper {
-    display: flex;
     margin-top: 1rem;
+    text-align: center;
 
     button {
       flex: 1 1 50%;
+      min-width: 10rem;
+      margin: 0.2rem
     }
   }
 
   &__connect {
     @extend %btn-primary;
-    margin-left: 0.25rem;
   }
 
   &__cancel {
     @extend %btn-secondary;
-    margin-right: 0.25rem;
   }
 
   .connect__status-pill {

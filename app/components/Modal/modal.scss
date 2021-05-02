@@ -20,3 +20,26 @@
     z-index: 200;
   }
 }
+
+.sidemodal {
+  &__overlay {
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    background-color: rgba($black, .1);
+    z-index: 100;
+    overflow: auto;
+  }
+
+  &__wrapper {
+    position: fixed;
+    bottom: 1rem;
+    left: 1rem;
+    background-color: $white;
+    border-radius: .5rem;
+    box-shadow: 0 2px 8px 4px rgba($black, .2);
+    z-index: 200;
+  }
+}
