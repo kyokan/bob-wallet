@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import Modal from '../Modal';
+import SideModal from '../Modal/SideModal';
 import * as logger from '../../utils/logClient';
 import './ledger-modal.scss';
 import DefaultConnectLedgerSteps from '../ConnectLedgerStep/defaultSteps';
@@ -72,7 +72,7 @@ export class LedgerModal extends Component {
     }
 
     return (
-      <Modal className="ledger-modal__wrapper" onClose={this.cancelLedger}>
+      <SideModal className="ledger-modal__wrapper" onClose={this.cancelLedger}>
         <div className="ledger-modal">
           {this.renderError()}
           <DefaultConnectLedgerSteps completedSteps={[false, false, false]} />
@@ -85,21 +85,21 @@ export class LedgerModal extends Component {
           </div>
           <div className="ledger-modal__cta-wrapper">
             <button
+              className="ledger-modal__connect" onClick={this.onClickConnect}
+              disabled={this.state.isLoading}
+            >
+              {this.state.isLoading ? 'Connecting...' : 'Connect'}
+            </button>
+            <button
               className="ledger-modal__cancel"
               onClick={this.cancelLedger}
               disabled={this.state.isLoading}
             >
               Cancel
             </button>
-            <button
-              className="ledger-modal__connect" onClick={this.onClickConnect}
-              disabled={this.state.isLoading}
-            >
-              {this.state.isLoading ? 'Connecting...' : 'Connect'}
-            </button>
           </div>
         </div>
-      </Modal>
+      </SideModal>
     );
   }
 
