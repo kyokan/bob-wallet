@@ -202,7 +202,6 @@ class WalletService {
       const mnemonic = new Mnemonic({bits: 256});
       const options = {
         passphrase: passphraseOrXPub,
-        witness: false,
         watchOnly: false,
         mnemonic: mnemonic.getPhrase().trim(),
       };
