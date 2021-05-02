@@ -30,6 +30,7 @@ class ConnectLedger extends React.Component {
   state = {
     isLoading: false,
     isCreating: false,
+    errorMessage: null,
   };
 
   allStepsComplete() {
@@ -40,6 +41,7 @@ class ConnectLedger extends React.Component {
   connect = async () => {
     this.setState({
       isLoading: true,
+      errorMessage: null,
     });
 
     let xpub;
@@ -51,6 +53,7 @@ class ConnectLedger extends React.Component {
       this.setState({
         isLoading: false,
         isCreating: false,
+        errorMessage: "Error connecting to device.",
       });
       return;
     }
@@ -102,8 +105,23 @@ class ConnectLedger extends React.Component {
             {this.state.isLoading ? (this.state.isCreating ? 'Creating wallet...' : 'Connecting...') : 'Connect to Ledger'}
           </button>
         </div>
+        <div className="create-password__error-container">
+          {this.renderError()}
+        </div>
       </div>
     );
+  }
+
+  renderError() {
+    if (this.state.errorMessage) {
+      return (
+        <div className="create-password__error">
+          {this.state.errorMessage}
+        </div>
+      );
+    }
+
+    return null;
   }
 }
 
