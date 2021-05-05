@@ -11,6 +11,7 @@ const ipc = require('electron').ipcRenderer;
 @connect(
   (state) => ({
     network: state.node.network,
+    isLocked: state.wallet.isLocked,
   }),
 )
 export class LedgerModal extends Component {
@@ -22,6 +23,21 @@ export class LedgerModal extends Component {
       isDone: false,
       isLoading: false,
     };
+  }
+
+  static getDerivedStateFromProps(props, state) {
+    if (props.isLocked) {
+      ipc.send('LEDGER/CONNECT_CANCEL');
+
+      return {
+        ...state,
+        isVisible: false,
+        txId: null,
+        errorMessage: '',
+      }
+    }
+
+    return state;
   }
 
   componentDidMount() {
