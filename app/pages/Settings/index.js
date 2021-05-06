@@ -30,9 +30,14 @@ import BackupListingModal from "./BackupListingModal";
 import fs from "fs";
 const {dialog} = require('electron').remote;
 import {clientStub as sClientStub} from "../../background/shakedex/client";
+import ChangeDirectoryModal from "./ChangeDirectoryModal";
+import dbClient from "../../utils/dbClient";
+import {clientStub} from "../../background/node/client";
+import APIKeyModal from "./APIKeyModal";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 const shakedex = sClientStub(() => require('electron').ipcRenderer);
+const nodeClient = clientStub(() => require('electron').ipcRenderer);
 
 @withRouter
 @connect(
@@ -91,9 +96,15 @@ export default class Settings extends Component {
     }
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     analytics.screenView('Settings');
     this.props.fetchWalletAPIKey();
+    const directory = await nodeClient.getDir();
+    const userDir = await dbClient.getUserDir();
+    this.setState({
+      directory,
+      userDir,
+    });
   }
 
   onDownload = async () => {
@@ -429,6 +440,16 @@ export default class Settings extends Component {
                 isRunning || isTestingCustomRPC || isChangingNodeStatus,
               )}
               {this.renderSection(
+                'HSD Home Directory',
+                <div>
+                  <div><small>User Directory: {this.state.userDir}</small></div>
+                  <div><small>HSD Directory: {this.state.directory}</small></div>
+                </div>,
+                'Change Directory',
+                () => history.push("/settings/connection/changeDirectory"),
+                null,
+              )}
+              {this.renderSection(
                 'Network type',
                 (
                   isCustomRPCConnected
@@ -483,39 +504,22 @@ export default class Settings extends Component {
           <Route path="/settings/wallet/reveal-seed" component={RevealSeedModal} />
           <Route path="/settings/wallet/zap-txs" component={ZapTXsModal} />
           <Route path="/settings/connection/configure" component={CustomRPCConfigModal} />
+          <Route path="/settings/connection/changeDirectory" component={ChangeDirectoryModal} />
           <Route path="/settings/wallet/view-api-key">
-            <MiniModal
+            <APIKeyModal
               closeRoute="/settings/wallet"
               title="Wallet API Key"
-              centered
-            >
-              <input
-                type="text"
-                className="settings__copy-api-key"
-                value={this.props.walletApiKey}
-                readOnly
-              />
-              <button className="settings__btn" onClick={() => copy(this.props.walletApiKey)}>
-                Copy
-              </button>
-            </MiniModal>
+              apiKey={this.props.walletApiKey}
+              updateAPIKey={walletClient.setAPIKey}
+            />
           </Route>
           <Route path="/settings/connection/view-api-key">
-            <MiniModal
+            <APIKeyModal
               closeRoute="/settings/connection"
-              title="API Key"
-              centered
-            >
-              <input
-                type="text"
-                className="settings__copy-api-key"
-                value={this.props.apiKey}
-                readOnly
-              />
-              <button className="settings__btn" onClick={() => copy(this.props.apiKey)}>
-                Copy
-              </button>
-            </MiniModal>
+              title="Node API Key"
+              apiKey={this.props.apiKey}
+              updateAPIKey={nodeClient.setAPIKey}
+            />
           </Route>
           <Route path="/settings/wallet/deep-clean-and-rescan">
             <DeepCleanAndRescanModal />

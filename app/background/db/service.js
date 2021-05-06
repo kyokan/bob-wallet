@@ -51,6 +51,10 @@ export async function iteratePrefix(prefix, cb) {
   await iter.each(cb);
 }
 
+export async function getUserDir() {
+  return app.getPath('userData');
+}
+
 function ensureDB() {
   if (!db) {
     throw new Error('db not open');
@@ -65,6 +69,7 @@ const methods = {
   get,
   del,
   iteratePrefix,
+  getUserDir,
 };
 
 export async function start(server) {

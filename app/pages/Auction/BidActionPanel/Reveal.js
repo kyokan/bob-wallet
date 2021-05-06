@@ -32,21 +32,21 @@ class Reveal extends Component {
   getTimeRemaining = () => {
     const {info} = this.props.domain || {};
     const {stats} = info || {};
-    const {revealPeriodEnd} = stats || {};
+    const {revealPeriodEnd, hoursUntilClose} = stats || {};
 
     if (!revealPeriodEnd) {
       return 'Revealing now!';
     }
 
-    if (revealPeriodEnd < 24) {
-      const hours = Math.floor(revealPeriodEnd % 24);
-      const mins = Math.floor((revealPeriodEnd % 1) * 60);
+    if (hoursUntilClose < 24) {
+      const hours = Math.floor(hoursUntilClose);
+      const mins = Math.floor((hoursUntilClose - hours) * 60);
       return `~${hours}h ${mins}m`;
     }
 
-    const days = Math.floor(revealPeriodEnd / 24);
-    const hours = Math.floor(revealPeriodEnd % 24);
-    const mins = Math.floor((revealPeriodEnd % 1) * 60);
+    const days = Math.floor(hoursUntilClose / 24);
+    const hours = Math.floor(hoursUntilClose - days*24);
+    const mins = Math.floor((hoursUntilClose - days*24 - hours) * 60);
     return `~${days}d ${hours}h ${mins}m`;
   };
 
@@ -67,7 +67,7 @@ class Reveal extends Component {
   render() {
     const {domain, hasRevealableBid} = this.props;
     const {bids = [], info} = domain || {};
-    const {highest = 0} = info || {};
+    const highest = Math.max(bids.map(bid => bid.value));
 
     return (
       <AuctionPanel>
@@ -82,8 +82,8 @@ class Reveal extends Component {
           <AuctionPanelHeaderRow label="Total Bids:">
             {bids.length}
           </AuctionPanelHeaderRow>
-          <AuctionPanelHeaderRow label="Highest Mask:">
-            {highest}
+          <AuctionPanelHeaderRow label="Highest Lockup:">
+            {displayBalance(highest, true)}
           </AuctionPanelHeaderRow>
         </AuctionPanelHeader>
         <AuctionPanelFooter>
@@ -116,7 +116,7 @@ class Reveal extends Component {
           <AuctionPanelHeaderRow label="Total Bids:">
             {totalBids < 0 ? '?' : displayBalance(totalBids, true)}
           </AuctionPanelHeaderRow>
-          <AuctionPanelHeaderRow label="Total Masks:">
+          <AuctionPanelHeaderRow label="Total Lockups:">
             {displayBalance(totalMasks, true)}
           </AuctionPanelHeaderRow>
           {this.renderWarning()}
@@ -172,7 +172,10 @@ class Reveal extends Component {
     return (
       <div className="domains__bid-now__info__warning">
         You will lose {displayBalance(totalMasks, true)} if you don't reveal before{' '}
-        <Blocktime height={this.props.domain.info.stats.revealPeriodEnd} format="ll" />
+        {this.props.domain.info.stats.revealPeriodEnd ?
+          <Blocktime height={this.props.domain.info.stats.revealPeriodEnd} format="ll" />
+          : 'the Reveal Period ends!'
+        }
       </div>
     );
   }

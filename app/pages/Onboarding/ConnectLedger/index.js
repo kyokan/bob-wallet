@@ -30,6 +30,7 @@ class ConnectLedger extends React.Component {
   state = {
     isLoading: false,
     isCreating: false,
+    errorMessage: null,
   };
 
   allStepsComplete() {
@@ -40,6 +41,7 @@ class ConnectLedger extends React.Component {
   connect = async () => {
     this.setState({
       isLoading: true,
+      errorMessage: null,
     });
 
     let xpub;
@@ -51,6 +53,7 @@ class ConnectLedger extends React.Component {
       this.setState({
         isLoading: false,
         isCreating: false,
+        errorMessage: "Error connecting to device.",
       });
       return;
     }
@@ -62,8 +65,9 @@ class ConnectLedger extends React.Component {
     // set a small timeout to clearly show that this is
     // a two-phase process.
     setTimeout(async () => {
-      await walletClient.createNewWallet(xpub, true);
-      await this.props.completeInitialization('');
+      await walletClient.createNewWallet('Ledger', xpub, true);
+      await this.props.completeInitialization('Ledger');
+      this.props.history.push('/account');
     }, 2000);
   };
 
@@ -92,9 +96,6 @@ class ConnectLedger extends React.Component {
             'create-password__footer__removed-padding-top',
           ])}
         >
-          <div className="connect__support-cta">
-            Need help? Visit support page
-          </div>
           <button
             type="button"
             className="extension_cta_button terms_cta"
@@ -104,8 +105,23 @@ class ConnectLedger extends React.Component {
             {this.state.isLoading ? (this.state.isCreating ? 'Creating wallet...' : 'Connecting...') : 'Connect to Ledger'}
           </button>
         </div>
+        <div className="create-password__error-container">
+          {this.renderError()}
+        </div>
       </div>
     );
+  }
+
+  renderError() {
+    if (this.state.errorMessage) {
+      return (
+        <div className="create-password__error">
+          {this.state.errorMessage}
+        </div>
+      );
+    }
+
+    return null;
   }
 }
 

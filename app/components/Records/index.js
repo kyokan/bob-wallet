@@ -17,6 +17,7 @@ import { showSuccess } from '../../ducks/notifications';
 import { clientStub as aClientStub } from '../../background/analytics/client';
 import './records.scss';
 import {clearDeeplinkParams} from "../../ducks/app";
+import {deserializeRecord} from '../../utils/recordHelpers'
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -61,17 +62,25 @@ export class Records extends Component {
       }
     }
 
-    if (props.deeplinkParams.txt && props.domain && props.domain.isOwner) {
+    if (!!Object.keys(props.deeplinkParams).length && props.domain && props.domain.isOwner) {
       props.clearDeeplinkParams();
 
       if (props.resource) {
         updatedResource = props.resource;
       }
 
-      updatedResource.records.push({
-        type: 'TXT',
-        txt: [props.deeplinkParams.txt],
-      });
+      const {raw, ...params} = props.deeplinkParams
+
+      if (raw) {
+        const { records } = Resource.decode(new Buffer(raw, 'hex')).toJSON();
+        updatedResource.records.push(...records);
+      }
+
+      Object.entries(params)
+        .forEach(([type, value]) => {
+          const record = deserializeRecord({type: type.toUpperCase(), value});
+          updatedResource.records.push(record)
+        })
 
       return {
         ...state,

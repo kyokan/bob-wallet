@@ -20,7 +20,13 @@ import {encrypt, decrypt} from "../../utils/encrypt";
 import path from "path";
 import {app} from "electron";
 import bdb from "bdb";
-import {auctionSchema, finalizeLockScheme, fulfillmentSchema, nameLockSchema, paramSchema} from "../../utils/shakedex";
+import {
+  auctionSchema,
+  fulfillmentSchema,
+  getFinalizeFromTransferTx,
+  nameLockSchema,
+  paramSchema
+} from "../../utils/shakedex";
 import {Client} from "bcurl";
 
 let db;
@@ -103,6 +109,7 @@ export async function fulfillSwap(auction, bid, passphrase) {
     publicKey: auction.publicKey,
     paymentAddr: auction.paymentAddr,
     price: bid.price,
+    fee: bid.fee,
     lockTime: Math.floor(bid.lockTime / 1000),
     signature: bid.signature,
   });
@@ -181,10 +188,20 @@ export async function transferCancel(nameLock, password) {
   const existing = await get(
     `${listingPrefix()}/${nameLock.name}/${nameLock.transferTxHash}`,
   );
-  const {finalizeLock} = existing;
+  const {
+    tx: finalizeTx,
+    coin: finalizeCoin,
+  } = await getFinalizeFromTransferTx(
+    nameLock.transferTxHash,
+    nameLock.name,
+    nodeService,
+  );
+
   const cancelNameLock = await transferNameLockCancel(context, {
-    ...finalizeLock,
-    publicKey: Buffer.from(finalizeLock.publicKey, 'hex'),
+    ...nameLock,
+    finalizeTxHash: finalizeTx.hash,
+    finalizeOutputIdx: finalizeCoin.index,
+    publicKey: Buffer.from(nameLock.publicKey, 'hex'),
     privateKey: Buffer.from(decrypt(nameLock.encryptedPrivateKey, password), 'hex'),
   });
   const {privateKey, ...cancelLockJSON} = cancelNameLock.toJSON(context);
@@ -234,11 +251,10 @@ export async function finalizeCancel(nameLock, password) {
 
 export async function restoreOneListing(listing) {
   const {valid: auctionValid} = jsonSchemaValidate(listing.auction, auctionSchema);
-  const {valid: finalizeValid} = jsonSchemaValidate(listing.finalizeLock, finalizeLockScheme);
   const {valid: nameLockValid} = jsonSchemaValidate(listing.nameLock || {}, nameLockSchema);
   const {valid: paramsValid} = jsonSchemaValidate(listing.params, paramSchema);
 
-  if (!auctionValid || !finalizeValid || !nameLockValid || !paramsValid) {
+  if (!auctionValid || !nameLockValid || !paramsValid) {
     throw new Error('Invalid backup file schema');
   }
   const {nameLock} = listing;
@@ -311,12 +327,12 @@ export async function getListings() {
   return listings;
 }
 
-export async function launchAuction(nameLock, passphrase, paramsOverride) {
+export async function launchAuction(nameLock, passphrase, paramsOverride, persist=true) {
   const context = getContext();
   const key = `${listingPrefix()}/${nameLock.name}/${nameLock.transferTxHash}`;
   const listing = await get(key);
 
-  const {startPrice, endPrice, durationDays} = paramsOverride || listing.params;
+  const {startPrice, endPrice, durationDays, feeRate, feeAddr} = paramsOverride || listing.params;
 
   if (paramsOverride) {
     listing.params = paramsOverride;
@@ -337,6 +353,17 @@ export async function launchAuction(nameLock, passphrase, paramsOverride) {
       break;
   }
 
+  const {
+    tx: finalizeTx,
+    coin: finalizeCoin,
+  } = await getFinalizeFromTransferTx(
+    listing.nameLock.transferTxHash,
+    listing.nameLock.name,
+    nodeService,
+  );
+
+  if (!finalizeCoin) throw new Error('cannot find finalize coin');
+
   const auctionFactory = new AuctionFactory({
     name: listing.nameLock.name,
     startTime: Date.now(),
@@ -345,21 +372,39 @@ export async function launchAuction(nameLock, passphrase, paramsOverride) {
     endPrice: endPrice,
     reductionTimeMS,
     reductionStrategy: linearReductionStrategy,
+    feeRate: feeRate || 0,
+    feeAddr,
   });
+
   const auction = await auctionFactory.createAuction(
     context,
     new NameLockFinalize({
-      ...listing.finalizeLock,
-      privateKey: decrypt(listing.finalizeLock.encryptedPrivateKey, passphrase)
+      ...listing.nameLock,
+      finalizeTxHash: finalizeTx.hash,
+      finalizeOutputIdx: finalizeCoin.index,
+      privateKey: decrypt(listing.nameLock.encryptedPrivateKey, passphrase)
     }),
   );
   const auctionJSON = auction.toJSON(context);
-  listing.auction = auctionJSON;
-  await put(
-    key,
-    listing,
-  );
+  if (persist) {
+    listing.auction = auctionJSON;
+    await put(
+      key,
+      listing,
+    );
+  }
   return auctionJSON;
+}
+
+export async function getFeeInfo() {
+  const resp = await fetch(`https://api.shakedex.com/api/v1/fee_info`);
+  if (resp.status === 404) {
+    return {
+      rate: 0,
+      address: null
+    };
+  }
+  return resp.json();
 }
 
 async function downloadProofs(auctionJSON) {
@@ -390,14 +435,23 @@ async function downloadProofs(auctionJSON) {
 }
 
 function getContext(passphrase = null) {
-  const walletId = walletService.name;
-  const {apiKey, networkName} = nodeService;
+  const {
+    name: walletId,
+    walletApiKey,
+  } = walletService;
+  const {
+    apiKey: nodeApiKey,
+    networkName,
+    client,
+  } = nodeService;
 
   return new Context(
     networkName,
     walletId,
-    apiKey,
+    walletApiKey,
     () => Promise.resolve(passphrase),
+    client.host,
+    nodeApiKey,
   );
 }
 
@@ -417,6 +471,7 @@ const methods = {
   restoreOneFill,
   getExchangeAuctions,
   listAuction,
+  getFeeInfo,
 };
 
 export async function start(server) {

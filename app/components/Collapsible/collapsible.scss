@@ -36,7 +36,8 @@
     opacity: 1;
     // padding: 1rem;
     position: relative;
-    max-height: 50rem;
+    max-height: 35rem;
+    overflow-y: auto;
     height: auto;
     transition: 0.5s ease-out;
 

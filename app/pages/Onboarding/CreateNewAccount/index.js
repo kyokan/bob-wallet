@@ -46,7 +46,7 @@ class CreateNewAccount extends Component {
             currentStep={0}
             totalSteps={5}
             onAccept={() => this.setState({currentStep: SET_NAME})}
-            onBack={() => this.props.history.push('/existing-options')}
+            onBack={() => this.props.history.push('/funding-options')}
           />
         );
       case SET_NAME:

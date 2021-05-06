@@ -138,11 +138,19 @@
   }
 
   &__input-title {
+    @extend %row-nowrap;
     cursor: default;
     font-size: .8125rem;
     font-weight: bold;
-    margin-left: .25rem;
-    margin-bottom: .25rem;
+    margin: 0 .25rem .25rem;
+    width: 100%;
+
+    a {
+      flex: 1 1 auto;
+      text-align: right;
+      color: $azure-blue;
+      cursor: pointer;
+    }
   }
 
   &__input {

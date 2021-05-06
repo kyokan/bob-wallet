@@ -6,20 +6,24 @@ import rimraf from 'rimraf';
 import crypto from 'crypto';
 const Validator = require('bval');
 import { ConnectionTypes, getConnection } from '../connections/service';
-import { dispatchToMainWindow } from '../../mainWindow';
+import { dispatchToMainWindow, getMainWindow } from '../../mainWindow';
 import { NETWORKS } from '../../constants/networks';
 import { displayBalance, toBaseUnits, toDisplayUnits } from '../../utils/balances';
 import { service as nodeService } from '../node/service';
 import {
+  SET_API_KEY,
   SET_BALANCE,
   SET_WALLETS,
   START_SYNC_WALLET,
   STOP_SYNC_WALLET,
-  SYNC_WALLET_PROGRESS
+  SYNC_WALLET_PROGRESS,
 } from '../../ducks/walletReducer';
 import {SET_FEE_INFO, SET_NODE_INFO} from "../../ducks/nodeReducer";
 import createRegisterAll from "./create-register-all";
 import {finalizeMany, transferMany} from "./bulk-transfer";
+import {get, put} from "../db/service";
+import hsdLedger from 'hsd-ledger';
+
 const WalletNode = require('hsd/lib/wallet/node');
 const TX = require('hsd/lib/primitives/tx');
 const {Output, MTX, Address, Coin} = require('hsd/lib/primitives');
@@ -29,6 +33,8 @@ const MasterKey = require('hsd/lib/wallet/masterkey');
 const Mnemonic = require('hsd/lib/hd/mnemonic');
 const Covenant = require('hsd/lib/primitives/covenant');
 const common = require('hsd/lib/wallet/common');
+const ipc = require('electron').ipcMain;
+
 
 const randomAddrs = {
   [NETWORKS.TESTNET]: 'ts1qfcljt5ylsa9rcyvppvl8k8gjnpeh079drfrmzq',
@@ -37,7 +43,12 @@ const randomAddrs = {
   [NETWORKS.SIMNET]: 'ss1qfrfg6pg7emnx5m53zf4fe24vdtt8thljhyekhj',
 };
 
+const {LedgerHSD, LedgerChange, LedgerCovenant, LedgerInput} = hsdLedger;
+const {Device} = hsdLedger.USB;
+const ONE_MINUTE = 60000;
+
 const HSD_DATA_DIR = path.join(app.getPath('userData'), 'hsd_data');
+const WALLET_API_KEY = 'walletApiKey';
 
 class WalletService {
   constructor() {
@@ -54,6 +65,24 @@ class WalletService {
     this.didSelectWallet = false;
     this.name = name;
   };
+
+  async getAPIKey() {
+    const apiKey = await get(WALLET_API_KEY);
+
+    if (apiKey) return apiKey;
+
+    const newKey = crypto.randomBytes(20).toString('hex');
+    await put(WALLET_API_KEY, newKey);
+    return newKey;
+  }
+
+  async setAPIKey(apiKey) {
+    await put(WALLET_API_KEY, apiKey);
+    dispatchToMainWindow({
+      type: SET_API_KEY,
+      payload: apiKey,
+    });
+  }
 
   reset = async () => {
     await this._ensureClient();
@@ -95,11 +124,6 @@ class WalletService {
     return wallet.hasPath(new Address(addressHash, this.network));
   };
 
-  getAPIKey = async () => {
-    await this._ensureClient();
-    return this.walletApiKey;
-  };
-
   getWalletInfo = async () => {
     await this._ensureClient();
     return this.client.getInfo(this.name);
@@ -139,6 +163,12 @@ class WalletService {
     return wallet.getNames();
   };
 
+  getPublicKey = async (address) => {
+    await this._ensureClient();
+    const wallet = await this.node.wdb.get(this.name);
+    return wallet.getKey(address);
+  };
+
   /**
    * Remove wallet by wid
    * @param wid
@@ -162,24 +192,24 @@ class WalletService {
     this.setWallet(name);
     this.didSelectWallet = false;
 
+    let res;
     if (isLedger) {
-      return this.client.createWallet(name, {
+      res = this.client.createWallet(name, {
         watchOnly: true,
         accountKey: passphraseOrXPub,
       });
+    } else {
+      const mnemonic = new Mnemonic({bits: 256});
+      const options = {
+        passphrase: passphraseOrXPub,
+        watchOnly: false,
+        mnemonic: mnemonic.getPhrase().trim(),
+      };
+
+      res = await this.client.createWallet(this.name, options);
     }
 
-    const mnemonic = new Mnemonic({bits: 256});
-    const options = {
-      passphrase: passphraseOrXPub,
-      witness: false,
-      watchOnly: false,
-      mnemonic: mnemonic.getPhrase().trim(),
-    };
-
-    const res = await this.client.createWallet(this.name, options);
     const wids = await this.listWallets();
-
     dispatchToMainWindow({
       type: SET_WALLETS,
       payload: uniq([...wids, name]),
@@ -468,6 +498,7 @@ class WalletService {
   lock = () => this._ledgerProxy(
     () => null,
     () => this.client.lock(this.name),
+    false
   );
 
   unlock = (name, passphrase) => {
@@ -475,6 +506,7 @@ class WalletService {
     return this._ledgerProxy(
       () => null,
       () => this.client.unlock(this.name, passphrase),
+      false
     );
   };
 
@@ -489,6 +521,7 @@ class WalletService {
         return true;
       }
     },
+    false,
   );
 
   getNonce = async (options) => {
@@ -549,20 +582,58 @@ class WalletService {
     output1.address = new Address().fromString(fundingAddr);
     output1.value = price * 1e6;
 
-    const mtx = new MTX();
+    let mtx = new MTX();
     mtx.addCoin(coin);
     mtx.outputs.push(output0);
     mtx.outputs.push(output1);
 
     // Sign
-    const rings = await wallet.deriveInputs(mtx);
-    assert(rings.length === 1);
-    const signed = await mtx.sign(
-      rings,
-      Script.hashType.SINGLEREVERSE | Script.hashType.ANYONECANPAY,
+    mtx = await this._ledgerProxy(
+      // With ledger: this function is a little funny because it's
+      // stubbing the wallet.create____() - type functions and must return
+      // an MTX to the guts of _ledgerProxy() for verification & signing.
+      async () => {
+        const key = await wallet.getKey(coin.address);
+        const publicKey = key.publicKey;
+        const path =
+          'm/' +                                    // master
+          '44\'/' +                                 // purpose
+          `${this.network.keyPrefix.coinType}'/` +  // coin type
+          `${key.account}'/` +                      // should be 0 ("default")
+          `${key.branch}/` +                        // should be 1 (change)
+          `${key.index}`;
+
+        const options = {
+          inputs: [
+            new LedgerInput({
+              publicKey,
+              path,
+              coin,
+              input: mtx.inputs[0],
+              index: 0,
+              type: Script.hashType.SINGLEREVERSE | Script.hashType.ANYONECANPAY
+            })
+          ]
+        };
+
+        return [mtx.getJSON(this.network), options];
+      },
+      // No ledger
+      async () => {
+        const rings = await wallet.deriveInputs(mtx);
+        assert(rings.length === 1);
+        const signed = await mtx.sign(
+          rings,
+          Script.hashType.SINGLEREVERSE | Script.hashType.ANYONECANPAY,
+        );
+        assert(signed === 1);
+        assert(mtx.verify());
+        return mtx;
+      },
+      true,    // shouldConfirmLedger (ledger only)
+      false    // broadcast (ledger only)
     );
-    assert(signed === 1);
-    assert(mtx.verify());
+
     return mtx.encode().toString('hex');
   };
 
@@ -613,15 +684,48 @@ class WalletService {
     // input 0: TRANSFER UTXO --> output 0: FINALIZE covenant
     // input 1: Bob's funds   --- output 1: change to Bob
     //                 (null) --- output 2: payment to Alice
-    const tx = await wallet.sendMTX(mtx);
-    assert(tx.verify(mtx.view));
+    await this._ledgerProxy(
+      // With ledger: even though we are signing with SIGHASH_ALL,
+      // we still need to provide Ledger with an array of input
+      // data, or else it will try to sign all inputs.
+      async () => {
+        const coin = mtx.view.getCoinFor(mtx.inputs[1]);
+        const key = await wallet.getKey(coin.address);
+        const publicKey = key.publicKey;
+        const path =
+          'm/' +                                    // master
+          '44\'/' +                                 // purpose
+          `${this.network.keyPrefix.coinType}'/` +  // coin type
+          `${key.account}'/` +                      // should be 0 ("default")
+          `${key.branch}/` +                        // should be 1 (change)
+          `${key.index}`;
+
+        const options = {
+          inputs: [
+            new LedgerInput({
+              publicKey,
+              path,
+              coin,
+              input: mtx.inputs[1],
+              index: 1
+            })
+          ]
+        };
+
+        return [mtx.getJSON(this.network), options];
+      },
+      // No ledger.
+      async () => {
+        await wallet.sendMTX(mtx);
+      }
+    );
   };
 
   /**
    * List Wallet IDs (exclude unencrypted wallets)
    * @return {Promise<[string]>}
    */
-  listWallets = async (includeUnencrypted= false) => {
+  listWallets = async (includeUnencrypted = false) => {
     await this._ensureClient();
 
     const wdb = this.node.wdb;
@@ -630,8 +734,8 @@ class WalletService {
 
     for (const wid of wallets) {
       const info = await wdb.get(wid);
-      const {master: {encrypted}} = info;
-      if (includeUnencrypted === true || encrypted) {
+      const {master: {encrypted}, watchOnly} = info;
+      if (includeUnencrypted === true || encrypted || watchOnly) {
         ret.push(wid);
       }
     }
@@ -644,7 +748,7 @@ class WalletService {
 
     this.networkName = networkName;
     this.apiKey = apiKey;
-    this.walletApiKey = apiKey || crypto.randomBytes(20).toString('hex');
+    this.walletApiKey = await this.getAPIKey();
     this.network = network;
 
     const walletOptions = {
@@ -713,7 +817,7 @@ class WalletService {
         await node.close();
       }
       resolve();
-    })
+    });
 
   };
 
@@ -799,14 +903,14 @@ class WalletService {
 
       dispatchToMainWindow({
         type: SET_NODE_INFO,
-        payload: { info },
+        payload: {info},
       });
     }
 
     if (fees) {
       dispatchToMainWindow({
         type: SET_FEE_INFO,
-        payload: { fees },
+        payload: {fees},
       });
     }
   };
@@ -895,10 +999,137 @@ class WalletService {
     this.didSelectWallet = true;
   }
 
-  _ledgerProxy = async (onLedger, onNonLedger, shouldConfirmLedger = true) => {
+  _ledgerProxy = async (onLedger, onNonLedger, shouldConfirmLedger = true, broadcast = true) => {
     const info = await this.getWalletInfo();
     if (info.watchOnly) {
-      throw new Error('ledger is not currently enabled');
+      // I feel terrible about this, but...
+      let res, extra;
+      const oneOrMoreReturnValues = await onLedger();
+      if (!Array.isArray(oneOrMoreReturnValues)) {
+        res = oneOrMoreReturnValues;
+      } else {
+        [res, extra] = oneOrMoreReturnValues;
+      }
+
+      if (shouldConfirmLedger) {
+        const mtx = MTX.fromJSON(res);
+        // Prepare extra TX data for Ledger.
+        // Unfortunately the MTX returned from the wallet.create____()
+        // functions does not include what we need, so we have to compute it.
+        const options = {};
+        if (extra)
+          Object.assign(options, extra);
+        for (let index = 0; index < res.outputs.length; index++) {
+          const output = res.outputs[index];
+
+          // The user does not have to verify change outputs on the device.
+          // What we do is pass metadata about the change output to Ledger,
+          // and the app will verify the change address belongs to the wallet.
+          const address = Address.fromString(output.address, this.network);
+          const key = await this.getPublicKey(address);
+
+          if (!key)
+            continue;
+
+          if (key.branch === 1) {
+            if (options.change)
+              throw new Error('Transaction should only have one change output.');
+
+            const path =
+              'm/' +                                  // master
+              '44\'/' +                               // purpose
+              `${this.network.keyPrefix.coinType}'/` +    // coin type
+              `${key.account}'/` +                    // should be 0 ("default")
+              `${key.branch}/` +                      // should be 1 (change)
+              `${key.index}`;
+
+            options.change = new LedgerChange({
+              index,
+              version: address.version,
+              path
+            });
+          }
+
+          // The user needs to verify the raw ASCII name for every covenant.
+          // Because some covenants contain a name's hash but not the preimage,
+          // we must pass the device the name as an extra virtual covenant item.
+          // The device will confirm the nameHash before asking the user to verify.
+          switch (output.covenant.type) {
+            case types.NONE:
+            case types.OPEN:
+            case types.BID:
+            case types.FINALIZE:
+              break;
+
+            case types.REVEAL:
+            case types.REDEEM:
+            case types.REGISTER:
+            case types.UPDATE:
+            case types.RENEW:
+            case types.TRANSFER:
+            case types.REVOKE: {
+              if (options.covenants == null)
+                options.covenants = [];
+
+              // We could try to just pass the name in from the functions that
+              // call _ledgerProxy(), but that wouldn't work for send____All()
+              const hash = output.covenant.items[0];
+              const name = await this.nodeService.getNameByHash(hash);
+
+              options.covenants.push(new LedgerCovenant({index, name}));
+              break;
+            }
+            default:
+              throw new Error('Unrecognized covenant type.');
+          }
+        }
+
+        const mainWindow = getMainWindow();
+        return new Promise((resolve, reject) => {
+          const resHandler = async () => {
+            let device;
+            try {
+              device = await Device.requestDevice();
+              device.set({
+                timeout: ONE_MINUTE,
+              });
+              await device.open();
+              const ledger = new LedgerHSD({device, network: this.networkName});
+              const retMtx = await ledger.signTransaction(mtx, options);
+              retMtx.check();
+
+              if (broadcast)
+                await this.nodeService.broadcastRawTx(retMtx.toHex());
+
+              mainWindow.send('LEDGER/CONNECT_OK');
+              ipc.removeListener('LEDGER/CONNECT_RES', resHandler);
+              ipc.removeListener('LEDGER/CONNECT_CANCEL', cancelHandler);
+              resolve(retMtx);
+            } catch (e) {
+              mainWindow.send('LEDGER/CONNECT_ERR', e.message);
+              reject(e);
+            } finally {
+              if (device) {
+                try {
+                  await device.close();
+                } catch (e) {
+                  console.error('failed to close ledger', e);
+                }
+              }
+            }
+          };
+          const cancelHandler = () => {
+            reject(new Error('Cancelled.'));
+            ipc.removeListener('LEDGER/CONNECT_RES', resHandler);
+            ipc.removeListener('LEDGER/CONNECT_CANCEL', cancelHandler);
+          };
+          ipc.on('LEDGER/CONNECT_RES', resHandler);
+          ipc.on('LEDGER/CONNECT_CANCEL', cancelHandler);
+          mainWindow.send('LEDGER/CONNECT', mtx.txid());
+        });
+      }
+
+      return res;
     }
 
     return onNonLedger();
@@ -933,6 +1164,7 @@ const methods = {
   getWalletInfo: service.getWalletInfo,
   getAccountInfo: service.getAccountInfo,
   getAPIKey: service.getAPIKey,
+  setAPIKey: service.setAPIKey,
   getCoin: service.getCoin,
   getTX: service.getTX,
   getNames: service.getNames,
