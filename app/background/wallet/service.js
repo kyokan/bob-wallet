@@ -1106,8 +1106,18 @@ class WalletService {
               ipc.removeListener('LEDGER/CONNECT_CANCEL', cancelHandler);
               resolve(retMtx);
             } catch (e) {
+              // This ipc message goes to the Ledger modal
               mainWindow.send('LEDGER/CONNECT_ERR', e.message);
-              reject(e);
+
+              // If we reject from this Promise, it will go to whatever
+              // function is trying to send a transaction. We don't need
+              // errors in two places and it messes up the UI. The Ledger modal
+              // is in charge now and all the errors should be displayed there.
+              // If the user gives up they click CANCEL on the Ledger modal,
+              // which is when the "Cancelled." error (below) is sent to the
+              // calling function.
+              // SO, leave this next line commented out but keep for reference:
+              // reject(e);
             } finally {
               if (device) {
                 try {
@@ -1119,7 +1129,10 @@ class WalletService {
             }
           };
           const cancelHandler = () => {
+            // User has given up on Ledger, inform the calling function.
             reject(new Error('Cancelled.'));
+
+            // These messages go to the Ledger modal
             ipc.removeListener('LEDGER/CONNECT_RES', resHandler);
             ipc.removeListener('LEDGER/CONNECT_CANCEL', cancelHandler);
           };

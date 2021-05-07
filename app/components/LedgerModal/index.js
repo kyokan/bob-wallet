@@ -62,13 +62,19 @@ export class LedgerModal extends Component {
     ipc.send('LEDGER/CONNECT_RES');
     this.setState({
       isLoading: true,
+      errorMessage: '',
     });
   };
 
   handleError(err) {
     logger.error('failed to connect to ledger', {err});
+
+    // Totally confusing
+    if (err === 'Device was not selected.')
+      err = 'Could not connect to device.';
+
     this.setState({
-      errorMessage: `Couldn't connect to your Ledger. Please try again.`,
+      errorMessage: `Error confirming on Ledger: ${err}`,
       isLoading: false,
     });
   }
