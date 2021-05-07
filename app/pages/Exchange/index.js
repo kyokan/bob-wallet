@@ -312,6 +312,10 @@ class Exchange extends Component {
   }
 
   render() {
+    if (this.props.wid === 'Ledger') {
+      return "Not currently supported with Ledger wallet.";
+    }
+
     if (this.props.isLoading) {
       return 'Loading...';
     }
@@ -710,6 +714,7 @@ export default connect(
     listings: state.exchange.listings,
     finalizingName: state.exchange.finalizingName,
     deeplinkParams: state.app.deeplinkParams,
+    wid: state.wallet.wid,
   }),
   (dispatch) => ({
     setAuctionPage: (page) => dispatch(setAuctionPage(page)),
