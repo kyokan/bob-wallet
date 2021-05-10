@@ -107,7 +107,11 @@ export default class GetCoins extends Component {
           </div>
           <h2>Privacy (GooSig)</h2>
           <p>
-            To preserve privacy for the time being, a 32 byte nonce has been encrypted to your PGP or SSH key. No one
+            <strong>Note:</strong> Since block height 52590 (29 January, 2021) the goosig feature is DISABLED. While it's still possible
+            to claim from the airdrop, RSA keys (if used) can be identified on-chain.
+          </p>
+          <p>
+            To preserve privacy, a 32 byte nonce has been encrypted to your PGP or SSH key. No one
             will be able to identify your key fingerprint in the tree published above until you decide to reveal it
             on-chain by decrypting the nonce, creating the proof, and publishing it.
           </p>

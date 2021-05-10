@@ -22,7 +22,7 @@
   &__header {
     @extend %col-nowrap;
 
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
   }
 
   &__alert {
@@ -40,8 +40,14 @@
   &__title {
     font-weight: 600;
     font-size: 1.25rem;
-    margin-bottom: 2rem;
     text-align: center;
+  }
+
+  &__link {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    text-decoration: underline;
+    cursor: pointer;
   }
 
   &__step {
@@ -121,5 +127,140 @@
       font-size: 0.9rem;
       color: $black;
     }
+  }
+}
+
+.proof-modal {
+  @extend %col-nowrap;
+  height: 100%;
+  width: auto;
+
+  &__header_text {
+    @extend %header_text;
+    margin-bottom: 1.125rem;
+  }
+
+  &__body-text {
+    @extend %h4;
+    color: $manatee-gray;
+    margin-bottom: 1.375rem;
+
+    &__link {
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  }
+
+  &__content {
+    @extend %col-nowrap;
+    padding: 1.25rem 1.875rem;
+    flex: 1 1 auto;
+  }
+
+  &__input {
+    @extend %box-input;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 12px;
+
+    input {
+      width: 100%;
+    }
+  }
+
+  &__footer {
+    padding: 1.25rem 1.875rem 1.875rem 1.875rem;
+  }
+}
+
+.step_privKey {
+  &__privKey {
+    @extend %row-nowrap;
+    flex: 1 1 auto;
+    width: 100%;
+    margin-top: 0.5rem;
+
+    & textarea {
+      @extend %box-input;
+      margin-top: 0.5rem;
+      resize: none;
+      white-space: normal;
+      border: none;
+      flex: 1 1 auto;
+      padding: 0.75rem 1rem;
+      line-height: 1.5rem;
+      margin-bottom: 0.5rem;
+      width: 100%;
+      height: 5em;
+      font-family: "Courier New", monospace;
+      white-space: pre;
+
+      &::placeholder {
+        color: #a2a2a2;
+      }
+    }
+  }
+
+  &__passphrase {
+    @extend %box-input;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 6px;
+    margin-bottom: 12px;
+
+    input {
+      width: 100%;
+    }
+
+    &--error {
+      box-shadow: 0 0 0 1.25px rgba($orange-red, 0.5);
+    }
+  }
+
+  &__pgp {
+    &__label {
+      display: block;
+      margin-top: 0.5rem;
+
+      & > span {
+        font-size: 0.875rem;
+        line-height: 1.225rem;
+      }
+    }
+    &__keyId {
+      @extend %box-input;
+      width: 50%;
+      box-sizing: border-box;
+      margin-top: 6px;
+      margin-bottom: 12px;
+
+      input {
+        width: 100%;
+      }
+    }
+  }
+}
+
+.step_generating {
+  &__log {
+    @extend %box-input;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 1rem;
+    white-space: pre;
+    height: 10rem;
+    overflow: auto;
+  }
+}
+
+.step_proofs {
+  &__proof {
+    @extend %box-input;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 1rem;
+    height: 5rem;
+    overflow: auto;
+    word-break: break-all;
   }
 }

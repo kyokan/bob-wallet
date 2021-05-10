@@ -77,6 +77,7 @@ if (isPrimaryInstance) {
       await require('./background/analytics/service').start(server);
       await require('./background/connections/service').start(server);
       await require('./background/setting/service').start(server);
+      await require('./background/claim/service').start(server);
       await shakedexService.start(server);
     } catch (e) {
       dialog.showMessageBox(null, {
