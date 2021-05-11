@@ -51,6 +51,7 @@ export default class ProofModal extends Component {
     generateProofInBob: true,
     currentStep: STEP_PRIVATE_KEY,
     privKey: '',
+    isFile: '',
     passphrase: '',
     pgpKeyId: '',
     hnsAddr: '',
@@ -73,6 +74,7 @@ export default class ProofModal extends Component {
     this.props.airdropClaim({
       keyType: this.props.type.toLowerCase(),
       privKey: this.state.privKey.trim().replace(/^\s+/gm, ''),
+      isFile: this.state.isFile,
       keyId: this.state.pgpKeyId,
       hnsAddr: this.state.hnsAddr,
       passphrase: this.state.passphrase,
@@ -179,7 +181,7 @@ export default class ProofModal extends Component {
             currentStep={STEP_PRIVATE_KEY}
             totalSteps={TOTAL_STEPS}
             keyType={type}
-            onNext={(privKey, passphrase, pgpKeyId) => this.setState({ currentStep: STEP_HNS_ADDRESS, privKey, passphrase, pgpKeyId })}
+            onNext={(privKey, isFile, passphrase, pgpKeyId) => this.setState({ currentStep: STEP_HNS_ADDRESS, privKey, isFile, passphrase, pgpKeyId })}
             skipProofGeneration={() => this.setState({ generateProofInBob: false })}
           />
         )

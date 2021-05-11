@@ -1,9 +1,11 @@
+import fs from "fs";
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import Submittable from "../Submittable";
 import WizardHeader from "../WizardHeader";
 import Checkbox from "../Checkbox";
+const { dialog } = require("electron").remote;
 
 @connect()
 export default class StepPrivateKey extends Component {
@@ -18,6 +20,7 @@ export default class StepPrivateKey extends Component {
     super(props);
     this.state = {
       privKey: "",
+      privKeyIsFile: false,
       isKeyEncrypted: false,
       passphrase: "",
       pgpKeyId: "",
@@ -29,36 +32,69 @@ export default class StepPrivateKey extends Component {
 
     this.props.onNext(
       this.state.privKey,
+      this.state.privKeyIsFile,
       this.state.passphrase,
       this.props.keyType === "PGP" ? this.state.pgpKeyId : null
     );
   };
 
-  isValidPrivKey = () => {
+  isValidPrivKey = (privKey = null) => {
+    if (this.state.privKeyIsFile)
+      return this.state.privKey && !!this.state.privKey.length;
+
+    if (!privKey) privKey = this.state.privKey;
+    privKey = privKey.trim();
+
     switch (this.props.keyType) {
       case "SSH":
-        if (
-          !/^-----BEGIN \w+ PRIVATE KEY-----[^]+-----END \w+ PRIVATE KEY-----$/.test(
-            this.state.privKey.trim()
-          )
-        )
-          return false;
-        break;
+        return /^-----BEGIN \w+ PRIVATE KEY-----[^]+-----END \w+ PRIVATE KEY-----$/.test(
+          privKey
+        );
       case "PGP":
-        if (
-          !/^-----BEGIN PGP PRIVATE KEY BLOCK-----[^]+-----END PGP PRIVATE KEY BLOCK-----$/.test(
-            this.state.privKey.trim()
-          )
-        )
-          return false;
-        break;
+        return /^-----BEGIN PGP PRIVATE KEY BLOCK-----[^]+-----END PGP PRIVATE KEY BLOCK-----$/.test(
+          privKey
+        );
       case "faucet":
         return true;
       default:
         return false;
     }
-    return true;
   };
+
+  async onPrivKeyFileSelect(keyType) {
+    const filters = {
+      SSH: [
+        {
+          name: "All Files",
+          extensions: ["*"],
+        },
+      ],
+      PGP: [
+        {
+          name: "PGP Private Keys",
+          extensions: ["asc", "gpg", "pgp"],
+        },
+        {
+          name: "All Files",
+          extensions: ["*"],
+        },
+      ],
+    }[keyType];
+
+    const {
+      filePaths: [filepath],
+    } = await dialog.showOpenDialog({
+      title: "Open a private key file",
+      properties: ["openFile"],
+      filters: filters,
+    });
+
+    if (!filepath) return;
+
+    this.setState({
+      privKey: filepath,
+    });
+  }
 
   canGoToNext() {
     if (!this.isValidPrivKey()) return false;
@@ -83,6 +119,14 @@ export default class StepPrivateKey extends Component {
       keyType,
     } = this.props;
 
+    const {
+      privKey,
+      privKeyIsFile,
+      pgpKeyId,
+      isKeyEncrypted,
+      passphrase,
+    } = this.state;
+
     const placeholder =
       keyType === "SSH"
         ? "-----BEGIN OPENSSH PRIVATE KEY-----\n...\n-----END OPENSSH PRIVATE KEY-----"
@@ -92,7 +136,7 @@ export default class StepPrivateKey extends Component {
       <div className="proof-modal">
         <WizardHeader currentStep={currentStep} totalSteps={totalSteps} />
         <div className="proof-modal__content">
-          <Submittable onSubmit={this.onSubmit}>
+          <Submittable onSubmit={() => {}}>
             <div className="proof-modal__header_text">
               Paste your private key here
             </div>
@@ -110,13 +154,32 @@ export default class StepPrivateKey extends Component {
 
             {/* Private Key */}
             <div className="step_privKey__privKey">
-              <textarea
-                placeholder={placeholder}
-                value={this.state.privKey}
-                onChange={this.onChange("privKey")}
-                autoFocus
-              ></textarea>
+              {privKeyIsFile ? (
+                <div>
+                  <button onClick={() => this.onPrivKeyFileSelect(keyType)}>
+                    Open File
+                  </button>
+                  <span>{privKey}</span>
+                </div>
+              ) : (
+                <textarea
+                  placeholder={placeholder}
+                  value={privKey}
+                  onChange={this.onChange("privKey")}
+                  autoFocus
+                ></textarea>
+              )}
             </div>
+
+            {/* Switch between text and file inputs */}
+            <p
+              className="step_privKey__toggle_key_src"
+              onClick={() =>
+                this.setState({ privKeyIsFile: !privKeyIsFile, privKey: "" })
+              }
+            >
+              {privKeyIsFile ? "Paste key" : "Select file"} instead...
+            </p>
 
             {/* PGP Key ID */}
             {keyType === "PGP" ? (
@@ -126,7 +189,7 @@ export default class StepPrivateKey extends Component {
                   <input
                     type="text"
                     placeholder="0xA8E101DF4C93E2BC"
-                    value={this.state.pgpKeyId}
+                    value={pgpKeyId}
                     onChange={this.onChange("pgpKeyId")}
                   />
                 </div>
@@ -139,10 +202,10 @@ export default class StepPrivateKey extends Component {
             <div className="terms__input">
               <span className="import_checkbox_container">
                 <Checkbox
-                  checked={this.state.isKeyEncrypted}
+                  checked={isKeyEncrypted}
                   onChange={() =>
                     this.setState({
-                      isKeyEncrypted: !this.state.isKeyEncrypted,
+                      isKeyEncrypted: !isKeyEncrypted,
                     })
                   }
                 />
@@ -153,12 +216,12 @@ export default class StepPrivateKey extends Component {
             </div>
 
             {/* Passphrase */}
-            {this.state.isKeyEncrypted ? (
+            {isKeyEncrypted ? (
               <div className="step_privKey__passphrase">
                 <input
                   type="password"
                   placeholder="Enter passphrase"
-                  value={this.state.passphrase}
+                  value={passphrase}
                   onChange={this.onChange("passphrase")}
                 />
               </div>

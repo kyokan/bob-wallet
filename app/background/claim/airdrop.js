@@ -539,8 +539,8 @@ function parseAddress(addr) {
  */
 
 var updateRedeemStatus;
-async function redeemStart({ keyType, privKey, keyId, hnsAddr, passphrase }, updateStatus) {
-  console.log('Redeeming', keyType, keyId, hnsAddr)
+async function redeemStart({ keyType, privKey, isFile, keyId, hnsAddr, passphrase }, updateStatus) {
+  console.log('Redeeming', keyType, isFile, keyId, hnsAddr)
 
   updateRedeemStatus = (percent, status) => {
     if (percent === -1)
@@ -575,12 +575,12 @@ async function redeemStart({ keyType, privKey, keyId, hnsAddr, passphrase }, upd
             keyType: 'pgp',
             passphrase,
             keyID,
-            isFile: false,
+            isFile,
           })
           options.addr = hnsAddr
         } catch (error) {
           console.error(error.stack)
-          throw new Error('Invalid Private Key.')
+          throw new Error('Invalid Private Key or wrong passphrase.')
         }
         break
       }
@@ -591,11 +591,11 @@ async function redeemStart({ keyType, privKey, keyId, hnsAddr, passphrase }, upd
             file: privKey,
             keyType: 'ssh',
             passphrase,
-            isFile: false,
+            isFile,
           })
         } catch (error) {
           console.error(error.stack)
-          throw new Error('Invalid Private Key.')
+          throw new Error('Invalid Private Key or wrong passphrase.')
         }
         break
       }
@@ -645,7 +645,7 @@ async function redeemStart({ keyType, privKey, keyId, hnsAddr, passphrase }, upd
     console.error(error)
     // If not found, then it's not really an error. Send back empty proof.
     if (error.name == 'NonceError') {
-      updateRedeemStatus(100, error)
+      updateRedeemStatus(100, error.message + '\nThis means that the key was not included in the snapshot and does not have any rewards associated with it.')
     } else {
       updateRedeemStatus(-1, error)
     }
