@@ -154,7 +154,7 @@ const deserializers = {
     }
 
     return {
-      type: RECORD_TYPE.GLUE4,
+      type: RECORD_TYPE.GLUE6,
       ns: parts[0],
       address: parts[1],
     };
