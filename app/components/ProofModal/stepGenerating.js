@@ -86,6 +86,13 @@ export default class StepGenerating extends Component {
         </div>
         <div className="proof-modal__footer">
           <button
+            className="proof-modal__footer__secondary-cta"
+            onClick={this.props.onBack}
+            disabled={this.props.claims.airdropIsGenerating}
+          >
+            Start Over
+          </button>
+          <button
             className="extension_cta_button create_cta"
             onClick={this.onSubmit}
             disabled={

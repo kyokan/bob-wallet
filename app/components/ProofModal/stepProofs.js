@@ -50,7 +50,7 @@ export default class StepProofs extends Component {
             ))}
           </Submittable>
         </div>
-        <div className="proof-modal__footer">
+        <div className="proof-modal__footer proof-modal__footer--single">
           <button
             className="extension_cta_button create_cta"
             onClick={this.onSubmit}

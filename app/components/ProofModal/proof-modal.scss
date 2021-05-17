@@ -3,11 +3,15 @@
 .proof {
   max-width: 38rem;
   position: relative;
-  padding: 2rem;
+  padding: 1.5rem 0;
   box-sizing: border-box;
 
   &__container {
     @extend %col-nowrap;
+  }
+
+  &__content {
+    padding: 0 1.875rem 1rem;
   }
 
   &__close-btn {
@@ -140,6 +144,17 @@
     margin-bottom: 1.125rem;
   }
 
+  .wizard-header {
+    &__navigation {
+      display: none;
+    }
+
+    &__status-bar {
+      margin: 1rem 0;
+      padding: 0;
+    }
+  }
+
   &__body-text {
     @extend %h4;
     color: $manatee-gray;
@@ -153,7 +168,7 @@
 
   &__content {
     @extend %col-nowrap;
-    padding: 1.25rem 1.875rem;
+    padding: 0 0 1rem;
     flex: 1 1 auto;
   }
 
@@ -169,43 +184,63 @@
   }
 
   &__footer {
-    padding: 1.25rem 1.875rem 1.875rem 1.875rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 1rem;
+    padding: 1.25rem 0 1.875rem;
+
+    &--single {
+      grid-template-columns: 1fr;
+    }
+
+    &__secondary-cta {
+      @extend %btn-secondary;
+    }
   }
 }
 
 .step_privKey {
   &__privKey {
-    @extend %row-nowrap;
+    @extend %col-nowrap;
     flex: 1 1 auto;
     width: 100%;
     margin-top: 0.5rem;
+    border: 1px solid rgba(0, 0, 0, .1);
+    border-radius: 4px;
 
-    & button {
+    &__header {
       @extend %row-nowrap;
-      @extend %btn-secondary;
-
-      flex: 0 0 auto;
       align-items: center;
-      padding: 0.25rem 0.5rem;
-      margin-right: 0.5rem;
-      margin-bottom: 0.75em;
-      display: inline-block;
+      background-color: rgba(0, 0, 0, .05);
+
+      & button {
+        @extend %row-nowrap;
+        flex: 0 0 auto;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+        margin: 0.5rem;
+        display: inline-block;
+      }
+    }
+
+    &__content {
+      @extend %row-nowrap;
+      border: 1px solid rgba(0, 0, 0, .1);
     }
 
     & textarea {
-      @extend %box-input;
-      margin-top: 0.5rem;
       resize: none;
-      white-space: normal;
       border: none;
       flex: 1 1 auto;
-      padding: 0.75rem 1rem;
-      line-height: 1.5rem;
-      margin-bottom: 0.5rem;
-      width: 100%;
-      height: 5em;
+      padding: .5rem;
+      height: 5rem;
       font-family: "Courier New", monospace;
       white-space: pre;
+      border-radius: 0;
+      font-size: .8125rem;
+      line-height: 1.3125;
+      background: $white;
+      outline: none;
 
       &::placeholder {
         color: #a2a2a2;

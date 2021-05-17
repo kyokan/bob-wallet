@@ -14,6 +14,7 @@ import StepPrivateKey from './stepPrivateKey';
 import StepHnsAddress from './stepHnsAddress';
 import StepGenerating from './stepGenerating';
 import StepProofs from './stepProofs';
+import Anchor from "../Anchor";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -150,10 +151,10 @@ export default class ProofModal extends Component {
           {this.renderInfoBox()}
           <div className="proof__content">
             <Alert type="error" message={this.state.errorMessage} />
-            {this.state.generateProofInBob ?
-              this.renderWizard()
-              :
-              this.renderManual(type)
+            {
+              this.state.generateProofInBob
+                ? this.renderWizard()
+                : this.renderManual(type)
             }
           </div>
         </div>
@@ -181,7 +182,7 @@ export default class ProofModal extends Component {
             currentStep={STEP_PRIVATE_KEY}
             totalSteps={TOTAL_STEPS}
             keyType={type}
-            onNext={(privKey, isFile, passphrase, pgpKeyId) => this.setState({ currentStep: STEP_HNS_ADDRESS, privKey, isFile, passphrase, pgpKeyId })}
+            onNext={(privKey, passphrase, pgpKeyId) => this.setState({ currentStep: STEP_HNS_ADDRESS, privKey, passphrase, pgpKeyId })}
             skipProofGeneration={() => this.setState({ generateProofInBob: false })}
           />
         )
@@ -201,7 +202,7 @@ export default class ProofModal extends Component {
           <StepGenerating
             currentStep={STEP_GENERATING}
             totalSteps={TOTAL_STEPS}
-            onBack={() => this.setState({ currentStep: STEP_HNS_ADDRESS })}
+            onBack={() => this.setState({ currentStep: STEP_PRIVATE_KEY })}
             onNext={() => this.setState({ currentStep: STEP_PROOFS })}
             claims={claims}
           />
@@ -233,16 +234,10 @@ export default class ProofModal extends Component {
 
     return (
       <React.Fragment>
-        <div
-          className="proof__link"
-          onClick={() => this.setState({ generateProofInBob: true })}
-        >
-          Switch back to the wizard to generate your proof.
-        </div>
         <div className="proof__step">
           <div className="proof__step-title">
             <span className="proof__step-title--bolded">Step 1:</span>
-            <span>Install hs-airdrop.</span>
+            <span>Install <Anchor href='https://github.com/handshake-org/hs-airdrop' target="_blank">hs-airdrop</Anchor>.</span>
           </div>
           <div className="proof__step-description">
             Head on over to <a onClick={() => shell.openExternal('https://github.com/handshake-org/hs-airdrop')}>hs-airdrop on GitHub</a>, and
@@ -282,15 +277,18 @@ export default class ProofModal extends Component {
             />
           </div>
         </div>
-        <div className="proof__footer">
+        <div className="proof-modal__footer">
           <button
-            className="proof__details-btn"
-            onClick={() => shell.openExternal('https://github.com/handshake-org/hs-airdrop')}
+            className="proof-modal__footer__secondary-cta"
+            onClick={() => this.setState({ generateProofInBob: true })}
           >
-            See full details
+            Use Claim Wizard
           </button>
-          <button className="proof__submit-btn" onClick={this.onSubmit}
-                  disabled={this.isDisabled() || this.state.isUploading}>
+          <button
+            className="extension_cta_button create_cta"
+            onClick={this.onSubmit}
+            disabled={this.isDisabled() || this.state.isUploading}
+          >
             {this.state.isUploading ? 'Uploading...' : 'Claim Coins'}
           </button>
         </div>
