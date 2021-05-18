@@ -10,6 +10,7 @@ import watching from './watching';
 import ledger from './ledger';
 import app from './app';
 import exchange from './exchange.js';
+import claims from './claims.js';
 
 export default function createRootReducer(history) {
   const root = combineReducers({
@@ -24,6 +25,7 @@ export default function createRootReducer(history) {
     ledger,
     app,
     exchange,
+    claims,
   });
 
   return (state, action) => {

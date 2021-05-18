@@ -3,11 +3,15 @@
 .proof {
   max-width: 38rem;
   position: relative;
-  padding: 2rem;
+  padding: 1.5rem 0;
   box-sizing: border-box;
 
   &__container {
     @extend %col-nowrap;
+  }
+
+  &__content {
+    padding: 0 1.875rem 1rem;
   }
 
   &__close-btn {
@@ -22,7 +26,7 @@
   &__header {
     @extend %col-nowrap;
 
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
   }
 
   &__alert {
@@ -40,8 +44,14 @@
   &__title {
     font-weight: 600;
     font-size: 1.25rem;
-    margin-bottom: 2rem;
     text-align: center;
+  }
+
+  &__link {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    text-decoration: underline;
+    cursor: pointer;
   }
 
   &__step {
@@ -121,5 +131,189 @@
       font-size: 0.9rem;
       color: $black;
     }
+  }
+}
+
+.proof-modal {
+  @extend %col-nowrap;
+  height: 100%;
+  width: auto;
+
+  &__header_text {
+    @extend %header_text;
+    margin-bottom: 1.125rem;
+  }
+
+  .wizard-header {
+    &__navigation {
+      display: none;
+    }
+
+    &__status-bar {
+      margin: 1rem 0;
+      padding: 0;
+    }
+  }
+
+  &__body-text {
+    @extend %h4;
+    color: $manatee-gray;
+    margin-bottom: 1.375rem;
+
+    &__link {
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  }
+
+  &__content {
+    @extend %col-nowrap;
+    padding: 0 0 1rem;
+    flex: 1 1 auto;
+  }
+
+  &__input {
+    @extend %box-input;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 12px;
+
+    input {
+      width: 100%;
+    }
+  }
+
+  &__footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 1rem;
+    padding: 1.25rem 0 1.875rem;
+
+    &--single {
+      grid-template-columns: 1fr;
+    }
+
+    &__secondary-cta {
+      @extend %btn-secondary;
+    }
+  }
+}
+
+.step_privKey {
+  &__privKey {
+    @extend %col-nowrap;
+    flex: 1 1 auto;
+    width: 100%;
+    margin-top: 0.5rem;
+    border: 1px solid rgba(0, 0, 0, .1);
+    border-radius: 4px;
+
+    &__header {
+      @extend %row-nowrap;
+      align-items: center;
+      background-color: rgba(0, 0, 0, .05);
+
+      & button {
+        @extend %row-nowrap;
+        flex: 0 0 auto;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+        margin: 0.5rem;
+        display: inline-block;
+      }
+    }
+
+    &__content {
+      @extend %row-nowrap;
+      border: 1px solid rgba(0, 0, 0, .1);
+    }
+
+    & textarea {
+      resize: none;
+      border: none;
+      flex: 1 1 auto;
+      padding: .5rem;
+      height: 5rem;
+      font-family: "Courier New", monospace;
+      white-space: pre;
+      border-radius: 0;
+      font-size: .8125rem;
+      line-height: 1.3125;
+      background: $white;
+      outline: none;
+
+      &::placeholder {
+        color: #a2a2a2;
+      }
+    }
+  }
+
+  &__toggle_key_src {
+    margin-top: 0;
+    font-size: 0.875em;
+    cursor: pointer;
+  }
+
+  &__passphrase {
+    @extend %box-input;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 6px;
+    margin-bottom: 12px;
+
+    input {
+      width: 100%;
+    }
+
+    &--error {
+      box-shadow: 0 0 0 1.25px rgba($orange-red, 0.5);
+    }
+  }
+
+  &__pgp {
+    &__label {
+      display: block;
+      margin-top: 0.5rem;
+
+      & > span {
+        font-size: 0.875rem;
+        line-height: 1.225rem;
+      }
+    }
+    &__keyId {
+      @extend %box-input;
+      width: 50%;
+      box-sizing: border-box;
+      margin-top: 6px;
+      margin-bottom: 12px;
+
+      input {
+        width: 100%;
+      }
+    }
+  }
+}
+
+.step_generating {
+  &__log {
+    @extend %box-input;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 1rem;
+    white-space: pre;
+    height: 10rem;
+    overflow: auto;
+  }
+}
+
+.step_proofs {
+  &__proof {
+    @extend %box-input;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 1rem;
+    height: 5rem;
+    overflow: auto;
+    word-break: break-all;
   }
 }

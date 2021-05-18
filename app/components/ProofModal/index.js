@@ -5,21 +5,35 @@ import './proof-modal.scss';
 import { shell } from 'electron';
 import { connect } from 'react-redux';
 import { showSuccess } from '../../ducks/notifications';
+import { airdropClaim } from '../../ducks/claims';
 import walletClient from '../../utils/walletClient';
 import Alert from '../Alert';
 import { clientStub as aClientStub } from '../../background/analytics/client';
-import {NETWORKS} from "../../constants/networks";
+import { NETWORKS } from "../../constants/networks";
+import StepPrivateKey from './stepPrivateKey';
+import StepHnsAddress from './stepHnsAddress';
+import StepGenerating from './stepGenerating';
+import StepProofs from './stepProofs';
+import Anchor from "../Anchor";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
+
+const STEP_PRIVATE_KEY = 0
+const STEP_HNS_ADDRESS = 1
+const STEP_GENERATING = 2
+const STEP_PROOFS = 3
+const TOTAL_STEPS = 3
 
 @connect(
   (state) => ({
     address: state.wallet.address,
     network: state.node.network,
     chainHeight: state.node.chain ? state.node.chain.height : -1,
+    claims: state.claims,
   }),
   (dispatch) => ({
     showSuccess: (message) => dispatch(showSuccess(message)),
+    airdropClaim: (options) => dispatch(airdropClaim(options)),
   }),
 )
 export default class ProofModal extends Component {
@@ -28,12 +42,21 @@ export default class ProofModal extends Component {
     address: PropTypes.string.isRequired,
     network: PropTypes.string.isRequired,
     chainHeight: PropTypes.number.isRequired,
+    claims: PropTypes.object.isRequired,
     onClose: PropTypes.func.isRequired,
     showSuccess: PropTypes.func.isRequired,
+    airdropClaim: PropTypes.func.isRequired,
   };
 
   state = {
-    proof: '',
+    generateProofInBob: true,
+    currentStep: STEP_PRIVATE_KEY,
+    privKey: '',
+    isFile: '',
+    passphrase: '',
+    pgpKeyId: '',
+    hnsAddr: '',
+    proofs: null,
     errorMessage: '',
     isUploading: false,
   };
@@ -48,19 +71,42 @@ export default class ProofModal extends Component {
     proof: e.target.value,
   });
 
+  searchForAirdropProofs() {
+    this.props.airdropClaim({
+      keyType: this.props.type.toLowerCase(),
+      privKey: this.state.privKey.trim().replace(/^\s+/gm, ''),
+      isFile: this.state.isFile,
+      keyId: this.state.pgpKeyId,
+      hnsAddr: this.state.hnsAddr,
+      passphrase: this.state.passphrase,
+    })
+  }
+
   onSubmit = async () => {
     this.setState({isUploading: true});
 
+    let proof;
+    if (this.state.generateProofInBob)
+      proof = this.props.claims.airdropProofs[0].b64encoded;
+    else
+      proof = this.state.proof;
+
     try {
-      await walletClient.sendRawAirdrop(this.state.proof);
+      await walletClient.sendRawAirdrop(proof);
       analytics.track('airdrop claimed', {
         type: this.props.type,
       });
     } catch (e) {
       console.error(e);
-      this.setState({
-        errorMessage: 'Invalid proof. Please try again.',
-      });
+      if (e.message === 'Currently disabled.') {
+        this.setState({
+          errorMessage: 'Airdrop claims can only be broadcast on mainnet.',
+        });
+      } else {
+        this.setState({
+          errorMessage: 'Invalid proof. Please try again.',
+        });
+      }
       return;
     } finally {
       this.setState({isUploading: false});
@@ -86,12 +132,18 @@ export default class ProofModal extends Component {
       type,
     } = this.props;
 
+    const title = {
+      'PGP': 'Claim your coins with PGP',
+      'SSH': 'Claim your coins with SSH',
+      'Faucet': 'Claim your coins from the Faucet',
+    }[type]
+
     return (
       <Modal className="proof" onClose={onClose}>
         <div className="proof__container">
           <div className="proof__header">
             <div
-              className="proof__title">{type === 'PGP' ? 'Claim your coins with PGP' : 'Claim your coins with SSH'}</div>
+              className="proof__title">{title}</div>
             <div className="proof__close-btn" onClick={onClose}>
               ✕
             </div>
@@ -99,14 +151,77 @@ export default class ProofModal extends Component {
           {this.renderInfoBox()}
           <div className="proof__content">
             <Alert type="error" message={this.state.errorMessage} />
-            {this.renderPGP(type)}
+            {
+              this.state.generateProofInBob
+                ? this.renderWizard()
+                : this.renderManual(type)
+            }
           </div>
         </div>
       </Modal>
     );
   }
 
-  renderPGP(type) {
+  renderWizard() {
+    const { type, claims } = this.props
+
+    if (type === 'Faucet') {
+      return (
+        <React.Fragment>
+          <div>
+            Your coins are waiting for you! Import your seed phrase when creating a new wallet.
+          </div>
+        </React.Fragment>
+      )
+    }
+
+    switch (this.state.currentStep) {
+      case STEP_PRIVATE_KEY:
+        return (
+          <StepPrivateKey
+            currentStep={STEP_PRIVATE_KEY}
+            totalSteps={TOTAL_STEPS}
+            keyType={type}
+            onNext={(privKey, isFile, passphrase, pgpKeyId) => this.setState({ currentStep: STEP_HNS_ADDRESS, privKey, isFile, passphrase, pgpKeyId })}
+            skipProofGeneration={() => this.setState({ generateProofInBob: false })}
+          />
+        )
+      case STEP_HNS_ADDRESS:
+        return (
+          <StepHnsAddress
+            currentStep={STEP_HNS_ADDRESS}
+            totalSteps={TOTAL_STEPS}
+            onBack={() => this.setState({ currentStep: STEP_PRIVATE_KEY })}
+            onNext={(hnsAddr) => {
+              this.setState({ currentStep: STEP_GENERATING, hnsAddr }, this.searchForAirdropProofs)
+            }}
+          />
+        )
+      case STEP_GENERATING:
+        return (
+          <StepGenerating
+            currentStep={STEP_GENERATING}
+            totalSteps={TOTAL_STEPS}
+            onBack={() => this.setState({ currentStep: STEP_PRIVATE_KEY })}
+            onNext={() => this.setState({ currentStep: STEP_PROOFS })}
+            claims={claims}
+          />
+        )
+      case STEP_PROOFS:
+        return (
+          <StepProofs
+            currentStep={STEP_PROOFS}
+            totalSteps={TOTAL_STEPS}
+            onBack={() => this.setState({ currentStep: STEP_GENERATING }, this.searchForAirdropProofs)}
+            onNext={this.onSubmit}
+            claims={claims}
+            isUploading={this.state.isUploading}
+          />
+        )
+    }
+  }
+
+  renderManual(type) {
     let command = '';
 
     if (type === 'PGP') {
@@ -122,7 +237,7 @@ export default class ProofModal extends Component {
         <div className="proof__step">
           <div className="proof__step-title">
             <span className="proof__step-title--bolded">Step 1:</span>
-            <span>Install hs-airdrop.</span>
+            <span>Install <Anchor href='https://github.com/handshake-org/hs-airdrop' target="_blank">hs-airdrop</Anchor>.</span>
           </div>
           <div className="proof__step-description">
             Head on over to <a onClick={() => shell.openExternal('https://github.com/handshake-org/hs-airdrop')}>hs-airdrop on GitHub</a>, and
@@ -162,15 +277,18 @@ export default class ProofModal extends Component {
             />
           </div>
         </div>
-        <div className="proof__footer">
+        <div className="proof-modal__footer">
           <button
-            className="proof__details-btn"
-            onClick={() => shell.openExternal('https://github.com/handshake-org/hs-airdrop')}
+            className="proof-modal__footer__secondary-cta"
+            onClick={() => this.setState({ generateProofInBob: true })}
           >
-            See full details
+            Use Claim Wizard
           </button>
-          <button className="proof__submit-btn" onClick={this.onSubmit}
-                  disabled={this.isDisabled() || this.state.isUploading}>
+          <button
+            className="extension_cta_button create_cta"
+            onClick={this.onSubmit}
+            disabled={this.isDisabled() || this.state.isUploading}
+          >
             {this.state.isUploading ? 'Uploading...' : 'Claim Coins'}
           </button>
         </div>
