@@ -20,6 +20,7 @@ export default class StepPrivateKey extends Component {
     super(props);
     this.state = {
       privKey: "",
+      privKeyFilePath: "",
       privKeyIsFile: false,
       isKeyEncrypted: false,
       passphrase: "",
@@ -31,7 +32,7 @@ export default class StepPrivateKey extends Component {
     if (!this.canGoToNext()) return;
 
     this.props.onNext(
-      this.state.privKey,
+      this.state.privKeyIsFile ? this.state.privKeyFilePath : this.state.privKey,
       this.state.privKeyIsFile,
       this.state.passphrase,
       this.props.keyType === "PGP" ? this.state.pgpKeyId : null
@@ -39,8 +40,9 @@ export default class StepPrivateKey extends Component {
   };
 
   isValidPrivKey = (privKey = null) => {
-    if (this.state.privKeyIsFile)
+    if (this.state.privKeyIsFile) {
       return this.state.privKey && !!this.state.privKey.length;
+    }
 
     if (!privKey) privKey = this.state.privKey;
     privKey = privKey.trim();
@@ -91,8 +93,17 @@ export default class StepPrivateKey extends Component {
 
     if (!filepath) return;
 
-    this.setState({
-      privKey: filepath,
+    fs.readFile(filepath, 'utf-8', (err, data) => {
+      if(err){
+        return;
+      }
+
+      // Change how to handle the file content
+      this.setState({
+        privKey: data,
+        privKeyFilePath: filepath,
+        privKeyIsFile: true,
+      });
     });
   }
 
@@ -143,43 +154,26 @@ export default class StepPrivateKey extends Component {
             <div className="proof-modal__body-text">
               These are used offline and never leave your computer.
               <br />
-              Or,{" "}
-              <span
-                className="proof-modal__body-text__link"
-                onClick={skipProofGeneration}
-              >
-                generate proofs outside Bob.
-              </span>
             </div>
 
             {/* Private Key */}
             <div className="step_privKey__privKey">
-              {privKeyIsFile ? (
-                <div>
-                  <button onClick={() => this.onPrivKeyFileSelect(keyType)}>
-                    Open File
-                  </button>
-                  <span>{privKey}</span>
-                </div>
-              ) : (
+              <div className="step_privKey__privKey__header">
+                <button onClick={() => this.onPrivKeyFileSelect(keyType)}>
+                  Select File
+                </button>
+              </div>
+              <div className="step_privKey__privKey__content">
                 <textarea
                   placeholder={placeholder}
                   value={privKey}
                   onChange={this.onChange("privKey")}
                   autoFocus
-                ></textarea>
-              )}
+                  autoCorrect={false}
+                  autoComplete={false}
+                />
+              </div>
             </div>
-
-            {/* Switch between text and file inputs */}
-            <p
-              className="step_privKey__toggle_key_src"
-              onClick={() =>
-                this.setState({ privKeyIsFile: !privKeyIsFile, privKey: "" })
-              }
-            >
-              {privKeyIsFile ? "Paste key" : "Select file"} instead...
-            </p>
 
             {/* PGP Key ID */}
             {keyType === "PGP" ? (
@@ -231,6 +225,12 @@ export default class StepPrivateKey extends Component {
           </Submittable>
         </div>
         <div className="proof-modal__footer">
+          <button
+            className="proof-modal__footer__secondary-cta"
+            onClick={skipProofGeneration}
+          >
+            Manual Instruction
+          </button>
           <button
             className="extension_cta_button create_cta"
             onClick={this.onSubmit}

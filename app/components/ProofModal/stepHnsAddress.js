@@ -70,6 +70,12 @@ export default class StepHnsAddress extends Component {
         </div>
         <div className="proof-modal__footer">
           <button
+            className="proof-modal__footer__secondary-cta"
+            onClick={this.props.onBack}
+          >
+            Back
+          </button>
+          <button
             className="extension_cta_button create_cta"
             onClick={this.onSubmit}
             disabled={this.state.hnsAddr.length === 0}

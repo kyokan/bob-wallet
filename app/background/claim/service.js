@@ -11,10 +11,13 @@ export async function airdropGenerateProofs(options) {
   });
 }
 
+airdropGenerateProofs.suppressLogging = true;
+
 const sName = "Claim";
 const methods = {
   airdropGenerateProofs,
 };
+
 
 export function start(server) {
   server.withService(sName, methods);
