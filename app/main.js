@@ -26,11 +26,11 @@ if (
   require('electron-debug')();
 }
 
-if (process.env.NODE_ENV === 'development' && process.platform === 'win32') {
+if (process.env.NODE_ENV === 'development' && (process.platform === 'win32' || process.platform === 'linux')) {
   app.setAsDefaultProtocolClient('bob', process.execPath, [
     path.resolve(path.join(app.getAppPath(), 'dist', 'main.js')),
   ]);
-} else if (process.platform === 'win32') {
+} else if (process.platform === 'win32' || process.platform === 'linux') {
   app.setAsDefaultProtocolClient('bob', process.execPath, [
     path.resolve(path.join(app.getAppPath(), 'main.js')),
   ]);
@@ -56,7 +56,7 @@ if (isPrimaryInstance) {
 
     // Protocol handler for win32
     // argv: An array of the second instance’s (command line / deep linked) arguments
-    if (process.platform === 'win32') {
+    if (process.platform === 'win32' || process.platform === 'linux') {
       // Keep only command line / deep linked arguments
       deeplinkingUrl = argv[argv.length - 1];
     }
