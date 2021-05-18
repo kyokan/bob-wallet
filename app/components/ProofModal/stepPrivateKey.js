@@ -20,6 +20,8 @@ export default class StepPrivateKey extends Component {
     super(props);
     this.state = {
       privKey: "",
+      privKeyFilePath: "",
+      privKeyIsFile: false,
       isKeyEncrypted: false,
       passphrase: "",
       pgpKeyId: "",
@@ -30,13 +32,18 @@ export default class StepPrivateKey extends Component {
     if (!this.canGoToNext()) return;
 
     this.props.onNext(
-      this.state.privKey,
+      this.state.privKeyIsFile ? this.state.privKeyFilePath : this.state.privKey,
+      this.state.privKeyIsFile,
       this.state.passphrase,
       this.props.keyType === "PGP" ? this.state.pgpKeyId : null
     );
   };
 
   isValidPrivKey = (privKey = null) => {
+    if (this.state.privKeyIsFile) {
+      return this.state.privKey && !!this.state.privKey.length;
+    }
+
     if (!privKey) privKey = this.state.privKey;
     privKey = privKey.trim();
 
@@ -94,6 +101,8 @@ export default class StepPrivateKey extends Component {
       // Change how to handle the file content
       this.setState({
         privKey: data,
+        privKeyFilePath: filepath,
+        privKeyIsFile: true,
       });
     });
   }
@@ -123,6 +132,7 @@ export default class StepPrivateKey extends Component {
 
     const {
       privKey,
+      privKeyIsFile,
       pgpKeyId,
       isKeyEncrypted,
       passphrase,

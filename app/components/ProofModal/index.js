@@ -182,7 +182,7 @@ export default class ProofModal extends Component {
             currentStep={STEP_PRIVATE_KEY}
             totalSteps={TOTAL_STEPS}
             keyType={type}
-            onNext={(privKey, passphrase, pgpKeyId) => this.setState({ currentStep: STEP_HNS_ADDRESS, privKey, passphrase, pgpKeyId })}
+            onNext={(privKey, isFile, passphrase, pgpKeyId) => this.setState({ currentStep: STEP_HNS_ADDRESS, privKey, isFile, passphrase, pgpKeyId })}
             skipProofGeneration={() => this.setState({ generateProofInBob: false })}
           />
         )
