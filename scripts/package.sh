@@ -16,3 +16,4 @@ $DIR/node_modules/.bin/babel $DIR/app/db -d ./dist/db
 $DIR/node_modules/.bin/babel $DIR/app/utils -d ./dist/utils
 $DIR/node_modules/.bin/babel $DIR/app/ducks/walletReducer.js -o ./dist/ducks/walletReducer.js
 $DIR/node_modules/.bin/babel $DIR/app/ducks/nodeReducer.js -o ./dist/ducks/nodeReducer.js
+$DIR/node_modules/.bin/babel $DIR/app/ducks/claims.js -o ./dist/ducks/claims.js
