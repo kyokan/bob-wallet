@@ -21,6 +21,8 @@ const ledgerClient = lClientStub(() => require('electron').ipcRenderer);
 }))
 class ConnectLedger extends React.Component {
   static propTypes = {
+    walletName: PropTypes.string.isRequired,
+    passphrase: PropTypes.string.isRequired,
     onBack: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,
     completeInitialization: PropTypes.func.isRequired,
@@ -65,8 +67,8 @@ class ConnectLedger extends React.Component {
     // set a small timeout to clearly show that this is
     // a two-phase process.
     setTimeout(async () => {
-      await walletClient.createNewWallet('Ledger', xpub, true);
-      await this.props.completeInitialization('Ledger');
+      await walletClient.createNewWallet(this.props.walletName, xpub, true);
+      await this.props.completeInitialization(this.props.walletName);
       this.props.history.push('/account');
     }, 2000);
   };

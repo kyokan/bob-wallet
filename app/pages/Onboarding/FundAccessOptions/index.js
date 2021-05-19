@@ -41,13 +41,6 @@ class FundAccessOptions extends Component {
           >
             Import a wallet
           </button>
-          <button
-            type="button"
-            className="funding-options__footer__secondary-btn"
-            onClick={() => this.props.history.push('/connect-ledger')}
-          >
-            Connect Ledger
-          </button>
 
           {!!this.props.wallets.length && (
             <Link

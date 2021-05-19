@@ -1,0 +1,36 @@
+@import "../../../variables";
+
+.hw-selection {
+  @extend %col-nowrap;
+  height: 100%;
+  width: 400px;
+
+  &__header_text {
+    @extend %header_text;
+    margin-bottom: 1rem;
+  }
+
+  &__cancel {
+    @extend %link;
+    flex: 1 0 auto;
+    text-align: right;
+    font-size: 0.8rem;
+  }
+
+  &__content {
+    @extend %col-nowrap;
+    padding: 1.25rem 1.875rem;
+    flex: 1 1 auto;
+  }
+
+  &__body-text {
+    color: $manatee-gray;
+    font-size: 0.875rem;
+    line-height: 1.125rem;
+    margin-bottom: 1rem;
+  }
+
+  &__select-container {
+    @extend %col-nowrap;
+  }
+}

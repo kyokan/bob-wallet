@@ -243,23 +243,9 @@ class App extends Component {
 
   uninitializedWrapper(Component, isMainMenu = false, autoHeight = false, autoWidth = false) {
     const {history, isRunning} = this.props;
-    if (isMainMenu) {
-      return () => (
-        <div className="app__uninitialized-wrapper">
-          <AppHeader isMainMenu />
-          <div className={c('app__uninitialized', {
-            'app__uninitialized--auto-height': autoHeight,
-            'app__uninitialized--auto-width': autoWidth,
-          })}>
-            <Component />
-          </div>
-        </div>
-      );
-    }
-
     return () => (
       <div className="app__uninitialized-wrapper">
-        <AppHeader />
+        <AppHeader isMainMenu={isMainMenu} />
         <div className={c('app__uninitialized', {
           'app__uninitialized--auto-height': autoHeight,
           'app__uninitialized--auto-width': autoWidth,

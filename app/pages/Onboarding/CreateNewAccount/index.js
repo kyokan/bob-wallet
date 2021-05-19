@@ -4,6 +4,8 @@ import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import Terms from '../Terms/index';
 import CreatePassword from '../CreatePassword/index';
+import HardwareWalletSelection from "../HardwareWalletSelection/index";
+import ConnectLedger from "../ConnectLedger/index";
 import BackUpSeedWarning from '../BackUpSeedWarning/index';
 import CopySeed from '../../CopySeed/index';
 import ConfirmSeed from '../ConfirmSeed/index';
@@ -18,12 +20,14 @@ import { clientStub as aClientStub } from '../../../background/analytics/client'
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
 const TERMS_OF_USE = 0;
-const CREATE_PASSWORD = 1;
-const BACK_UP_SEED_WARNING = 2;
-const COPY_SEEDPHRASE = 3;
-const CONFIRM_SEEDPHRASE = 4;
-const OPT_IN_ANALYTICS = 5;
-const SET_NAME = 6;
+const SET_NAME = 1;
+const CREATE_PASSWORD = 2;
+const OPT_IN_ANALYTICS = 3;
+const HARDWARE_WALLET_SELECTION = 4;
+const BACK_UP_SEED_WARNING = 5;
+const COPY_SEEDPHRASE = 6;
+const CONFIRM_SEEDPHRASE = 7;
+const LEDGER_CONNECT = 8;
 
 class CreateNewAccount extends Component {
   static propTypes = {
@@ -33,8 +37,10 @@ class CreateNewAccount extends Component {
 
   state = {
     currentStep: TERMS_OF_USE,
+    name: '',
     seedphrase: '',
     passphrase: '',
+    isLedgerWallet: false,
     isLoading: false,
   };
 
@@ -44,7 +50,7 @@ class CreateNewAccount extends Component {
         return (
           <Terms
             currentStep={0}
-            totalSteps={5}
+            totalSteps={6}
             onAccept={() => this.setState({currentStep: SET_NAME})}
             onBack={() => this.props.history.push('/funding-options')}
           />
@@ -53,7 +59,7 @@ class CreateNewAccount extends Component {
         return (
           <SetName
             currentStep={1}
-            totalSteps={5}
+            totalSteps={6}
             onBack={() => this.setState({currentStep: TERMS_OF_USE})}
             onNext={(name) => {
               this.setState({currentStep: CREATE_PASSWORD, name});
@@ -65,13 +71,15 @@ class CreateNewAccount extends Component {
         return (
           <CreatePassword
             currentStep={2}
-            totalSteps={5}
-            onBack={() => this.setState({
-              currentStep: SET_NAME
-            })}
+            totalSteps={6}
+            onBack={() =>
+              this.setState({
+                currentStep: SET_NAME,
+              })
+            }
             onNext={async (passphrase) => {
               const optInState = await analytics.getOptIn();
-              let currentStep = BACK_UP_SEED_WARNING;
+              let currentStep = HARDWARE_WALLET_SELECTION;
               if (optInState === 'NOT_CHOSEN') {
                 currentStep = OPT_IN_ANALYTICS;
               }
@@ -85,27 +93,61 @@ class CreateNewAccount extends Component {
         return (
           <OptInAnalytics
             currentStep={3}
-            totalSteps={5}
+            totalSteps={6}
             onBack={() => this.setState({currentStep: CREATE_PASSWORD})}
             onNext={async (optInState) => {
               await analytics.setOptIn(optInState);
-              this.setState({currentStep: BACK_UP_SEED_WARNING});
+              this.setState({ currentStep: HARDWARE_WALLET_SELECTION });
             }}
+            onCancel={() => this.props.history.push('/funding-options')}
+          />
+        );
+      case HARDWARE_WALLET_SELECTION:
+        return (
+          <HardwareWalletSelection
+            currentStep={4}
+            totalSteps={6}
+            onBack={() => this.setState({ currentStep: CREATE_PASSWORD })}
+            onNext={async (isLedgerWallet) => {
+              this.setState({
+                currentStep: isLedgerWallet
+                  ? LEDGER_CONNECT
+                  : BACK_UP_SEED_WARNING,
+                isLedgerWallet,
+              });
+            }}
+            onCancel={() => this.props.history.push('/funding-options')}
+          />
+        );
+      case LEDGER_CONNECT:
+        return (
+          <ConnectLedger
+            walletName={this.state.name}
+            passphrase={this.state.passphrase}
+            onBack={() =>
+              this.setState({ currentStep: HARDWARE_WALLET_SELECTION })
+            }
             onCancel={() => this.props.history.push('/funding-options')}
           />
         );
       case BACK_UP_SEED_WARNING:
         return (
           <BackUpSeedWarning
-            currentStep={4}
-            totalSteps={5}
-            onBack={() => this.setState({currentStep: CREATE_PASSWORD})}
+            currentStep={5}
+            totalSteps={6}
+            onBack={() =>
+              this.setState({ currentStep: HARDWARE_WALLET_SELECTION })
+            }
             onNext={async () => {
-              this.setState({isLoading: true});
+              this.setState({ isLoading: true });
               await walletClient.createNewWallet(this.state.name);
               const masterHDKey = await walletClient.getMasterHDKey();
               await walletClient.setPassphrase(this.state.passphrase);
-              this.setState({currentStep: COPY_SEEDPHRASE, seedphrase: masterHDKey.mnemonic.phrase, isLoading: false});
+              this.setState({
+                currentStep: COPY_SEEDPHRASE,
+                seedphrase: masterHDKey.mnemonic.phrase,
+                isLoading: false,
+              });
             }}
             onCancel={() => this.props.history.push('/funding-options')}
             isLoading={this.state.isLoading}
@@ -114,23 +156,26 @@ class CreateNewAccount extends Component {
       case COPY_SEEDPHRASE:
         return (
           <CopySeed
-            currentStep={5}
-            totalSteps={5}
+            currentStep={6}
+            totalSteps={6}
             seedphrase={this.state.seedphrase}
-            onBack={() => this.setState({currentStep: BACK_UP_SEED_WARNING})}
-            onNext={() => this.setState({currentStep: CONFIRM_SEEDPHRASE})}
+            onBack={() => this.setState({ currentStep: BACK_UP_SEED_WARNING })}
+            onNext={() => this.setState({ currentStep: CONFIRM_SEEDPHRASE })}
             onCancel={() => this.props.history.push('/funding-options')}
           />
         );
       case CONFIRM_SEEDPHRASE:
         return (
           <ConfirmSeed
-            currentStep={5}
-            totalSteps={5}
+            currentStep={6}
+            totalSteps={6}
             seedphrase={this.state.seedphrase}
-            onBack={() => this.setState({currentStep: COPY_SEEDPHRASE})}
+            onBack={() => this.setState({ currentStep: COPY_SEEDPHRASE })}
             onNext={async () => {
-              await this.props.completeInitialization(this.state.name, this.state.passphrase);
+              await this.props.completeInitialization(
+                this.state.name,
+                this.state.passphrase
+              );
               this.props.history.push('/account');
             }}
             onCancel={() => this.props.history.push('/funding-options')}
@@ -147,8 +192,9 @@ export default withRouter(
     (state) => ({
       network: state.node.network,
     }),
-    dispatch => ({
-      completeInitialization: (name, passphrase) => dispatch(walletActions.completeInitialization(name, passphrase)),
-    }),
-  )(CreateNewAccount),
+    (dispatch) => ({
+      completeInitialization: (name, passphrase) =>
+        dispatch(walletActions.completeInitialization(name, passphrase)),
+    })
+  )(CreateNewAccount)
 );
