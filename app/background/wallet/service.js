@@ -179,11 +179,11 @@ class WalletService {
     await this.node.wdb.remove(wid);
     this.setWallet(this.name === wid ? null : this.name);
 
-    const wids = await this.listWallets();
+    const wallets = await this.listWallets(false, true);
 
     dispatchToMainWindow({
       type: SET_WALLETS,
-      payload: wids,
+      payload: createPayloadForSetWallets(wallets),
     });
   };
 
@@ -209,10 +209,10 @@ class WalletService {
       res = await this.client.createWallet(this.name, options);
     }
 
-    const wids = await this.listWallets();
+    const wallets = await this.listWallets(false, true);
     dispatchToMainWindow({
       type: SET_WALLETS,
-      payload: uniq([...wids, name]),
+      payload: createPayloadForSetWallets(wallets, name),
     });
 
     return res;
@@ -257,11 +257,11 @@ class WalletService {
     };
 
     const res = await this.client.createWallet(this.name, options);
-    const wids = await this.listWallets();
+    const wallets = await this.listWallets(false, true);
 
     dispatchToMainWindow({
       type: SET_WALLETS,
-      payload: uniq([...wids, name]),
+      payload: createPayloadForSetWallets(wallets, name),
     });
 
     return res;
@@ -725,7 +725,7 @@ class WalletService {
    * List Wallet IDs (exclude unencrypted wallets)
    * @return {Promise<[string]>}
    */
-  listWallets = async (includeUnencrypted = false) => {
+  listWallets = async (includeUnencrypted = false, returnObjects = false) => {
     await this._ensureClient();
 
     const wdb = this.node.wdb;
@@ -736,7 +736,11 @@ class WalletService {
       const info = await wdb.get(wid);
       const {master: {encrypted}, watchOnly} = info;
       if (includeUnencrypted === true || encrypted || watchOnly) {
-        ret.push(wid);
+        if (returnObjects) {
+          ret.push({ wid, encrypted, watchOnly });
+        } else {
+          ret.push(wid);
+        }
       }
     }
 
@@ -798,11 +802,11 @@ class WalletService {
 
     this.client = new WalletClient(walletOptions);
     await this.refreshNodeInfo();
-    const wids = await this.listWallets();
+    const wallets = await this.listWallets(false, true);
 
     dispatchToMainWindow({
       type: SET_WALLETS,
-      payload: wids,
+      payload: createPayloadForSetWallets(wallets),
     });
     await this.refreshWalletInfo();
   };
@@ -1325,4 +1329,19 @@ function enforce(value, msg) {
     err.statusCode = 400;
     throw err;
   }
+}
+
+function createPayloadForSetWallets(wallets, addName = null) {
+  let wids = wallets.map((wallet) => wallet.wid);
+  if (addName !== null) {
+    wids = uniq([...wids, addName]);
+  }
+
+  return {
+    wallets: wids,
+    walletsDetails: wallets.reduce((obj, wallet) => {
+      obj[wallet.wid] = wallet;
+      return obj;
+    }, {}), // array of objects to a single object with wid as key
+  };
 }

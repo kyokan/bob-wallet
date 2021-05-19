@@ -13,6 +13,7 @@ import walletClient from "../../utils/walletClient";
 @connect(
   (state) => ({
     wallets: state.wallet.wallets,
+    walletsDetails: state.wallet.walletsDetails,
   }),
   dispatch => ({
     unlockWallet: (name, passphrase) => dispatch(walletActions.unlockWallet(name, passphrase)),
@@ -58,6 +59,7 @@ export default class AccountLogin extends Component {
     }
 
     const currWallet = this.props.wallets[this.state.chosenWallet];
+    const isLedgerWallet = this.props.walletsDetails[currWallet].watchOnly;
 
     return (
       <div className="login">
@@ -69,7 +71,7 @@ export default class AccountLogin extends Component {
             onChange={(i) => this.setState({chosenWallet: i})}
           />
           <div>
-            {currWallet !== 'Ledger' && (
+            {!isLedgerWallet && (
               <input
                 className={c('login_password_input', {
                   'login_password_input--error': showError,

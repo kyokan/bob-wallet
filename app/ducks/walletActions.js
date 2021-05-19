@@ -29,6 +29,7 @@ let idleInterval;
 export const setWallet = opts => {
   const {
     wid = '',
+    watchOnly = false,
     initialized = false,
     address = '',
     type = NONE,
@@ -42,6 +43,7 @@ export const setWallet = opts => {
     type: SET_WALLET,
     payload: {
       wid,
+      watchOnly,
       initialized,
       address,
       type,
@@ -105,6 +107,7 @@ export const fetchWallet = () => async (dispatch, getState) => {
 
   dispatch(setWallet({
     wid: accountInfo ? accountInfo.wid : '',
+    watchOnly: accountInfo ? accountInfo.watchOnly : false,
     initialized: isInitialized,
     address: accountInfo && accountInfo.receiveAddress,
     type: NONE,
@@ -305,7 +308,7 @@ export const resetIdle = () => ({
 });
 
 export const getPassphrase = (resolve, reject) => async (dispatch, getState) => {
-  if (getState().wallet.wid === 'Ledger') {
+  if (getState().wallet.watchOnly === true) {
     resolve();
     return;
   }
@@ -340,11 +343,14 @@ export const watchActivity = () => dispatch => {
 };
 
 export const listWallets = () => async (dispatch) => {
-  const wallets = await walletClient.listWallets();
+  const wallets = await walletClient.listWallets(false, true);
 
   dispatch({
     type: SET_WALLETS,
-    payload: wallets,
+    payload: {
+      wallets: wallets.map(wallet => wallet.wid),
+      walletsDetails: wallets.reduce((obj, wallet) => {obj[wallet.wid] = wallet; return obj}, {}), // array of objects to object with wid as key
+    },
   });
 };
 
