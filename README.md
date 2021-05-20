@@ -16,30 +16,7 @@ Note: this screenshot is unlikely to age well but the filetypes are highlighted 
 
 * OSX: .dmg
 * Windows: .msi
-
-### Linux
-
-While not officially supported, you may wish to create a production build for your Linux machine.
-
-```bash
-git clone https://github.com/kyokan/bob-wallet
-cd bob-wallet; npm install
-```
-
-Optionally, test it works before building:
-
-```bash
-npm run dev
-```
-
-Lastly, build the app package:
-
-```bash
-npm run package-linux
-``` 
-
-The output app will be created in the `/release` folder. Open `Bob-x.x.x.AppImage` to start the wallet.
-
+* Linux: See [Building from source](#building-from-source)
 
 ## Features
 
@@ -66,6 +43,51 @@ If you are an individual developer looking to add a feature, fix a bug, or creat
 ### Building From Source
 
 Please see this [guide](https://gist.github.com/pinheadmz/314aed5123d29cb89bfc6a7db9f4d02e), courtesy of [@pinheadmz](https://github.com/pinheadmz).  It explains how to get set up in dev mode, and includes some helpful tips like (i) how to tail log output and (ii) how one can have a "personal mainnet" Bob while developing on a different Bob instance.
+
+Due to Ledger USB integration, additional dependencies are required:
+
+#### OSX
+
+```bash
+brew install libusb
+git clone https://github.com/kyokan/bob-wallet
+cd bob-wallet
+npm install
+```
+
+Build the app package:
+
+```bash
+npm run package
+```
+
+The output app will be created in the `/release/mac` folder. Open `Bob.app` to start the wallet.
+
+
+#### Linux
+
+```bash
+apt-get install libusb-dev libudev-dev
+git clone https://github.com/kyokan/bob-wallet
+cd bob-wallet
+npm install
+```
+
+Build the app package:
+
+```bash
+npm run package-linux
+``` 
+
+The output app will be created in the `/release` folder. Open `Bob-x.x.x.AppImage` to start the wallet.
+
+
+#### Test in development mode
+
+```bash
+npm run dev
+```
+
 
 ## Reporting Issues
 
