@@ -1095,6 +1095,14 @@ class WalletService {
               });
               await device.open();
               const ledger = new LedgerHSD({device, network: this.networkName});
+
+              // Ensure the correct device is connected.
+              // This assumes everything in our world is "default" account (0).
+              const {accountKey} = await this.getAccountInfo();
+              const deviceKey = await ledger.getAccountXPUB(0);
+              if (accountKey !== deviceKey.xpubkey(this.network))
+                throw new Error('Ledger public key does not match wallet. (Wrong device?)')
+
               const retMtx = await ledger.signTransaction(mtx, options);
               retMtx.check();
 
