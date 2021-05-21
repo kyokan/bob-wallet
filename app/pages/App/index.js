@@ -137,7 +137,7 @@ class App extends Component {
           <Route path="/funding-options" render={this.uninitializedWrapper(FundAccessOptions, true)} />
           <Route path="/existing-options" render={this.uninitializedWrapper(ExistingAccountOptions)} />
           <Route
-            path="/new-wallet"
+            path="/new-wallet/:loc"
             render={this.uninitializedWrapper(
               CreateNewAccount,
               false,
