@@ -1,4 +1,5 @@
 const {aes, bcrypt} = require('bcrypto');
+const {randomBytes} = require('crypto');
 
 const iv = Buffer.from('4175e1b983206d61e1b98769207061646d652068c5abe1b983', 'hex').slice(0, 16);
 
@@ -10,4 +11,13 @@ export function encrypt(text, password) {
 export function decrypt(ciphertext, password) {
   const key = bcrypt.hash256(password, null, 4);
   return aes.decipher(Buffer.from(ciphertext, 'hex'), key, iv).toString('utf-8');
+}
+
+export function generateBcryptHash(password) {
+  const salt = randomBytes(16);
+  return bcrypt.generate(password, salt, 10);
+}
+
+export function verifyBcryptHash(password, hash) {
+  return bcrypt.verify(password, hash);
 }

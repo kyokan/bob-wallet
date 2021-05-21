@@ -194,7 +194,7 @@ class WalletService {
 
     let res;
     if (isLedger) {
-      res = this.client.createWallet(name, {
+      res = await this.client.createWallet(name, {
         watchOnly: true,
         accountKey: passphraseOrXPub,
       });
