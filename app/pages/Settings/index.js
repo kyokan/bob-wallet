@@ -32,7 +32,6 @@ const {dialog} = require('electron').remote;
 import {clientStub as sClientStub} from "../../background/shakedex/client";
 import ChangeDirectoryModal from "./ChangeDirectoryModal";
 import dbClient from "../../utils/dbClient";
-import { deleteWalletPassHash } from '../../db/system';
 import {clientStub} from "../../background/node/client";
 import APIKeyModal from "./APIKeyModal";
 
@@ -496,7 +495,6 @@ export default class Settings extends Component {
               <InterstitialWarningModal
                 nextAction={async () => {
                   await walletClient.removeWalletById(this.props.wid);
-                  await deleteWalletPassHash(this.props.wid);
                   this.props.history.push('/login');
                 }}
                 nextRoute="/"

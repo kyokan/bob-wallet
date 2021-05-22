@@ -5,8 +5,6 @@ import PropTypes from 'prop-types';
 import { clientStub as lClientStub } from '../../../background/ledger/client';
 import walletClient from '../../../utils/walletClient';
 import { connect } from 'react-redux';
-import { generateBcryptHash } from "../../../utils/encrypt";
-import { setWalletPassHash } from '../../../db/system';
 import * as walletActions from '../../../ducks/walletActions';
 import DefaultConnectLedgerSteps from '../../../components/ConnectLedgerStep/defaultSteps';
 import './connect.scss';
@@ -69,8 +67,6 @@ class ConnectLedger extends React.Component {
     // set a small timeout to clearly show that this is
     // a two-phase process.
     setTimeout(async () => {
-      const passHash = generateBcryptHash(this.props.passphrase);
-      await setWalletPassHash(this.props.walletName, passHash);
       await walletClient.createNewWallet(this.props.walletName, xpub, true);
       await this.props.completeInitialization(this.props.walletName);
       this.props.history.push('/account');

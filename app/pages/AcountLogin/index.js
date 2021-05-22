@@ -9,8 +9,6 @@ import { Link, Redirect } from 'react-router-dom';
 import Dropdown from '../../components/Dropdown';
 import { withRouter } from 'react-router';
 import walletClient from "../../utils/walletClient";
-import { getWalletPassHash } from '../../db/system';
-import { verifyBcryptHash } from '../../utils/encrypt';
 
 @connect(
   (state) => ({
@@ -41,19 +39,6 @@ export default class AccountLogin extends Component {
   async handleLogin(passphrase) {
     try {
       const walletName = this.props.wallets[this.state.chosenWallet];
-      const isLedgerWallet = this.props.walletsDetails[walletName].watchOnly;
-
-      // For ledger, verify password only if hash is stored.
-      if (isLedgerWallet) {
-        const expectedHash = await getWalletPassHash(walletName);
-        if (expectedHash !== null) {
-          const isValid = await verifyBcryptHash(passphrase, expectedHash);
-          if(!isValid) {
-            throw new Error('Invalid password.');
-          }
-        }
-      }
-
       await this.props.unlockWallet(
         walletName,
         passphrase,
