@@ -187,7 +187,7 @@ class WalletService {
     });
   };
 
-  createNewWallet = async (name, passphraseOrXPub, isLedger) => {
+  createNewWallet = async (name, passphrase, isLedger, xPub) => {
     await this._ensureClient();
     this.setWallet(name);
     this.didSelectWallet = false;
@@ -195,13 +195,14 @@ class WalletService {
     let res;
     if (isLedger) {
       res = await this.client.createWallet(name, {
+        passphrase: passphrase,
         watchOnly: true,
-        accountKey: passphraseOrXPub,
+        accountKey: xPub,
       });
     } else {
       const mnemonic = new Mnemonic({bits: 256});
       const options = {
-        passphrase: passphraseOrXPub,
+        passphrase: passphrase,
         watchOnly: false,
         mnemonic: mnemonic.getPhrase().trim(),
       };
@@ -496,7 +497,7 @@ class WalletService {
   );
 
   lock = () => this._ledgerProxy(
-    () => null,
+    () => this.client.lock(this.name),
     () => this.client.lock(this.name),
     false
   );
@@ -504,7 +505,7 @@ class WalletService {
   unlock = (name, passphrase) => {
     this.setWallet(name);
     return this._ledgerProxy(
-      () => null,
+      () => this.client.unlock(this.name, passphrase),
       () => this.client.unlock(this.name, passphrase),
       false
     );
