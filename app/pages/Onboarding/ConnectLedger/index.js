@@ -8,6 +8,8 @@ import { connect } from 'react-redux';
 import * as walletActions from '../../../ducks/walletActions';
 import DefaultConnectLedgerSteps from '../../../components/ConnectLedgerStep/defaultSteps';
 import './connect.scss';
+import {LEDGER_MINIMUM_VERSION} from '../../../constants/ledger';
+import semver from 'semver';
 
 const ledgerClient = lClientStub(() => require('electron').ipcRenderer);
 
@@ -47,6 +49,18 @@ class ConnectLedger extends React.Component {
     let xpub;
 
     try {
+      const appVersion = await ledgerClient.getAppVersion(this.props.network);
+      console.log(`HNS Ledger app verison is ${appVersion}, minimum is ${LEDGER_MINIMUM_VERSION}`);
+      if (!semver.gte(appVersion, LEDGER_MINIMUM_VERSION)) {
+        this.setState({
+          isLoading: false,
+          isCreating: false,
+          errorMessage:
+            `Ledger app version ${LEDGER_MINIMUM_VERSION} is required. (${appVersion} installed)`
+        });
+        return;
+      }
+
       xpub = await ledgerClient.getXPub(this.props.network);
     } catch (e) {
       console.error(e);

@@ -44,9 +44,16 @@ export async function getXPub(network) {
   });
 }
 
+export async function getAppVersion(network) {
+  return withLedger(network, async (ledger) => {
+    return ledger.getAppVersion();
+  });
+}
+
 const sName = 'Ledger';
 const methods = {
   getXPub,
+  getAppVersion
 };
 
 export function start(server) {
