@@ -308,7 +308,7 @@ export default withRouter(
     }),
     dispatch => ({
       watchActivity: () => dispatch(walletActions.watchActivity()),
-      startNode: () => dispatch(node.startApp()),
+      startNode: () => dispatch(node.startApp('regtest')),
     })
   )(App),
 );
