@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router';
 import { shell } from 'electron';
 import ProofModal from '../../components/ProofModal/index';
 import './get-coins.scss';
@@ -17,7 +18,7 @@ const Step = ({number, title, paragraph}) => (
   </div>
 );
 
-export default class GetCoins extends Component {
+class GetCoins extends Component {
   state = {
     isShowingGitHubModal: false,
     isShowingPGPModal: false,
@@ -132,7 +133,6 @@ export default class GetCoins extends Component {
         </div>
         <div className="get-coins__right">
           <div className="get-coins__panel">
-            <div className="get-coins__panel__title">Reserved for Top Developers</div>
             <div className="get-coins__panel__offer">
               <div>GitHub Developers</div>
               <div>+ 4,662.598321 HNS</div>
@@ -153,6 +153,13 @@ export default class GetCoins extends Component {
               <div>Seed phrase</div>
               <button onClick={this.openFaucetModal}>Redeem</button>
             </div>
+            <div className="get-coins__panel__offer">
+              <div>Reserved Name Claims</div>
+              <div>+ 503 HNS and up</div>
+              <div>ICANN root zone TLDs</div>
+              <div>Alexa top 100,000</div>
+              <button onClick={() => this.props.history.push('/reserved')}>Claim</button>
+            </div>
           </div>
         </div>
         {this.renderModal()}
@@ -160,3 +167,5 @@ export default class GetCoins extends Component {
     );
   }
 }
+
+export default withRouter(GetCoins);
