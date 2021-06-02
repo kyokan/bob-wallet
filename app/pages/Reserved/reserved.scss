@@ -1,0 +1,67 @@
+@import '../../variables.scss';
+
+.reserved {
+
+  &__table {
+    font-family: monospace;
+    white-space: break-spaces;
+    width: 100%;
+    word-break: break-all;
+
+    td {
+      min-width: 65px;
+    }
+  }
+
+  &__keyList {
+    border: 1px solid black;
+    border-collapse: collapse;
+    margin: 5px;
+
+    td {
+      border: 1px solid black;
+      padding: 5px;
+    }
+  }
+
+  &__error {
+    color: red;
+    text-align: center;
+    margin-bottom: 10px;
+    margin-top: -15px;
+    height: 1rem;
+  }
+
+  &__info-icon {
+    margin-left: 0.5rem;
+    background-image: url(../../assets/images/info.svg);
+    height: 1.125rem;
+    width: 1.125rem;
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0.5;
+    cursor: pointer;
+  }
+
+  &__method {
+    @extend %row-nowrap;
+  }
+
+  &__button {
+    position: absolute;
+    right: 70px;
+  }
+
+  &__txtRecord {
+    font-family: monospace;
+    width: 85%;
+    height: 1rem;
+  }
+
+  &__pasteRRSIG {
+    font-family: monospace;
+    width: 85%;
+    height: 3rem;
+    resize: none;
+  }
+}
