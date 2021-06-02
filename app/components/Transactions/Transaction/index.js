@@ -13,6 +13,7 @@ import { shell } from 'electron';
 
 const RECEIVE = 'RECEIVE';
 const SEND = 'SEND';
+const CLAIM = 'CLAIM';
 const OPEN = 'OPEN';
 const BID = 'BID';
 const REVEAL = 'REVEAL';
@@ -64,6 +65,7 @@ class Transaction extends Component {
         && !tx.pending,
       'transaction__number--neutral':
         (tx.type === UPDATE
+          || tx.type === CLAIM
           || tx.type === RENEW
           || tx.type === OPEN
           || tx.type === TRANSFER
@@ -100,6 +102,9 @@ class Transaction extends Component {
     } else if (tx.type === RECEIVE) {
       description = 'Received Funds';
       content = ellipsify(tx.meta.from, 12);
+    } else if (tx.type === CLAIM) {
+      description = 'Claimed Reserved Name';
+      content = this.formatDomain(tx.meta.domain);
     } else if (tx.type === OPEN) {
       description = 'Opened Auction';
       content = this.formatDomain(tx.meta.domain);
@@ -157,7 +162,7 @@ class Transaction extends Component {
         {' '}
         {
           tx.type === RECEIVE || tx.type === COINBASE || tx.type === REDEEM || tx.type === REVEAL || tx.type === REGISTER ? '+'
-            : tx.type === UPDATE || tx.type === RENEW || tx.type === OPEN || tx.type === FINALIZE ? ''
+            : tx.type === UPDATE || tx.type === RENEW || tx.type === OPEN || tx.type === FINALIZE || tx.type === CLAIM ? ''
             : '-'
         }
         { (tx.type === FINALIZE && tx.value > 0) ? '+': '' }
