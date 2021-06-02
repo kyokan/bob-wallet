@@ -1,25 +1,68 @@
-@import '../../variables.scss';
+@import "../../variables.scss";
 
 .account {
   width: 100%;
   justify-content: stretch;
   overflow-y: auto;
 
-  &__address {
-    @extend %row-nowrap;
-    align-items: center;
-    font-weight: 500;
-    color: $manatee-gray;
-  }
-
   &__header {
     @extend %row-nowrap;
-    padding: 2rem 1.5rem 1rem;
-  }
+    padding: 1rem 0;
+    align-items: center;
+    background: rgba($black, 0.04);
+    border: solid 1px #f1f1f3;
+    overflow-x: auto;
 
-  &__header-section {
-    @extend %col-nowrap;
-    padding: 0 1.5rem;
+    &__section {
+      padding: 0 1rem;
+      flex-shrink: 0;
+
+      // Spendable block
+      &:first-child {
+        text-align: right;
+        border-right: solid 2px rgba($black, 0.5);
+
+        & > .label {
+          visibility: visible;
+        }
+        & > .amount {
+          font-weight: 700;
+        }
+      }
+
+      // First Locked block - show "LOCKED" label
+      &:nth-of-type(2) > .label {
+        visibility: visible;
+      }
+
+      & > .label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        visibility: hidden;
+      }
+
+      & > .amount {
+        margin: 0;
+        font-size: 1.125rem;
+        font-weight: 500;
+        line-height: 1.75rem;
+      }
+
+      & > .subtext {
+        display: inline-block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        line-height: 1.25rem;
+        color: rgba($black, 0.6);
+      }
+    }
+
+    & > .plus {
+      font-size: 1.5rem;
+      line-height: 2rem;
+      font-weight: 500;
+      color: rgba($black, 0.5);
+    }
   }
 
   &__info-icon {
@@ -31,21 +74,6 @@
     background-repeat: no-repeat;
     opacity: 0.5;
     cursor: pointer;
-  }
-
-  &__balance-wrapper {
-    @extend %col-nowrap;
-    flex: 1 0 auto;
-
-    &__label {
-      color: rgba($black, 0.4);
-    }
-
-    &__amount {
-      font-size: 1.6125rem;
-      line-height: 3rem;
-      font-weight: 500;
-    }
   }
 
   &__actions {
@@ -75,16 +103,15 @@
       justify-content: flex-end;
       flex: 1 1 auto;
 
-
       &:before {
-        content: '';
+        content: "";
         display: block;
         height: 0.8rem;
         width: 0.8rem;
         background-size: cover;
         background-position: center;
         margin-right: 4px;
-        background-image: url('../../assets/images/brick-loader.svg');
+        background-image: url("../../assets/images/brick-loader.svg");
       }
     }
   }
@@ -95,7 +122,7 @@
 
   &__panel-title {
     @extend %row-nowrap;
-    font-size: .8125rem;
+    font-size: 0.8125rem;
     font-weight: 500;
     margin: 1rem 3rem 1rem 3rem;
   }
@@ -190,6 +217,69 @@
 
     strong {
       font-weight: 500;
+    }
+  }
+}
+
+.cards {
+  &__container {
+    @extend %row-nowrap;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  &__card {
+    margin-left: 0.6rem;
+    padding: 0.7rem;
+    flex-shrink: 0;
+    border-radius: 0.25rem;
+
+    &--red {
+      background-color: #ffdcdc;
+      border: solid 1px #ff9d9d;
+    }
+
+    &--yellow {
+      background-color: #fff4c6;
+      border: solid 1px #ffcd00;
+    }
+
+    &--green {
+      background-color: #daffda;
+      border: solid 1px #84ff93;
+    }
+
+    button {
+      padding: 1px 0;
+      font-size: 0.65rem;
+      line-height: 1rem;
+      font-weight: 900;
+      color: $black;
+      background-color: transparent;
+      border: none;
+      border-radius: 0.125rem;
+
+      // Clickable buttons
+      &:not(:disabled) {
+        padding: 1px 6px;
+        color: $white;
+        background-color: $black;
+        cursor: pointer;
+      }
+    }
+
+    .title {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 2rem;
+    }
+
+    .subtitle {
+      margin: 0;
+      font-size: 0.7rem;
+      line-height: 1rem;
+      font-weight: 300;
+      color: #374151;
     }
   }
 }
