@@ -347,6 +347,14 @@ export class NodeService extends EventEmitter {
     }
   }
 
+  async getDNSSECProof(url) {
+    return this._execRPC('getdnssecproof', [url, true]);
+  }
+
+  async sendRawClaim(base64) {
+    return this._execRPC('sendrawclaim', [base64]);
+  }
+
   async _ensureStarted() {
     return new Promise((resolve, reject) => {
       if (this.client) {
@@ -430,6 +438,8 @@ const methods = {
   setNoDns: data => service.setNoDns(data),
   getDir: () => service.getDir(),
   getHNSPrice: () => service.getHNSPrice(),
+  getDNSSECProof: (url) => service.getDNSSECProof(url),
+  sendRawClaim: (base64) => service.sendRawClaim(base64),
 };
 
 export async function start(server) {
