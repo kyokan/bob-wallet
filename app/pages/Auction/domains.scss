@@ -90,6 +90,14 @@
 
       &__description {
         font-size: .65rem;
+
+        button {
+          @extend %btn-primary;
+          padding: 0.5rem;
+          width: 100%;
+          border-radius: 0.5rem;
+          margin-top: 1rem;
+        }
       }
     }
   }
