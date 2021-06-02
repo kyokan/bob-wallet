@@ -24,4 +24,6 @@ export const clientStub = ipcRendererInjector => makeClient(ipcRendererInjector,
   'getDir',
   'getAPIKey',
   'getHNSPrice',
+  'getDNSSECProof',
+  'sendRawClaim',
 ]);
