@@ -11,7 +11,6 @@ import FundAccessOptions from '../Onboarding/FundAccessOptions';
 import CreateNewAccount from '../Onboarding/CreateNewAccount';
 import ExistingAccountOptions from '../Onboarding/ExistingAccountOptions';
 import ImportSeedFlow from '../Onboarding/ImportSeedFlow';
-import ConnectLedgerFlow from '../Onboarding/ConnectLedgerFlow';
 import Account from '../Account';
 import GetCoins from '../GetCoins';
 import Settings from '../Settings';
@@ -149,15 +148,6 @@ class App extends Component {
             path="/import-seed"
             render={this.uninitializedWrapper(
               ImportSeedFlow,
-              false,
-              false,
-              true,
-            )}
-          />
-          <Route
-            path="/connect-ledger"
-            render={this.uninitializedWrapper(
-              ConnectLedgerFlow,
               false,
               false,
               true,
