@@ -55,10 +55,12 @@ export default class Account extends Component {
       revealing: { HNS: null, num: null },
       finished: { HNS: null, num: null },
     },
-    actionableInfo: {
+    actionableInfoBids: {
       revealable: { HNS: null, num: null, block: null },
       redeemable: { HNS: null, num: null },
       registerable: { HNS: null, num: null },
+    },
+    actionableInfoNames: {
       renewable: { domains: null, block: null },
       transferring: { domains: null, block: null },
       finalizable: { domains: null, block: null },
@@ -224,14 +226,10 @@ export default class Account extends Component {
   renderCards() {
     const network = this.props.network;
     const history = this.props.history;
-    const {
-      revealable,
-      redeemable,
-      registerable,
-      renewable,
-      transferring,
-      finalizable,
-    } = this.state.actionableInfo;
+    const { revealable, redeemable, registerable } =
+      this.state.actionableInfoBids;
+    const { renewable, transferring, finalizable } =
+      this.state.actionableInfoNames;
 
     return (
       <div className="cards__container">

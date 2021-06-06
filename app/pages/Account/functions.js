@@ -1,6 +1,6 @@
 import walletClient from "../../utils/walletClient";
 
-async function getStats() {
+async function getStatsFromBids() {
   // Live Auctions
   let biddingHNS = 0;
   let biddingNum = 0;
@@ -17,11 +17,6 @@ async function getStats() {
   let redeemableNum = 0;
   let registerableHNS = 0;
   let registerableNum = 0;
-  let transferringDomains = new Set();
-  let transferringBlock = null;
-  let finalizableDomains = new Set();
-  let renewableDomains = new Set();
-  let renewableBlock = null;
 
   // All bids
   const bids = await walletClient.getBids();
@@ -131,6 +126,53 @@ async function getStats() {
       redeemableHNS += bid.value;
       redeemableNum++;
     }
+  }
+
+  // locked Bidding = bids in BIDDING state auctions
+  // locked Reveal = bids in REVEAL state auctions (includes blind if not revealed yet)
+  // locked Finished = bids that can be REDEEMed or REGISTERed
+  return {
+    lockedBalance: {
+      bidding: { HNS: biddingHNS, num: biddingNum },
+      revealing: { HNS: revealingHNS, num: revealingNum },
+      finished: {
+        HNS: registerableHNS + redeemableHNS,
+        num: registerableNum + redeemableNum,
+      },
+    },
+    actionableInfoBids: {
+      revealable: {
+        HNS: revealableHNS,
+        num: revealableNum,
+        block: revealableBlock,
+      },
+      redeemable: { HNS: redeemableHNS, num: redeemableNum },
+      registerable: { HNS: registerableHNS, num: registerableNum },
+    },
+  };
+}
+
+async function getStatsFromNames() {
+  let transferringDomains = new Set();
+  let transferringBlock = null;
+  let finalizableDomains = new Set();
+  let renewableDomains = new Set();
+  let renewableBlock = null;
+
+  const names = await walletClient.getNames();
+  console.log("names", names);
+
+  for (let name of names) {
+    const auction = await walletClient.getAuctionInfo(name.name);
+    console.log(auction);
+
+    const ownerCoin = await walletClient.getCoin(
+      auction.owner.hash,
+      auction.owner.index
+    );
+    if (!ownerCoin) {
+      continue;
+    }
 
     // Mark for renew if the name is going to expire in the next 2 months
     if (auction.stats.daysUntilExpire < 30 * 2) {
@@ -160,26 +202,8 @@ async function getStats() {
     }
   }
 
-  // locked Bidding = bids in BIDDING state auctions
-  // locked Reveal = bids in REVEAL state auctions (includes blind if not revealed yet)
-  // locked Finished = bids that can be REDEEMed or REGISTERed
   return {
-    lockedBalance: {
-      bidding: { HNS: biddingHNS, num: biddingNum },
-      revealing: { HNS: revealingHNS, num: revealingNum },
-      finished: {
-        HNS: registerableHNS + redeemableHNS,
-        num: registerableNum + redeemableNum,
-      },
-    },
-    actionableInfo: {
-      revealable: {
-        HNS: revealableHNS,
-        num: revealableNum,
-        block: revealableBlock,
-      },
-      redeemable: { HNS: redeemableHNS, num: redeemableNum },
-      registerable: { HNS: registerableHNS, num: registerableNum },
+    actionableInfoNames: {
       renewable: {
         domains: renewableDomains,
         block: renewableBlock,
@@ -219,10 +243,11 @@ export async function updateBalanceAndCardsData(spendableBalance, setState) {
 
   // Get and set stats
   try {
-    const stats = await getStats();
+    const stats = await Promise.all([getStatsFromBids(), getStatsFromNames()]);
     setState({
       isLoadingStats: false,
-      ...stats,
+      ...stats[0],
+      ...stats[1],
     });
   } catch (error) {
     console.error(error);
