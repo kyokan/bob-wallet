@@ -110,13 +110,13 @@ async function getStats() {
     console.log("revealCoin", auction.name, bid.value, revealCoin);
 
     // Check if the reveal coin is the owner of the name
-    const isOwner =
+    const revealCoinIsOwner =
       auction.owner.hash === revealPrevOut.hash &&
       auction.owner.index === revealPrevOut.index;
-    console.log("isOwner", isOwner);
+    console.log("revealCoinIsOwner", revealCoinIsOwner);
 
     // If the reveal coin is the owner, then the name is registerable
-    if (isOwner) {
+    if (revealCoinIsOwner) {
       registerableHNS += auction.highest - auction.value;
       registerableNum++;
       continue;
@@ -125,8 +125,9 @@ async function getStats() {
     // If reveal coin exists, but not owner, then it is redeemable
     if (revealCoin) {
       // Is local?
-      // if (coin.height < ns.height)
-      //   continue;
+      if (revealCoin.height < auction.height) {
+        continue;
+      }
       redeemableHNS += bid.value;
       redeemableNum++;
     }
@@ -160,7 +161,7 @@ async function getStats() {
   }
 
   // locked Bidding = bids in BIDDING state auctions
-  // locked Reveal = bids in REVEAL state auctions, regardless of revealed or not (sum of true bids / with blinds?)
+  // locked Reveal = bids in REVEAL state auctions (includes blind if not revealed yet)
   // locked Finished = bids that can be REDEEMed or REGISTERed
   return {
     lockedBalance: {
