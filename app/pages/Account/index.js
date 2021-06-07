@@ -71,8 +71,11 @@ export default class Account extends Component {
   componentDidMount() {
     analytics.screenView("Account");
     this.props.fetchWallet();
-    updateBalanceAndCardsData(this.props.spendableBalance, (payload) =>
-      this.setState(payload)
+    updateBalanceAndCardsData(
+      this.props.height,
+      this.props.network,
+      this.props.spendableBalance,
+      (payload) => this.setState(payload)
     );
   }
 

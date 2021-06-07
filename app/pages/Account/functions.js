@@ -1,4 +1,42 @@
 import walletClient from "../../utils/walletClient";
+import * as networks from "hsd/lib/protocol/networks";
+
+const ZERO_HASH = Buffer.alloc(32, 0x00).toString("hex");
+
+function isExpired(auction, height, network) {
+  if (auction.revoked !== 0) {
+    if (height < auction.revoked + network.names.auctionMaturity) return false;
+    return true;
+  }
+
+  // Can only renew once we reach the closed state.
+  if (auction.state !== "CLOSED") {
+    return false;
+  }
+
+  // Claimed names can only expire once the claim period is over.
+  // if (this.isClaimable(height, network))
+  if (
+    auction.claimed !== 0 &&
+    !network.names.noReserved &&
+    height < network.names.claimPeriod
+  ) {
+    return false;
+  }
+
+  // If we haven't been renewed in a year, start over.
+  if (height >= auction.renewal + network.names.renewalWindow) {
+    return true;
+  }
+
+  // If nobody revealed their bids, start over.
+  // if (auction.owner.isNull())
+  if (auction.owner.hash === ZERO_HASH && auction.owner.index === 0xffffffff) {
+    return true;
+  }
+
+  return false;
+}
 
 async function getStatsFromBids() {
   // Live Auctions
@@ -152,7 +190,7 @@ async function getStatsFromBids() {
   };
 }
 
-async function getStatsFromNames() {
+async function getStatsFromNames(height, network) {
   let transferringDomains = new Set();
   let transferringBlock = null;
   let finalizableDomains = new Set();
@@ -171,6 +209,10 @@ async function getStatsFromNames() {
       auction.owner.index
     );
     if (!ownerCoin) {
+      continue;
+    }
+
+    if (isExpired(auction, height, network)) {
       continue;
     }
 
@@ -230,7 +272,12 @@ async function getUsdConversion() {
   }
 }
 
-export async function updateBalanceAndCardsData(spendableBalance, setState) {
+export async function updateBalanceAndCardsData(
+  height,
+  networkName,
+  spendableBalance,
+  setState
+) {
   // Start API call to get USD conversion rate (non-blocking)
   getUsdConversion().then((HNSToUSD) => {
     setState({
@@ -243,7 +290,10 @@ export async function updateBalanceAndCardsData(spendableBalance, setState) {
 
   // Get and set stats
   try {
-    const stats = await Promise.all([getStatsFromBids(), getStatsFromNames()]);
+    const stats = await Promise.all([
+      getStatsFromBids(),
+      getStatsFromNames(height, networks[networkName]),
+    ]);
     setState({
       isLoadingStats: false,
       ...stats[0],
