@@ -29,6 +29,7 @@ const analytics = aClientStub(() => require("electron").ipcRenderer);
     sendRevealAll: () => dispatch(nameActions.sendRevealAll()),
     sendRedeemAll: () => dispatch(nameActions.sendRedeemAll()),
     sendRegisterAll: () => dispatch(nameActions.sendRegisterAll()),
+    finalizeMany: (names) => dispatch(nameActions.finalizeMany(names)),
   })
 )
 export default class Account extends Component {
@@ -80,15 +81,16 @@ export default class Account extends Component {
     console.log(newState);
   }
 
-  onCardButtonClick = async (action) => {
+  onCardButtonClick = async (action, args) => {
     const functionToExecute = {
       reveal: this.props.sendRevealAll,
       redeem: this.props.sendRedeemAll,
       register: this.props.sendRegisterAll,
+      finalize: this.props.finalizeMany,
     }[action];
 
     try {
-      await functionToExecute();
+      await functionToExecute(args);
       showSuccess(
         "Your request is submitted! Please wait about 15 minutes for it to complete."
       );
@@ -348,7 +350,9 @@ export default class Account extends Component {
               </Fragment>
             }
             buttonText="FINALIZE ALL"
-            buttonAction={() => history.push("/bids")}
+            buttonAction={() =>
+              this.onCardButtonClick("finalize", [...finalizable.domains])
+            }
           />
         ) : (
           ""
