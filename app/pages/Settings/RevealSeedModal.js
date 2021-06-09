@@ -6,7 +6,9 @@ import Submittable from '../../components/Submittable';
 import * as walletActions from '../../ducks/walletActions';
 
 @connect(
-  () => ({}),
+  (state) => ({
+    walletWatchOnly: state.wallet.watchOnly,
+  }),
   dispatch => ({
     revealSeed: passphrase => dispatch(walletActions.revealSeed(passphrase))
   })
@@ -43,13 +45,19 @@ class RevealSeedModal extends Component {
   };
 
   render() {
+    const { walletWatchOnly } = this.props;
+
     return (
       <MiniModal
         closeRoute="/settings/wallet"
         title="Reveal your seed phrase"
         centered
       >
-        {this.state.mnemonic ? this.renderMnemonic() : this.renderPassword()}
+        {walletWatchOnly
+          ? "Seed phrases cannot be read from hardware wallets."
+          : this.state.mnemonic
+          ? this.renderMnemonic()
+          : this.renderPassword()}
       </MiniModal>
     );
   }

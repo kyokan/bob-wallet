@@ -11,7 +11,6 @@ import FundAccessOptions from '../Onboarding/FundAccessOptions';
 import CreateNewAccount from '../Onboarding/CreateNewAccount';
 import ExistingAccountOptions from '../Onboarding/ExistingAccountOptions';
 import ImportSeedFlow from '../Onboarding/ImportSeedFlow';
-import ConnectLedgerFlow from '../Onboarding/ConnectLedgerFlow';
 import Account from '../Account';
 import GetCoins from '../GetCoins';
 import Settings from '../Settings';
@@ -137,7 +136,7 @@ class App extends Component {
           <Route path="/funding-options" render={this.uninitializedWrapper(FundAccessOptions, true)} />
           <Route path="/existing-options" render={this.uninitializedWrapper(ExistingAccountOptions)} />
           <Route
-            path="/new-wallet"
+            path="/new-wallet/:loc"
             render={this.uninitializedWrapper(
               CreateNewAccount,
               false,
@@ -149,15 +148,6 @@ class App extends Component {
             path="/import-seed"
             render={this.uninitializedWrapper(
               ImportSeedFlow,
-              false,
-              false,
-              true,
-            )}
-          />
-          <Route
-            path="/connect-ledger"
-            render={this.uninitializedWrapper(
-              ConnectLedgerFlow,
               false,
               false,
               true,
@@ -243,23 +233,9 @@ class App extends Component {
 
   uninitializedWrapper(Component, isMainMenu = false, autoHeight = false, autoWidth = false) {
     const {history, isRunning} = this.props;
-    if (isMainMenu) {
-      return () => (
-        <div className="app__uninitialized-wrapper">
-          <AppHeader isMainMenu />
-          <div className={c('app__uninitialized', {
-            'app__uninitialized--auto-height': autoHeight,
-            'app__uninitialized--auto-width': autoWidth,
-          })}>
-            <Component />
-          </div>
-        </div>
-      );
-    }
-
     return () => (
       <div className="app__uninitialized-wrapper">
-        <AppHeader />
+        <AppHeader isMainMenu={isMainMenu} />
         <div className={c('app__uninitialized', {
           'app__uninitialized--auto-height': autoHeight,
           'app__uninitialized--auto-width': autoWidth,

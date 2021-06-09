@@ -20,7 +20,7 @@ export default class InterstitialWarningModal extends Component {
     super(props);
 
     this.state = {
-      acceptances: [false, false, false],
+      acceptances: [false, false, false, false],
     };
   }
 

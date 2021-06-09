@@ -24,6 +24,7 @@ export function getInitialState() {
     address: '',
     apiKey: '',
     wid: '',
+    watchOnly: false,
     type: NONE,
     isLocked: true,
     isFetching: false,
@@ -43,6 +44,7 @@ export function getInitialState() {
     walletHeight: 0,
     getPassphrase: {get: false},
     wallets: [],
+    walletsDetails: {},
   };
 }
 
@@ -55,6 +57,7 @@ export default function walletReducer(state = getInitialState(), {type, payload}
           ? state.transactions
           : new Map(),
         wid: payload.wid,
+        watchOnly: payload.watchOnly,
         address: payload.address,
         type: payload.type,
         balance: {
@@ -140,7 +143,8 @@ export default function walletReducer(state = getInitialState(), {type, payload}
     case SET_WALLETS:
       return {
         ...state,
-        wallets: payload,
+        wallets: payload.wallets,
+        walletsDetails: payload.walletsDetails,
       };
     default:
       return state;

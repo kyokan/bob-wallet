@@ -30,7 +30,7 @@ class FundAccessOptions extends Component {
           <button
             type="button"
             className="funding-options__footer__primary-btn"
-            onClick={() => this.props.history.push('/new-wallet')}
+            onClick={() => this.props.history.push('/new-wallet/local')}
           >
             Create a new wallet
           </button>
@@ -44,7 +44,7 @@ class FundAccessOptions extends Component {
           <button
             type="button"
             className="funding-options__footer__secondary-btn"
-            onClick={() => this.props.history.push('/connect-ledger')}
+            onClick={() => this.props.history.push('/new-wallet/ledger')}
           >
             Connect Ledger
           </button>

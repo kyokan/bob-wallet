@@ -33,6 +33,7 @@ import * as walletActions from '../../ducks/walletActions';
       unconfirmedBalance: state.wallet.balance.unconfirmed,
       spendableBalance: state.wallet.balance.spendable,
       walletId: state.wallet.wid,
+      walletWatchOnly: state.wallet.watchOnly,
       walletSync: state.wallet.walletSync,
       walletHeight: state.wallet.walletHeight,
       chainHeight: state.node.chain.height,
@@ -61,6 +62,7 @@ class Topbar extends Component {
     spendableBalance: PropTypes.number,
     isChangingNodeStatus: PropTypes.bool.isRequired,
     isTestingCustomRPC: PropTypes.bool.isRequired,
+    walletWatchOnly: PropTypes.bool.isRequired,
     walletSync: PropTypes.bool.isRequired,
     walletHeight: PropTypes.number.isRequired,
     chainHeight: PropTypes.number.isRequired,
@@ -154,6 +156,10 @@ class Topbar extends Component {
   renderSettingIcon() {
     const { unconfirmedBalance, spendableBalance, walletId } = this.props;
     const { isShowingSettingMenu } = this.state;
+    const walletName = this.props.walletWatchOnly
+      ? `${walletId} (Ledger)`
+      : walletId;
+
     return (
       <div
         className={c('topbar__icon', 'topbar__icon--settings', {
@@ -166,7 +172,7 @@ class Topbar extends Component {
             ? (
               <div className="setting-menu">
                 <div className="setting-menu__balance-container">
-                  {this.renderSettingGroup('Wallet ID', walletId)}
+                  {this.renderSettingGroup('Wallet ID', walletName)}
                   {this.renderSettingGroup('Total Balance', `HNS ${displayBalance(unconfirmedBalance)}`)}
                   {this.renderSettingGroup('Spendable Balance', `HNS ${displayBalance(spendableBalance)}`)}
                 </div>
