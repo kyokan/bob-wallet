@@ -30,6 +30,7 @@ const analytics = aClientStub(() => require("electron").ipcRenderer);
     sendRedeemAll: () => dispatch(nameActions.sendRedeemAll()),
     sendRegisterAll: () => dispatch(nameActions.sendRegisterAll()),
     finalizeMany: (names) => dispatch(nameActions.finalizeMany(names)),
+    renewMany: (names) => dispatch(nameActions.renewMany(names)),
   })
 )
 export default class Account extends Component {
@@ -42,6 +43,8 @@ export default class Account extends Component {
     sendRevealAll: PropTypes.func.isRequired,
     sendRedeemAll: PropTypes.func.isRequired,
     sendRegisterAll: PropTypes.func.isRequired,
+    finalizeMany: PropTypes.func.isRequired,
+    renewMany: PropTypes.func.isRequired,
     history: PropTypes.object.isRequired,
   };
 
@@ -90,6 +93,7 @@ export default class Account extends Component {
       redeem: this.props.sendRedeemAll,
       register: this.props.sendRegisterAll,
       finalize: this.props.finalizeMany,
+      renew: this.props.renewMany,
     }[action];
 
     try {
@@ -284,7 +288,9 @@ export default class Account extends Component {
               </Fragment>
             }
             buttonText="RENEW ALL"
-            buttonAction={() => history.push("/bids")}
+            buttonAction={() =>
+              this.onCardButtonClick("renew", [...renewable.domains])
+            }
           />
         ) : (
           ""

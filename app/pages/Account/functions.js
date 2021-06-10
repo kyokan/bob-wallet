@@ -208,6 +208,7 @@ async function getStatsFromNames(height, network) {
       auction.owner.hash,
       auction.owner.index
     );
+    console.log("ownerCoin", auction.name, ownerCoin);
     if (!ownerCoin) {
       continue;
     }
@@ -218,12 +219,18 @@ async function getStatsFromNames(height, network) {
 
     // Mark for renew if the name is going to expire in the next 2 months
     if (auction.stats.daysUntilExpire < 30 * 2) {
-      renewableDomains.add(auction.name);
-      if (
-        renewableBlock === null ||
-        auction.stats.blocksUntilExpire < renewableBlock
-      ) {
-        renewableBlock = auction.stats.blocksUntilExpire;
+      const isRenewable =
+        auction.registered &&
+        auction.transfer === 0 &&
+        auction.renewal + network.names.treeInterval <= height;
+      if (isRenewable) {
+        renewableDomains.add(auction.name);
+        if (
+          renewableBlock === null ||
+          auction.stats.blocksUntilExpire < renewableBlock
+        ) {
+          renewableBlock = auction.stats.blocksUntilExpire;
+        }
       }
     }
 
