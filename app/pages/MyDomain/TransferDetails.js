@@ -255,6 +255,7 @@ export default connect(
     domain: state.names[ownProps.name],
     height: state.node.chain.height,
     network: state.node.network,
+    wid: state.wallet.wid,
   }),
   (dispatch, ownProps) => ({
     sendTransfer: (recipient) => dispatch(names.sendTransfer(ownProps.name, recipient)),

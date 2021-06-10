@@ -8,6 +8,8 @@ import { connect } from 'react-redux';
 import * as walletActions from '../../../ducks/walletActions';
 import DefaultConnectLedgerSteps from '../../../components/ConnectLedgerStep/defaultSteps';
 import './connect.scss';
+import {LEDGER_MINIMUM_VERSION} from '../../../constants/ledger';
+import semver from 'semver';
 
 const ledgerClient = lClientStub(() => require('electron').ipcRenderer);
 
@@ -17,10 +19,12 @@ const ledgerClient = lClientStub(() => require('electron').ipcRenderer);
 @connect((state) => ({
   network: state.node.network,
 }), (dispatch) => ({
-  completeInitialization: (xpub) => dispatch(walletActions.completeInitialization(xpub, true)),
+  completeInitialization: (name, passphrase) => dispatch(walletActions.completeInitialization(name, passphrase)),
 }))
 class ConnectLedger extends React.Component {
   static propTypes = {
+    walletName: PropTypes.string.isRequired,
+    passphrase: PropTypes.string.isRequired,
     onBack: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,
     completeInitialization: PropTypes.func.isRequired,
@@ -30,6 +34,7 @@ class ConnectLedger extends React.Component {
   state = {
     isLoading: false,
     isCreating: false,
+    errorMessage: null,
   };
 
   allStepsComplete() {
@@ -40,17 +45,31 @@ class ConnectLedger extends React.Component {
   connect = async () => {
     this.setState({
       isLoading: true,
+      errorMessage: null,
     });
 
     let xpub;
 
     try {
+      const appVersion = await ledgerClient.getAppVersion(this.props.network);
+      console.log(`HNS Ledger app verison is ${appVersion}, minimum is ${LEDGER_MINIMUM_VERSION}`);
+      if (!semver.gte(appVersion, LEDGER_MINIMUM_VERSION)) {
+        this.setState({
+          isLoading: false,
+          isCreating: false,
+          errorMessage:
+            `Ledger app version ${LEDGER_MINIMUM_VERSION} is required. (${appVersion} installed)`
+        });
+        return;
+      }
+
       xpub = await ledgerClient.getXPub(this.props.network);
     } catch (e) {
       console.error(e);
       this.setState({
         isLoading: false,
         isCreating: false,
+        errorMessage: "Error connecting to device.",
       });
       return;
     }
@@ -62,8 +81,9 @@ class ConnectLedger extends React.Component {
     // set a small timeout to clearly show that this is
     // a two-phase process.
     setTimeout(async () => {
-      await walletClient.createNewWallet(xpub, true);
-      await this.props.completeInitialization('');
+      await walletClient.createNewWallet(this.props.walletName, this.props.passphrase, true, xpub);
+      await this.props.completeInitialization(this.props.walletName, this.props.passphrase);
+      this.props.history.push('/account');
     }, 2000);
   };
 
@@ -92,9 +112,6 @@ class ConnectLedger extends React.Component {
             'create-password__footer__removed-padding-top',
           ])}
         >
-          <div className="connect__support-cta">
-            Need help? Visit support page
-          </div>
           <button
             type="button"
             className="extension_cta_button terms_cta"
@@ -104,8 +121,23 @@ class ConnectLedger extends React.Component {
             {this.state.isLoading ? (this.state.isCreating ? 'Creating wallet...' : 'Connecting...') : 'Connect to Ledger'}
           </button>
         </div>
+        <div className="create-password__error-container">
+          {this.renderError()}
+        </div>
       </div>
     );
+  }
+
+  renderError() {
+    if (this.state.errorMessage) {
+      return (
+        <div className="create-password__error">
+          {this.state.errorMessage}
+        </div>
+      );
+    }
+
+    return null;
   }
 }
 

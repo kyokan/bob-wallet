@@ -27,10 +27,10 @@ const {dialog} = require('electron').remote;
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
 const ITEM_PER_DROPDOWN = [
-  { label: '5', value: 5 },
-  { label: '10', value: 10 },
-  { label: '20', value: 20 },
-  { label: '50', value: 50 },
+  {label: '5', value: 5},
+  {label: '10', value: 10},
+  {label: '20', value: 20},
+  {label: '50', value: 50},
 ];
 
 const DM_ITEMS_PER_PAGE_KEY = 'domain-manager-items-per-page';
@@ -126,7 +126,7 @@ class DomainManager extends Component {
   };
 
   renderGoTo(namesList) {
-    const { currentPageIndex, itemsPerPage } = this.state;
+    const {currentPageIndex, itemsPerPage} = this.state;
     const totalPages = Math.ceil(namesList.length / itemsPerPage);
     return (
       <div className="domain-manager__page-control__dropdowns">
@@ -149,14 +149,14 @@ class DomainManager extends Component {
           <div className="domain-manager__go-to__text">Page</div>
           <Dropdown
             className="domain-manager__go-to__dropdown"
-            items={Array(totalPages).fill(0).map((_, i) => ({ label: `${i + 1}` }))}
-            onChange={currentPageIndex => this.setState({ currentPageIndex })}
+            items={Array(totalPages).fill(0).map((_, i) => ({label: `${i + 1}`}))}
+            onChange={currentPageIndex => this.setState({currentPageIndex})}
             currentIndex={currentPageIndex}
           />
           <div className="domain-manager__go-to__total">of {totalPages}</div>
         </div>
       </div>
-    )
+    );
   }
 
   renderControls() {
@@ -193,11 +193,11 @@ class DomainManager extends Component {
                 className={c('domain-manager__page-control__page', {
                   'domain-manager__page-control__page--active': currentPageIndex === pageIndex,
                 })}
-                onClick={() => this.setState({ currentPageIndex: pageIndex })}
+                onClick={() => this.setState({currentPageIndex: pageIndex})}
               >
                 {pageIndex + 1}
               </div>
-            )
+            );
           })}
           <div
             className="domain-manager__page-control__end"
@@ -208,7 +208,7 @@ class DomainManager extends Component {
         </div>
         {this.renderGoTo(namesList)}
       </div>
-    )
+    );
   }
 
   renderBulkFinalize() {
@@ -312,7 +312,7 @@ class DomainManager extends Component {
   }
 
   renderBody() {
-    const { namesList, isFetching } = this.props;
+    const {namesList, isFetching} = this.props;
 
     if (isFetching) {
       return (
@@ -321,7 +321,7 @@ class DomainManager extends Component {
             {`Loading ${namesList.length} domains...`}
           </div>
         </div>
-      )
+      );
     }
 
     if (namesList.length) {
@@ -375,6 +375,7 @@ export default withRouter(
       namesList: Object.keys(state.myDomains.names),
       height: state.node.chain.height,
       network: state.node.network,
+      wid: state.wallet.wid,
     }),
     dispatch => ({
       getMyNames: () => dispatch(myDomainsActions.getMyNames()),
@@ -407,5 +408,5 @@ function _DomainRow(props) {
       </TableItem>
       <TableItem>{displayBalance(names[name].highest, true)}</TableItem>
     </TableRow>
-  )
+  );
 }

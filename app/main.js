@@ -78,6 +78,8 @@ if (isPrimaryInstance) {
       await require('./background/connections/service').start(server);
       await require('./background/setting/service').start(server);
       await require('./background/claim/service').start(server);
+      await require('./background/ledger/service').start(server);
+
       await shakedexService.start(server);
     } catch (e) {
       dialog.showMessageBox(null, {

@@ -13,6 +13,7 @@ import walletClient from "../../utils/walletClient";
 @connect(
   (state) => ({
     wallets: state.wallet.wallets,
+    walletsDetails: state.wallet.walletsDetails,
   }),
   dispatch => ({
     unlockWallet: (name, passphrase) => dispatch(walletActions.unlockWallet(name, passphrase)),
@@ -37,8 +38,9 @@ export default class AccountLogin extends Component {
 
   async handleLogin(passphrase) {
     try {
+      const walletName = this.props.wallets[this.state.chosenWallet];
       await this.props.unlockWallet(
-        this.props.wallets[this.state.chosenWallet],
+        walletName,
         passphrase,
       );
       await this.props.fetchWallet();
@@ -51,6 +53,7 @@ export default class AccountLogin extends Component {
 
   render() {
     const {passphrase, showError} = this.state;
+    const {walletsDetails} = this.props;
 
     if (!this.props.wallets.length) {
       return <Redirect to="/funding-options" />;
@@ -61,19 +64,21 @@ export default class AccountLogin extends Component {
         <div className="login_header_text">Log in to your wallet</div>
         <Submittable onSubmit={() => this.handleLogin(passphrase)}>
           <Dropdown
-            items={this.props.wallets.map(w => ({label: w}))}
+            items={this.props.wallets.map((w) => ({
+              label: w + ((walletsDetails[w] && walletsDetails[w].watchOnly) ? " (Ledger)" : ""),
+            }))}
             currentIndex={this.state.chosenWallet}
-            onChange={(i) => this.setState({chosenWallet: i})}
+            onChange={(i) => this.setState({ chosenWallet: i })}
           />
           <div>
             <input
-              className={c('login_password_input', {
-                'login_password_input--error': showError,
+              className={c("login_password_input", {
+                "login_password_input--error": showError,
               })}
               type="password"
               placeholder="Your password"
-              onChange={e =>
-                this.setState({passphrase: e.target.value, showError: false})
+              onChange={(e) =>
+                this.setState({ passphrase: e.target.value, showError: false })
               }
               value={passphrase}
               autoFocus
