@@ -19,6 +19,7 @@ import c from "classnames";
 import * as nameActions from "../../ducks/names";
 import * as notifActions from "../../ducks/notifications";
 import dbClient from "../../utils/dbClient";
+import {NAME_STATES} from "../../ducks/names";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -33,7 +34,8 @@ const YOUR_BIDS_ITEMS_PER_PAGE_KEY = 'your-bids-items-per-page';
 
 class YourBids extends Component {
   static propTypes = {
-    yourBids: PropTypes.array.isRequired,
+    order: PropTypes.array.isRequired,
+    map: PropTypes.object.isRequired,
     getYourBids: PropTypes.func.isRequired,
     sendRedeemAll: PropTypes.func.isRequired,
     sendRevealAll: PropTypes.func.isRequired,
@@ -43,18 +45,22 @@ class YourBids extends Component {
 
   state = {
     isShowingNameClaimForPayment: false,
+    activeFilter: '',
     currentPageIndex: 0,
     itemsPerPage: 10,
     query: '',
+    loading: true,
   };
 
   async componentDidMount() {
     analytics.screenView('Your Bids');
-    this.props.getYourBids();
+    this.props.getYourBids()
+      .then(() => this.setState({ loading: false }));
     const itemsPerPage = await dbClient.get(YOUR_BIDS_ITEMS_PER_PAGE_KEY);
-
+    console.log(this.props.match.params.filterType)
     this.setState({
       itemsPerPage: itemsPerPage || 10,
+      activeFilter: this.props.match.params.filterType || '',
     });
   }
 
@@ -107,6 +113,17 @@ class YourBids extends Component {
     }
   };
 
+  getCurrentBids() {
+    const {order, map, filter} = this.props;
+    const {activeFilter} = this.state;
+
+    if (activeFilter) {
+      return filter[activeFilter]?.map(id => map[id]) || [];
+    } else {
+      return order?.map(id => map[id]) || [];
+    }
+  }
+
   render() {
     return (
       <div className="bids">
@@ -137,6 +154,12 @@ class YourBids extends Component {
             </button>
           </div>
         </div>
+        <div className="bids__filters">
+          {this.renderFilter('ALL', '')}
+          {this.renderFilter(NAME_STATES.BIDDING, NAME_STATES.BIDDING)}
+          {this.renderFilter(NAME_STATES.REVEAL, NAME_STATES.REVEAL)}
+          {this.renderFilter(NAME_STATES.CLOSED, NAME_STATES.CLOSED)}
+        </div>
         <Table className="bids-table">
           <Header />
           {this.renderRows()}
@@ -146,9 +169,26 @@ class YourBids extends Component {
     );
   }
 
+  renderFilter = (label, value) => {
+    const {activeFilter} = this.state;
+    const { filter, order } = this.props;
+    const count = value ? filter[value].length : order.length;
+
+    return (
+      <div
+        className={c('bids__filter', {
+          'bids__filter--active': activeFilter === value,
+        })}
+        onClick={() => this.setState({ activeFilter: value })}
+      >
+        {`${label} (${count})`}
+      </div>
+    )
+  };
+
   renderGoTo() {
     const { currentPageIndex, itemsPerPage } = this.state;
-    const { yourBids } = this.props;
+    const yourBids = this.getCurrentBids();
     const totalPages = Math.ceil(yourBids.length / itemsPerPage);
     return (
       <div className="domain-manager__page-control__dropdowns">
@@ -186,9 +226,8 @@ class YourBids extends Component {
       currentPageIndex,
       itemsPerPage,
     } = this.state;
-    const {
-      yourBids,
-    } = this.props;
+
+    const yourBids = this.getCurrentBids();
 
     const totalPages = Math.ceil(yourBids.length / itemsPerPage);
     const pageIndices = getPageIndices(yourBids, itemsPerPage, currentPageIndex);
@@ -234,8 +273,14 @@ class YourBids extends Component {
   }
 
   renderRows() {
-    const { yourBids, history } = this.props;
-    const { query, currentPageIndex: s, itemsPerPage: n } = this.state;
+    const { history } = this.props;
+    const { query, currentPageIndex: s, itemsPerPage: n, loading } = this.state;
+
+    if (loading) {
+      return <LoadingResult />;
+    }
+
+    const yourBids = this.getCurrentBids();
 
     if (!yourBids.length) {
       return <EmptyResult />;
@@ -272,7 +317,9 @@ class YourBids extends Component {
 export default withRouter(
   connect(
     state => ({
-      yourBids: state.bids.yourBids,
+      order: state.bids.order,
+      map: state.bids.map,
+      filter: state.bids.filter,
     }),
     dispatch => ({
       getYourBids: () => dispatch(bidsActions.getYourBids()),
@@ -303,6 +350,15 @@ function EmptyResult() {
   return (
     <TableRow className="bids-table__empty-row">
       No Bids Found
+    </TableRow>
+  );
+}
+
+
+function LoadingResult() {
+  return (
+    <TableRow className="bids-table__empty-row">
+      Loading Bids...
     </TableRow>
   );
 }

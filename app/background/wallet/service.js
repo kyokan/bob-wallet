@@ -25,6 +25,7 @@ import {renewMany} from "./bulk-renewal";
 import {getStats} from "./stats";
 import {get, put} from "../db/service";
 import hsdLedger from 'hsd-ledger';
+import {NAME_STATES} from "../../ducks/names";
 
 const WalletNode = require('hsd/lib/wallet/node');
 const TX = require('hsd/lib/primitives/tx');
@@ -308,10 +309,55 @@ class WalletService {
     return wallet.getPending('default');
   };
 
+  makeBidsFilter = async (bids = []) => {
+    const index = {
+      [NAME_STATES.OPENING]: [],
+      [NAME_STATES.BIDDING]: [],
+      [NAME_STATES.REVEAL]: [],
+      [NAME_STATES.CLOSED]: [],
+      [NAME_STATES.TRANSFER]: [],
+    };
+
+    const map = {};
+
+    const wallet = await this.node.wdb.get(this.name);
+
+    for (let i = 0; i < bids.length; i++) {
+      const bid = bids[i];
+      const name = bid.name.toString('utf-8');
+
+      let json;
+
+      if (map[name]) {
+        json = map[name];
+      } else {
+        const ns = await wallet.getNameStateByName(name);
+        json = ns?.getJSON(this.lastKnownChainHeight, this.network);
+        map[name] = json;
+      }
+
+      const { state } = json || {};
+
+      switch (state) {
+        case NAME_STATES.OPENING:
+        case NAME_STATES.BIDDING:
+        case NAME_STATES.REVEAL:
+        case NAME_STATES.CLOSED:
+        case NAME_STATES.TRANSFER:
+          index[state].push(bid.prevout.hash.toString('hex') + bid.prevout.index);
+          break;
+      }
+    }
+
+    return index;
+  };
+
   getBids = async () => {
     await this._ensureClient();
     const wallet = await this.node.wdb.get(this.name);
-    return wallet.getBids();
+    const bids = await wallet.getBids();
+    const filter = await this.makeBidsFilter(bids);
+    return {bids, filter};
   };
 
   getMasterHDKey = () => this._ledgerDisabled(

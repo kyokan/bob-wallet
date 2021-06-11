@@ -21,6 +21,23 @@
     }
   }
 
+  &__filters {
+    @extend %row-nowrap;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+  }
+
+  &__filter {
+    margin-right: 1rem;
+    cursor: pointer;
+    color: $azure-blue;
+
+    &--active {
+      cursor: default;
+      color: $black;
+    }
+  }
+
   &__search {
     margin: 1rem 0;
     width: 10rem;
