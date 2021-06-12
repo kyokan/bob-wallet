@@ -22,6 +22,7 @@ import {SET_FEE_INFO, SET_NODE_INFO} from "../../ducks/nodeReducer";
 import createRegisterAll from "./create-register-all";
 import {finalizeMany, transferMany} from "./bulk-transfer";
 import {renewMany} from "./bulk-renewal";
+import {getStats} from "./stats";
 import {get, put} from "../db/service";
 import hsdLedger from 'hsd-ledger';
 
@@ -755,6 +756,12 @@ class WalletService {
     return ret;
   };
 
+  getStats = async () => {
+    const {wdb} = this.node;
+    const wallet = await wdb.get(this.name);
+    return getStats(wallet);
+  };
+
   _onNodeStart = async (networkName, network, apiKey) => {
     const conn = await getConnection();
 
@@ -1249,6 +1256,7 @@ const methods = {
   importName: service.importName,
   rpcGetWalletInfo: service.rpcGetWalletInfo,
   listWallets: service.listWallets,
+  getStats: service.getStats,  
 };
 
 export async function start(server) {

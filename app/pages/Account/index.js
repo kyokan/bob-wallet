@@ -5,6 +5,7 @@ import { withRouter } from "react-router";
 import { connect } from "react-redux";
 import Transactions from "../../components/Transactions";
 import "./account.scss";
+import walletClient from "../../utils/walletClient";
 import { displayBalance } from "../../utils/balances";
 import { hoursToNow } from "../../utils/timeConverter";
 import * as networks from "hsd/lib/protocol/networks";
@@ -12,7 +13,6 @@ import { clientStub as aClientStub } from "../../background/analytics/client";
 import * as walletActions from "../../ducks/walletActions";
 import { showError, showSuccess } from "../../ducks/notifications";
 import * as nameActions from "../../ducks/names";
-import { updateBalanceAndCardsData } from "./functions";
 
 const analytics = aClientStub(() => require("electron").ipcRenderer);
 
@@ -56,35 +56,54 @@ export default class Account extends Component {
     },
     lockedBalance: {
       bidding: { HNS: null, num: null },
-      revealing: { HNS: null, num: null },
+      revealable: { HNS: null, num: null },
       finished: { HNS: null, num: null },
     },
-    actionableInfoBids: {
+    actionableInfo: {
       revealable: { HNS: null, num: null, block: null },
       redeemable: { HNS: null, num: null },
-      registerable: { HNS: null, num: null },
-    },
-    actionableInfoNames: {
       renewable: { domains: null, block: null },
       transferring: { domains: null, block: null },
       finalizable: { domains: null, block: null },
+      registerable: { HNS: null, num: null },
     },
   };
 
   componentDidMount() {
     analytics.screenView("Account");
     this.props.fetchWallet();
-    updateBalanceAndCardsData(
-      this.props.height,
-      this.props.network,
-      this.props.spendableBalance,
-      (payload) => this.setState(payload)
-    );
+    this.updateStatsAndBalance();
   }
 
-  componentWillUpdate(newProps, newState) {
-    // TODO: DELETE BEFORE MERGE
-    console.log(newState);
+  componentDidUpdate(prevProps, prevState) {
+    if (this.props.height !== prevProps.height) {
+      this.updateStatsAndBalance();
+    }
+  }
+
+  async updateStatsAndBalance() {
+    // USD Conversion Rate for Spendable Balance
+    getUsdConversion().then((HNSToUSD) => {
+      this.setState({
+        spendableBalance: {
+          HNS: this.props.spendableBalance,
+          USD: this.props.spendableBalance * HNSToUSD,
+        },
+      });
+    });
+
+    // Stats for balance and cards
+    try {
+      const stats = await walletClient.getStats();
+      console.log("updateStatsAndBalance", stats);
+      this.setState({
+        isLoadingStats: false,
+        ...stats,
+      });
+    } catch (error) {
+      console.error(error);
+      this.setState({ isLoadingStats: false });
+    }
   }
 
   onCardButtonClick = async (action, args) => {
@@ -135,13 +154,13 @@ export default class Account extends Component {
     const { spendableBalance, lockedBalance, isLoadingStats } = this.state;
 
     const showFirstPlus =
-      lockedBalance.bidding.num && lockedBalance.revealing.num;
+      lockedBalance.bidding.num && lockedBalance.revealable.num;
     const showSecondPlus =
       (lockedBalance.bidding.num && lockedBalance.finished.num) ||
-      (lockedBalance.revealing.num && lockedBalance.finished.num);
+      (lockedBalance.revealable.num && lockedBalance.finished.num);
     const noLockedHNS = !(
-      lockedBalance.finished.num ||
-      lockedBalance.finished.num ||
+      lockedBalance.bidding.num ||
+      lockedBalance.revealable.num ||
       lockedBalance.finished.num
     );
 
@@ -158,7 +177,7 @@ export default class Account extends Component {
           </span>
         </div>
 
-        {/* Locked Balance - In Live Auctions */}
+        {/* Locked Balance - In bids */}
         {lockedBalance.bidding.num > 0 ? (
           <div className="account__header__section">
             <span className="label">LOCKED</span>
@@ -166,7 +185,7 @@ export default class Account extends Component {
               {displayBalance(lockedBalance.bidding.HNS, true)}
             </p>
             <span className="subtext">
-              In live auctions ({lockedBalance.bidding.num}{" "}
+              In bids ({lockedBalance.bidding.num}{" "}
               {pluralize(lockedBalance.bidding.num, "bid")})
             </span>
           </div>
@@ -177,15 +196,15 @@ export default class Account extends Component {
         {showFirstPlus ? <div className="plus">+</div> : ""}
 
         {/* Locked Balance - In Reveal */}
-        {lockedBalance.revealing.num > 0 ? (
+        {lockedBalance.revealable.num > 0 ? (
           <div className="account__header__section">
             <span className="label">LOCKED</span>
             <p className="amount">
-              {displayBalance(lockedBalance.revealing.HNS, true)}
+              {displayBalance(lockedBalance.revealable.HNS, true)}
             </p>
             <span className="subtext">
-              In reveal ({lockedBalance.revealing.num}{" "}
-              {pluralize(lockedBalance.revealing.num, "bid")})
+              In reveal ({lockedBalance.revealable.num}{" "}
+              {pluralize(lockedBalance.revealable.num, "bid")})
             </span>
           </div>
         ) : (
@@ -234,11 +253,14 @@ export default class Account extends Component {
 
   renderCards() {
     const network = this.props.network;
-    const history = this.props.history;
-    const { revealable, redeemable, registerable } =
-      this.state.actionableInfoBids;
-    const { renewable, transferring, finalizable } =
-      this.state.actionableInfoNames;
+    const {
+      revealable,
+      redeemable,
+      renewable,
+      transferring,
+      finalizable,
+      registerable,
+    } = this.state.actionableInfo;
 
     return (
       <div className="cards__container">
@@ -269,13 +291,13 @@ export default class Account extends Component {
         )}
 
         {/* Renewable Card */}
-        {renewable?.domains?.size ? (
+        {renewable?.domains?.length ? (
           <ActionCard
             color="red"
             text={
               <Fragment>
-                <strong>Renew</strong> {renewable.domains.size}{" "}
-                {pluralize(renewable.domains.size, "domain")}
+                <strong>Renew</strong> {renewable.domains.length}{" "}
+                {pluralize(renewable.domains.length, "domain")}
               </Fragment>
             }
             subtext={
@@ -284,12 +306,12 @@ export default class Account extends Component {
                 <strong>
                   {blocksDeltaToTimeDelta(renewable.block, network, true)}
                 </strong>{" "}
-                or lose the {pluralize(renewable.domains.size, "domain")}
+                or lose the {pluralize(renewable.domains.length, "domain")}
               </Fragment>
             }
             buttonText="RENEW ALL"
             buttonAction={() =>
-              this.onCardButtonClick("renew", [...renewable.domains])
+              this.onCardButtonClick("renew", renewable.domains)
             }
           />
         ) : (
@@ -343,24 +365,24 @@ export default class Account extends Component {
         )}
 
         {/* Finalizable Card */}
-        {finalizable?.domains?.size ? (
+        {finalizable?.domains?.length ? (
           <ActionCard
             color="green"
             text={
               <Fragment>
-                <strong>Finalize</strong> {finalizable.domains.size}{" "}
-                {pluralize(finalizable.domains.size, "domain")}
+                <strong>Finalize</strong> {finalizable.domains.length}{" "}
+                {pluralize(finalizable.domains.length, "domain")}
               </Fragment>
             }
             subtext={
               <Fragment>
                 to complete your{" "}
-                {pluralize(finalizable.domains.size, "transfer")}
+                {pluralize(finalizable.domains.length, "transfer")}
               </Fragment>
             }
             buttonText="FINALIZE ALL"
             buttonAction={() =>
-              this.onCardButtonClick("finalize", [...finalizable.domains])
+              this.onCardButtonClick("finalize", finalizable.domains)
             }
           />
         ) : (
@@ -368,13 +390,13 @@ export default class Account extends Component {
         )}
 
         {/* Transferring Card */}
-        {transferring?.domains?.size ? (
+        {transferring?.domains?.length ? (
           <ActionCard
             color="green"
             text={
               <Fragment>
-                <strong>Transferring</strong> {transferring.domains.size}{" "}
-                {pluralize(transferring.domains.size, "domain")}
+                <strong>Transferring</strong> {transferring.domains.length}{" "}
+                {pluralize(transferring.domains.length, "domain")}
               </Fragment>
             }
             subtext={
@@ -445,4 +467,17 @@ function blocksDeltaToTimeDelta(blocks, network, hideMinsIfLarge = false) {
     return `${(hours / 24) >>> 0} days`;
   }
   return hoursToNow(hours);
+}
+
+async function getUsdConversion() {
+  try {
+    const response = await (
+      await fetch(
+        "https://api.coingecko.com/api/v3/simple/price?ids=handshake&vs_currencies=usd"
+      )
+    ).json();
+    return response.handshake.usd || 0;
+  } catch (error) {
+    return 0;
+  }
 }
