@@ -230,9 +230,10 @@
 
   &__card {
     margin-left: 0.6rem;
-    padding: 0.7rem;
+    padding: 0.5rem 0.9rem 1rem;
     flex-shrink: 0;
     border-radius: 0.25rem;
+    cursor: pointer;
 
     &--red {
       background-color: #ffdcdc;
@@ -247,25 +248,6 @@
     &--green {
       background-color: #daffda;
       border: solid 1px #84ff93;
-    }
-
-    button {
-      padding: 1px 0;
-      font-size: 0.65rem;
-      line-height: 1rem;
-      font-weight: 900;
-      color: $black;
-      background-color: transparent;
-      border: none;
-      border-radius: 0.125rem;
-
-      // Clickable buttons
-      &:not(:disabled) {
-        padding: 1px 6px;
-        color: $white;
-        background-color: $black;
-        cursor: pointer;
-      }
     }
 
     .title {

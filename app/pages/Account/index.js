@@ -283,7 +283,6 @@ export default class Account extends Component {
                 for the bids to count
               </Fragment>
             }
-            buttonText="REVEAL ALL"
             buttonAction={() => this.onCardButtonClick("reveal")}
           />
         ) : (
@@ -309,7 +308,6 @@ export default class Account extends Component {
                 or lose the {pluralize(renewable.domains.length, "domain")}
               </Fragment>
             }
-            buttonText="RENEW ALL"
             buttonAction={() =>
               this.onCardButtonClick("renew", renewable.domains)
             }
@@ -334,7 +332,6 @@ export default class Account extends Component {
                 <strong>{redeemable.HNS / 1e6} HNS</strong>
               </Fragment>
             }
-            buttonText="REDEEM ALL"
             buttonAction={() => this.onCardButtonClick("redeem")}
           />
         ) : (
@@ -357,7 +354,6 @@ export default class Account extends Component {
                 <strong>{registerable.HNS / 1e6} HNS</strong>
               </Fragment>
             }
-            buttonText="REGISTER ALL"
             buttonAction={() => this.onCardButtonClick("register")}
           />
         ) : (
@@ -380,7 +376,6 @@ export default class Account extends Component {
                 {pluralize(finalizable.domains.length, "transfer")}
               </Fragment>
             }
-            buttonText="FINALIZE ALL"
             buttonAction={() =>
               this.onCardButtonClick("finalize", finalizable.domains)
             }
@@ -407,7 +402,6 @@ export default class Account extends Component {
                 </strong>
               </Fragment>
             }
-            buttonText="PENDING TRANSFER"
           />
         ) : (
           ""
@@ -435,18 +429,17 @@ class ActionCard extends Component {
     color: PropTypes.string.isRequired,
     text: PropTypes.object.isRequired,
     subtext: PropTypes.object.isRequired,
-    buttonText: PropTypes.string.isRequired,
     buttonAction: PropTypes.func,
   };
 
   render() {
-    const { color, text, subtext, buttonText, buttonAction } = this.props;
+    const { color, text, subtext, buttonAction } = this.props;
 
     return (
-      <div className={c("cards__card", `cards__card--${color}`)}>
-        <button disabled={!buttonAction} onClick={buttonAction || undefined}>
-          {buttonText}
-        </button>
+      <div
+        className={c("cards__card", `cards__card--${color}`)}
+        onClick={buttonAction || undefined}
+      >
         <p className="title">{text}</p>
         <p className="subtitle">{subtext}</p>
       </div>
