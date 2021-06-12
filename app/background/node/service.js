@@ -311,6 +311,10 @@ export class NodeService extends EventEmitter {
     return this.client.getCoin(hash, index);
   }
 
+  async verifyMessageWithName(name, signature, message) {
+    return this._execRPC('verifymessagewithname', [name, signature, message]);
+  }
+
   async getRawMempool(verbose = false) {
     return this._execRPC('getrawmempool', [verbose ? 1 : 0]);
   }
@@ -386,6 +390,7 @@ const methods = {
   getTXByAddresses: (addresses) => service.getTXByAddresses(addresses),
   getBlockByHeight: (height, verbose, details) => service.getBlockByHeight(height, verbose, details),
   getTx: (hash) => service.getTx(hash),
+  verifyMessageWithName: (name, signature, message) => service.verifyMessageWithName(name, signature, message),
   broadcastRawTx: (tx) => service.broadcastRawTx(tx),
   sendRawAirdrop: (data) => service.sendRawAirdrop(data),
   getFees: () => service.getFees(),

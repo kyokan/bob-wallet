@@ -2,7 +2,11 @@ import { clientStub as nodeClientStub } from '../background/node/client';
 
 const node = nodeClientStub(() => require('electron').ipcRenderer);
 
-const client = {
+const nodeClient = {
+  verifyMessageWithName: async (name, signature, message) => {
+    return node.verifyMessageWithName(name, signature, message);
+  },
+
   getCoin: async (hash, index) => {
     return node.getCoin(hash, index);
   },
@@ -48,4 +52,4 @@ const client = {
   },
 };
 
-export default client;
+export default nodeClient;

@@ -36,7 +36,8 @@ import {clientStub as sClientStub} from "../../background/setting/client";
 import {ConnectionTypes} from "../../background/connections/service";
 import AppHeader from "../AppHeader";
 import Exchange from '../Exchange';
-import {decrypt, encrypt} from "../../utils/encrypt";
+import SignMessage from "../SignMessage";
+import VerifyMessage from "../VerifyMessage";
 const connClient = cClientStub(() => require('electron').ipcRenderer);
 const settingClient = sClientStub(() => require('electron').ipcRenderer);
 
@@ -170,6 +171,18 @@ class App extends Component {
             wallets={this.props.wallets}
             path="/receive"
             render={this.routeRenderer('Receive', ReceiveModal)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/sign_message"
+            render={this.routeRenderer('Sign Message', SignMessage)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/verify_message"
+            render={this.routeRenderer('Verify Message', VerifyMessage)}
           />
           <ProtectedRoute
             isLocked={this.props.isLocked}

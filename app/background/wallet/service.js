@@ -504,6 +504,13 @@ class WalletService {
     },
   );
 
+  signMessageWithName = (name, message) => this._ledgerDisabled(
+    'method is not supported on ledger yet',
+    () => {
+      return this._executeRPC('signmessagewithname', [name, message]);
+    }
+  );
+
   lock = () => this._ledgerProxy(
     () => this.client.lock(this.name),
     () => this.client.lock(this.name),
@@ -862,6 +869,7 @@ class WalletService {
     await this.updateAccountDepth(changeDepth, receiveDepth);
     res.json(200, { success: true });
   };
+
 
 
   updateAccountDepth = async (changeDepth, receiveDepth) => {
@@ -1245,6 +1253,7 @@ const methods = {
   finalizeTransfer: service.finalizeTransfer,
   finalizeWithPayment: service.finalizeWithPayment,
   claimPaidTransfer: service.claimPaidTransfer,
+  signMessageWithName: service.signMessageWithName,
   revokeName: service.revokeName,
   send: service.send,
   lock: service.lock,
