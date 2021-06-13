@@ -21,6 +21,8 @@ import {
 import {SET_FEE_INFO, SET_NODE_INFO} from "../../ducks/nodeReducer";
 import createRegisterAll from "./create-register-all";
 import {finalizeMany, transferMany} from "./bulk-transfer";
+import {renewMany} from "./bulk-renewal";
+import {getStats} from "./stats";
 import {get, put} from "../db/service";
 import hsdLedger from 'hsd-ledger';
 
@@ -446,6 +448,12 @@ class WalletService {
     await finalizeMany(wallet, names);
   };
 
+  renewMany = async (names) => {
+    const {wdb} = this.node;
+    const wallet = await wdb.get(this.name);
+    await renewMany(wallet, names);
+  };
+
   sendRevealAll = () => this._ledgerProxy(
     () => this._executeRPC('createreveal', ['']),
     () => this._executeRPC('sendreveal', [''], this.lock),
@@ -746,6 +754,12 @@ class WalletService {
     }
 
     return ret;
+  };
+
+  getStats = async () => {
+    const {wdb} = this.node;
+    const wallet = await wdb.get(this.name);
+    return getStats(wallet);
   };
 
   _onNodeStart = async (networkName, network, apiKey) => {
@@ -1225,6 +1239,7 @@ const methods = {
   sendRenewal: service.sendRenewal,
   transferMany: service.transferMany,
   finalizeMany: service.finalizeMany,
+  renewMany: service.renewMany,
   sendTransfer: service.sendTransfer,
   cancelTransfer: service.cancelTransfer,
   finalizeTransfer: service.finalizeTransfer,
@@ -1241,6 +1256,7 @@ const methods = {
   importName: service.importName,
   rpcGetWalletInfo: service.rpcGetWalletInfo,
   listWallets: service.listWallets,
+  getStats: service.getStats,  
 };
 
 export async function start(server) {
