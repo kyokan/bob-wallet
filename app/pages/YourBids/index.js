@@ -57,7 +57,6 @@ class YourBids extends Component {
     this.props.getYourBids()
       .then(() => this.setState({ loading: false }));
     const itemsPerPage = await dbClient.get(YOUR_BIDS_ITEMS_PER_PAGE_KEY);
-    console.log(this.props.match.params.filterType)
     this.setState({
       itemsPerPage: itemsPerPage || 10,
       activeFilter: this.props.match.params.filterType || '',
