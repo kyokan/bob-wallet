@@ -25,8 +25,6 @@ class BidAction extends Component {
     } = this.props;
 
     getNameInfo(name);
-
-
   }
 
   isReveal = () => isReveal(this.props.domain);

@@ -22,7 +22,7 @@ import {
 } from './walletReducer';
 import { NEW_BLOCK_STATUS } from './nodeReducer';
 import {setNames} from "./myDomains";
-import {setYourBids} from "./bids";
+import {setFilter, setYourBids} from "./bids";
 
 let idleInterval;
 
@@ -142,7 +142,17 @@ export const unlockWallet = (name, passphrase) => async (dispatch, getState) => 
     });
 
     dispatch(setNames({}));
-    dispatch(setYourBids([]));
+    dispatch(setYourBids({
+      order: [],
+      map: {},
+    }));
+    dispatch(setFilter({
+      OPENING: [],
+      BIDDING: [],
+      REVEAL: [],
+      CLOSED: [],
+      TRANSFER: [],
+    }))
   }
 
   dispatch({
@@ -411,7 +421,7 @@ async function parseInputsOutputs(net, tx) {
         // If yes, sum all outputs to others' addresses (payment made to sender)
         const containsOtherOutputs = tx.outputs.findIndex(x => x.covenant.action == 'NONE' && x.path !== null) !== -1;
         if (containsOtherOutputs) covValue = -tx.outputs.reduce((sum, op) => !op.path ? (sum+op.value) : sum, 0);
-      }      
+      }
     }
 
     // Renewals and Updates have a value, but it doesn't
