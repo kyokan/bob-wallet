@@ -15,7 +15,7 @@
     &::after {
       position: absolute;
       top: .75rem;
-      right: 1.25rem;
+      right: .75rem;
       content: '';
       height: .5rem;
       width: .5rem;
@@ -26,6 +26,7 @@
     }
 
     &__text {
+      @extend %ellipsify;
       user-select: none;
     }
   }
@@ -41,6 +42,8 @@
     border-bottom-left-radius: .5rem;
     border-bottom-right-radius: .5rem;
     box-sizing: border-box;
+    max-height: 12rem;
+    overflow-y: auto;
   }
 
   &__option {
@@ -49,6 +52,10 @@
     padding: .7rem 1.25rem;
     font-size: .85rem;
     transition: background-color 200ms ease-in-out;
+    text-overflow: ellipsis;
+    overflow-x: hidden;
+    white-space: nowrap;
+    flex: 0 0 auto;
 
     &:hover {
       background-color: $grey;

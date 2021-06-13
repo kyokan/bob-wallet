@@ -92,6 +92,20 @@ class Sidebar extends Component {
           </NavLink>
           <NavLink
             className="sidebar__action"
+            to="/sign_message"
+            activeClassName="sidebar__action--selected"
+          >
+            Sign Message
+          </NavLink>
+          <NavLink
+            className="sidebar__action"
+            to="/verify_message"
+            activeClassName="sidebar__action--selected"
+          >
+            Verify Message
+          </NavLink>
+          <NavLink
+            className="sidebar__action"
             to="/domain_manager"
             activeClassName="sidebar__action--selected"
           >
