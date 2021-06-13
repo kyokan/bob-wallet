@@ -95,7 +95,6 @@ export default class Account extends Component {
     // Stats for balance and cards
     try {
       const stats = await walletClient.getStats();
-      console.log("updateStatsAndBalance", stats);
       this.setState({
         isLoadingStats: false,
         ...stats,

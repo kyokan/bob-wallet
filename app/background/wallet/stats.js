@@ -19,7 +19,6 @@ async function fromBids(wallet) {
 
   // All bids
   const bids = await wallet.getBids();
-  console.log("bids", bids);
 
   for (let bid of bids) {
     // Don't bother if not own bid
@@ -51,8 +50,6 @@ async function fromBids(wallet) {
     }
 
     const bidCoin = await wallet.getCoin(bid.prevout.hash, bid.prevout.index);
-    console.log("bidCoin", ns.name.toString("utf-8"), bid.value, bidCoin);
-
     const isRevealed = !bidCoin;
 
     // If bid not yet revealed and is in reveal period
@@ -99,11 +96,9 @@ async function fromReveals(wallet) {
 
   // All reveals
   const reveals = await wallet.getReveals();
-  console.log("reveals", reveals);
 
   for (let reveal of reveals) {
     const ns = await wallet.getNameState(reveal.nameHash);
-    console.log(ns);
 
     if (!ns) {
       continue;
@@ -163,14 +158,12 @@ async function fromNames(wallet) {
   let registerableNum = 0;
 
   const names = await wallet.getNames();
-  console.log("names", names);
 
   for (let ns of names) {
     const name = ns.name.toString("utf-8");
     const stats = ns.toStats(height, network);
 
     const ownerCoin = await wallet.getCoin(ns.owner.hash, ns.owner.index);
-    console.log("ownerCoin", name, ownerCoin);
 
     // Only act on currently owned names
     if (!ownerCoin) {
