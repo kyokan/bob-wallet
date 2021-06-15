@@ -18,7 +18,7 @@ export default {
 
   output: {
     path: path.join(__dirname, '..', 'dist'),
-    publicPath: './dist/',
+    publicPath: './',
     filename: 'renderer.js'
   },
 
