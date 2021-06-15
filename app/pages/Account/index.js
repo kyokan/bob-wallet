@@ -87,7 +87,7 @@ export default class Account extends Component {
       this.setState({
         spendableBalance: {
           HNS: this.props.spendableBalance,
-          USD: this.props.spendableBalance * HNSToUSD,
+          USD: ((this.props.spendableBalance * HNSToUSD) / 1e6).toFixed(2),
         },
       });
     });
@@ -172,7 +172,7 @@ export default class Account extends Component {
             {displayBalance(spendableBalance.HNS ?? 0, true)}
           </p>
           <span className="subtext">
-            ~${displayBalance(spendableBalance.USD ?? 0, false)} USD
+            ~${spendableBalance.USD || "0.00"} USD
           </span>
         </div>
 
@@ -328,7 +328,7 @@ export default class Account extends Component {
             subtext={
               <Fragment>
                 from lost auctions to get back{" "}
-                <strong>{redeemable.HNS / 1e6} HNS</strong>
+                <strong>{Math.round(redeemable.HNS / 1e6)} HNS</strong>
               </Fragment>
             }
             buttonAction={() => this.onCardButtonClick("redeem")}
@@ -350,7 +350,7 @@ export default class Account extends Component {
             subtext={
               <Fragment>
                 that you’ve won and get back{" "}
-                <strong>{registerable.HNS / 1e6} HNS</strong>
+                <strong>{Math.round(registerable.HNS / 1e6)} HNS</strong>
               </Fragment>
             }
             buttonAction={() => this.onCardButtonClick("register")}
