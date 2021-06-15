@@ -13,6 +13,7 @@ import { clientStub as aClientStub } from "../../background/analytics/client";
 import * as walletActions from "../../ducks/walletActions";
 import { showError, showSuccess } from "../../ducks/notifications";
 import * as nameActions from "../../ducks/names";
+import * as nodeActions from "../../ducks/node";
 
 const analytics = aClientStub(() => require("electron").ipcRenderer);
 
@@ -23,9 +24,11 @@ const analytics = aClientStub(() => require("electron").ipcRenderer);
     height: state.node.chain.height,
     isFetching: state.wallet.isFetching,
     network: state.node.network,
+    hnsPrice: state.node.hnsPrice,
   }),
   (dispatch) => ({
     fetchWallet: () => dispatch(walletActions.fetchWallet()),
+    updateHNSPrice: () => dispatch(nodeActions.updateHNSPrice()),
     sendRevealAll: () => dispatch(nameActions.sendRevealAll()),
     sendRedeemAll: () => dispatch(nameActions.sendRedeemAll()),
     sendRegisterAll: () => dispatch(nameActions.sendRegisterAll()),
@@ -39,6 +42,7 @@ export default class Account extends Component {
     height: PropTypes.number.isRequired,
     isFetching: PropTypes.bool.isRequired,
     network: PropTypes.string.isRequired,
+    updateHNSPrice: PropTypes.func.isRequired,
     fetchWallet: PropTypes.func.isRequired,
     sendRevealAll: PropTypes.func.isRequired,
     sendRedeemAll: PropTypes.func.isRequired,
@@ -50,10 +54,6 @@ export default class Account extends Component {
 
   state = {
     isLoadingStats: true,
-    spendableBalance: {
-      HNS: this.props.spendableBalance,
-      USD: null,
-    },
     lockedBalance: {
       bidding: { HNS: null, num: null },
       revealable: { HNS: null, num: null },
@@ -82,15 +82,8 @@ export default class Account extends Component {
   }
 
   async updateStatsAndBalance() {
-    // USD Conversion Rate for Spendable Balance
-    getUsdConversion().then((HNSToUSD) => {
-      this.setState({
-        spendableBalance: {
-          HNS: this.props.spendableBalance,
-          USD: ((this.props.spendableBalance * HNSToUSD) / 1e6).toFixed(2),
-        },
-      });
-    });
+    // Update HNS price for conversion
+    this.props.updateHNSPrice();
 
     // Stats for balance and cards
     try {
@@ -150,7 +143,15 @@ export default class Account extends Component {
   }
 
   renderBalance() {
-    const { spendableBalance, lockedBalance, isLoadingStats } = this.state;
+    const { lockedBalance, isLoadingStats } = this.state;
+    const spendableBalance = {
+      HNS: this.props.spendableBalance,
+      converted: (
+        (this.props.spendableBalance * this.props.hnsPrice.value) /
+        1e6
+      ).toFixed(2),
+      currency: this.props.hnsPrice.currency,
+    };
 
     const showFirstPlus =
       lockedBalance.bidding.num && lockedBalance.revealable.num;
@@ -169,10 +170,10 @@ export default class Account extends Component {
         <div className="account__header__section">
           <span className="label">SPENDABLE</span>
           <p className="amount">
-            {displayBalance(spendableBalance.HNS ?? 0, true)}
+            {displayBalance(spendableBalance.HNS || 0, true)}
           </p>
           <span className="subtext">
-            ~${spendableBalance.USD || "0.00"} USD
+            ~${spendableBalance.converted || "0.00"} {spendableBalance.currency}
           </span>
         </div>
 
@@ -459,17 +460,4 @@ function blocksDeltaToTimeDelta(blocks, network, hideMinsIfLarge = false) {
     return `${(hours / 24) >>> 0} days`;
   }
   return hoursToNow(hours);
-}
-
-async function getUsdConversion() {
-  try {
-    const response = await (
-      await fetch(
-        "https://api.coingecko.com/api/v3/simple/price?ids=handshake&vs_currencies=usd"
-      )
-    ).json();
-    return response.handshake.usd || 0;
-  } catch (error) {
-    return 0;
-  }
 }

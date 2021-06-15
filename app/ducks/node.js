@@ -20,6 +20,7 @@ import {
   END_NODE_STATUS_CHANGE,
   END_RPC_TEST,
   SET_EXPLORER,
+  UPDATE_HNS_PRICE,
 } from './nodeReducer';
 import { VALID_NETWORKS } from '../constants/networks';
 import {ConnectionTypes} from "../background/connections/service";
@@ -208,5 +209,16 @@ export const setExplorer = (explorer) => async (dispatch) => {
   dispatch({
     type: SET_EXPLORER,
     payload: explorer,
+  })
+};
+
+export const updateHNSPrice = () => async (dispatch) => {
+  const value = await nodeClient.getHNSPrice();
+  dispatch({
+    type: UPDATE_HNS_PRICE,
+    payload: {
+      value,
+      currency: 'USD',
+    },
   })
 };

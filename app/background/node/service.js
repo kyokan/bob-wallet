@@ -319,6 +319,19 @@ export class NodeService extends EventEmitter {
     return this._execRPC('getrawmempool', [verbose ? 1 : 0]);
   }
 
+  async getHNSPrice() {
+    try {
+      const response = await (
+        await fetch(
+          'https://api.coingecko.com/api/v3/simple/price?ids=handshake&vs_currencies=usd'
+        )
+      ).json();
+      return response.handshake.usd || 0;
+    } catch (error) {
+      return 0;
+    }
+  }
+
   async _ensureStarted() {
     return new Promise((resolve, reject) => {
       if (this.client) {
@@ -399,6 +412,7 @@ const methods = {
   setNodeDir: data => service.setNodeDir(data),
   setAPIKey: data => service.setAPIKey(data),
   getDir: () => service.getDir(),
+  getHNSPrice: () => service.getHNSPrice(),
 };
 
 export async function start(server) {
