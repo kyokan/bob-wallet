@@ -25,7 +25,7 @@ import {renewMany} from "./bulk-renewal";
 import {getStats} from "./stats";
 import {get, put} from "../db/service";
 import hsdLedger from 'hsd-ledger';
-import {NAME_STATES} from "../../ducks/names";
+import {NAME_STATES} from "../../constants/names";
 
 const WalletNode = require('hsd/lib/wallet/node');
 const TX = require('hsd/lib/primitives/tx');
@@ -37,7 +37,6 @@ const Mnemonic = require('hsd/lib/hd/mnemonic');
 const Covenant = require('hsd/lib/primitives/covenant');
 const common = require('hsd/lib/wallet/common');
 const ipc = require('electron').ipcMain;
-
 
 const randomAddrs = {
   [NETWORKS.TESTNET]: 'ts1qfcljt5ylsa9rcyvppvl8k8gjnpeh079drfrmzq',
@@ -1311,7 +1310,7 @@ const methods = {
   importName: service.importName,
   rpcGetWalletInfo: service.rpcGetWalletInfo,
   listWallets: service.listWallets,
-  getStats: service.getStats,  
+  getStats: service.getStats,
 };
 
 export async function start(server) {
