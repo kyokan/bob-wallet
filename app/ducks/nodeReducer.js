@@ -13,6 +13,7 @@ export const END_NODE_STATUS_CHANGE = 'node/END_NODE_STATUS_CHANGE';
 export const START_RPC_TEST = 'node/START_RPC_TEST';
 export const END_RPC_TEST = 'node/END_RPC_TEST';
 export const SET_EXPLORER = 'node/SET_EXPLORER';
+export const UPDATE_HNS_PRICE = 'node/UPDATE_HNS_PRICE';
 
 export function getInitialState() {
   return {
@@ -22,7 +23,7 @@ export function getInitialState() {
     isChangingNodeStatus: false,
     isTestingCustomRPC: false,
     isChangingNetworks: false,
-    network: "main",
+    network: 'main',
     apiKey: null,
     fees: {
       slow: 0,
@@ -39,6 +40,10 @@ export function getInitialState() {
       tx: '',
       name: '',
     },
+    hnsPrice: {
+      value: 0,
+      currency: 'USD'
+    }
   };
 }
 
@@ -93,6 +98,11 @@ export default function nodeReducer(state = getInitialState(), action = {}) {
       return {
         ...state,
         explorer: action.payload,
+      };
+    case UPDATE_HNS_PRICE:
+      return {
+        ...state,
+        hnsPrice: action.payload,
       };
     default:
       return state;

@@ -23,4 +23,5 @@ export const clientStub = ipcRendererInjector => makeClient(ipcRendererInjector,
   'setAPIKey',
   'getDir',
   'getAPIKey',
+  'getHNSPrice',
 ]);
