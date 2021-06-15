@@ -10,6 +10,7 @@ import {
   waitForWalletSync,
 } from './walletActions';
 import { SET_NAME } from './namesReducer';
+import {NAME_STATES} from "../constants/names";
 
 export const RECORD_TYPE = {
   DS: 'DS',
@@ -30,16 +31,6 @@ export const DROPDOWN_TYPES = [
   {label: RECORD_TYPE.SYNTH6},
   {label: RECORD_TYPE.TXT},
 ];
-
-// Other Constants
-export const NAME_STATES = {
-  OPENING: 'OPENING',
-  BIDDING: 'BIDDING',
-  REVEAL: 'REVEAL',
-  CLOSED: 'CLOSED',
-  REVOKED: 'REVOKED',
-  TRANSFER: 'TRANSFER',
-};
 
 export const fetchName = name => async (dispatch, getState) => {
   const {names} = getState();

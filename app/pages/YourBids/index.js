@@ -19,7 +19,7 @@ import c from "classnames";
 import * as nameActions from "../../ducks/names";
 import * as notifActions from "../../ducks/notifications";
 import dbClient from "../../utils/dbClient";
-import {NAME_STATES} from "../../ducks/names";
+import {NAME_STATES} from "../../constants/names";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
