@@ -14,6 +14,7 @@ import * as walletActions from "../../ducks/walletActions";
 import { showError, showSuccess } from "../../ducks/notifications";
 import * as nameActions from "../../ducks/names";
 import * as nodeActions from "../../ducks/node";
+import { fetchTransactions } from '../../ducks/walletActions';
 
 const analytics = aClientStub(() => require("electron").ipcRenderer);
 
@@ -34,6 +35,9 @@ const analytics = aClientStub(() => require("electron").ipcRenderer);
     sendRegisterAll: () => dispatch(nameActions.sendRegisterAll()),
     finalizeMany: (names) => dispatch(nameActions.finalizeMany(names)),
     renewMany: (names) => dispatch(nameActions.renewMany(names)),
+    showSuccess: (message) => dispatch(showSuccess(message)),
+    showError: (message) => dispatch(showError(message)),
+    fetchTransactions: () => dispatch(fetchTransactions()),
   })
 )
 export default class Account extends Component {
@@ -109,11 +113,12 @@ export default class Account extends Component {
 
     try {
       await functionToExecute(args);
-      showSuccess(
+      this.props.fetchTransactions();
+      this.props.showSuccess(
         "Your request is submitted! Please wait about 15 minutes for it to complete."
       );
     } catch (e) {
-      showError(e.message);
+      this.props.showError(e.message);
     }
   };
 
