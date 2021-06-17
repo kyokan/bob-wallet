@@ -23,3 +23,9 @@ jobs:
 
       - name: Generate AppImage
         run: npm run package-linux
+
+      - name: Store artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: AppImage
+          path: release/*.AppImage
