@@ -1,0 +1,25 @@
+name: Package for distribution
+
+on: workflow_dispatch
+
+jobs:
+  package:
+    runs-on: ubuntu-18.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - name: Install dependencies
+        run: sudo apt install libudev-dev -y
+
+      - name: npm install
+        run: npm i
+
+      - name: Generate AppImage
+        run: npm run package-linux
