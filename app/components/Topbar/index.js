@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
-import { Link, withRouter } from 'react-router-dom';
+import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import c from 'classnames';
 import { connect } from 'react-redux';
 import * as nameActions from '../../ducks/names';
 import TLDInput from '../TLDInput';
+import SyncStatus from '../SyncStatus';
 import { Logo } from '../Logo';
 import './topbar.scss';
 import { displayBalance } from '../../utils/balances';
@@ -14,29 +15,17 @@ import * as walletActions from '../../ducks/walletActions';
 @connect(
   state => {
     const {
-      chain,
       isRunning,
       isCustomRPCConnected,
-      isChangingNodeStatus,
-      isTestingCustomRPC,
     } = state.node;
-    const { progress } = chain || {};
 
     return {
       isRunning,
       isCustomRPCConnected,
-      isChangingNodeStatus,
-      isTestingCustomRPC,
-      isSynchronizing: isRunning && progress < 1,
-      isSynchronized: isRunning && progress === 1,
-      progress,
       unconfirmedBalance: state.wallet.balance.unconfirmed,
       spendableBalance: state.wallet.balance.spendable,
       walletId: state.wallet.wid,
       walletWatchOnly: state.wallet.watchOnly,
-      walletSync: state.wallet.walletSync,
-      walletHeight: state.wallet.walletHeight,
-      chainHeight: state.node.chain.height,
     };
   },
   dispatch => ({
@@ -55,17 +44,10 @@ class Topbar extends Component {
     }).isRequired,
     walletId: PropTypes.string.isRequired,
     getNameInfo: PropTypes.func.isRequired,
-    isSynchronizing: PropTypes.bool.isRequired,
-    isSynchronized: PropTypes.bool.isRequired,
     lockWallet: PropTypes.func.isRequired,
     unconfirmedBalance: PropTypes.number,
     spendableBalance: PropTypes.number,
-    isChangingNodeStatus: PropTypes.bool.isRequired,
-    isTestingCustomRPC: PropTypes.bool.isRequired,
     walletWatchOnly: PropTypes.bool.isRequired,
-    walletSync: PropTypes.bool.isRequired,
-    walletHeight: PropTypes.number.isRequired,
-    chainHeight: PropTypes.number.isRequired,
   };
 
   state = {
@@ -119,35 +101,15 @@ class Topbar extends Component {
   renderNav() {
     const {
       title,
-      isSynchronized,
-      isSynchronizing,
-      isChangingNodeStatus,
-      isTestingCustomRPC,
-      isRunning,
-      isCustomRPCConnected,
       showLogo,
       location: { pathname },
-      walletSync,
-      progress,
     } = this.props;
 
     return (
       <React.Fragment>
         {showLogo ? this.renderLogo() : this.renderTitle(title)}
         {!/domains$/.test(pathname) && <TLDInput minimalErrorDisplay />}
-        <div
-          className={c('topbar__synced', {
-            'topbar__synced--success': isSynchronized || isCustomRPCConnected,
-            'topbar__synced--failure': !isRunning && !isCustomRPCConnected,
-            'topbar__synced--loading': walletSync
-              || isChangingNodeStatus
-              || isTestingCustomRPC
-              || isSynchronizing
-              || progress < 1,
-          })}
-        >
-          {this.getSyncText()}
-        </div>
+        <SyncStatus />
         { this.renderSettingIcon() }
       </React.Fragment>
     );
@@ -215,49 +177,6 @@ class Topbar extends Component {
         </div>
       </div>
     )
-  }
-
-  getSyncText() {
-    const {
-      isSynchronized,
-      isSynchronizing,
-      progress,
-      isRunning,
-      isCustomRPCConnected,
-      isChangingNodeStatus,
-      isTestingCustomRPC,
-      walletSync,
-      walletHeight,
-      chainHeight,
-    } = this.props;
-
-    if (isSynchronizing) {
-      return `Synchronizing... ${
-        progress ? '(' + (progress * 100).toFixed(2) + '%)' : ''
-      }`;
-    } else if (progress < 1) {
-      return `Synchronizing from RPC... ${
-        progress ? '(' + (progress * 100).toFixed(2) + '%)' : ''
-      }`;
-    }
-
-    if (walletSync) {
-      return `Rescanning... (${Math.floor(walletHeight * 100 / chainHeight)}%)`;
-    }
-
-    if (isSynchronized) {
-      return 'Synchronized';
-    }
-
-    if (isChangingNodeStatus || isTestingCustomRPC) {
-      return 'Please wait...'
-    }
-
-    if (!isRunning && isCustomRPCConnected) {
-      return 'Connected to RPC'
-    }
-
-    return 'No connection';
   }
 }
 
