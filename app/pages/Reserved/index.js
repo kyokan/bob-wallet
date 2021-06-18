@@ -9,7 +9,7 @@ import CopyButton from '../../components/CopyButton';
 import Tooltipable from '../../components/Tooltipable';
 const { dialog } = require("electron").remote;
 
-import {constants, dnssec, wire, Ownership} from 'bns';
+import {constants, dnssec, wire, Ownership, util} from 'bns';
 import './reserved.scss';
 
 const {Proof} = Ownership;
@@ -38,6 +38,7 @@ class Reserved extends Component {
     keys: [],
     txt: '',
     pasteRRs: '',
+    blob: '',
   }
 
   async componentWillMount() {
@@ -315,24 +316,9 @@ class Reserved extends Component {
     zone.claim.push(rr);
     zone.claim.push(sig);
 
-    const o = new Ownership();
-
-    if (!o.isSane(proof)) {
-      this.setState({
-        error: `Malformed DNSSEC proof.`,
-      });
-      return;
-    }
-
-    if (!o.verifySignatures(proof)) {
-      this.setState({
-        error: `Invalid DNSSEC proof signatures.`,
-      });
-      return;
-    }
-
     let json;
     try {
+      this.verifyProof(proof);
       json = await node.sendRawClaim(proof.toBase64());
     } catch (e) {
       this.setState({
@@ -342,6 +328,55 @@ class Reserved extends Component {
     }
 
     // TODO: success modal with details from json
+  }
+
+  sendRawClaim = async () => {
+    this.setState({error: ''});
+
+    const {blob} = this.state;
+
+    // Verify first to be nice
+    let proof;
+    try {
+      if (!blob)
+        throw new Error('Not a valid base64 string.');
+
+      const data = Buffer.from(blob, 'base64');
+      proof = Proof.decode(data);
+    } catch (e) {
+      this.setState({
+        error: `Error decoding base64: ${e.message}`,
+      });
+      return;
+    }
+
+    let json;
+    try {
+      this.verifyProof(proof);
+      json = await node.sendRawClaim(blob);
+    } catch (e) {
+      this.setState({
+        error: `Error sending claim: ${e.message}`,
+      });
+      return;
+    }
+
+    // TODO: success modal with details from json
+  }
+
+  verifyProof(proof) {
+    const o = new Ownership();
+
+    if (!o.isSane(proof))
+      throw new Error('Malformed DNSSEC proof.');
+
+    if (!o.verifySignatures(proof))
+      throw new Error('Invalid DNSSEC proof signatures.');
+
+    if (!o.verifyTimes(proof, util.now()))
+      throw new Error('Proof contains expired signature.');
+
+    return true;
   }
 
   displayKeys() {
@@ -404,7 +439,7 @@ class Reserved extends Component {
           <h2>Sign and broadcast this claim:</h2>
 
           <div className="reserved__method">
-            Method 1 (online): Paste above TXT into legacy DNS.
+            Method 1 (online): Paste above TXT into legacy DNS
             <Tooltipable
               tooltipContent="TODO: blah blah blah DNSSEC, GoDaddy, then come back here and click...">
               <div className="reserved__info-icon" />
@@ -419,7 +454,7 @@ class Reserved extends Component {
           <hr />
 
           <div className="reserved__method">
-            Method 2 (offline): Sign with local DNSSEC key.
+            Method 2 (offline): Sign with local DNSSEC key
             <Tooltipable
               tooltipContent="TODO: if you have your ZSK on this machine you can sign...">
               <div className="reserved__info-icon" />
@@ -455,6 +490,27 @@ class Reserved extends Component {
               placeholder={fakeRRs}
               value={this.pasteRRs}
               onChange={(e) => {this.setState({pasteRRs: e.target.value})}}
+            />
+          </div>
+          <hr />
+
+          <div className="reserved__method">
+            Method 4 (offline - airgapped + DNS): Paste entire base64 claim
+            <Tooltipable
+              tooltipContent="Using bns-prove on a machine with DNS lookup capabilities and access to your DNSSEC keys or HSM, generate a base64 proof and paste the entire string here.">
+              <div className="reserved__info-icon" />
+            </Tooltipable>
+            <button
+              className="reserved__button"
+              onClick={this.sendRawClaim}
+            >
+              Send raw claim
+            </button>
+          </div>
+          <div>
+            <textarea
+              className="reserved__pasteRRs"
+              onChange={(e) => {this.setState({blob: e.target.value})}}
             />
           </div>
           <hr />
