@@ -37,6 +37,7 @@ class Reserved extends Component {
     proof: null,
     keys: [],
     txt: '',
+    pasteRRs: '',
   }
 
   async componentWillMount() {
@@ -107,7 +108,6 @@ class Reserved extends Component {
     });
 
     const txtRecord = this.getTXT();
-    console.log(txtRecord.toString())
     this.setState({
       txt: txtRecord.toString(),
     })
@@ -271,6 +271,79 @@ class Reserved extends Component {
     // TODO: success modal with details from json
   }
 
+  insertRecords = async () => {
+    if (!this.state.proof)
+      return;
+
+    const chunk = this.state.pasteRRs;
+    let RRs;
+
+    this.setState({error: ''});
+
+    try {
+      RRs = wire.fromZone(chunk);
+    } catch (e) {
+      this.setState({
+        error: `Error processing records: ${e.message}`,
+      });
+      return;
+    }
+
+    if (RRs.length !== 2) {
+      this.setState({
+        error: 'Exactly two records expected (TXT & RRSIG)',
+      });
+      return;
+    }
+
+    const rr = RRs[0];
+    const sig = RRs[1];
+
+    if (rr.type !== types.TXT || sig.type !== types.RRSIG) {
+      this.setState({
+        error: 'Only single TXT and single RRSIG allowed.',
+      });
+      return;
+    }
+
+    const proof = this.state.proof;
+    const zone = proof.zones[proof.zones.length - 1];
+
+    // clear other TXT records
+    zone.claim.length = 0;
+
+    zone.claim.push(rr);
+    zone.claim.push(sig);
+
+    const o = new Ownership();
+
+    if (!o.isSane(proof)) {
+      this.setState({
+        error: `Malformed DNSSEC proof.`,
+      });
+      return;
+    }
+
+    if (!o.verifySignatures(proof)) {
+      this.setState({
+        error: `Invalid DNSSEC proof signatures.`,
+      });
+      return;
+    }
+
+    let json;
+    try {
+      json = await node.sendRawClaim(proof.toBase64());
+    } catch (e) {
+      this.setState({
+        error: `Error sending claim: ${e.message}`,
+      });
+      return;
+    }
+
+    // TODO: success modal with details from json
+  }
+
   displayKeys() {
     const rows = [];
     for (let key of this.state.keys) {
@@ -299,9 +372,10 @@ class Reserved extends Component {
 
   render() {
     const fakesig =
-      this.state.url ?
-        `${this.state.url}   300     IN      RRSIG   TXT 13 2 300 20210603180907 20210601160907 34505 ${this.state.url} f6x5CBP1ySenfPodSGSPNPCdzLzhlXK8shtpfzcEmCs09amCSqCIwniq eEIR1EYCuijP4OCKFyEnEhfEk+l81A==` :
+      this.state.url && this.state.txt ?
+        `${this.state.url} 300 IN RRSIG TXT 13 2 300 20210603180907 20210601160907 34505 ${this.state.url} f6x5CBP1ySenfPodSGSPNPCdzLzhlXK8shtpfzcEmCs09amCSqCIwniq eEIR1EYCuijP4OCKFyEnEhfEk+l81A==` :
         '';
+    const fakeRRs = this.state.txt + '\n' + fakesig;
 
     return (
       <div>
@@ -359,6 +433,29 @@ class Reserved extends Component {
           </div>
           <div>
             {this.displayKeys()}
+          </div>
+          <hr />
+
+          <div className="reserved__method">
+            Method 3 (offline - airgapped): Paste TXT + RRSIG
+            <Tooltipable
+              tooltipContent="TODO: Create a TXT record from string above, sign and paste below">
+              <div className="reserved__info-icon" />
+            </Tooltipable>
+            <button
+              className="reserved__button"
+              onClick={this.insertRecords}
+            >
+              Insert records into claim
+            </button>
+          </div>
+          <div>
+            <textarea
+              className="reserved__pasteRRs"
+              placeholder={fakeRRs}
+              value={this.pasteRRs}
+              onChange={(e) => {this.setState({pasteRRs: e.target.value})}}
+            />
           </div>
           <hr />
 
