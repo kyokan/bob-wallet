@@ -1,13 +1,13 @@
-import React, { Component } from 'react';
-import { withRouter } from 'react-router-dom';
-import PropTypes from 'prop-types';
-import c from 'classnames';
-import { connect } from 'react-redux';
+import React, { Component } from "react";
+import { withRouter } from "react-router-dom";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
 import NetworkPicker from "../NetworkPicker";
+import SyncStatus from "../../components/SyncStatus";
 import * as nodeActions from "../../ducks/node";
-import {ConnectionTypes} from "../../background/connections/service";
-import {clientStub as cClientStub} from "../../background/connections/client";
-const connClient = cClientStub(() => require('electron').ipcRenderer);
+import { ConnectionTypes } from "../../background/connections/service";
+import { clientStub as cClientStub } from "../../background/connections/client";
+const connClient = cClientStub(() => require("electron").ipcRenderer);
 
 @withRouter
 @connect(
@@ -15,8 +15,9 @@ const connClient = cClientStub(() => require('electron').ipcRenderer);
     isRunning: state.node.isRunning,
   }),
   (dispatch) => ({
-    changeNetwork: (network) => dispatch(nodeActions.changeCustomNetwork(network)),
-  }),
+    changeNetwork: (network) =>
+      dispatch(nodeActions.changeCustomNetwork(network)),
+  })
 )
 export default class AppHeader extends Component {
   static propTypes = {
@@ -26,73 +27,65 @@ export default class AppHeader extends Component {
 
   state = {
     isLoading: true,
-    customRPCNetworkType: '',
+    customRPCNetworkType: "",
   };
 
   async componentDidMount() {
     this.setState({ isLoading: true });
-    const {type} = await connClient.getConnection();
+    const { type } = await connClient.getConnection();
 
     if (type === ConnectionTypes.Custom) {
       await this.fetchCustomRPC();
     } else {
-      this.setState({ customRPCNetworkType: '' })
+      this.setState({ customRPCNetworkType: "" });
     }
   }
 
   async fetchCustomRPC() {
     const conn = await connClient.getCustomRPC();
     this.setState({
-      customRPCNetworkType: conn.networkType || 'main',
+      customRPCNetworkType: conn.networkType || "main",
     });
   }
 
   render() {
-    const {
-      isRunning,
-      isMainMenu,
-      history: { push },
-    } = this.props;
-
-    const {
-      customRPCNetworkType,
-    } = this.state;
-
-    if (!isMainMenu) {
-      return (
-        <div className="app__header">
-          <div className="app__logo" />
-          <div className="app__network-picker-wrapper">
-            <div
-              className="app__cancel"
-              onClick={() => push('/')}
-            >
-              Return to Menu
-            </div>
-          </div>
-        </div>
-      );
-    }
+    const { isMainMenu } = this.props;
 
     return (
       <div className="app__header">
         <div className="app__logo" />
         <div className="app__network-picker-wrapper">
-          {
-            isRunning
-              ? <NetworkPicker />
-              : (
-                <NetworkPicker
-                  currentNetwork={customRPCNetworkType}
-                  onNetworkChange={async (net) => {
-                    this.setState({ customRPCNetworkType: net });
-                    await this.props.changeNetwork(net);
-                  }}
-                />
-              )
-          }
+          <SyncStatus />
+          {isMainMenu ? this.renderNetworkPicker() : this.renderReturnToMenu()}
         </div>
       </div>
+    );
+  }
+
+  renderReturnToMenu() {
+    return (
+      <div className="app__cancel" onClick={() => this.props.history.push("/")}>
+        Return to Menu
+      </div>
+    );
+  }
+
+  renderNetworkPicker() {
+    const { isRunning } = this.props;
+    const { customRPCNetworkType } = this.state;
+
+    if (isRunning) {
+      return <NetworkPicker />;
+    }
+
+    return (
+      <NetworkPicker
+        currentNetwork={customRPCNetworkType}
+        onNetworkChange={async (net) => {
+          this.setState({ customRPCNetworkType: net });
+          await this.props.changeNetwork(net);
+        }}
+      />
     );
   }
 }
