@@ -58,10 +58,11 @@
     height: 1rem;
   }
 
-  &__pasteRRSIG {
+  &__pasteRRs {
     font-family: monospace;
     width: 85%;
-    height: 3rem;
+    height: 7rem;
     resize: none;
+    margin-top: 5px
   }
 }
