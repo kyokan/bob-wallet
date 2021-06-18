@@ -59,4 +59,6 @@ export const clientStub = ipcRendererInjector => makeClient(ipcRendererInjector,
   'rpcGetWalletInfo',
   'listWallets',
   'getStats',
+  'createClaim',
+  'sendClaim',
 ]);

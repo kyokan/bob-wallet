@@ -19,10 +19,10 @@ export default class Reserved extends Component {
     return (
       <AuctionPanel className="domains__action-panel__reserved">
         <div className="domains__action-panel__reserved-text">
-          Reserved for the top 100,000 Alexa websites
+          Reserved for ICANN TLDs and the top 100,000 Alexa websites
         </div>
         <div className="domains__action-panel__reserved-timestamp">
-          In the top 100,000 as of 6/1/18
+          In the reserved name list as of 2/1/20
         </div>
       </AuctionPanel>
     );

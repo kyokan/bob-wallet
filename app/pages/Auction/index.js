@@ -275,7 +275,11 @@ export default class Auction extends Component {
     let description = '';
     if (isReserved(domain)) {
       status = 'Reserved';
-      // this.setState({ showCollapsibles: false })
+      description = (
+        <button onClick={() => this.props.history.push(`/reserved/${domain.name}`)}>
+          Claim this name
+        </button>
+      );
     } else if (isOpening(domain)) {
       status = 'Opening';
       description = 'Bidding Soon';
