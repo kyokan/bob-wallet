@@ -432,11 +432,13 @@ class WalletService {
   createClaim = (name) => this._ledgerProxy(
     () => this._executeRPC('createclaim', [name]),
     () => this._executeRPC('createclaim', [name]),
+    false
   );
 
   sendClaim = (name) => this._ledgerProxy(
     () => this._executeRPC('sendclaim', [name]),
     () => this._executeRPC('sendclaim', [name]),
+    false
   );
 
   sendOpen = (name) => this._ledgerProxy(
