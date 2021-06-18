@@ -132,12 +132,11 @@ export class NodeService extends EventEmitter {
       network: this.networkName,
       loader: require,
       prefix: dir,
-      listen: true,
-      bip37: true,
       indexAddress: true,
       indexTX: true,
       apiKey: this.apiKey,
       cors: true,
+      noDns: true,
     });
 
     await hsd.ensure();
