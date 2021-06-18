@@ -21,6 +21,7 @@ import {
   END_RPC_TEST,
   SET_EXPLORER,
   UPDATE_HNS_PRICE,
+  SET_NO_DNS,
 } from './nodeReducer';
 import { VALID_NETWORKS } from '../constants/networks';
 import {ConnectionTypes} from "../background/connections/service";
@@ -103,11 +104,13 @@ export const start = (network) => async (dispatch, getState) => {
     await nodeClient.start(network);
     hasAppStarted = true;
     const apiKey = await nodeClient.getAPIKey();
+    const noDns = await nodeClient.getNoDns();
     dispatch({
       type: START,
       payload: {
         network,
         apiKey,
+        noDns,
       },
     });
     await dispatch(setNodeInfo());
@@ -221,4 +224,14 @@ export const updateHNSPrice = () => async (dispatch) => {
       currency: 'USD',
     },
   })
+};
+
+export const setNoDns = (noDns) => async (dispatch) => {
+  await nodeClient.setNoDns(noDns);
+  await dispatch({
+    type: SET_NO_DNS,
+    payload: noDns,
+  })
+  await dispatch(stop());
+  await dispatch(start());
 };
