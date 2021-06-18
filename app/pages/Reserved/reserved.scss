@@ -1,7 +1,6 @@
 @import '../../variables.scss';
 
 .reserved {
-
   &__table {
     font-family: monospace;
     white-space: break-spaces;
@@ -45,11 +44,12 @@
 
   &__method {
     @extend %row-nowrap;
+    position: relative;
   }
 
   &__button {
     position: absolute;
-    right: 70px;
+    right: 10px;
   }
 
   &__txtRecord {
