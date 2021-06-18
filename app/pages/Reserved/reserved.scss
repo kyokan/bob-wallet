@@ -1,5 +1,9 @@
 @import '../../variables.scss';
 
+.mono {
+  font-family: monospace;
+}
+
 .reserved {
   &__table {
     font-family: monospace;

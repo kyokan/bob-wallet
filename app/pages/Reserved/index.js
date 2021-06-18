@@ -7,8 +7,10 @@ import { clientStub as wClientStub } from '../../background/wallet/client';
 import { displayBalance, toBaseUnits, toDisplayUnits } from '../../utils/balances';
 import CopyButton from '../../components/CopyButton';
 import Tooltipable from '../../components/Tooltipable';
+import { MiniModal } from '../../components/Modal/MiniModal';
 const { dialog } = require("electron").remote;
 
+import blake2b from 'bcrypto/lib/blake2b';
 import {constants, dnssec, wire, Ownership, util} from 'bns';
 import './reserved.scss';
 
@@ -39,6 +41,7 @@ class Reserved extends Component {
     txt: '',
     pasteRRs: '',
     blob: '',
+    success: null,
   }
 
   async componentWillMount() {
@@ -148,7 +151,11 @@ class Reserved extends Component {
       return;
     }
 
-    // TODO: success modal with details from json
+    const proof = Proof.fromJSON(json);
+    const data = proof.encode();
+    const hash = blake2b.digest(data).toString('hex');
+
+    this.setState({success: hash});
   }
 
   getTXT() {
@@ -269,7 +276,7 @@ class Reserved extends Component {
       return;
     }
 
-    // TODO: success modal with details from json
+    this.setState({success: json});
   }
 
   insertRecords = async () => {
@@ -327,7 +334,7 @@ class Reserved extends Component {
       return;
     }
 
-    // TODO: success modal with details from json
+    this.setState({success: json});
   }
 
   sendRawClaim = async () => {
@@ -361,7 +368,7 @@ class Reserved extends Component {
       return;
     }
 
-    // TODO: success modal with details from json
+    this.setState({success: json});
   }
 
   verifyProof(proof) {
@@ -412,6 +419,22 @@ class Reserved extends Component {
         '';
     const fakeRRs = this.state.txt + '\n' + fakesig;
 
+    if (this.state.success) {
+      return (
+        <MiniModal
+          title="Reserved name claim broadcast successfully!"
+          onClose={() => {this.setState({success: null})}}
+          wide={true}
+        >
+          It may take up to 15 minutes to be confirmed in the coinbase transaction of a block.
+          Your claim ID is not like a transaction ID and will not be found by most block explorers.
+          It may still be useful in debugging from the logs.
+          <hr />
+          Your claim ID: <span className='mono'>{this.state.success}</span>
+        </MiniModal>
+      );
+    }
+
     return (
       <div>
         <div className="reserved__top">
@@ -441,7 +464,7 @@ class Reserved extends Component {
           <div className="reserved__method">
             Method 1 (online): Paste above TXT into legacy DNS
             <Tooltipable
-              tooltipContent="TODO: blah blah blah DNSSEC, GoDaddy, then come back here and click...">
+              tooltipContent="Create a TXT record with the above string in your zone using your domain name service provider. Your domain and its top-level domain must have strong DNSSEC enabled.">
               <div className="reserved__info-icon" />
             </Tooltipable>
             <button
@@ -456,7 +479,7 @@ class Reserved extends Component {
           <div className="reserved__method">
             Method 2 (offline): Sign with local DNSSEC key
             <Tooltipable
-              tooltipContent="TODO: if you have your ZSK on this machine you can sign...">
+              tooltipContent="If your DNSSEC zone-signing private key is available on this machine you can select it to automatically sign and broadcast the claim proof.">
               <div className="reserved__info-icon" />
             </Tooltipable>
             <button
@@ -474,7 +497,7 @@ class Reserved extends Component {
           <div className="reserved__method">
             Method 3 (offline - airgapped): Paste TXT + RRSIG
             <Tooltipable
-              tooltipContent="TODO: Create a TXT record from string above, sign and paste below">
+              tooltipContent="Using your own software like BIND9 dnssec-signzone, create and sign a zone file with a TXT record (containing the string above) and RRSIG. Paste both records here in DNS zone file format.">
               <div className="reserved__info-icon" />
             </Tooltipable>
             <button
