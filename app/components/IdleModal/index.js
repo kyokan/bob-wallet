@@ -5,11 +5,10 @@ import Modal from '../Modal';
 import * as walletAction from '../../ducks/walletActions';
 import './idle-modal.scss';
 
-const MAX_IDLE = 5;
-
 class IdleModal extends Component {
   static propTypes = {
     idle: PropTypes.number.isRequired,
+    maxIdle: PropTypes.number.isRequired,
     resetIdle: PropTypes.func.isRequired,
     logout: PropTypes.func.isRequired,
   };
@@ -25,7 +24,15 @@ class IdleModal extends Component {
       return;
     }
 
-    if (!nextProps.isLocked && nextProps.idle >= MAX_IDLE && !this.state.isShowing) {
+    if (this.props.maxIdle === 0) {
+      return;
+    }
+
+    if (
+      !nextProps.isLocked &&
+      nextProps.idle >= this.props.maxIdle &&
+      !this.state.isShowing
+    ) {
       if (!this.interval) {
         this.interval = setInterval(this.countDown, 1000);
       }
@@ -59,7 +66,7 @@ class IdleModal extends Component {
   };
 
   countDown = async () => {
-    const {timeRemaining} = this.state;
+    const { timeRemaining } = this.state;
 
     if (timeRemaining < 1) {
       await this.logout();
@@ -80,7 +87,9 @@ class IdleModal extends Component {
     return (
       <Modal className="idle-modal__wrapper" onClose={() => ({})}>
         <div className="idle-modal">
-          <div className="idle-modal__title">You will be automatically logged out in:</div>
+          <div className="idle-modal__title">
+            You will be automatically logged out in:
+          </div>
           <div className="idle-modal__time">{this.state.timeRemaining}s</div>
           <div className="idle-modal__actions">
             <button
@@ -103,12 +112,13 @@ class IdleModal extends Component {
 }
 
 export default connect(
-  state => ({
+  (state) => ({
     idle: state.wallet.idle,
+    maxIdle: state.wallet.maxIdle,
     isLocked: state.wallet.isLocked,
   }),
-  dispatch => ({
+  (dispatch) => ({
     resetIdle: () => dispatch(walletAction.resetIdle()),
     logout: () => dispatch(walletAction.lockWallet()),
-  }),
+  })
 )(IdleModal);
