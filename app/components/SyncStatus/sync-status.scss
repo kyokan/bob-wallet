@@ -1,0 +1,54 @@
+@import "../../variables";
+
+.sync-status {
+  @extend %h5;
+  @extend %row-nowrap;
+  align-items: center;
+  font-weight: 500;
+  line-height: 1rem;
+  color: $manatee-gray;
+  transition: color 250ms ease-in-out;
+  margin: 0 2rem;
+
+  &:hover {
+    cursor: default;
+  }
+
+  &:before {
+    content: "";
+    display: block;
+    height: 0.8rem;
+    width: 0.8rem;
+    background-size: cover;
+    background-position: center;
+    margin-right: 4px;
+    background-image: url("../../assets/images/brick-loader.svg");
+  }
+
+  &--success {
+    color: $caribbean-green;
+    font-weight: 600;
+
+    &:before {
+      background-image: url("../../assets/images/check-square.svg");
+    }
+  }
+
+  &--failure {
+    color: $orange-red;
+    font-weight: 600;
+
+    &:before {
+      background-image: url("../../assets/images/x-square.svg");
+    }
+  }
+
+  &--loading {
+    color: $manatee-gray;
+    font-weight: 600;
+
+    &:before {
+      background-image: url("../../assets/images/brick-loader.svg");
+    }
+  }
+}
