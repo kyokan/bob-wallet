@@ -20,8 +20,8 @@ import {
 } from '../../ducks/walletReducer';
 import {SET_FEE_INFO, SET_NODE_INFO} from "../../ducks/nodeReducer";
 import createRegisterAll from "./create-register-all";
-import {finalizeMany, transferMany} from "./bulk-transfer";
-import {renewMany} from "./bulk-renewal";
+import {createFinalizeMany, createTransferMany} from "./bulk-transfer";
+import {createRenewMany} from "./bulk-renewal";
 import {getStats} from "./stats";
 import {get, put} from "../db/service";
 import hsdLedger from 'hsd-ledger';
@@ -473,9 +473,7 @@ class WalletService {
     const unlock = await wallet.fundLock.lock();
 
     try {
-      await wallet.fill(mtx);
-      const finalizedTX = await wallet.finalize(mtx);
-      await wallet.sendMTX(finalizedTX, null);
+      return this._ledgerSendCustomTx(wallet, mtx);
     } finally {
       unlock();
     }
@@ -484,19 +482,40 @@ class WalletService {
   transferMany = async (names, address) => {
     const {wdb} = this.node;
     const wallet = await wdb.get(this.name);
-    await transferMany(wallet, names, address);
+    const mtx = await createTransferMany(wallet, names, address);
+    const unlock = await wallet.fundLock.lock();
+
+    try {
+      return this._ledgerSendCustomTx(wallet, mtx);
+    } finally {
+      unlock();
+    }
   };
 
   finalizeMany = async (names) => {
     const {wdb} = this.node;
     const wallet = await wdb.get(this.name);
-    await finalizeMany(wallet, names);
+    const mtx = await createFinalizeMany(wallet, names);
+    const unlock = await wallet.fundLock.lock();
+
+    try {
+      return this._ledgerSendCustomTx(wallet, mtx);
+    } finally {
+      unlock();
+    }
   };
 
   renewMany = async (names) => {
     const {wdb} = this.node;
     const wallet = await wdb.get(this.name);
-    await renewMany(wallet, names);
+    const mtx = await createRenewMany(wallet, names);
+    const unlock = await wallet.fundLock.lock();
+
+    try {
+      return this._ledgerSendCustomTx(wallet, mtx);
+    } finally {
+      unlock();
+    }
   };
 
   sendRevealAll = () => this._ledgerProxy(
@@ -1233,6 +1252,59 @@ class WalletService {
       throw new Error(message);
     }, onNonLedger, false);
   };
+
+  async _ledgerSendCustomTx(wallet, mtx) {
+    await wallet.fill(mtx);
+    const finalizedTX = await wallet.finalize(mtx);
+
+    if (wallet.watchOnly) {
+      return await this._ledgerProxy(
+        // With ledger: create ledger inputs that include path
+        async () => {
+          const options = {
+            inputs: await this._ledgerInputs(wallet, finalizedTX),
+          }
+          return [finalizedTX.getJSON(this.network), options];
+        },
+        // No ledger: unused
+        async () => {
+          return finalizedTX;
+        },
+        true,    // shouldConfirmLedger (ledger only)
+        true     // broadcast (ledger only)
+      );
+    } else {
+      return await wallet.sendMTX(finalizedTX, null);
+    }
+  }
+
+  async _ledgerInputs(wallet, tx) {
+    // For mtx created in Bob (instead of hsd), the inputs don't include
+    // path, so they need to be recreated as LedgerInput
+    const ledgerInputs = [];
+
+    for (const [idx, input] of tx.inputs.entries()) {
+      const coin = await wallet.getCoin(input.prevout.hash, input.prevout.index);
+      const key = await wallet.getKey(coin.address);
+      const publicKey = key.publicKey;
+      const path =
+        'm/' +                                    // master
+        '44\'/' +                                 // purpose
+        `${this.network.keyPrefix.coinType}'/` +  // coin type
+        `${key.account}'/` +                      // should be 0 ("default")
+        `${key.branch}/` +                        // should be 1 (change)
+        `${key.index}`;
+      const ledgerInput = new LedgerInput({
+        publicKey,
+        path,
+        coin,
+        input,
+        index: idx,
+      })
+      ledgerInputs.push(ledgerInput)
+    }
+    return ledgerInputs;
+  }
 
   async _executeRPC(method, args, cb) {
     await this._selectWallet();
