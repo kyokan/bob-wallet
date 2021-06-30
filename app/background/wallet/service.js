@@ -847,6 +847,7 @@ class WalletService {
 
     await this.setAPIKey((apiKey));
 
+    // TODO: This may not work because the plugin is open() already by now
     this.node.http.post('/unsafe-update-account-depth', this.handleUnsafeUpdateAccountDepth);
 
     this.node.wdb.on('error', e => {
@@ -946,8 +947,8 @@ class WalletService {
     this.client = null;
     this.didSelectWallet = false;
     this.closeP = new Promise(async resolve => {
-      if (node) {
-        // Wallet as plugin may already be closed
+      // Wallet as plugin is closed by full node
+      if (node && this.conn === ConnectionTypes.Custom) {
         await node.close();
       }
       resolve();
