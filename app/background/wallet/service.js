@@ -55,6 +55,7 @@ const WALLET_API_KEY = 'walletApiKey';
 class WalletService {
   constructor() {
     nodeService.on('started', this._onNodeStart);
+    nodeService.on('wallet plugin', this._usePlugin);
     nodeService.on('stopped', this._onNodeStop);
     this.nodeService = nodeService;
     this.lastProgressUpdate = 0;
@@ -836,8 +837,39 @@ class WalletService {
     return getStats(wallet);
   };
 
+  // Wallet as a plugin to the hsd full node is the default configuration
+  _usePlugin = async (plugin) => {
+    this.network = plugin.node.network;
+    this.networkName = this.network.toString();
+    this.apiKey = plugin.node.http.apiKey;
+    this.walletApiKey = this.apiKey;
+
+    this.node = plugin;
+
+    this.node.http.post('/unsafe-update-account-depth', this.handleUnsafeUpdateAccountDepth);
+
+    this.node.wdb.on('error', e => {
+      console.error('walletdb error', e);
+    });
+    this.node.wdb.client.bind('block connect', this.onNewBlock);
+    this.node.wdb.client.unhook('block rescan');
+    this.node.wdb.client.hook('block rescan', this.onRescanBlock);
+
+    this.client = new WalletClient({network: this.network});
+    await this.refreshNodeInfo();
+    const wallets = await this.listWallets(false, true);
+
+    dispatchToMainWindow({
+      type: SET_WALLETS,
+      payload: createPayloadForSetWallets(wallets),
+    });
+    await this.refreshWalletInfo();
+  };
+
+  // Wallet as a separate process only runs in Custom RPC mode
   _onNodeStart = async (networkName, network, apiKey) => {
     const conn = await getConnection();
+    assert(conn.type === ConnectionTypes.Custom);
 
     this.networkName = networkName;
     this.apiKey = apiKey;
@@ -853,15 +885,9 @@ class WalletService {
 
     const node = new WalletNode({
       network: networkName,
-      nodeHost: conn.type === ConnectionTypes.Custom
-        ? conn.host
-        : undefined,
-      nodePort: conn.type === ConnectionTypes.Custom
-        ? conn.port || undefined
-        : undefined,
-      nodeApiKey: conn.type === ConnectionTypes.Custom
-        ? conn.apiKey
-        : apiKey,
+      nodeHost: conn.host,
+      nodePort: conn.port || undefined,
+      nodeApiKey: conn.apiKey,
       apiKey: walletOptions.apiKey,
       httpPort: walletOptions.port,
       memory: false,
@@ -907,6 +933,7 @@ class WalletService {
     this.didSelectWallet = false;
     this.closeP = new Promise(async resolve => {
       if (node) {
+        // Wallet as plugin may already be closed
         await node.close();
       }
       resolve();

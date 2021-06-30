@@ -10,6 +10,7 @@ import { NodeClient } from 'hs-client';
 import { BigNumber } from 'bignumber.js';
 import { ConnectionTypes, getConnection, getCustomRPC } from '../connections/service';
 import FullNode from 'hsd/lib/node/fullnode';
+import plugin from 'hsd/lib/wallet/plugin';
 import { prefixHash } from '../../db/names';
 import { get, put } from '../db/service';
 import {dispatchToMainWindow} from "../../mainWindow";
@@ -155,8 +156,11 @@ export class NodeService extends EventEmitter {
       noDns: this.noDns,
     });
 
+    hsd.use(plugin);
+
     await hsd.ensure();
     await hsd.open();
+    this.emit('wallet plugin', plugin);
     await hsd.connect();
     await hsd.startSync();
 
