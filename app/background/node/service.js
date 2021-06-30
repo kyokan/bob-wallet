@@ -152,6 +152,7 @@ export class NodeService extends EventEmitter {
       indexAddress: true,
       indexTX: true,
       apiKey: this.apiKey,
+      walletApiKey: this.apiKey,
       cors: true,
       noDns: this.noDns,
     });
@@ -160,7 +161,7 @@ export class NodeService extends EventEmitter {
 
     await hsd.ensure();
     await hsd.open();
-    this.emit('wallet plugin', plugin);
+    this.emit('wallet plugin', hsd.get('walletdb'), this.apiKey);
     await hsd.connect();
     await hsd.startSync();
 

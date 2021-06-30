@@ -838,13 +838,14 @@ class WalletService {
   };
 
   // Wallet as a plugin to the hsd full node is the default configuration
-  _usePlugin = async (plugin) => {
-    this.network = plugin.node.network;
-    this.networkName = this.network.toString();
-    this.apiKey = plugin.node.http.apiKey;
-    this.walletApiKey = this.apiKey;
-
+  _usePlugin = async (plugin, apiKey) => {
     this.node = plugin;
+    this.network = plugin.network;
+    this.networkName = this.network.toString();
+    this.apiKey = apiKey;
+    this.walletApiKey = apiKey;
+
+    await this.setAPIKey((apiKey));
 
     this.node.http.post('/unsafe-update-account-depth', this.handleUnsafeUpdateAccountDepth);
 
@@ -852,10 +853,16 @@ class WalletService {
       console.error('walletdb error', e);
     });
     this.node.wdb.client.bind('block connect', this.onNewBlock);
-    this.node.wdb.client.unhook('block rescan');
-    this.node.wdb.client.hook('block rescan', this.onRescanBlock);
+    this.node.wdb.client.bind('block rescan', this.onRescanBlock);
 
-    this.client = new WalletClient({network: this.network});
+    const walletOptions = {
+      network: this.network,
+      port: this.network.walletPort,
+      apiKey: this.walletApiKey,
+      timeout: 10000,
+    };
+
+    this.client = new WalletClient(walletOptions);
     await this.refreshNodeInfo();
     const wallets = await this.listWallets(false, true);
 
@@ -913,7 +920,14 @@ class WalletService {
 
     node.wdb.client.bind('block connect', this.onNewBlock);
     node.wdb.client.unhook('block rescan');
-    node.wdb.client.hook('block rescan', this.onRescanBlock);
+    node.wdb.client.hook('block rescan', async (entry, txs) => {
+      try {
+        await node.wdb.rescanBlock(entry, txs);
+      } catch (e) {
+        node.wdb.emit('error', e);
+      }
+      await this.onRescanBlock(entry);
+    });
 
     this.client = new WalletClient(walletOptions);
     await this.refreshNodeInfo();
@@ -1054,39 +1068,31 @@ class WalletService {
    * @returns {Promise}
    */
 
-  onRescanBlock = async (entry, txs) => {
-    await this._ensureClient();
-    const wdb = this.node.wdb;
+  onRescanBlock = async (entry) => {
+    const walletHeight = entry.height;
+    const chainHeight = this.lastKnownChainHeight;
 
-    try {
-      await wdb.rescanBlock(entry, txs);
-      const walletHeight = entry.height;
-      const chainHeight = this.lastKnownChainHeight;
+    if (walletHeight === chainHeight) {
+      dispatchToMainWindow({type: STOP_SYNC_WALLET});
+      dispatchToMainWindow({
+        type: SYNC_WALLET_PROGRESS,
+        payload: walletHeight,
+      });
+      await this.refreshWalletInfo();
+      return;
+    }
 
-      if (walletHeight === chainHeight) {
-        dispatchToMainWindow({type: STOP_SYNC_WALLET});
-        dispatchToMainWindow({
-          type: SYNC_WALLET_PROGRESS,
-          payload: walletHeight,
-        });
-        await this.refreshWalletInfo();
-        return;
-      }
+    const now = Date.now();
 
-      const now = Date.now();
-
-      // debounce wallet sync update
-      if (now - this.lastProgressUpdate > 500) {
-        dispatchToMainWindow({type: START_SYNC_WALLET});
-        dispatchToMainWindow({
-          type: SYNC_WALLET_PROGRESS,
-          payload: walletHeight,
-        });
-        await this.refreshWalletInfo();
-        this.lastProgressUpdate = now;
-      }
-    } catch (e) {
-      wdb.emit('error', e);
+    // debounce wallet sync update
+    if (now - this.lastProgressUpdate > 500) {
+      dispatchToMainWindow({type: START_SYNC_WALLET});
+      dispatchToMainWindow({
+        type: SYNC_WALLET_PROGRESS,
+        payload: walletHeight,
+      });
+      await this.refreshWalletInfo();
+      this.lastProgressUpdate = now;
     }
   };
 
