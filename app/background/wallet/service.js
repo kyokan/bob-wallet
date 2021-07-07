@@ -46,7 +46,7 @@ const randomAddrs = {
 };
 
 const {LedgerHSD, LedgerChange, LedgerCovenant, LedgerInput} = hsdLedger;
-const {Device} = hsdLedger.USB;
+const {Device} = hsdLedger.HID;
 const ONE_MINUTE = 60000;
 
 const HSD_DATA_DIR = path.join(app.getPath('userData'), 'hsd_data');
