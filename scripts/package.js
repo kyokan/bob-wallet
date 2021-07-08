@@ -102,7 +102,8 @@ function main() {
     'mainWindow.js',
     'preload.js',
     'ducks/nodeReducer.js',
-    'ducks/walletReducer.js'
+    'ducks/walletReducer.js',
+    'ducks/claims.js'
   ];
   const babelizeFiles = () => {
     if (!babelFiles.length) {
