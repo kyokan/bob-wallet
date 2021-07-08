@@ -11,7 +11,7 @@
     "package": "npm run build && electron-builder build --publish never",
     "package-all": "npm run build && electron-builder build -mwl",
     "package-ci": "npm run postinstall && npm run build && electron-builder --publish always",
-    "package-linux": "npm run build && electron-builder build --linux",
+    "package-linux": "npm run build && electron-builder build --linux --publish never",
     "package-win": "node ./scripts/package.js && electron-builder build --win --x64 --arm64=false",
     "prestart": "npm run build",
     "start": "cross-env NODE_ENV=production electron -r @babel/register -r @babel/polyfill ./app/main.js",
