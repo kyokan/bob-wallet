@@ -154,7 +154,7 @@
     "hs-airdrop": "^0.10.0",
     "hs-client": "https://github.com/handshake-org/hs-client.git",
     "hsd": "https://github.com/handshake-org/hsd/tarball/5cfc1ad",
-    "hsd-ledger": "https://github.com/handshake-org/hsd-ledger#s-x-compat",
+    "hsd-ledger": "https://github.com/handshake-org/hsd-ledger#s-x-compat-hid",
     "isomorphic-fetch": "^2.2.1",
     "jsonschema": "^1.4.0",
     "lodash.isequal": "4.5.0",

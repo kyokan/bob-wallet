@@ -2,7 +2,7 @@ import hsdLedger from 'hsd-ledger';
 
 const MTX = require('hsd/lib/primitives/mtx');
 const {LedgerHSD} = hsdLedger;
-const {Device} = hsdLedger.USB;
+const {Device} = hsdLedger.HID;
 const ONE_MINUTE = 60000;
 
 export async function withLedger(network, action) {
@@ -10,14 +10,10 @@ export async function withLedger(network, action) {
   let ledger;
 
   try {
-    await Device.requestDevice();
-    const devices = await Device.getDevices();
-    device = devices[0];
+    device = await Device.requestDevice();
     device.set({
       timeout: ONE_MINUTE
     });
-    if (!Device.isLedgerDevice(device))
-      throw new Error('Device should be a Ledger device.');
 
     await device.open();
     // TODO: this network parameter should be passed dynamically.
