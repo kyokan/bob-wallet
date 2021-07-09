@@ -10,6 +10,7 @@ export const LOCK_WALLET = 'app/wallet/lockWallet';
 export const SET_TRANSACTIONS = 'app/wallet/setTransactions';
 export const INCREMENT_IDLE = 'app/wallet/incrementIdle';
 export const RESET_IDLE = 'app/wallet/resetIdle';
+export const SET_MAX_IDLE = 'app/wallet/setMaxIdle';
 export const SET_PENDING_TRANSACTIONS = 'app/wallet/setPendingTransactions';
 export const START_SYNC_WALLET = 'app/wallet/startSyncWallet';
 export const STOP_SYNC_WALLET = 'app/wallet/stopSyncWallet';
@@ -40,6 +41,7 @@ export function getInitialState() {
     receiveDepth: 0,
     transactions: new Map(),
     idle: 0,
+    maxIdle: 5,
     walletSync: false,
     walletHeight: 0,
     getPassphrase: {get: false},
@@ -114,6 +116,11 @@ export default function walletReducer(state = getInitialState(), {type, payload}
       return {
         ...state,
         idle: 0,
+      };
+    case SET_MAX_IDLE:
+      return {
+        ...state,
+        maxIdle: payload,
       };
     case START_SYNC_WALLET:
       return {

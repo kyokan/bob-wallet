@@ -5,7 +5,7 @@ const {states} = require('hsd/lib/covenants/namestate');
 const MTX = require('hsd/lib/primitives/mtx');
 const Output = require('hsd/lib/primitives/output');
 
-export const transferMany = async (wallet, names, recipientAddress) => {
+export const createTransferMany = async (wallet, names, recipientAddress) => {
   if (!Array.isArray(names)) {
     throw new Error('names must be an array');
   }
@@ -64,17 +64,10 @@ export const transferMany = async (wallet, names, recipientAddress) => {
     mtx.outputs.push(output);
   }
 
-  const unlock = await wallet.fundLock.lock();
-  try {
-    await wallet.fill(mtx);
-    const finalizedTX = await wallet.finalize(mtx);
-    await wallet.sendMTX(finalizedTX, null);
-  } finally {
-    unlock();
-  }
+  return mtx;
 };
 
-export const finalizeMany = async (wallet, names) => {
+export const createFinalizeMany = async (wallet, names) => {
   if (!Array.isArray(names)) {
     throw new Error('names must be an array');
   }
@@ -143,12 +136,5 @@ export const finalizeMany = async (wallet, names) => {
     mtx.outputs.push(output);
   }
 
-  const unlock = await wallet.fundLock.lock();
-  try {
-    await wallet.fill(mtx);
-    const finalizedTX = await wallet.finalize(mtx);
-    await wallet.sendMTX(finalizedTX, null);
-  } finally {
-    unlock();
-  }
+  return mtx;
 };

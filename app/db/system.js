@@ -23,6 +23,18 @@ export async function setInitializationState(network, state) {
   return dbClient.put(initializationStateKey(network), state ? '1' : '0');
 }
 
+export async function getMaxIdleMinutes() {
+  const maxIdle = await dbClient.get('max-idle');
+  if (maxIdle === null) {
+    return null;
+  }
+  return (maxIdle >>> 0);
+}
+
+export async function setMaxIdleMinutes(maxIdle) {
+  return dbClient.put('max-idle', maxIdle >>> 0);
+}
+
 function initializationStateKey(network) {
   return `initialization-state:${network || 'main'}`;
 }

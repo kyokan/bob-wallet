@@ -1,7 +1,7 @@
 import walletClient from '../utils/walletClient';
 import nodeClient from '../utils/nodeClient';
 import throttle from 'lodash.throttle';
-import { getInitializationState, setInitializationState } from '../db/system';
+import { getInitializationState, setInitializationState, getMaxIdleMinutes, setMaxIdleMinutes } from '../db/system';
 import {
   GET_PASSPHRASE,
   getInitialState,
@@ -9,6 +9,7 @@ import {
   LOCK_WALLET,
   NONE,
   RESET_IDLE,
+  SET_MAX_IDLE,
   SET_PENDING_TRANSACTIONS,
   SET_TRANSACTIONS,
   SET_WALLET,
@@ -75,6 +76,12 @@ export const fetchWalletAPIKey = () => async (dispatch) => {
 
 export const fetchWallet = () => async (dispatch, getState) => {
   const network = getState().node.network;
+
+  const maxIdle = await getMaxIdleMinutes();
+  dispatch({
+    type: SET_MAX_IDLE,
+    payload: maxIdle ?? 5,
+  })
 
   const isInitialized = await getInitializationState(network);
 
@@ -316,6 +323,14 @@ const incrementIdle = () => ({
 export const resetIdle = () => ({
   type: RESET_IDLE,
 });
+
+export const setMaxIdle = (maxIdle) => async (dispatch) => {
+  await setMaxIdleMinutes(maxIdle);
+  dispatch({
+    type: SET_MAX_IDLE,
+    payload: maxIdle,
+  })
+};
 
 export const getPassphrase = (resolve, reject) => async (dispatch, getState) => {
   if (getState().wallet.watchOnly === true) {
