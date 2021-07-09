@@ -81,6 +81,16 @@ npm run package-linux
 
 The output app will be created in the `/release` folder. Open `Bob-x.x.x.AppImage` to start the wallet.
 
+##### Ledger
+
+Note that to use Ledger devices with Linux, permissions must be granted to access the USB device.
+Follow Ledger's own guide [here](https://support.ledger.com/hc/en-us/articles/115005165269-Fix-connection-issues)
+which will instruct you to execute this command:
+
+```
+wget -q -O - https://raw.githubusercontent.com/LedgerHQ/udev-rules/master/add_udev_rules.sh | sudo bash
+```
+
 
 #### Test in development mode
 
