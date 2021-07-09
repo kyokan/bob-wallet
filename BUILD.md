@@ -8,5 +8,17 @@
 5. you can check notarization status by running `xcrun altool --notarization-info "{notarization-id}" --username "{username} --password "{password}"`
 
 
-### Window
-1. simple run `npm run package-win`
+### Windows
+1. Simply build with
+   ```sh
+   npm run package-win
+   ```
+2. The `.exe` file will be placed in `./release/`.
+
+
+### Linux
+1. Simply build with
+   ```sh
+   npm run package-linux
+   ```
+2. The `.AppImage` file will be placed in `./release/`.
