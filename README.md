@@ -26,7 +26,7 @@ Bob supports all of the following features:
 2. DNS record management
 3. Send/receive coins
 ![Screen Shot 2020-02-13 at 1 33 11 PM](https://user-images.githubusercontent.com/8230144/74480855-8a2c2100-4e66-11ea-9d29-63e474f47e23.png)
-4. Airdrop claims
+4. Airdrop claims (Note that you need to wait 100 blocks before spending the airdrop reward)
 ![Screen Shot 2020-02-13 at 1 33 32 PM](https://user-images.githubusercontent.com/8230144/74480849-87313080-4e66-11ea-8097-421592a9a55f.png)
 5. Name watchlists
 ![Screen Shot 2020-02-13 at 1 32 49 PM](https://user-images.githubusercontent.com/8230144/74480856-8ac4b780-4e66-11ea-90c0-48c5444d0745.png)
