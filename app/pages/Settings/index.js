@@ -5,6 +5,7 @@ import { ContentArea } from '../ContentArea';
 import { connect } from 'react-redux';
 import './index.scss';
 import AccountIndexModal from './AccountIndexModal';
+import MaxIdleModal from './MaxIdleModal';
 import RevealSeedModal from './RevealSeedModal';
 import ZapTXsModal from './ZapTXsModal';
 import * as logger from '../../utils/logClient';
@@ -398,6 +399,14 @@ export default class Settings extends Component {
                 <ExplorerPicker />,
                 false,
               )}
+              {this.renderSection(
+                'Idle Timeout',
+                <span>
+                  Automatically lock the wallet after a set period of inactivity
+                </span>,
+                'Change',
+                () => history.push('/settings/general/max-idle'),
+              )}
             </>
           </Route>
           <Route path="/settings/connection">
@@ -488,6 +497,7 @@ export default class Settings extends Component {
         { this.renderNav() }
         { this.renderContent() }
         <Switch>
+          <Route path="/settings/general/max-idle" component={MaxIdleModal} />
           <Route path="/settings/wallet/account-index" component={AccountIndexModal} />
           <Route
             path="/settings/wallet/remove-wallet"

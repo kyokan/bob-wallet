@@ -3,6 +3,7 @@ import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import moment from 'moment';
+import { displayBalance } from '../../utils/balances';
 import Blocktime from '../../components/Blocktime';
 import Hash from '../../components/Hash';
 import CopyButton from '../../components/CopyButton';
@@ -30,18 +31,18 @@ class DomainDetails extends Component {
       ['Bidding Open', (
         <span>
           <Blocktime height={start.start} />
-          {` (Block # ${start.start})`}
+          {` (Block #${start.start})`}
         </span>
       )],
       ['Bidding Close', (
         <span>
           <Blocktime height={info.height} />
-          {` (Block # ${info.height})`}
+          {` (Block #${info.height})`}
         </span>
       )],
-      ['Total Bids', info.bids ? info.bids.length : '0' ],
-      ['Sold For', `${info.value} HNS`],
-      ['Highest Bid', `${info.highest} HNS`],
+      ['Total Bids', info.bids ? `${info.bids.length} bid${info.bids.length > 1 ? 's': ''}` : '0 bids' ],
+      ['Sold For', `${info.value / 1e6} HNS`],
+      ['Highest Bid', displayBalance(info.highest, true)],
       ['Owner', (
         <div className="domain-detail__value__data">
           <Hash value={winner ? winner.address : 'ERR'} />
@@ -51,7 +52,7 @@ class DomainDetails extends Component {
       ['Renew By', (
         <span>
           {moment().add(info.stats.daysUntilExpire, 'd').format('YYYY-MM-DD')}
-          {` (Block # ${info.stats.renewalPeriodEnd})`}
+          {` (Block #${info.stats.renewalPeriodEnd})`}
         </span>
       )],
       ['Data', (
@@ -60,10 +61,10 @@ class DomainDetails extends Component {
           { info.data && <CopyButton content={info.data} /> }
         </div>
       )],
-      ['Transferred', info.transfer],
-      ['Revoked', info.revoked],
-      ['Claimed', info.claimed ? 'True' : 'False'],
-      ['Weak', info.weak ? 'True' : 'False'],
+      ['Transferring', info.transfer ? `Started in Block #${info.transfer}` : 'No'],
+      ['Revoked', info.revoked ? `Revoked in Block #${info.revoked}` : 'No'],
+      ['Claimed', info.claimed ? 'Yes' : 'No'],
+      ['Weak', info.weak ? 'Yes' : 'No'],
     ];
 
     return (
