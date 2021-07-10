@@ -16,7 +16,7 @@ jobs:
           node-version: 14.x
 
       - name: Install dependencies
-        run: sudo apt update && sudo apt install libudev-dev -y
+        run: sudo apt update && sudo apt install libudev-dev libusb-1.0-0-dev -y
 
       - name: npm install
         run: npm i
