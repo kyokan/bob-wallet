@@ -14,7 +14,7 @@ import * as walletActions from "../../ducks/walletActions";
 import { showError, showSuccess } from "../../ducks/notifications";
 import * as nameActions from "../../ducks/names";
 import * as nodeActions from "../../ducks/node";
-import { fetchTransactions } from '../../ducks/walletActions';
+import { fetchTransactions } from "../../ducks/walletActions";
 
 const analytics = aClientStub(() => require("electron").ipcRenderer);
 
@@ -159,14 +159,14 @@ export default class Account extends Component {
     };
 
     const showFirstPlus =
-      lockedBalance.bidding.num && lockedBalance.revealable.num;
+      lockedBalance.bidding.HNS && lockedBalance.revealable.HNS;
     const showSecondPlus =
-      (lockedBalance.bidding.num && lockedBalance.finished.num) ||
-      (lockedBalance.revealable.num && lockedBalance.finished.num);
+      (lockedBalance.bidding.HNS && lockedBalance.finished.HNS) ||
+      (lockedBalance.revealable.HNS && lockedBalance.finished.HNS);
     const noLockedHNS = !(
-      lockedBalance.bidding.num ||
-      lockedBalance.revealable.num ||
-      lockedBalance.finished.num
+      lockedBalance.bidding.HNS ||
+      lockedBalance.revealable.HNS ||
+      lockedBalance.finished.HNS
     );
 
     return (
@@ -183,7 +183,7 @@ export default class Account extends Component {
         </div>
 
         {/* Locked Balance - In bids */}
-        {lockedBalance.bidding.num > 0 ? (
+        {lockedBalance.bidding.HNS > 0 ? (
           <div className="account__header__section">
             <span className="label">LOCKED</span>
             <p className="amount">
@@ -201,7 +201,7 @@ export default class Account extends Component {
         {showFirstPlus ? <div className="plus">+</div> : ""}
 
         {/* Locked Balance - In Reveal */}
-        {lockedBalance.revealable.num > 0 ? (
+        {lockedBalance.revealable.HNS > 0 ? (
           <div className="account__header__section">
             <span className="label">LOCKED</span>
             <p className="amount">
@@ -219,7 +219,7 @@ export default class Account extends Component {
         {showSecondPlus ? <div className="plus">+</div> : ""}
 
         {/* Locked Balance - Finished */}
-        {lockedBalance.finished.num > 0 ? (
+        {lockedBalance.finished.HNS > 0 ? (
           <div className="account__header__section">
             <span className="label">LOCKED</span>
             <p className="amount">
