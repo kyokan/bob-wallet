@@ -45,6 +45,7 @@ const nodeClient = clientStub(() => require('electron').ipcRenderer);
   (state) => ({
     network: state.node.network,
     apiKey: state.node.apiKey,
+    noDns: state.node.noDns,
     walletApiKey: state.wallet.apiKey,
     walletSync: state.wallet.walletSync,
     wid: state.wallet.wid,
@@ -61,6 +62,7 @@ const nodeClient = clientStub(() => require('electron').ipcRenderer);
     reset: () => dispatch(walletActions.reset()),
     stopNode: () => dispatch(nodeActions.stop()),
     startNode: () => dispatch(nodeActions.start()),
+    setNoDns: (noDns) => dispatch(nodeActions.setNoDns(noDns)),
     setCustomRPCStatus: isConnected => dispatch(setCustomRPCStatus(isConnected)),
     fetchWalletAPIKey: () => dispatch(fetchWalletAPIKey()),
     showError: (message) => dispatch(showError(message)),
@@ -71,6 +73,7 @@ export default class Settings extends Component {
   static propTypes = {
     network: PropTypes.string.isRequired,
     apiKey: PropTypes.string.isRequired,
+    noDns: PropTypes.bool.isRequired,
     wid: PropTypes.string.isRequired,
     changeDepth: PropTypes.number.isRequired,
     receiveDepth: PropTypes.number.isRequired,
@@ -82,6 +85,7 @@ export default class Settings extends Component {
     reset: PropTypes.func.isRequired,
     stopNode: PropTypes.func.isRequired,
     startNode: PropTypes.func.isRequired,
+    setNoDns: PropTypes.func.isRequired,
     showError: PropTypes.func.isRequired,
     showSuccess: PropTypes.func.isRequired,
     setCustomRPCStatus: PropTypes.func.isRequired,
@@ -374,6 +378,8 @@ export default class Settings extends Component {
       history,
       stopNode,
       startNode,
+      noDns,
+      setNoDns,
       isChangingNodeStatus,
       isTestingCustomRPC,
       isCustomRPCConnected,
@@ -447,6 +453,16 @@ export default class Settings extends Component {
                   Test Connection
                 </button>,
                 isRunning || isTestingCustomRPC || isChangingNodeStatus,
+              )}
+              {this.renderSection(
+                'DNS Servers',
+                !isRunning || noDns
+                  ? <><span className="node-status--inactive" /><span>DNS servers are not running</span></>
+                  : <><span className="node-status--active" /><span>DNS servers are running</span></>,
+                noDns ? 'Enable' : 'Disable',
+                () => {setNoDns(!noDns)},
+                null,
+                isChangingNodeStatus || isTestingCustomRPC || !isRunning,
               )}
               {this.renderSection(
                 'HSD Home Directory',

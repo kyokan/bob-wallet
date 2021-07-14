@@ -14,6 +14,7 @@ export const START_RPC_TEST = 'node/START_RPC_TEST';
 export const END_RPC_TEST = 'node/END_RPC_TEST';
 export const SET_EXPLORER = 'node/SET_EXPLORER';
 export const UPDATE_HNS_PRICE = 'node/UPDATE_HNS_PRICE';
+export const SET_NO_DNS = 'node/SET_NO_DNS';
 
 export function getInitialState() {
   return {
@@ -25,6 +26,7 @@ export function getInitialState() {
     isChangingNetworks: false,
     network: 'main',
     apiKey: null,
+    noDns: true,
     fees: {
       slow: 0,
       medium: 0,
@@ -58,7 +60,13 @@ export default function nodeReducer(state = getInitialState(), action = {}) {
     case END_RPC_TEST:
       return { ...state, isTestingCustomRPC: false };
     case START:
-      return {...state, isRunning: true, network: action.payload.network, apiKey: action.payload.apiKey};
+      return {
+        ...state,
+        isRunning: true,
+        network: action.payload.network,
+        apiKey: action.payload.apiKey,
+        noDns: action.payload.noDns,
+      };
     case STOP:
       return {...state, isRunning: false, network: null};
     case START_ERROR:
@@ -103,6 +111,11 @@ export default function nodeReducer(state = getInitialState(), action = {}) {
       return {
         ...state,
         hnsPrice: action.payload,
+      };
+    case SET_NO_DNS:
+      return {
+        ...state,
+        noDns: action.payload,
       };
     default:
       return state;
