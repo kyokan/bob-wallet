@@ -21,6 +21,7 @@ const MIN_FEE = new BigNumber(0.01);
 const DEFAULT_BLOCK_TIME = 10 * 60 * 1000;
 const HSD_PREFIX_DIR_KEY = 'hsdPrefixDir';
 const NODE_API_KEY = 'nodeApiKey';
+const NODE_NO_DNS = 'nodeNoDns';
 
 export class NodeService extends EventEmitter {
   constructor() {
@@ -35,6 +36,16 @@ export class NodeService extends EventEmitter {
     const newKey = crypto.randomBytes(20).toString('hex');
     await put(NODE_API_KEY, newKey);
     return newKey;
+  }
+
+  async getNoDns() {
+    const noDns = await get(NODE_NO_DNS);
+    if (noDns !== null) {
+      return noDns === '1';
+    };
+
+    await put(NODE_NO_DNS, '1');
+    return true;
   }
 
   async getDir() {
@@ -65,6 +76,10 @@ export class NodeService extends EventEmitter {
     });
   }
 
+  async setNoDns(noDns) {
+    await put(NODE_NO_DNS, noDns === true ? '1' : '0');
+  }
+
   async configurePaths() {
     const dir = await this.getDir();
     if (!fs.existsSync(dir)) {
@@ -77,7 +92,7 @@ export class NodeService extends EventEmitter {
 
     switch (conn.type) {
       case ConnectionTypes.P2P:
-        await this.setNetworkAndAPIKey(networkName);
+        await this.setNetworkAndNodeOptions(networkName);
         await this.startNode();
         await this.setHSDLocalClient();
         return;
@@ -87,7 +102,7 @@ export class NodeService extends EventEmitter {
     }
   }
 
-  async setNetworkAndAPIKey(networkName) {
+  async setNetworkAndNodeOptions(networkName) {
     if (this.hsd) {
       return;
     }
@@ -101,6 +116,7 @@ export class NodeService extends EventEmitter {
     this.networkName = networkName;
     this.network = network;
     this.apiKey = await this.getAPIKey();
+    this.noDns = await this.getNoDns();
 
     this.emit('started', this.networkName, this.network, this.apiKey);
   }
@@ -132,12 +148,11 @@ export class NodeService extends EventEmitter {
       network: this.networkName,
       loader: require,
       prefix: dir,
-      listen: true,
-      bip37: true,
       indexAddress: true,
       indexTX: true,
       apiKey: this.apiKey,
       cors: true,
+      noDns: this.noDns,
     });
 
     await hsd.ensure();
@@ -394,6 +409,7 @@ const methods = {
   stop: () => service.stop(),
   reset: () => service.reset(),
   getAPIKey: () => service.getAPIKey(),
+  getNoDns: () => service.getNoDns(),
   getInfo: () => service.getInfo(),
   getNameInfo: (name) => service.getNameInfo(name),
   getNameByHash: (hash) => service.getNameByHash(hash),
@@ -411,6 +427,7 @@ const methods = {
   getCoin: (hash, index) => service.getCoin(hash, index),
   setNodeDir: data => service.setNodeDir(data),
   setAPIKey: data => service.setAPIKey(data),
+  setNoDns: data => service.setNoDns(data),
   getDir: () => service.getDir(),
   getHNSPrice: () => service.getHNSPrice(),
 };
