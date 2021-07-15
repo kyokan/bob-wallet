@@ -82,10 +82,8 @@
     padding-bottom: 1rem;
     position: relative;
     flex: 0 0 auto;
-    border: 1px solid rgba($black, 0.1);
-    margin: .5rem 1rem;
+    border-top: 1px solid rgba($black, 0.1);
     background-color: rgba($white, 0.5);
-    border-radius: 4px;
 
     &__row {
       @extend %col-nowrap;
