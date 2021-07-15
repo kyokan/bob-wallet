@@ -4,8 +4,8 @@ import {consensus} from "hsd/lib/protocol";
 const DECIMALS = 6;
 const UNIT_DIVISOR = 1000000;
 
-export function displayBalance(bal, withUnit) {
-  const ret = new BigNumber(bal).div(UNIT_DIVISOR).toFixed(DECIMALS);
+export function displayBalance(bal, withUnit, decimals = DECIMALS) {
+  const ret = new BigNumber(bal).div(UNIT_DIVISOR).toFixed(decimals);
   return withUnit ? `${ret} HNS` : ret;
 }
 

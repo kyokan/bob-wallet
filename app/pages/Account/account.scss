@@ -7,11 +7,12 @@
 
   &__header {
     @extend %row-nowrap;
-    padding: 1rem 0;
+    padding: 1rem;
     align-items: center;
     background: rgba($black, 0.04);
     border: solid 1px #f1f1f3;
     overflow-x: auto;
+    cursor: default;
 
     &__section {
       padding: 0 1rem;
@@ -20,10 +21,11 @@
       // Spendable block
       &:first-child {
         text-align: right;
-        border-right: solid 2px rgba($black, 0.5);
+        border-right: solid 1px rgba($black, 0.25);
 
         & > .label {
           visibility: visible;
+          color: rgba($black, 0.25);
         }
         & > .amount {
           font-weight: 700;
@@ -36,24 +38,24 @@
       }
 
       & > .label {
-        font-size: 0.75rem;
+        font-size: 0.6875rem;
         font-weight: 700;
         visibility: hidden;
+        color: rgba($black, 0.25);
       }
 
       & > .amount {
-        margin: 0;
         font-size: 1.125rem;
         font-weight: 500;
-        line-height: 1.75rem;
+        margin: .3125rem 0 .125rem;
       }
 
       & > .subtext {
         display: inline-block;
-        font-size: 0.875rem;
+        font-size: 0.8125rem;
         font-weight: 500;
         line-height: 1.25rem;
-        color: rgba($black, 0.6);
+        color: rgba($black, 0.25);
       }
     }
 
