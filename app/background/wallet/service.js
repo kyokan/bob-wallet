@@ -554,7 +554,10 @@ class WalletService {
   );
 
   send = (to, amount, fee) => this._ledgerProxy(
-    () => this._executeRPC('createsendtoaddress', [to, Number(amount), '', '', false, 'default']),
+    async () => {
+      await this._executeRPC('settxfee', [Number(fee)]);
+      return this._executeRPC('createsendtoaddress', [to, Number(amount), '', '', false, 'default']);
+    },
     async () => {
       const res = await this.client.send(this.name, {
         rate: Number(toBaseUnits(fee)),
