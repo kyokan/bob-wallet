@@ -49,14 +49,12 @@ class Sidebar extends Component {
     return (
       <div className="sidebar">
         <div className="sidebar__content">
-          <div>
-            <div className="sidebar__logo-wrapper">
-              <Logo />
-            </div>
-            {this.renderNav()}
+          <div className="sidebar__logo-wrapper">
+            <Logo />
           </div>
-          {this.renderFooter()}
+          {this.renderNav()}
         </div>
+        {this.renderFooter()}
       </div>
     );
   }
@@ -90,33 +88,13 @@ class Sidebar extends Component {
           >
             Receive
           </NavLink>
-          <NavLink
-            className="sidebar__action"
-            to="/sign_message"
-            activeClassName="sidebar__action--selected"
-          >
-            Sign Message
-          </NavLink>
-          <NavLink
-            className="sidebar__action"
-            to="/verify_message"
-            activeClassName="sidebar__action--selected"
-          >
-            Verify Message
-          </NavLink>
+
           <NavLink
             className="sidebar__action"
             to="/domain_manager"
             activeClassName="sidebar__action--selected"
           >
             Domain Manager
-          </NavLink>
-          <NavLink
-            className="sidebar__action"
-            to="/get_coins"
-            activeClassName="sidebar__action--selected"
-          >
-            Add Funds
           </NavLink>
         </div>
         <div className="sidebar__section">Top-Level Domains</div>
@@ -150,7 +128,43 @@ class Sidebar extends Component {
             Exchange
           </NavLink>
         </div>
+        { this.renderMisc() }
       </React.Fragment>
+    );
+  }
+
+  renderMisc() {
+    return (
+      <>
+        <div
+          className="sidebar__section"
+        >
+          Miscellaneous
+        </div>
+        <div className="sidebar__actions">
+          <NavLink
+            className="sidebar__action"
+            to="/get_coins"
+            activeClassName="sidebar__action--selected"
+          >
+            Add Funds
+          </NavLink>
+          <NavLink
+            className="sidebar__action"
+            to="/sign_message"
+            activeClassName="sidebar__action--selected"
+          >
+            Sign Message
+          </NavLink>
+          <NavLink
+            className="sidebar__action"
+            to="/verify_message"
+            activeClassName="sidebar__action--selected"
+          >
+            Verify Message
+          </NavLink>
+        </div>
+      </>
     );
   }
 

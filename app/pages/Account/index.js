@@ -175,7 +175,7 @@ export default class Account extends Component {
         <div className="account__header__section">
           <span className="label">SPENDABLE</span>
           <p className="amount">
-            {displayBalance(spendableBalance.HNS || 0, true)}
+            {displayBalance(spendableBalance.HNS || 0, true, 2)}
           </p>
           <span className="subtext">
             ~${spendableBalance.converted || "0.00"} {spendableBalance.currency}
@@ -187,7 +187,7 @@ export default class Account extends Component {
           <div className="account__header__section">
             <span className="label">LOCKED</span>
             <p className="amount">
-              {displayBalance(lockedBalance.bidding.HNS, true)}
+              {displayBalance(lockedBalance.bidding.HNS, true, 2)}
             </p>
             <span className="subtext">
               In bids ({lockedBalance.bidding.num}{" "}
@@ -205,7 +205,7 @@ export default class Account extends Component {
           <div className="account__header__section">
             <span className="label">LOCKED</span>
             <p className="amount">
-              {displayBalance(lockedBalance.revealable.HNS, true)}
+              {displayBalance(lockedBalance.revealable.HNS, true, 2)}
             </p>
             <span className="subtext">
               In reveal ({lockedBalance.revealable.num}{" "}
@@ -223,7 +223,7 @@ export default class Account extends Component {
           <div className="account__header__section">
             <span className="label">LOCKED</span>
             <p className="amount">
-              {displayBalance(lockedBalance.finished.HNS, true)}
+              {displayBalance(lockedBalance.finished.HNS, true, 2)}
             </p>
             <span className="subtext">
               In finished auctions ({lockedBalance.finished.num}{" "}
