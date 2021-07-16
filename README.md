@@ -16,7 +16,7 @@ Note: this screenshot is unlikely to age well but the filetypes are highlighted 
 
 * OSX: .dmg
 * Windows: .msi
-* Linux: See [Building from source](#building-from-source)
+* Linux: .AppImage
 
 ## Features
 
