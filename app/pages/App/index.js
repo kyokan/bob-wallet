@@ -315,7 +315,7 @@ export default withRouter(
     }),
     dispatch => ({
       watchActivity: () => dispatch(walletActions.watchActivity()),
-      startNode: () => dispatch(node.startApp('regtest')),
+      startNode: () => dispatch(node.startApp()),
     })
   )(App),
 );
