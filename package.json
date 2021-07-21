@@ -153,7 +153,7 @@
     "history": "4.7.2",
     "hs-airdrop": "^0.10.0",
     "hs-client": "https://github.com/handshake-org/hs-client.git",
-    "hsd-ledger": "https://github.com/handshake-org/hsd-ledger#s-x-compat",
+    "hsd-ledger": "https://github.com/handshake-org/hsd-ledger#s-x-compat-hid",
     "hsd": "https://github.com/pinheadmz/hsd/tarball/3b3ecf31d78749f8193faffb2904085137ed9632",
     "isomorphic-fetch": "^2.2.1",
     "jsonschema": "^1.4.0",

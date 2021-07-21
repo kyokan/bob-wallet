@@ -116,7 +116,7 @@ class Sidebar extends Component {
             to="/get_coins"
             activeClassName="sidebar__action--selected"
           >
-            Airdrop / Name Claim
+            Claim Airdrop or Name
           </NavLink>
         </div>
         <div className="sidebar__section">Top-Level Domains</div>
