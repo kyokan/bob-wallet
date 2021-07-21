@@ -147,7 +147,7 @@ class Sidebar extends Component {
             to="/get_coins"
             activeClassName="sidebar__action--selected"
           >
-            Airdrop / Name Claim
+            Claim Airdrop or Name
           </NavLink>
           <NavLink
             className="sidebar__action"
