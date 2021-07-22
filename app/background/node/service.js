@@ -118,8 +118,6 @@ export class NodeService extends EventEmitter {
     this.network = network;
     this.apiKey = await this.getAPIKey();
     this.noDns = await this.getNoDns();
-
-    this.emit('started', this.networkName, this.network, this.apiKey);
   }
 
   async startNode() {
