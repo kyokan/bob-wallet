@@ -1,0 +1,171 @@
+@import "../../variables";
+
+.name-claim {
+  max-width: 38rem;
+  position: relative;
+  padding: 1.5rem 0;
+  box-sizing: border-box;
+  cursor: default;
+
+  &__container {
+    @extend %col-nowrap;
+  }
+
+  &__content {
+    @extend %col-nowrap;
+    padding: 0 1.875rem 1rem;
+    align-items: center;
+  }
+
+  &__close-btn {
+    position: absolute;
+    top: 1.25rem;
+    right: 2rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 1.2rem;
+  }
+
+  &__header {
+    @extend %col-nowrap;
+    margin-bottom: 1rem;
+  }
+
+  &__title {
+    font-weight: 600;
+    font-size: 1.25rem;
+    text-align: center;
+  }
+
+  &__name-input-group {
+    width: 20rem;
+    margin: 1rem 0 2rem;
+  }
+
+  &__name-input-group {
+    @extend %col-nowrap;
+
+    &__label {
+      color: rgba($black, 0.4);
+      font-weight: 600;
+      font-size: 0.8rem;
+      margin-bottom: 0.75rem;
+    }
+
+    &__input {
+      @extend %box-input;
+      @extend %row-nowrap;
+      box-shadow: 0 0 0 1.25px rgba($black, .1);
+      background-color: $white;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0.5rem 0.75rem;
+      outline: none;
+      flex: 1 1 auto;
+      font-size: 0.85rem;
+      border: none;
+    }
+  }
+
+  &__choose-options {
+    margin: 1rem;
+    width: 100%;
+
+    &__title {
+      font-weight: 600;
+      text-align: center;
+    }
+
+    &__options {
+      display: grid;
+      grid-auto-rows: auto;
+      grid-template-columns: 1fr 1fr;
+      margin-top: 1rem;
+      grid-gap: .5rem;
+    }
+
+    &__option {
+      background-color: rgba($black,.05);
+      color: rgba($black,.25);
+      padding: .75rem 1.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: .8125rem;
+      transition: 200ms ease-in-out;
+
+      &:hover {
+        background-color: rgba($black,.15);
+        color: rgba($black,.8);
+      }
+
+      &:active {
+        background-color: rgba($black,.15);
+        color: rgba($black,.8);
+      }
+
+      &--active {
+        background-color: rgba($black,.15);
+        color: rgba($black,.8);
+        font-weight: 600;
+      }
+    }
+  }
+
+  &__option-description {
+    margin: 0 auto 1rem;
+    font-size: .75rem;
+    text-align: center;
+    width: 26rem;
+  }
+
+  &__claim-content {
+    &__title {
+      font-size: .875rem;
+      margin: 1rem auto;
+      text-align: center;
+    }
+  }
+
+  &__footer {
+    @extend %row-nowrap;
+    justify-content: center;
+    padding: 0.5rem 0.75rem;
+  }
+
+  &__cta {
+    height: 38px;
+    border-radius: 8px;
+    background-color: $azure-blue;
+    color: white;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
+    line-height: 16px;
+    text-align: center;
+    @extend %btn-primary;
+  }
+}
+
+.reserved-name-info {
+  display: grid;
+  grid-auto-rows: auto;
+  grid-template-columns: 1fr 1fr;
+  background-color: rgba($azure-blue, .1);
+  padding: .5rem 1rem;
+  width: calc(100% - 2rem);
+  border-radius: 4px;
+
+  &__group {
+    @extend %col-nowrap;
+    padding: .5rem 1rem;
+
+    &__label {
+      color: rgba($black, 0.4);
+      font-size: 0.8rem;
+      margin-bottom: 0.25rem;
+    }
+
+    &__value {
+      font-weight: 600;
+    }
+  }
+}
