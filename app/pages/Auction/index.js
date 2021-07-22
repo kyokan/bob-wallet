@@ -28,6 +28,7 @@ import BidHistory from './BidHistory';
 import Records from '../../components/Records';
 import './domains.scss';
 import { clientStub as aClientStub } from '../../background/analytics/client';
+import NameClaimModal from "../../components/NameClaimModal";
 
 const Sentry = require('@sentry/electron');
 
@@ -76,6 +77,10 @@ export default class Auction extends Component {
     explorer: PropTypes.object.isRequired,
   };
 
+  state = {
+    isShowingClaimModal: false,
+  };
+
   async componentWillMount() {
     try {
       this.setState({isLoading: true});
@@ -104,6 +109,12 @@ export default class Auction extends Component {
   render() {
     return (
       <div className="domains">
+        { this.state.isShowingClaimModal && (
+          <NameClaimModal
+            name={this.props.domain.name}
+            onClose={() => this.setState({ isShowingClaimModal: false })}
+          />
+        )}
         {this.renderContent()}
         <div className="domains__action">
           {this.renderAuctionRight()}
@@ -273,10 +284,13 @@ export default class Auction extends Component {
     const {domain} = this.props;
     let status = '';
     let description = '';
+
     if (isReserved(domain)) {
       status = 'Reserved';
       description = (
-        <button onClick={() => this.props.history.push(`/reserved/${domain.name}`)}>
+        <button
+          onClick={() => this.setState({ isShowingClaimModal: true })}
+        >
           Claim this name
         </button>
       );
