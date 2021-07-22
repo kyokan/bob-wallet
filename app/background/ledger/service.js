@@ -2,7 +2,7 @@ import hsdLedger from 'hsd-ledger';
 
 const MTX = require('hsd/lib/primitives/mtx');
 const {LedgerHSD} = hsdLedger;
-const {Device} = hsdLedger.USB;
+const {Device} = hsdLedger.HID;
 const ONE_MINUTE = 60000;
 
 export async function withLedger(network, action) {
