@@ -1,8 +1,3 @@
-export const NONE = 'NONE';
-export const LEDGER = 'LEDGER';
-export const IMPORTED = 'IMPORTED';
-export const ELECTRON = 'ELECTRON';
-
 export const SET_WALLET = 'app/wallet/setWallet';
 export const SET_BALANCE = 'app/wallet/setBalance';
 export const UNLOCK_WALLET = 'app/wallet/unlockWallet';
@@ -19,6 +14,7 @@ export const GET_PASSPHRASE = 'app/wallet/getPassphrase';
 export const SET_API_KEY = 'app/wallet/setApiKey';
 export const SET_FETCHING = 'app/wallet/setFetching';
 export const SET_WALLETS = 'app/wallet/setWallets';
+export const SET_WALLET_NETWORK = 'app/wallet/setNetwork';
 
 export function getInitialState() {
   return {
@@ -26,7 +22,6 @@ export function getInitialState() {
     apiKey: '',
     wid: '',
     watchOnly: false,
-    type: NONE,
     isLocked: true,
     isFetching: false,
     initialized: false,
@@ -73,7 +68,6 @@ export default function walletReducer(state = getInitialState(), {type, payload}
         changeDepth: payload.changeDepth,
         receiveDepth: payload.receiveDepth,
         initialized: typeof payload.initialized === 'undefined' ? state.initialized : payload.initialized,
-        apiKey: payload.apiKey,
       };
     case SET_BALANCE:
       return {
@@ -91,6 +85,11 @@ export default function walletReducer(state = getInitialState(), {type, payload}
       return {
         ...state,
         apiKey: payload,
+      };
+    case SET_WALLET_NETWORK:
+      return {
+        ...state,
+        network: payload,
       };
     case LOCK_WALLET:
       return {

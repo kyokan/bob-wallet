@@ -88,42 +88,22 @@ export const fetchWallet = () => async (dispatch, getState) => {
   if (!isInitialized) {
     return dispatch(setWallet({
       initialized: false,
-      address: '',
-      type: NONE,
-      balance: {
-        ...getInitialState().balance,
-      },
     }));
   }
 
-  let accountInfo;
-
-  try {
-    accountInfo = await walletClient.getAccountInfo();
-  } catch (e) {
-    accountInfo = null;
+  const accountInfo = await walletClient.getAccountInfo();
+  if (!accountInfo) {
+    throw new Error('Could not load wallet.');
   }
 
-  const apiKey = await walletClient.getAPIKey();
-
-
-  const {
-    changeDepth = 0,
-    receiveDepth = 0,
-  } = accountInfo || {};
-
   dispatch(setWallet({
-    wid: accountInfo ? accountInfo.wid : '',
-    watchOnly: accountInfo ? accountInfo.watchOnly : false,
-    initialized: isInitialized,
-    address: accountInfo && accountInfo.receiveAddress,
-    type: NONE,
-    balance: (accountInfo && accountInfo.balance) || {
-      ...getInitialState().balance,
-    },
-    apiKey,
-    changeDepth,
-    receiveDepth,
+    wid: accountInfo.wid,
+    watchOnly: accountInfo.watchOnly,
+    initialized: true,
+    address: accountInfo.receiveAddress,
+    balance: accountInfo.balance,
+    changeDepth: accountInfo.changeDepth,
+    receiveDepth: accountInfo.receiveDepth,
   }));
 };
 

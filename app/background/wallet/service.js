@@ -17,6 +17,7 @@ import {
   START_SYNC_WALLET,
   STOP_SYNC_WALLET,
   SYNC_WALLET_PROGRESS,
+  SET_WALLET_NETWORK,
 } from '../../ducks/walletReducer';
 import {SET_FEE_INFO, SET_NODE_INFO} from "../../ducks/nodeReducer";
 import createRegisterAll from "./create-register-all";
@@ -60,9 +61,159 @@ class WalletService {
     this.nodeService = nodeService;
     this.lastProgressUpdate = 0;
     this.lastKnownChainHeight = 0;
-    this.closeP = null;
-    this.openP = null;
+    this.conn = {type: null};
   }
+
+  // Wallet as a plugin to the hsd full node is the default configuration
+  _usePlugin = async (plugin, apiKey) => {
+    this.conn = await getConnection();
+    assert(this.conn.type === ConnectionTypes.P2P);
+
+    this.node = plugin;
+    this.network = plugin.network;
+    this.networkName = this.network.type;
+    this.walletApiKey = apiKey;
+
+    await this.setAPIKey(apiKey);
+
+    dispatchToMainWindow({
+      type: SET_WALLET_NETWORK,
+      payload: this.networkName,
+    });
+
+    // TODO: This may not work because the plugin is open() already by now
+    this.node.http.post('/unsafe-update-account-depth', this.handleUnsafeUpdateAccountDepth);
+
+    this.node.wdb.on('error', e => {
+      console.error('walletdb error', e);
+    });
+    this.node.wdb.client.bind('block connect', this.onNewBlock);
+    this.node.wdb.client.bind('block rescan', this.onRescanBlock);
+
+    this.client = new WalletClient({
+      network: this.network,
+      port: this.network.walletPort,
+      apiKey: this.walletApiKey,
+      timeout: 10000,
+    });
+
+    // TODO: feels like this belongs in node module not here...
+    await this.refreshNodeInfo();
+
+    // TODO: all this does is set the balance?
+    // might be redundant with fetchWallet() in wallet Actions,
+    // which is called by whoever (re)starts the wallet...
+    await this.refreshWalletInfo();
+
+    const wallets = await this.listWallets(false, true);
+    dispatchToMainWindow({
+      type: SET_WALLETS,
+      payload: createPayloadForSetWallets(wallets),
+    });
+  };
+
+  // Wallet as a separate process only runs in Custom RPC mode
+  _useWalletNode = async (network) => {
+    this.conn = await getConnection();
+    assert(this.conn.type === ConnectionTypes.Custom);
+
+    this.network = network;
+    this.networkName = network.type;
+    this.walletApiKey = await this.getAPIKey();
+
+    dispatchToMainWindow({
+      type: SET_WALLET_NETWORK,
+      payload: this.networkName,
+    });
+    dispatchToMainWindow({
+      type: SET_API_KEY,
+      payload: this.walletApiKey,
+    });
+
+    this.node = new WalletNode({
+      network: this.networkName,
+      nodeHost: this.conn.host,
+      nodePort: this.conn.port || undefined,
+      nodeApiKey: this.conn.apiKey,
+      apiKey: this.walletApiKey,
+      memory: false,
+      prefix: HSD_DATA_DIR,
+      migrate: 0,
+      logFile: true,
+      logConsole: false,
+      logLevel: 'debug',
+    });
+
+    this.node.http.post('/unsafe-update-account-depth', this.handleUnsafeUpdateAccountDepth);
+
+    this.node.wdb.on('error', e => {
+      console.error('walletdb error', e);
+    });
+
+    this.node.wdb.client.bind('block connect', this.onNewBlock);
+    this.node.wdb.client.unhook('block rescan');
+    this.node.wdb.client.hook('block rescan', async (entry, txs) => {
+      try {
+        await this.node.wdb.rescanBlock(entry, txs);
+      } catch (e) {
+        this.node.wdb.emit('error', e);
+      }
+      await this.onRescanBlock(entry);
+    });
+
+    await this.node.open();
+
+    this.client = new WalletClient({
+      network,
+      port: network.walletPort,
+      apiKey: this.walletApiKey,
+      timeout: 10000,
+    });
+
+    // TODO: feels like this belongs in node module not here...
+    await this.refreshNodeInfo();
+
+    // TODO: all this does is set the balance?
+    // might be redundant with fetchWallet() in wallet Actions,
+    // which is called by whoever (re)starts the wallet...
+    await this.refreshWalletInfo();
+
+    const wallets = await this.listWallets(false, true);
+    dispatchToMainWindow({
+      type: SET_WALLETS,
+      payload: createPayloadForSetWallets(wallets),
+    });
+
+  };
+
+  _onNodeStop = async () => {
+    // Wallet as plugin is closed by the full node closing,
+    // otherwise we close manually.
+    if (this.conn.type === ConnectionTypes.Custom)
+      await this.node.close();
+
+    this.node = null;
+    this.client = null;
+    this.didSelectWallet = false;
+    this.conn = {type: null};
+  };
+
+  isReady = async () => {
+    let attempts = 0;
+    return new Promise((resolve, reject) => {
+      setInterval(() => {
+          if (this.node && this.node.wdb.db.loaded) {
+            resolve(this.node.wdb.network.type);
+          } else {
+            attempts++;
+            if (attempts > 10)
+              reject();
+          }
+        },
+        500
+      );
+    });
+  };
 
   setWallet = (name) => {
     this.didSelectWallet = false;

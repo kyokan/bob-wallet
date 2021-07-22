@@ -183,6 +183,28 @@ export class NodeService extends EventEmitter {
   }
 
   async setCustomRPCClient() {
+    this.client = await this.createCustomRPCClient();
+    this.emit('start remote', this.network);
+  }
+
+  async testCustomRPCClient(walletNetwork) {
+    try {
+      if(!walletNetwork)
+        throw new Error('Could not determine wallet network.');
+
+      const testClient = await this.createCustomRPCClient();
+      const info = await testClient.getInfo();
+
+      if (info.network !== walletNetwork)
+        throw new Error('Wallet / Node network mismatch.');
+
+      return [true, null];
+    } catch (e) {
+      return [false, e.message];
+    }
+  }
+
+  async createCustomRPCClient() {
     const rpc = await getCustomRPC();
     const {
       protocol,

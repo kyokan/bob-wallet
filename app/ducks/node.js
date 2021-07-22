@@ -102,35 +102,35 @@ export const start = (network) => async (dispatch, getState) => {
   try {
     await connClient.setConnectionType(ConnectionTypes.P2P);
     await nodeClient.start(network);
-    hasAppStarted = true;
-    const apiKey = await nodeClient.getAPIKey();
-    const noDns = await nodeClient.getNoDns();
-    dispatch({
-      type: START,
-      payload: {
-        network,
-        apiKey,
-        noDns,
-      },
-    });
-    await dispatch(setNodeInfo());
-    await dispatch(listWallets());
-    await dispatch(fetchWallet());
 
-    if (await getInitializationState(network)) {
-      setTimeout(async () => {
-        await dispatch(fetchTransactions());
-        await dispatch(getWatching(network));
-      }, 0);
-    }
+    // WalletNode might not be loaded yet
+    // if we are in Custom RPC mode.
+    const walletNetwork = await walletClient.isReady();
+    if (!walletNetwork)
+      throw new Error('Could not connect to wallet.');
+
+    await dispatch(listWallets());
+
+    const info = await nodeClient.getInfo();
+    if (!info)
+      throw new Error('Could not connect to node.');
+
+    // For remote RPC connections: check compatability with full node.
+    // The STOP action will let the user reconfigure in settings.
+    if (walletNetwork !== info.network)
+      throw new Error('Wallet/Node network mismatch.');
+
+    dispatch({
+      type: SET_NODE_INFO,
+      payload: {
+        info,
+      }
+    });
+    dispatch(setFees());
 
   } catch (error) {
-    dispatch({
-      type: START_ERROR,
-      payload: {
-        error: error.message,
-      },
-    });
+    console.log(error);
+    dispatch({ type: STOP });
   } finally {
     dispatch({ type: END_NODE_STATUS_CHANGE });
   }
@@ -141,26 +141,14 @@ export const setCustomRPCStatus = (status = false) => ({
   payload: status,
 });
 
-const setNodeInfo = () => async (dispatch) => {
-  try {
-    const info = await nodeClient.getInfo();
-    const fees = await nodeClient.getFees();
-    dispatch({
-      type: SET_NODE_INFO,
-      payload: {
-        info,
-      },
-    });
-    dispatch({
-      type: SET_FEE_INFO,
-      payload: {
-        fees,
-      },
-    });
-  } catch (e) {
-    logger.error(`Error received from node.js - setNodeInfo\n\n${e.message}\n${e.stack}\n`);
-    dispatch({type: STOP});
-  }
+const setFees = () => async (dispatch) => {
+  const fees = await nodeClient.getFees();
+  dispatch({
+    type: SET_FEE_INFO,
+    payload: {
+      fees,
+    },
+  });
 };
 
 export const changeNetwork = (network) => async (dispatch) => {

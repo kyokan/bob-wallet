@@ -68,7 +68,15 @@ export default function nodeReducer(state = getInitialState(), action = {}) {
         noDns: action.payload.noDns,
       };
     case STOP:
-      return {...state, isRunning: false, network: null};
+      return {
+        ...state,
+        isRunning: false,
+        network: null,
+        chain: {
+          height: 0,
+          tip: '',
+        },
+      };
     case START_ERROR:
       return {...state, error: action.payload.error};
     case SET_NODE_INFO:
