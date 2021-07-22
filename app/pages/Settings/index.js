@@ -439,7 +439,7 @@ export default class Settings extends Component {
                 this.startNode,
                 <button
                   className="settings__view-api-btn"
-                  disabled={!isRunning || isChangingNodeStatus || isTestingCustomRPC}
+                  disabled={!isRunning || isChangingNodeStatus || isTestingCustomRPC || isCustomRPCConnected}
                   onClick={() => history.push('/settings/connection/view-api-key')}
                 >
                   View API Key
