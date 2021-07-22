@@ -34,6 +34,15 @@ const settingClient = settingClientStub(() => require('electron').ipcRenderer);
 
 let hasAppStarted = false;
 
+export const testRPC = (walletNetwork) => async (dispatch, getState) => {
+  dispatch({ type: START_RPC_TEST });
+
+  const [status, error] = await nodeClient.testCustomRPCClient(walletNetwork);
+
+  dispatch({ type: END_RPC_TEST });
+  return [status, error];
+}
+
 export const stop = () => async (dispatch, getState) => {
   dispatch({ type: START_RPC_TEST });
   const {networkType} = await connClient.getConnection();

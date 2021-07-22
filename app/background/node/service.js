@@ -223,17 +223,16 @@ export class NodeService extends EventEmitter {
     this.networkName = networkType;
     this.network = network;
 
-    this.emit('started', this.networkName, this.network);
-
     const portString = port ? `:${port}` : '';
     const pathString = (!pathname || pathname === '/') ? '' : pathname;
     const protoString = protocol || 'http';
 
     const url = `${protoString}://${host}${portString}${pathString}`;
-    this.client = new NodeClient({
-      network: network,
-      apiKey: apiKey,
-      url: url,
+
+    return new NodeClient({
+      network,
+      apiKey,
+      url,
     });
   }
 
@@ -457,6 +456,7 @@ const methods = {
   setNoDns: data => service.setNoDns(data),
   getDir: () => service.getDir(),
   getHNSPrice: () => service.getHNSPrice(),
+  testCustomRPCClient: (networkType) => service.testCustomRPCClient(networkType),
 };
 
 export async function start(server) {
