@@ -9,12 +9,70 @@
 
   &__container {
     @extend %col-nowrap;
+
+    .alert {
+      word-break: break-all;
+      margin: 0 1.875rem 1rem;
+    }
   }
 
   &__content {
     @extend %col-nowrap;
     padding: 0 1.875rem 1rem;
     align-items: center;
+
+    &__success {
+      width: 100%;
+      @extend %col-nowrap;
+      margin: 1rem 0;
+      align-items: center;
+
+      &__icon {
+        background-image: url('../../assets/images/check-circle-blue.svg');
+        height: 2.5rem;
+        width: 2.5rem;
+        background-position: center;
+        background-size: cover;
+        margin: 1rem 0;
+      }
+
+      &__title {
+        font-size: 1.125rem;
+        line-height: 1.3125;
+        font-weight: 600;
+        color: $azure-blue;
+        margin-bottom: 1rem;
+      }
+
+      &__content {
+        width: 100%;
+
+        hr {
+          margin: 2rem 0;
+        }
+      }
+
+      &__claim-id {
+        font-size: .8125rem;
+        text-align: center;
+
+        span {
+          margin-top: .25rem;
+        }
+      }
+    }
+  }
+
+  &__back-btn {
+    position: absolute;
+    top: 1.25rem;
+    left: 2rem;
+    font-weight: 700;
+    cursor: pointer;
+    height: 1.5rem;
+    width: 1.5rem;
+    background-position: center;
+    background-size: contain;
   }
 
   &__close-btn {
@@ -115,14 +173,67 @@
     margin: 0 auto 1rem;
     font-size: .75rem;
     text-align: center;
-    width: 26rem;
+    width: 27rem;
+
+    > div {
+      margin-bottom: .25rem;
+      font-size: .8125rem;
+    }
   }
 
   &__claim-content {
+    width: 100%;
+
     &__title {
       font-size: .875rem;
       margin: 1rem auto;
       text-align: center;
+    }
+
+    &__txt-table {
+      .table__row__item:nth-of-type(1),
+      .table__header__item:nth-of-type(1) {
+        width: 4rem;
+        flex: 0 0 auto;
+      }
+
+      .table__row__item:nth-of-type(2),
+      .table__header__item:nth-of-type(2) {
+        width: 4rem;
+        flex: 0 0 auto;
+      }
+
+      .table__row__item:nth-of-type(3),
+      .table__header__item:nth-of-type(3),
+      .table__row__item:nth-of-type(4),
+      .table__header__item:nth-of-type(4){
+        white-space: initial;
+        word-break: break-all;
+        display: flex;
+        flex-flow: row nowrap;
+        align-items: center;
+        padding: .5rem;
+
+        > button {
+          flex: 0 0 auto;
+          margin: 1rem;
+        }
+      }
+    }
+
+    &__textarea {
+      margin: 1rem 0;
+      height: 9rem;
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid $grey;;
+      padding: .5rem;
+      font-family: "Courier New", monospace;
+      outline: none;
+      resize: none;
+
+      &:disabled {
+      }
     }
   }
 

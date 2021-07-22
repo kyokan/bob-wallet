@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import classNames from "classnames";
+import BackArrowIcon from "../../assets/images/arrow-back-blue.svg";
 import "./name-claim-modal.scss";
 import Modal from "../Modal";
 import {ensureDot} from "../../utils/nameHelpers";
@@ -10,9 +11,12 @@ import {clientStub as wClientStub} from "../../background/wallet/client";
 import {constants, dnssec, wire, Ownership, util} from 'bns';
 import blake2b from "bcrypto/lib/blake2b";
 import fs from "fs";
+const { dialog } = require("electron").remote;
 import {clientStub as nClientStub} from "../../background/node/client";
 import Alert from "../Alert";
 import CopyButton from "../CopyButton";
+import {HeaderItem, HeaderRow, Table, TableItem, TableRow} from "../Table";
+import {MiniModal} from "../Modal/MiniModal";
 
 const {Proof} = Ownership;
 const wallet = wClientStub(() => require('electron').ipcRenderer);
@@ -49,6 +53,7 @@ const CLAIM_TYPE = {
 export default class NameClaimModal extends Component {
   static propTypes = {
     onClose: PropTypes.func.isRequired,
+    name: PropTypes.string,
   };
 
   state = {
@@ -61,14 +66,12 @@ export default class NameClaimModal extends Component {
     proof: null,
     keys: [],
     txt: '',
-    pasteRRs: '',
-    blob: '',
     success: null,
   };
 
   async componentWillMount() {
-    if (this.state.name) {
-      this.getClaim(this.state.name, null);
+    if (this.props.name) {
+      this.getClaim(this.props.name, null);
     }
   }
 
@@ -300,11 +303,12 @@ export default class NameClaimModal extends Component {
     this.setState({success: json});
   }
 
-  insertRecords = async () => {
-    if (!this.state.proof)
+  insertRecords = async (pasteRRs) => {
+    if (!this.state.proof) {
       return;
+    }
 
-    const chunk = this.state.pasteRRs;
+    const chunk = pasteRRs;
     let RRs;
 
     this.setState({error: ''});
@@ -356,18 +360,18 @@ export default class NameClaimModal extends Component {
     }
 
     this.setState({success: json});
-  }
+  };
 
-  sendRawClaim = async () => {
+  sendRawClaim = async (blob) => {
     this.setState({error: ''});
-
-    const {blob} = this.state;
 
     // Verify first to be nice
     let proof;
+
     try {
-      if (!blob)
+      if (!blob) {
         throw new Error('Not a valid base64 string.');
+      }
 
       const data = Buffer.from(blob, 'base64');
       proof = Proof.decode(data);
@@ -390,7 +394,7 @@ export default class NameClaimModal extends Component {
     }
 
     this.setState({success: json});
-  }
+  };
 
   verifyProof(proof) {
     const o = new Ownership();
@@ -405,32 +409,6 @@ export default class NameClaimModal extends Component {
       throw new Error('Proof contains expired signature.');
 
     return true;
-  }
-
-  displayKeys() {
-    const rows = [];
-    for (let key of this.state.keys) {
-      const filename = key.filename;
-      key = key.getJSON()
-      rows.push(
-        <tr>
-          <td>{key.data.keyTag}</td>
-          <td>{key.data.keyType}</td>
-          <td>{key.data.algName}</td>
-          <td>{filename}</td>
-        </tr>
-      );
-    }
-
-    return (
-      <div>
-        &nbsp;&nbsp;DNSKEYs available for signing:
-        <table className="reserved__keyList">
-          <tr><td>Key tag</td><td>Key type</td><td>Key Algorithm</td><td>Filename</td></tr>
-          {rows}
-        </table>
-      </div>
-    );
   }
 
   render() {
@@ -452,11 +430,53 @@ export default class NameClaimModal extends Component {
       name,
       claim,
       error,
+      keys,
     } = this.state;
 
     const {
       onClose,
     } = this.props;
+
+    if (this.state.success) {
+      return (
+        <div className="name-claim__container">
+          <div className="name-claim__header">
+            <div className="name-claim__title">Reserved Name Claim</div>
+          </div>
+          <div className="name-claim__content">
+            <ReservedNameInfoCard
+              url={url}
+              name={name}
+              fee={claim.fee}
+              reward={claim.reward}
+            />
+            <div className="name-claim__content__success">
+              <div className="name-claim__content__success__icon" />
+              <div className="name-claim__content__success__title">
+                You have submitted your name claim successfully!
+              </div>
+              <div className="name-claim__content__success__content">
+                It may take up to 15 minutes to be confirmed in the coinbase transaction of a block.
+                Your claim ID is not like a transaction ID and will not be found by most block explorers.
+                It may still be useful in debugging from the logs.
+                <hr />
+                <div className="name-claim__content__success__claim-id">
+                  Your claim ID: <span className='mono'>{this.state.success}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="name-claim__footer">
+            <button
+              className="name-claim__cta"
+              onClick={onClose}
+            >
+              Finish
+            </button>
+          </div>
+        </div>
+      )
+    }
 
     switch (stepType) {
       case STEP.CLAIM:
@@ -467,9 +487,15 @@ export default class NameClaimModal extends Component {
             fee={claim.fee}
             reward={claim.reward}
             txt={claim.txt}
+            keys={keys}
             error={error}
             claimType={this.state.claimType}
             onClose={onClose}
+            onBack={() => this.setState({ stepType: STEP.CHOOSE_OPTIONS, error: '' })}
+            submitClaim={this.submitClaim}
+            localSign={this.localSign}
+            insertRecords={this.insertRecords}
+            sendRawClaim={this.sendRawClaim}
           />
         );
       case STEP.CHOOSE_OPTIONS:
@@ -484,6 +510,7 @@ export default class NameClaimModal extends Component {
             changeClaimType={this.changeClaimType}
             onClose={onClose}
             onNext={() => this.setState({ stepType: STEP.CLAIM })}
+            onBack={() => this.setState({ stepType: STEP.CHECK_NAME })}
           />
         );
       case STEP.CHECK_NAME:
@@ -508,17 +535,29 @@ export default class NameClaimModal extends Component {
 class ClaimOption extends Component {
   static propTypes = {
     onClose: PropTypes.func.isRequired,
+    onBack: PropTypes.func.isRequired,
+    submitClaim: PropTypes.func.isRequired,
+    localSign: PropTypes.func.isRequired,
+    insertRecords: PropTypes.func.isRequired,
+    sendRawClaim: PropTypes.func.isRequired,
     claimType: PropTypes.string,
     url: PropTypes.string,
     reward: PropTypes.string,
     fee: PropTypes.string,
     txt: PropTypes.string,
+    keys: PropTypes.object,
     error: PropTypes.string,
+  };
+
+  state = {
+    pasteRRs: '',
+    blob: '',
   };
 
   render() {
     const {
       onClose,
+      onBack,
       url,
       name,
       reward,
@@ -529,6 +568,13 @@ class ClaimOption extends Component {
     return (
       <div className="name-claim__container">
         <div className="name-claim__header">
+          <div
+            className="name-claim__back-btn"
+            style={{
+              backgroundImage: `url(${BackArrowIcon})`,
+            }}
+            onClick={onBack}
+          />
           <div className="name-claim__title">Reserved Name Claim</div>
           <div className="name-claim__close-btn" onClick={onClose}>✕</div>
         </div>
@@ -541,58 +587,213 @@ class ClaimOption extends Component {
           />
           { this.renderContent() }
         </div>
+        { !!error && <Alert type="error">{error}</Alert> }
         <div className="name-claim__footer">
-          <button
-            className="name-claim__cta"
-            disabled={!!error}
-          >
-            Next
-          </button>
+          { this.renderCTA() }
         </div>
       </div>
     );
   }
 
-  renderContent() {
+  renderCTA () {
     const {
-      txt,
+      submitClaim,
+      localSign,
+      insertRecords,
+      sendRawClaim,
     } = this.props;
+
+    const {
+      pasteRRs,
+      blob,
+    } = this.state;
+
     switch (this.props.claimType) {
       case CLAIM_TYPE.TXT:
         return (
-          <div className="name-claim__claim-content">
-            <div className="name-claim__claim-content__title">
-              Create a TXT record with the below string in your zone using your domain name service provider, then click next
-            </div>
-            <table className="name-claim__claim-content__txt-table">
-              <th>
-                <td>Type</td>
-                <td>Host</td>
-                <td>Value</td>
-              </th>
-              <tr>
-                <td>TXT</td>
-                <td>@</td>
-                <td className="wrap">
-                  {txt}
-                  <CopyButton content={txt} />
-                </td>
-              </tr>
-            </table>
-          </div>
+          <button
+            className="name-claim__cta"
+            onClick={submitClaim}
+          >
+            Check DNS
+          </button>
         );
       case CLAIM_TYPE.DNSSEC:
+        return (
+          <button
+            className="name-claim__cta"
+            onClick={localSign}
+          >
+            Sign with local key
+          </button>
+        );
       case CLAIM_TYPE.RRSIG:
+        return (
+          <button
+            className="name-claim__cta"
+            onClick={() => insertRecords(pasteRRs)}
+            disabled={!pasteRRs}
+          >
+            Insert records into claim
+          </button>
+        );
       case CLAIM_TYPE.BASE64:
+        return (
+          <button
+            className="name-claim__cta"
+            onClick={() => sendRawClaim(blob)}
+            disabled={!blob}
+          >
+            Send raw claim
+          </button>
+        );
       default:
         return null;
     }
+  }
+
+  renderContent() {
+    switch (this.props.claimType) {
+      case CLAIM_TYPE.TXT:
+        return this.renderTXT();
+      case CLAIM_TYPE.DNSSEC:
+        return this.renderDNSSEC();
+      case CLAIM_TYPE.RRSIG:
+        return this.renderRRSIG();
+      case CLAIM_TYPE.BASE64:
+        return this.renderBASE64();
+      default:
+        return null;
+    }
+  }
+
+  renderBASE64() {
+    return (
+      <div className="name-claim__claim-content">
+        <div className="name-claim__claim-content__title">
+          Using bns-prove on a machine with DNS lookup capabilities and access to your DNSSEC keys or HSM, generate a base64 proof and paste the entire string here
+        </div>
+        <textarea
+          className="name-claim__claim-content__textarea"
+          value={this.state.blob}
+          onChange={(e) => this.setState({
+            blob: e.target.value,
+          })}
+        />
+      </div>
+    );
+  }
+
+  renderRRSIG() {
+    const {
+      txt,
+      url,
+    } = this.props;
+
+    const fakesig = (!!url && !!txt)
+        ? `${url} 300 IN RRSIG TXT 13 2 300 20210603180907 20210601160907 34505 ${url} f6x5CBP1ySenfPodSGSPNPCdzLzhlXK8shtpfzcEmCs09amCSqCIwniq eEIR1EYCuijP4OCKFyEnEhfEk+l81A==`
+        : '';
+    const fakeRRs = txt + '\n' + fakesig;
+
+    return (
+      <div className="name-claim__claim-content">
+        <div className="name-claim__claim-content__title">
+          Using your own software like BIND9 dnssec-signzone, create and sign a zone file with a TXT record below and RRSIG, then paste both records in the text box below in DNS zone file format to continue.
+        </div>
+        <Table className="name-claim__claim-content__txt-table">
+          <HeaderRow>
+            <HeaderItem>Type</HeaderItem>
+            <HeaderItem>Host</HeaderItem>
+            <HeaderItem>Value</HeaderItem>
+          </HeaderRow>
+          <TableRow>
+            <TableItem>TXT</TableItem>
+            <TableItem>@</TableItem>
+            <TableItem className="wrap">
+              {txt}
+              <CopyButton content={txt} />
+            </TableItem>
+          </TableRow>
+        </Table>
+        <textarea
+          className="name-claim__claim-content__textarea"
+          placeholder={fakeRRs}
+          value={this.state.pasteRRs}
+          onChange={(e) => this.setState({
+            pasteRRs: e.target.value,
+          })}
+        />
+      </div>
+    );
+  }
+
+  renderTXT() {
+    const {
+      txt,
+    } = this.props;
+    return (
+      <div className="name-claim__claim-content">
+        <div className="name-claim__claim-content__title">
+          Create a TXT record with the below string in your zone using your domain name service provider, then click next
+        </div>
+        <Table className="name-claim__claim-content__txt-table">
+          <HeaderRow>
+            <HeaderItem>Type</HeaderItem>
+            <HeaderItem>Host</HeaderItem>
+            <HeaderItem>Value</HeaderItem>
+          </HeaderRow>
+          <TableRow>
+            <TableItem>TXT</TableItem>
+            <TableItem>@</TableItem>
+            <TableItem className="wrap">
+              {txt}
+              <CopyButton content={txt} />
+            </TableItem>
+          </TableRow>
+        </Table>
+      </div>
+    );
+  }
+
+  renderDNSSEC() {
+    const rows = [];
+    for (const key of this.props.keys) {
+      const filename = key.filename;
+      const json = key.getJSON();
+
+      rows.push(
+        <TableRow>
+          <TableItem>{json.data.keyTag}</TableItem>
+          <TableItem>{json.data.keyType}</TableItem>
+          <TableItem shrink={0} grow={0} width="96px">{json.data.algName}</TableItem>
+          <TableItem>{filename}</TableItem>
+        </TableRow>
+      );
+    }
+
+    return (
+      <div className="name-claim__claim-content">
+        <div className="name-claim__claim-content__title">
+          Select your DNSSEC zone-signing private key to automatically sign and broadcast the claim proof
+        </div>
+        <Table className="name-claim__claim-content__txt-table">
+          <HeaderRow>
+            <HeaderItem>Key tag</HeaderItem>
+            <HeaderItem>Key type</HeaderItem>
+            <HeaderItem shrink={0} grow={0} width="96px">Key algorithm</HeaderItem>
+            <HeaderItem>Filename</HeaderItem>
+          </HeaderRow>
+          {rows}
+        </Table>
+      </div>
+    );
   }
 }
 
 class ChooseOptions extends Component {
   static propTypes = {
     onClose: PropTypes.func.isRequired,
+    onBack: PropTypes.func.isRequired,
     onNext: PropTypes.func.isRequired,
     changeClaimType: PropTypes.func.isRequired,
     url: PropTypes.string,
@@ -601,13 +802,10 @@ class ChooseOptions extends Component {
     error: PropTypes.string,
   };
 
-  state = {
-    claimType: null,
-  };
-
   render() {
     const {
       onClose,
+      onBack,
       onNext,
       url,
       name,
@@ -619,6 +817,13 @@ class ChooseOptions extends Component {
     return (
       <div className="name-claim__container">
         <div className="name-claim__header">
+          <div
+            className="name-claim__back-btn"
+            style={{
+              backgroundImage: `url(${BackArrowIcon})`,
+            }}
+            onClick={onBack}
+          />
           <div className="name-claim__title">Reserved Name Claim</div>
           <div className="name-claim__close-btn" onClick={onClose}>✕</div>
         </div>
@@ -645,7 +850,7 @@ class ChooseOptions extends Component {
         <div className="name-claim__footer">
           <button
             className="name-claim__cta"
-            disabled={!!error || !this.props.claimType}
+            disabled={!this.props.claimType}
             onClick={onNext}
           >
             Next
@@ -668,7 +873,7 @@ class ChooseOptions extends Component {
         return (
           <div className="name-claim__option-description">
             <div><b>Method 3 (offline - airgapped): Paste TXT + RRSIG</b></div>
-            Using your own software like BIND9 dnssec-signzone, create and sign a zone file with a TXT record (containing the string above) and RRSIG. Paste both records here in DNS zone file format.
+            Using your own software like BIND9 dnssec-signzone, create and sign a zone file with a TXT record and RRSIG.
           </div>
         );
       case CLAIM_TYPE.DNSSEC:
