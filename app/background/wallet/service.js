@@ -386,7 +386,7 @@ class WalletService {
     dispatchToMainWindow({type: START_SYNC_WALLET});
     dispatchToMainWindow({
       type: SYNC_WALLET_PROGRESS,
-      payload: 0,
+      payload: height,
     });
 
     await wdb.rescan(height);
@@ -1206,14 +1206,15 @@ class WalletService {
     }
   };
 
-  onNewBlock = async (entry, txs) => {
+  onNewBlock = async (entry) => {
     await this._ensureClient();
     await this.refreshNodeInfo();
     await this.refreshWalletInfo();
 
-    if (entry && txs) {
-      await this.node.wdb.addBlock(entry, txs);
-    }
+    dispatchToMainWindow({
+      type: SYNC_WALLET_PROGRESS,
+      payload: entry.height,
+    });
   };
 
   /**
