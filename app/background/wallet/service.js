@@ -1227,9 +1227,12 @@ class WalletService {
 
   onRescanBlock = async (entry) => {
     const walletHeight = entry.height;
-    const chainHeight = this.lastKnownChainHeight;
 
-    if (walletHeight === chainHeight) {
+    // TODO: seems pretty inefficient but this is the problem
+    // with rescan events -- the wallet never really knows it's "done".
+    const info = await nodeService.getInfo().catch(() => null);
+    
+    if (walletHeight === info.chain.height) {
       dispatchToMainWindow({type: STOP_SYNC_WALLET});
       dispatchToMainWindow({
         type: SYNC_WALLET_PROGRESS,
