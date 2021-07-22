@@ -112,7 +112,7 @@ class SyncStatus extends Component {
       return "Please wait...";
     }
 
-    if (!isRunning && isCustomRPCConnected) {
+    if (isCustomRPCConnected) {
       return "Connected to RPC";
     }
 
