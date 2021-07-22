@@ -20,7 +20,6 @@ import MyDomain from '../MyDomain';
 import YourBids from '../YourBids';
 import Watching from '../Watching';
 import SearchTLD from '../SearchTLD';
-import Reserved from '../Reserved';
 import * as nodeActions from "../../ducks/node";
 import * as walletActions from '../../ducks/walletActions';
 import { listWallets } from '../../ducks/walletActions';
@@ -238,12 +237,6 @@ class App extends Component {
             wallets={this.props.wallets}
             path="/exchange"
             render={this.routeRenderer('Exchange', Exchange, true)}
-          />
-          <ProtectedRoute
-            isLocked={this.props.isLocked}
-            wallets={this.props.wallets}
-            path="/reserved/:name?"
-            render={this.routeRenderer('Reserved Name Claims', Reserved)}
           />
           <Redirect to="/login" />
         </Switch>
