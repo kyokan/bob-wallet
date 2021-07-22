@@ -116,3 +116,10 @@ export const formatName = name => {
 
   return `${name}/`;
 }
+
+export const ensureDot = (string) => {
+  if (string[string.length - 1] !== '.')
+    return string + '.';
+
+  return string;
+};
