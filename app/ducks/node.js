@@ -147,20 +147,14 @@ export const changeCustomNetwork = (network) => async (dispatch) => {
       type: START_NETWORK_CHANGE,
     });
 
-    await connClient.setConnection({
-      type: ConnectionTypes.Custom,
-      port: conn.port,
-      host: conn.host,
-      pathname: conn.pathname,
-      networkType: network,
-      apiKey: conn.apiKey,
-    });
-
-    await nodeClient.reset();
-
-    dispatch({
-      type: END_NETWORK_CHANGE,
-    });
+    try {
+      await connClient.setConnectionType(ConnectionTypes.Custom);
+      await nodeClient.reset();
+    } finally {
+      dispatch({
+        type: END_NETWORK_CHANGE,
+      });
+    }
   }
 };
 
