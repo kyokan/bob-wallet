@@ -990,6 +990,9 @@ class WalletService {
 
   // Wallet as a plugin to the hsd full node is the default configuration
   _usePlugin = async (plugin, apiKey) => {
+    this.conn = await getConnection();
+    assert(this.conn.type === ConnectionTypes.P2P);
+
     this.node = plugin;
     this.network = plugin.network;
     this.networkName = this.network.toString();
@@ -1007,104 +1010,103 @@ class WalletService {
     this.node.wdb.client.bind('block connect', this.onNewBlock);
     this.node.wdb.client.bind('block rescan', this.onRescanBlock);
 
-    const walletOptions = {
+    this.client = new WalletClient({
       network: this.network,
       port: this.network.walletPort,
       apiKey: this.walletApiKey,
       timeout: 10000,
-    };
+    });
 
-    this.client = new WalletClient(walletOptions);
+    // TODO: feels like this belongs in node module not here...
     await this.refreshNodeInfo();
-    const wallets = await this.listWallets(false, true);
 
+    // TODO: all this does is set the balance?
+    // might be redundant with fetchWallet() in wallet Actions,
+    // which is called by whoever (re)starts the wallet...
+    await this.refreshWalletInfo();
+
+    const wallets = await this.listWallets(false, true);
     dispatchToMainWindow({
       type: SET_WALLETS,
       payload: createPayloadForSetWallets(wallets),
     });
-    await this.refreshWalletInfo();
   };
 
   // Wallet as a separate process only runs in Custom RPC mode
   _onNodeStart = async (networkName, network, apiKey) => {
-    const conn = await getConnection();
-    assert(conn.type === ConnectionTypes.Custom);
+    this.conn = await getConnection();
+    assert(this.conn.type === ConnectionTypes.Custom);
 
     this.networkName = networkName;
     this.apiKey = apiKey;
     this.walletApiKey = await this.getAPIKey();
     this.network = network;
 
-    const walletOptions = {
-      network: network,
-      port: network.walletPort,
-      apiKey: this.walletApiKey,
-      timeout: 10000,
-    };
-
-    const node = new WalletNode({
+    this.node = new WalletNode({
       network: networkName,
-      nodeHost: conn.host,
-      nodePort: conn.port || undefined,
-      nodeApiKey: conn.apiKey,
-      apiKey: walletOptions.apiKey,
-      httpPort: walletOptions.port,
+      nodeHost: this.conn.host,
+      nodePort: this.conn.port || undefined,
+      nodeApiKey: this.conn.apiKey,
+      apiKey: this.walletApiKey,
       memory: false,
-      prefix: networkName === 'main'
-        ? HSD_DATA_DIR
-        : path.join(HSD_DATA_DIR, networkName),
+      prefix: HSD_DATA_DIR,
       migrate: 0,
       logFile: true,
       logConsole: false,
       logLevel: 'debug',
     });
 
-    node.http.post('/unsafe-update-account-depth', this.handleUnsafeUpdateAccountDepth);
+    this.node.http.post('/unsafe-update-account-depth', this.handleUnsafeUpdateAccountDepth);
 
-    if (this.closeP) await this.closeP;
-
-    await node.open();
-    this.node = node;
-
-    node.wdb.on('error', e => {
+    this.node.wdb.on('error', e => {
       console.error('walletdb error', e);
     });
 
-    node.wdb.client.bind('block connect', this.onNewBlock);
-    node.wdb.client.unhook('block rescan');
-    node.wdb.client.hook('block rescan', async (entry, txs) => {
+    this.node.wdb.client.bind('block connect', this.onNewBlock);
+    this.node.wdb.client.unhook('block rescan');
+    this.node.wdb.client.hook('block rescan', async (entry, txs) => {
       try {
-        await node.wdb.rescanBlock(entry, txs);
+        await this.node.wdb.rescanBlock(entry, txs);
       } catch (e) {
-        node.wdb.emit('error', e);
+        this.node.wdb.emit('error', e);
       }
       await this.onRescanBlock(entry);
     });
 
-    this.client = new WalletClient(walletOptions);
-    await this.refreshNodeInfo();
-    const wallets = await this.listWallets(false, true);
+    await this.node.open();
 
+    this.client = new WalletClient({
+      network,
+      port: network.walletPort,
+      apiKey: this.walletApiKey,
+      timeout: 10000,
+    });
+
+    // TODO: feels like this belongs in node module not here...
+    await this.refreshNodeInfo();
+
+    // TODO: all this does is set the balance?
+    // might be redundant with fetchWallet() in wallet Actions,
+    // which is called by whoever (re)starts the wallet...
+    await this.refreshWalletInfo();
+
+    const wallets = await this.listWallets(false, true);
     dispatchToMainWindow({
       type: SET_WALLETS,
       payload: createPayloadForSetWallets(wallets),
     });
-    await this.refreshWalletInfo();
+
   };
 
   _onNodeStop = async () => {
-    const node = this.node;
+    // Wallet as plugin is closed by the full node closing,
+    // otherwise we close manually.
+    if (this.conn.type === ConnectionTypes.Custom)
+      await this.node.close();
+
     this.node = null;
     this.client = null;
     this.didSelectWallet = false;
-    this.closeP = new Promise(async resolve => {
-      // Wallet as plugin is closed by full node
-      if (node && this.conn === ConnectionTypes.Custom) {
-        await node.close();
-      }
-      resolve();
-    });
-
   };
 
   handleUnsafeUpdateAccountDepth = async (req, res) => {
@@ -1179,6 +1181,8 @@ class WalletService {
     });
   };
 
+  // TODO: this is sorta-duplicated in app/ducks/node.js setNodeInfo()
+  // and that's probably the correct place for it.
   refreshNodeInfo = async () => {
     const info = await nodeService.getInfo().catch(() => null);
     const fees = await nodeService.getFees().catch(() => null);
@@ -1662,6 +1666,8 @@ function enforce(value, msg) {
   }
 }
 
+// TODO: looks like this is the same as app/ducks/walletActions.js listWallets()
+// which calls listWallets() from this file, but dispaches that data.
 function createPayloadForSetWallets(wallets, addName = null) {
   let wids = wallets.map((wallet) => wallet.wid);
   if (addName !== null) {
