@@ -203,7 +203,6 @@ class GetCoins extends Component {
               <div>+ 503 HNS and up</div>
               <div>ICANN root zone TLDs</div>
               <div>Alexa top 100,000</div>
-              <button onClick={() => this.props.history.push('/reserved')}>Claim</button>
               <button onClick={this.openNameClaimModal}>
                 Claim
               </button>
