@@ -44,51 +44,12 @@ export const testRPC = (walletNetwork) => async (dispatch, getState) => {
 }
 
 export const stop = () => async (dispatch, getState) => {
-  dispatch({ type: START_RPC_TEST });
-  const {networkType} = await connClient.getConnection();
-  const network = Network.get(networkType || 'main');
-
-  try {
-    await nodeClient.stop();
-    await connClient.setConnectionType(ConnectionTypes.Custom);
-    await nodeClient.start(networkType || 'main');
-
-    dispatch({ type: STOP });
-
-    await dispatch(fetchWallet());
-
-    if (!hasAppStarted) {
-      if (await getInitializationState(network)) {
-        setTimeout(async () => {
-          await dispatch(fetchTransactions());
-          await dispatch(getWatching(network));
-        }, 0);
-      }
-    }
-
-    if (!await nodeClient.getInfo()) {
-      throw new Error('cannot get node info');
-    }
-
-    await dispatch(setNodeInfo());
-    dispatch(setCustomRPCStatus(true));
-  } catch (e) {
-    logger.error(e);
-    dispatch(setCustomRPCStatus(false));
-  } finally {
-    hasAppStarted = true;
-    dispatch({ type: END_RPC_TEST });
-  }
+  await nodeClient.stop();
+  dispatch({ type: STOP });
 };
 
 export const startApp = (network) => async (dispatch) => {
-  const {type} = await connClient.getConnection();
-  switch (type) {
-    case ConnectionTypes.P2P:
-      return dispatch(start(network));
-    case ConnectionTypes.Custom:
-      return dispatch(stop(network));
-  }
+  return dispatch(start(network));
 };
 
 export const start = (network) => async (dispatch, getState) => {
@@ -109,7 +70,6 @@ export const start = (network) => async (dispatch, getState) => {
   await setNetwork(network);
 
   try {
-    await connClient.setConnectionType(ConnectionTypes.P2P);
     await nodeClient.start(network);
 
     // WalletNode might not be loaded yet
