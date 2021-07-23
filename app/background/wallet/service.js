@@ -238,44 +238,12 @@ class WalletService {
     });
   }
 
-  reset = async () => {
-    await this._ensureClient();
-
-    try {
-      await this._onNodeStop();
-
-      const walletDir = this.networkName === 'main'
-        ? HSD_DATA_DIR
-        : path.join(HSD_DATA_DIR, this.networkName);
-
-      await new Promise((resolve, reject) => rimraf(path.join(walletDir, 'wallet'), error => {
-        if (error) {
-          return reject(error);
-        }
-        resolve();
-      }));
-
-      await this._onNodeStart(
-        this.networkName,
-        this.network,
-        this.apiKey,
-      );
-      this.setWallet(null);
-      return true;
-    } catch (e) {
-      console.error(e);
-      return false;
-    }
-  };
-
-  hasAddress = async (addressHash) => {
+  hasAddress = async (address) => {
     if (!this.name) return false;
-    await this._ensureClient();
     const wallet = await this.node.wdb.get(this.name);
-
     if (!wallet) return null;
 
-    return wallet.hasPath(new Address(addressHash, this.network));
+    return wallet.hasPath(new Address(address, this.network));
   };
 
   getWalletInfo = async () => {
@@ -285,10 +253,7 @@ class WalletService {
 
   getAccountInfo = async () => {
     if (!this.name) return null;
-
-    await this._ensureClient();
     const wallet = await this.node.wdb.get(this.name);
-
     if (!wallet) return null;
 
     const account = await wallet.getAccount('default');
@@ -300,25 +265,21 @@ class WalletService {
   };
 
   getCoin = async (hash, index) => {
-    await this._ensureClient();
     const wallet = await this.node.wdb.get(this.name);
     return wallet.getCoin(Buffer.from(hash, 'hex'), index);
   };
 
   getTX = async (hash) => {
-    await this._ensureClient();
     const wallet = await this.node.wdb.get(this.name);
     return wallet.getTX(Buffer.from(hash, 'hex'));
   };
 
   getNames = async () => {
-    await this._selectWallet();
     const wallet = await this.node.wdb.get(this.name);
     return wallet.getNames();
   };
 
   getPublicKey = async (address) => {
-    await this._ensureClient();
     const wallet = await this.node.wdb.get(this.name);
     return wallet.getKey(address);
   };
@@ -329,7 +290,6 @@ class WalletService {
    * @return {Promise<void>}
    */
   removeWalletById = async (wid) => {
-    await this._ensureClient();
     await this.node.wdb.remove(wid);
     this.setWallet(this.name === wid ? null : this.name);
 
@@ -342,26 +302,24 @@ class WalletService {
   };
 
   createNewWallet = async (name, passphrase, isLedger, xPub) => {
-    await this._ensureClient();
     this.setWallet(name);
-    this.didSelectWallet = false;
 
     let res;
     if (isLedger) {
-      res = await this.client.createWallet(name, {
-        passphrase: passphrase,
+      res = await this.node.wdb.create({
+        id: name,
+        passphrase,
         watchOnly: true,
         accountKey: xPub,
       });
     } else {
       const mnemonic = new Mnemonic({bits: 256});
-      const options = {
-        passphrase: passphrase,
+      res = await this.node.wdb.create({
+        id: name,
+        passphrase,
         watchOnly: false,
         mnemonic: mnemonic.getPhrase().trim(),
-      };
-
-      res = await this.client.createWallet(this.name, options);
+      });
     }
 
     const wallets = await this.listWallets(false, true);
@@ -370,39 +328,30 @@ class WalletService {
       payload: createPayloadForSetWallets(wallets, name),
     });
 
-    return res;
+    return res.getJSON();
   };
 
   backup = async (path) => {
-    if (!path) throw new Error('path must not be undefined');
-    await this._ensureClient();
-    return this.client.execute('backupwallet', [path]);
+    if (!path) throw new Error('Path is required.');
+    return this.node.wdb.backup(path);
   };
 
   rescan = async (height = 0) => {
-    await this._ensureClient();
-    const wdb = this.node.wdb;
-
     dispatchToMainWindow({type: START_SYNC_WALLET});
     dispatchToMainWindow({
       type: SYNC_WALLET_PROGRESS,
       payload: height,
     });
 
-    await wdb.rescan(height);
+    return this.node.wdb.rescan(height);
   };
 
   deepClean = async () => {
-    await this._ensureClient();
-    const wdb = this.node.wdb;
-
-    await wdb.deepClean();
+    return this.node.wdb.deepClean();
   };
 
   importSeed = async (name, passphrase, mnemonic) => {
-    await this._ensureClient();
     this.setWallet(name);
-    this.didSelectWallet = false;
 
     const options = {
       passphrase,
@@ -411,7 +360,7 @@ class WalletService {
       mnemonic: mnemonic.trim(),
     };
 
-    const res = await this.client.createWallet(this.name, options);
+    const res = await this.node.wdb.create({id: name, ...options});
     const wallets = await this.listWallets(false, true);
 
     dispatchToMainWindow({
@@ -419,7 +368,7 @@ class WalletService {
       payload: createPayloadForSetWallets(wallets, name),
     });
 
-    return res;
+    return res.getJSON();
   };
 
   generateReceivingAddress = async () => {
@@ -432,8 +381,6 @@ class WalletService {
   };
 
   getTransactionHistory = async () => {
-    await this._ensureClient();
-
     if (!this.name) {
       return [];
     }
@@ -455,7 +402,6 @@ class WalletService {
   };
 
   getPendingTransactions = async () => {
-    await this._ensureClient();
     const wallet = await this.node.wdb.get(this.name);
     return wallet.getPending('default');
   };
@@ -504,7 +450,6 @@ class WalletService {
   };
 
   getBids = async () => {
-    await this._ensureClient();
     const wallet = await this.node.wdb.get(this.name);
     const bids = await wallet.getBids();
     const filter = await this.makeBidsFilter(bids);
@@ -783,8 +728,6 @@ class WalletService {
 
   // price is in WHOLE HNS!
   finalizeWithPayment = async (name, fundingAddr, nameReceiveAddr, price) => {
-    await this._ensureClient();
-
     if (price > 2000) {
       throw new Error('Refusing to create a transfer for more than 2000 HNS.');
     }
@@ -873,8 +816,6 @@ class WalletService {
   };
 
   claimPaidTransfer = async (txHex) => {
-    await this._ensureClient();
-
     const {wdb} = this.node;
     const wallet = await wdb.get(this.name);
     const mtx = MTX.decode(Buffer.from(txHex, 'hex'));
@@ -961,8 +902,6 @@ class WalletService {
    * @return {Promise<[string]>}
    */
   listWallets = async (includeUnencrypted = false, returnObjects = false) => {
-    await this._ensureClient();
-
     const wdb = this.node.wdb;
     const wallets = await wdb.getWallets();
     const ret = [];
@@ -988,127 +927,6 @@ class WalletService {
     return getStats(wallet);
   };
 
-  // Wallet as a plugin to the hsd full node is the default configuration
-  _usePlugin = async (plugin, apiKey) => {
-    this.conn = await getConnection();
-    assert(this.conn.type === ConnectionTypes.P2P);
-
-    this.node = plugin;
-    this.network = plugin.network;
-    this.networkName = this.network.toString();
-    this.apiKey = apiKey;
-    this.walletApiKey = apiKey;
-
-    await this.setAPIKey((apiKey));
-
-    // TODO: This may not work because the plugin is open() already by now
-    this.node.http.post('/unsafe-update-account-depth', this.handleUnsafeUpdateAccountDepth);
-
-    this.node.wdb.on('error', e => {
-      console.error('walletdb error', e);
-    });
-    this.node.wdb.client.bind('block connect', this.onNewBlock);
-    this.node.wdb.client.bind('block rescan', this.onRescanBlock);
-
-    this.client = new WalletClient({
-      network: this.network,
-      port: this.network.walletPort,
-      apiKey: this.walletApiKey,
-      timeout: 10000,
-    });
-
-    // TODO: feels like this belongs in node module not here...
-    await this.refreshNodeInfo();
-
-    // TODO: all this does is set the balance?
-    // might be redundant with fetchWallet() in wallet Actions,
-    // which is called by whoever (re)starts the wallet...
-    await this.refreshWalletInfo();
-
-    const wallets = await this.listWallets(false, true);
-    dispatchToMainWindow({
-      type: SET_WALLETS,
-      payload: createPayloadForSetWallets(wallets),
-    });
-  };
-
-  // Wallet as a separate process only runs in Custom RPC mode
-  _onNodeStart = async (networkName, network, apiKey) => {
-    this.conn = await getConnection();
-    assert(this.conn.type === ConnectionTypes.Custom);
-
-    this.networkName = networkName;
-    this.apiKey = apiKey;
-    this.walletApiKey = await this.getAPIKey();
-    this.network = network;
-
-    this.node = new WalletNode({
-      network: networkName,
-      nodeHost: this.conn.host,
-      nodePort: this.conn.port || undefined,
-      nodeApiKey: this.conn.apiKey,
-      apiKey: this.walletApiKey,
-      memory: false,
-      prefix: HSD_DATA_DIR,
-      migrate: 0,
-      logFile: true,
-      logConsole: false,
-      logLevel: 'debug',
-    });
-
-    this.node.http.post('/unsafe-update-account-depth', this.handleUnsafeUpdateAccountDepth);
-
-    this.node.wdb.on('error', e => {
-      console.error('walletdb error', e);
-    });
-
-    this.node.wdb.client.bind('block connect', this.onNewBlock);
-    this.node.wdb.client.unhook('block rescan');
-    this.node.wdb.client.hook('block rescan', async (entry, txs) => {
-      try {
-        await this.node.wdb.rescanBlock(entry, txs);
-      } catch (e) {
-        this.node.wdb.emit('error', e);
-      }
-      await this.onRescanBlock(entry);
-    });
-
-    await this.node.open();
-
-    this.client = new WalletClient({
-      network,
-      port: network.walletPort,
-      apiKey: this.walletApiKey,
-      timeout: 10000,
-    });
-
-    // TODO: feels like this belongs in node module not here...
-    await this.refreshNodeInfo();
-
-    // TODO: all this does is set the balance?
-    // might be redundant with fetchWallet() in wallet Actions,
-    // which is called by whoever (re)starts the wallet...
-    await this.refreshWalletInfo();
-
-    const wallets = await this.listWallets(false, true);
-    dispatchToMainWindow({
-      type: SET_WALLETS,
-      payload: createPayloadForSetWallets(wallets),
-    });
-
-  };
-
-  _onNodeStop = async () => {
-    // Wallet as plugin is closed by the full node closing,
-    // otherwise we close manually.
-    if (this.conn.type === ConnectionTypes.Custom)
-      await this.node.close();
-
-    this.node = null;
-    this.client = null;
-    this.didSelectWallet = false;
-  };
-
   handleUnsafeUpdateAccountDepth = async (req, res) => {
     if (!req.admin) {
       res.json(403);
@@ -1132,14 +950,9 @@ class WalletService {
     res.json(200, { success: true });
   };
 
-
-
   updateAccountDepth = async (changeDepth, receiveDepth) => {
     if (!this.name) return null;
-
-    await this._ensureClient();
     const wallet = await this.node.wdb.get(this.name);
-
     if (!wallet) return null;
 
     const account = await wallet.getAccount('default');
@@ -1510,80 +1323,9 @@ class WalletService {
   }
 }
 
-export const service = new WalletService();
-service.createNewWallet.suppressLogging = true;
-service.importSeed.suppressLogging = true;
-service.getMasterHDKey.suppressLogging = true;
-service.setPassphrase.suppressLogging = true;
-service.revealSeed.suppressLogging = true;
-service.unlock.suppressLogging = true;
-
-const sName = 'Wallet';
-const methods = {
-  // stub the start method in case we need it later
-  start: async () => null,
-  getWalletInfo: service.getWalletInfo,
-  getAccountInfo: service.getAccountInfo,
-  getAPIKey: service.getAPIKey,
-  setAPIKey: service.setAPIKey,
-  getCoin: service.getCoin,
-  getTX: service.getTX,
-  getNames: service.getNames,
-  createNewWallet: service.createNewWallet,
-  importSeed: service.importSeed,
-  generateReceivingAddress: service.generateReceivingAddress,
-  getAuctionInfo: service.getAuctionInfo,
-  getTransactionHistory: service.getTransactionHistory,
-  getPendingTransactions: service.getPendingTransactions,
-  getBids: service.getBids,
-  getMasterHDKey: service.getMasterHDKey,
-  hasAddress: service.hasAddress,
-  setPassphrase: service.setPassphrase,
-  revealSeed: service.revealSeed,
-  estimateTxFee: service.estimateTxFee,
-  estimateMaxSend: service.estimateMaxSend,
-  removeWalletById: service.removeWalletById,
-  updateAccountDepth: service.updateAccountDepth,
-  backup: service.backup,
-  rescan: service.rescan,
-  deepClean: service.deepClean,
-  reset: service.reset,
-  sendOpen: service.sendOpen,
-  sendBid: service.sendBid,
-  sendRegister: service.sendRegister,
-  sendUpdate: service.sendUpdate,
-  sendReveal: service.sendReveal,
-  sendRedeem: service.sendRedeem,
-  sendRevealAll: service.sendRevealAll,
-  sendRedeemAll: service.sendRedeemAll,
-  sendRegisterAll: service.sendRegisterAll,
-  sendRenewal: service.sendRenewal,
-  transferMany: service.transferMany,
-  finalizeMany: service.finalizeMany,
-  renewMany: service.renewMany,
-  sendTransfer: service.sendTransfer,
-  cancelTransfer: service.cancelTransfer,
-  finalizeTransfer: service.finalizeTransfer,
-  finalizeWithPayment: service.finalizeWithPayment,
-  claimPaidTransfer: service.claimPaidTransfer,
-  signMessageWithName: service.signMessageWithName,
-  revokeName: service.revokeName,
-  send: service.send,
-  lock: service.lock,
-  unlock: service.unlock,
-  isLocked: service.isLocked,
-  getNonce: service.getNonce,
-  importNonce: service.importNonce,
-  zap: service.zap,
-  importName: service.importName,
-  rpcGetWalletInfo: service.rpcGetWalletInfo,
-  listWallets: service.listWallets,
-  getStats: service.getStats,
-};
-
-export async function start(server) {
-  server.withService(sName, methods);
-}
+/*
+ * UTILITY FUNCTIONS
+ */
 
 function mapTXs(txs) {
   const ret = [];
@@ -1685,4 +1427,83 @@ function createPayloadForSetWallets(wallets, addName = null) {
       return obj;
     }, {}), // array of objects to a single object with wid as key
   };
+}
+
+/*
+ * EXPORT
+ */
+
+export const service = new WalletService();
+service.createNewWallet.suppressLogging = true;
+service.importSeed.suppressLogging = true;
+service.getMasterHDKey.suppressLogging = true;
+service.setPassphrase.suppressLogging = true;
+service.revealSeed.suppressLogging = true;
+service.unlock.suppressLogging = true;
+
+const sName = 'Wallet';
+const methods = {
+  // stub the start method in case we need it later
+  start: async () => null,
+  getWalletInfo: service.getWalletInfo,
+  getAccountInfo: service.getAccountInfo,
+  getAPIKey: service.getAPIKey,
+  setAPIKey: service.setAPIKey,
+  getCoin: service.getCoin,
+  getTX: service.getTX,
+  getNames: service.getNames,
+  createNewWallet: service.createNewWallet,
+  importSeed: service.importSeed,
+  generateReceivingAddress: service.generateReceivingAddress,
+  getAuctionInfo: service.getAuctionInfo,
+  getTransactionHistory: service.getTransactionHistory,
+  getPendingTransactions: service.getPendingTransactions,
+  getBids: service.getBids,
+  getMasterHDKey: service.getMasterHDKey,
+  hasAddress: service.hasAddress,
+  setPassphrase: service.setPassphrase,
+  revealSeed: service.revealSeed,
+  estimateTxFee: service.estimateTxFee,
+  estimateMaxSend: service.estimateMaxSend,
+  removeWalletById: service.removeWalletById,
+  updateAccountDepth: service.updateAccountDepth,
+  backup: service.backup,
+  rescan: service.rescan,
+  deepClean: service.deepClean,
+  reset: service.reset,
+  sendOpen: service.sendOpen,
+  sendBid: service.sendBid,
+  sendRegister: service.sendRegister,
+  sendUpdate: service.sendUpdate,
+  sendReveal: service.sendReveal,
+  sendRedeem: service.sendRedeem,
+  sendRevealAll: service.sendRevealAll,
+  sendRedeemAll: service.sendRedeemAll,
+  sendRegisterAll: service.sendRegisterAll,
+  sendRenewal: service.sendRenewal,
+  transferMany: service.transferMany,
+  finalizeMany: service.finalizeMany,
+  renewMany: service.renewMany,
+  sendTransfer: service.sendTransfer,
+  cancelTransfer: service.cancelTransfer,
+  finalizeTransfer: service.finalizeTransfer,
+  finalizeWithPayment: service.finalizeWithPayment,
+  claimPaidTransfer: service.claimPaidTransfer,
+  signMessageWithName: service.signMessageWithName,
+  revokeName: service.revokeName,
+  send: service.send,
+  lock: service.lock,
+  unlock: service.unlock,
+  isLocked: service.isLocked,
+  getNonce: service.getNonce,
+  importNonce: service.importNonce,
+  zap: service.zap,
+  importName: service.importName,
+  rpcGetWalletInfo: service.rpcGetWalletInfo,
+  listWallets: service.listWallets,
+  getStats: service.getStats,
+};
+
+export async function start(server) {
+  server.withService(sName, methods);
 }

@@ -131,9 +131,13 @@ class CreateNewAccount extends Component {
             }
             onNext={async () => {
               this.setState({ isLoading: true });
-              await walletClient.createNewWallet(this.state.name);
+              await walletClient.createNewWallet(
+                this.state.name,
+                this.state.passphrase,
+                false, // isLedger
+                null   // xpub (Ledger only)
+              );
               const masterHDKey = await walletClient.getMasterHDKey();
-              await walletClient.setPassphrase(this.state.passphrase);
               this.setState({
                 currentStep: COPY_SEEDPHRASE,
                 seedphrase: masterHDKey.mnemonic.phrase,
