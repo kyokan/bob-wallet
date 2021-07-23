@@ -248,11 +248,12 @@ export default class Settings extends Component {
     onClick,
     children,
     disabled = false,
+    disableButtonOnly = false,
   ) {
     return (
       <div
         className={c("settings__content__section", {
-          'settings__content__section--disabled': disabled,
+          'settings__content__section--disabled': disabled && !disableButtonOnly,
         })}
       >
         <div className="settings__content__section__info">
@@ -445,16 +446,18 @@ export default class Settings extends Component {
                   View API Key
                 </button>,
                 isChangingNodeStatus || isTestingCustomRPC || !isCustomRPCConnected,
+                true
               )}
               {this.renderSection(
                 'Remote HSD node',
-                isCustomRPCConnected ?
-                  <><span className="node-status--active" /><span>Custom RPC Connected</span></>
-                  : 'Connect to a remote HSD node via HTTP',
+                isCustomRPCConnected
+                  ? <><span className="node-status--active" /><span>Custom RPC Connected</span></>
+                  : <><span className="node-status--inactive" />Connect to a remote HSD node via HTTP</>,
                 'Configure',
                 () => history.push("/settings/connection/configure"),
                 null,
                 isCustomRPCConnected || isTestingCustomRPC || isChangingNodeStatus,
+                true
               )}
               {this.renderSection(
                 'DNS Servers',
@@ -464,7 +467,7 @@ export default class Settings extends Component {
                 noDns ? 'Enable' : 'Disable',
                 () => {setNoDns(!noDns)},
                 null,
-                isChangingNodeStatus || isTestingCustomRPC || !isRunning,
+                isChangingNodeStatus || isTestingCustomRPC || isCustomRPCConnected,
               )}
               {this.renderSection(
                 'HSD Home Directory',
