@@ -14,7 +14,7 @@ import plugin from 'hsd/lib/wallet/plugin';
 import { prefixHash } from '../../db/names';
 import { get, put } from '../db/service';
 import {dispatchToMainWindow} from "../../mainWindow";
-import {SET_NODE_API, SET_CUSTOM_RPC_STATUS} from "../../ducks/nodeReducer";
+import {SET_NODE_API, SET_CUSTOM_RPC_STATUS, START} from "../../ducks/nodeReducer";
 
 const Network = require('hsd/lib/protocol/network');
 
@@ -100,12 +100,28 @@ export class NodeService extends EventEmitter {
           type: SET_CUSTOM_RPC_STATUS,
           payload: false,
         });
+        dispatchToMainWindow({
+          type: START,
+          payload: {
+            network: this.networkName,
+            apiKey: this.apiKey,
+            noDns: this.noDns,
+          },
+        });
         return;
       case ConnectionTypes.Custom:
         await this.setCustomRPCClient();
         dispatchToMainWindow({
           type: SET_CUSTOM_RPC_STATUS,
           payload: true,
+        });
+        dispatchToMainWindow({
+          type: START,
+          payload: {
+            network: this.networkName,
+            apiKey: null,
+            noDns: true,
+          },
         });
         return;
     }
