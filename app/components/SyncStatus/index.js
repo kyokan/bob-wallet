@@ -58,8 +58,8 @@ class SyncStatus extends Component {
       <React.Fragment>
         <div
           className={c("sync-status", {
-            "sync-status--success": isSynchronized || isCustomRPCConnected,
-            "sync-status--failure": !isRunning && !isCustomRPCConnected,
+            "sync-status--success": isSynchronized,
+            "sync-status--failure": !isRunning,
             "sync-status--loading":
               walletSync ||
               isChangingNodeStatus ||
@@ -89,31 +89,24 @@ class SyncStatus extends Component {
     } = this.props;
 
     if (isSynchronizing) {
-      return `Synchronizing... ${
-        progress ? "(" + (progress * 100).toFixed(2) + "%)" : ""
-      }`;
-    } else if (progress < 1) {
-      return `Synchronizing from RPC... ${
-        progress ? "(" + (progress * 100).toFixed(2) + "%)" : ""
-      }`;
+      return 'Synchronizing' +
+             `${isCustomRPCConnected ? ' from RPC' : ''}... ` +
+             `${progress ? "(" + (progress * 100).toFixed(2) + "%)" : ""}`;
     }
 
     if (walletSync) {
-      return `Rescanning... (${Math.floor(
-        (walletHeight * 100) / chainHeight
-      )}%)`;
+      return 'Rescanning' +
+             `${isCustomRPCConnected ? ' from RPC' : ''}... ` +
+             `(${Math.floor((walletHeight * 100) / chainHeight)}%)`;
     }
 
     if (isSynchronized) {
-      return "Synchronized";
+      return 'Synchronized' +
+             `${isCustomRPCConnected ? ' from RPC' : ''}`;
     }
 
     if (isChangingNodeStatus || isTestingCustomRPC) {
       return "Please wait...";
-    }
-
-    if (isCustomRPCConnected) {
-      return "Connected to RPC";
     }
 
     return "No connection";
