@@ -55,8 +55,8 @@ const WALLET_API_KEY = 'walletApiKey';
 
 class WalletService {
   constructor() {
-    nodeService.on('started', this._onNodeStart);
-    nodeService.on('wallet plugin', this._usePlugin);
+    nodeService.on('start remote', this._onNodeStart);
+    nodeService.on('start local', this._usePlugin);
     nodeService.on('stopped', this._onNodeStop);
     this.nodeService = nodeService;
     this.lastProgressUpdate = 0;

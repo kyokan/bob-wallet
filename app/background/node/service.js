@@ -183,7 +183,7 @@ export class NodeService extends EventEmitter {
 
     await hsd.ensure();
     await hsd.open();
-    this.emit('wallet plugin', hsd.get('walletdb'), this.apiKey);
+    this.emit('start local', hsd.get('walletdb'), this.apiKey);
     await hsd.connect();
     await hsd.startSync();
 
