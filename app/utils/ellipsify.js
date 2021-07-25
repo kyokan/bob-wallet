@@ -3,5 +3,5 @@ export default function ellipsify(str, len=8) {
     return str;
   }
 
-  return str.substr(0, len) + '...' + str.substr(str.length - len);
+  return str.substr(0, len) + '…' + str.substr(str.length - len);
 }
