@@ -481,17 +481,11 @@ export default class Settings extends Component {
               )}
               {this.renderSection(
                 'Network type',
-                (
-                  isCustomRPCConnected
-                  ?
-                    `Cannot change custom RPC network. RPC network set to: ${network || 'main'}`
-                    :
-                    'Switch network type'
-                ),
+                'Switch network type',
                 null,
                 null,
-                isRunning ? <NetworkPicker /> : null,
-                !isRunning || isTestingCustomRPC || isChangingNodeStatus,
+                <NetworkPicker />,
+                isTestingCustomRPC || isChangingNodeStatus,
               )}
             </>
           </Route>
