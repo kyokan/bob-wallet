@@ -55,7 +55,7 @@ const WALLET_API_KEY = 'walletApiKey';
 
 class WalletService {
   constructor() {
-    nodeService.on('start remote', this._onNodeStart);
+    nodeService.on('start remote', this._useWalletNode);
     nodeService.on('start local', this._usePlugin);
     nodeService.on('stopped', this._onNodeStop);
     this.nodeService = nodeService;
@@ -1502,6 +1502,7 @@ const methods = {
   rpcGetWalletInfo: service.rpcGetWalletInfo,
   listWallets: service.listWallets,
   getStats: service.getStats,
+  isReady: service.isReady,
 };
 
 export async function start(server) {

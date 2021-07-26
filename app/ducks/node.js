@@ -1,6 +1,7 @@
 import { clientStub } from '../background/node/client';
 import { clientStub as connClientStub } from '../background/connections/client';
 import { clientStub as settingClientStub } from '../background/setting/client';
+import { clientStub as walletClientStub } from '../background/wallet/client';
 import { getNetwork, setNetwork, getInitializationState } from '../db/system';
 import { fetchWallet, fetchTransactions, listWallets } from './walletActions';
 import { getWatching } from './watching';
@@ -31,8 +32,7 @@ const Network = require('hsd/lib/protocol/network');
 const nodeClient = clientStub(() => require('electron').ipcRenderer);
 const connClient = connClientStub(() => require('electron').ipcRenderer);
 const settingClient = settingClientStub(() => require('electron').ipcRenderer);
-
-let hasAppStarted = false;
+const walletClient = walletClientStub(() => require('electron').ipcRenderer);
 
 export const testRPC = (walletNetwork) => async (dispatch, getState) => {
   dispatch({ type: START_RPC_TEST });
@@ -54,14 +54,6 @@ export const startApp = (network) => async (dispatch) => {
 
 export const start = (network) => async (dispatch, getState) => {
   dispatch({ type: START_NODE_STATUS_CHANGE });
-
-  if (hasAppStarted) {
-    try {
-      await nodeClient.stop();
-    } finally {
-      //
-    }
-  }
 
   if (!network) {
     network = await getNetwork();
@@ -125,37 +117,10 @@ export const changeNetwork = (network) => async (dispatch) => {
     throw new Error('invalid network');
   }
 
-  await nodeClient.stop();
-  dispatch({
-    type: START_NETWORK_CHANGE,
-  });
+  await dispatch({type: START_NETWORK_CHANGE});
+  await dispatch(stop());
   await dispatch(start(network));
-  dispatch({
-    type: END_NETWORK_CHANGE,
-  });
-};
-
-export const changeCustomNetwork = (network) => async (dispatch) => {
-  if (!VALID_NETWORKS[network]) {
-    throw new Error('invalid network');
-  }
-
-  const conn = await connClient.getConnection();
-
-  if (conn.networkType !== network) {
-    dispatch({
-      type: START_NETWORK_CHANGE,
-    });
-
-    try {
-      await connClient.setConnectionType(ConnectionTypes.Custom);
-      await nodeClient.reset();
-    } finally {
-      dispatch({
-        type: END_NETWORK_CHANGE,
-      });
-    }
-  }
+  await dispatch({type: END_NETWORK_CHANGE});
 };
 
 export const setExplorer = (explorer) => async (dispatch) => {

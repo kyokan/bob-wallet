@@ -89,11 +89,11 @@ export class NodeService extends EventEmitter {
   }
 
   async start(networkName) {
+    await this.setNetworkAndNodeOptions(networkName);
     const conn = await getConnection();
 
     switch (conn.type) {
       case ConnectionTypes.P2P:
-        await this.setNetworkAndNodeOptions(networkName);
         await this.startNode();
         await this.setHSDLocalClient();
         dispatchToMainWindow({
@@ -128,10 +128,6 @@ export class NodeService extends EventEmitter {
   }
 
   async setNetworkAndNodeOptions(networkName) {
-    if (this.hsd) {
-      return;
-    }
-
     if (!VALID_NETWORKS[networkName]) {
       throw new Error('Invalid network.');
     }
@@ -235,15 +231,6 @@ export class NodeService extends EventEmitter {
       pathname,
       apiKey,
     } = rpc;
-    const networkType = rpc.networkType || 'main';
-
-    if (!VALID_NETWORKS[networkType]) {
-      throw new Error('Invalid network.');
-    }
-
-    const network = Network.get(networkType);
-    this.networkName = networkType;
-    this.network = network;
 
     const portString = port ? `:${port}` : '';
     const pathString = (!pathname || pathname === '/') ? '' : pathname;
@@ -251,8 +238,12 @@ export class NodeService extends EventEmitter {
 
     const url = `${protoString}://${host}${portString}${pathString}`;
 
+    // Not really used after this point,
+    // but overwrite the local getAPIKey() just in case.
+    this.apiKey = apiKey;
+
     return new NodeClient({
-      network,
+      network: this.network,
       apiKey,
       url,
     });
