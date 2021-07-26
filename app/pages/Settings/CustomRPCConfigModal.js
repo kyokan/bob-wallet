@@ -248,7 +248,6 @@ export default class CustomRPCConfigModal extends Component {
           <div className="settings__input-title">Network Type</div>
           <NetworkPicker
             className="custom-rpc__network-picker"
-            currentNetwork={networkType}
             onNetworkChange={(net) => this.setState({
               networkType: net,
               port:  Network.get(net).rpcPort,

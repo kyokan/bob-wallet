@@ -15,8 +15,7 @@ const connClient = cClientStub(() => require("electron").ipcRenderer);
     isRunning: state.node.isRunning,
   }),
   (dispatch) => ({
-    changeNetwork: (network) =>
-      dispatch(nodeActions.changeCustomNetwork(network)),
+    changeNetwork: (network) => dispatch(nodeActions.changeNetwork(network)),
   })
 )
 export default class AppHeader extends Component {
@@ -80,7 +79,6 @@ export default class AppHeader extends Component {
 
     return (
       <NetworkPicker
-        currentNetwork={customRPCNetworkType}
         onNetworkChange={async (net) => {
           this.setState({ customRPCNetworkType: net });
           await this.props.changeNetwork(net);

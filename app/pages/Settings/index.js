@@ -46,7 +46,7 @@ const connClient = cClientStub(() => require('electron').ipcRenderer);
 @withRouter
 @connect(
   (state) => ({
-    network: state.node.network,
+    network: state.wallet.network,
     apiKey: state.node.apiKey,
     noDns: state.node.noDns,
     walletApiKey: state.wallet.apiKey,

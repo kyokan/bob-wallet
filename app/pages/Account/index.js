@@ -24,7 +24,7 @@ const analytics = aClientStub(() => require("electron").ipcRenderer);
     spendableBalance: state.wallet.balance.spendable,
     height: state.node.chain.height,
     isFetching: state.wallet.isFetching,
-    network: state.node.network,
+    network: state.wallet.network,
     hnsPrice: state.node.hnsPrice,
   }),
   (dispatch) => ({

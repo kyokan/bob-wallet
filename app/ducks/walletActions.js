@@ -57,7 +57,7 @@ export const setWallet = opts => {
 };
 
 export const completeInitialization = (name, passphrase) => async (dispatch, getState) => {
-  const network = getState().node.network;
+  const network = getState().wallet.network;
   await walletClient.unlock(name, passphrase);
   await setInitializationState(network, true);
   await dispatch(fetchWallet());
@@ -75,7 +75,7 @@ export const fetchWalletAPIKey = () => async (dispatch) => {
 };
 
 export const fetchWallet = () => async (dispatch, getState) => {
-  const network = getState().node.network;
+  const network = getState().wallet.network;
 
   const maxIdle = await getMaxIdleMinutes();
   dispatch({
@@ -155,7 +155,7 @@ export const lockWallet = () => async (dispatch) => {
 };
 
 export const reset = () => async (dispatch, getState) => {
-  const network = getState().node.network;
+  const network = getState().wallet.network;
   await walletClient.reset();
   await setInitializationState(network, false);
   return dispatch(fetchWallet());
@@ -219,7 +219,7 @@ export const waitForWalletSync = () => async (dispatch, getState) => {
 
 export const fetchTransactions = () => async (dispatch, getState) => {
   const state = getState();
-  const net = state.node.network;
+  const net = state.wallet.network;
   const currentTXs = state.wallet.transactions;
 
   if (state.wallet.isFetching) {

@@ -320,7 +320,7 @@ export default withRouter(
         resource,
         pendingData: getPendingData(domain),
         currentHeight: state.node.chain.height,
-        network: state.node.network,
+        network: state.wallet.network,
         deeplinkParams,
       };
     },

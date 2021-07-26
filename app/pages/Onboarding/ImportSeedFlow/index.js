@@ -155,7 +155,7 @@ class ImportSeedFlow extends Component {
 export default withRouter(
   connect(
     (state) => ({
-      network: state.node.network,
+      network: state.wallet.network,
     }),
     dispatch => ({
       completeInitialization: (name, passphrase) => dispatch(walletActions.completeInitialization(name, passphrase)),
