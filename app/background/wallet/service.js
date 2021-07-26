@@ -2,7 +2,6 @@ import { WalletClient } from 'hs-client';
 import BigNumber from 'bignumber.js';
 import path from 'path';
 import { app } from 'electron';
-import rimraf from 'rimraf';
 import crypto from 'crypto';
 const Validator = require('bval');
 import { ConnectionTypes, getConnection } from '../connections/service';

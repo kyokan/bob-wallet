@@ -25,10 +25,6 @@ const NODE_API_KEY = 'nodeApiKey';
 const NODE_NO_DNS = 'nodeNoDns';
 
 export class NodeService extends EventEmitter {
-  constructor() {
-    super();
-  }
-
   async getAPIKey() {
     const apiKey = await get(NODE_API_KEY);
 

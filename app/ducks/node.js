@@ -1,19 +1,14 @@
 import { clientStub } from '../background/node/client';
-import { clientStub as connClientStub } from '../background/connections/client';
 import { clientStub as settingClientStub } from '../background/setting/client';
 import { clientStub as walletClientStub } from '../background/wallet/client';
-import { getNetwork, setNetwork, getInitializationState } from '../db/system';
-import { fetchWallet, fetchTransactions, listWallets } from './walletActions';
-import { getWatching } from './watching';
-import * as logger from '../utils/logClient';
+import { getNetwork, setNetwork } from '../db/system';
+import { listWallets } from './walletActions';
 
 import {
   END_NETWORK_CHANGE,
   SET_NODE_INFO,
   SET_FEE_INFO,
   SET_CUSTOM_RPC_STATUS,
-  START,
-  START_ERROR,
   START_NETWORK_CHANGE,
   STOP,
   START_NODE_STATUS_CHANGE,
@@ -25,16 +20,12 @@ import {
   SET_NO_DNS,
 } from './nodeReducer';
 import { VALID_NETWORKS } from '../constants/networks';
-import {ConnectionTypes} from "../background/connections/service";
-
-const Network = require('hsd/lib/protocol/network');
 
 const nodeClient = clientStub(() => require('electron').ipcRenderer);
-const connClient = connClientStub(() => require('electron').ipcRenderer);
 const settingClient = settingClientStub(() => require('electron').ipcRenderer);
 const walletClient = walletClientStub(() => require('electron').ipcRenderer);
 
-export const testRPC = (walletNetwork) => async (dispatch, getState) => {
+export const testRPC = (walletNetwork) => async (dispatch) => {
   dispatch({ type: START_RPC_TEST });
 
   const [status, error] = await nodeClient.testCustomRPCClient(walletNetwork);
@@ -43,7 +34,7 @@ export const testRPC = (walletNetwork) => async (dispatch, getState) => {
   return [status, error];
 }
 
-export const stop = () => async (dispatch, getState) => {
+export const stop = () => async (dispatch) => {
   await nodeClient.stop();
   dispatch({ type: STOP });
 };
@@ -52,7 +43,7 @@ export const startApp = (network) => async (dispatch) => {
   return dispatch(start(network));
 };
 
-export const start = (network) => async (dispatch, getState) => {
+export const start = (network) => async (dispatch) => {
   dispatch({ type: START_NODE_STATUS_CHANGE });
 
   if (!network) {
