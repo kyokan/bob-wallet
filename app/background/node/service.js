@@ -173,6 +173,7 @@ export class NodeService extends EventEmitter {
       walletApiKey: this.apiKey,
       cors: true,
       noDns: this.noDns,
+      listen: this.networkName === 'regtest', // improves remote rpc dev/testing
     });
 
     hsd.use(plugin);
