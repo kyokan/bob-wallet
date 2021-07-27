@@ -433,7 +433,7 @@ export default class Settings extends Component {
             <>
               {this.renderSection(
                 'Internal HSD node',
-                !isCustomRPCConnected
+                !isCustomRPCConnected && isRunning
                   ? <><span className="node-status--active" /><span>Node is running</span></>
                   : <><span className="node-status--inactive" /><span>Node is not running</span></>,
                 'Start node',
@@ -445,7 +445,7 @@ export default class Settings extends Component {
                 >
                   View API Key
                 </button>,
-                isChangingNodeStatus || isTestingCustomRPC || !isCustomRPCConnected,
+                isChangingNodeStatus || isTestingCustomRPC || !isCustomRPCConnected && isRunning,
                 true
               )}
               {this.renderSection(

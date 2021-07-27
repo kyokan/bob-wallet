@@ -18,6 +18,7 @@ import {
   SYNC_WALLET_PROGRESS,
   SET_WALLET_NETWORK,
 } from '../../ducks/walletReducer';
+import {STOP, SET_CUSTOM_RPC_STATUS} from '../../ducks/nodeReducer';
 import {SET_FEE_INFO, SET_NODE_INFO} from "../../ducks/nodeReducer";
 import createRegisterAll from "./create-register-all";
 import {createFinalizeMany, createTransferMany} from "./bulk-transfer";
@@ -141,6 +142,13 @@ class WalletService {
       logFile: true,
       logConsole: false,
       logLevel: 'debug',
+    });
+
+    // If the remote node disconnects for whatever reason,
+    // we indicate that in the UI here.
+    this.node.client.on('disconnect', () => {
+      dispatchToMainWindow({type: STOP});
+      dispatchToMainWindow({type: SET_CUSTOM_RPC_STATUS, payload: false});
     });
 
     this.node.http.post('/unsafe-update-account-depth', this.handleUnsafeUpdateAccountDepth);
@@ -1469,7 +1477,6 @@ const methods = {
   backup: service.backup,
   rescan: service.rescan,
   deepClean: service.deepClean,
-  reset: service.reset,
   sendOpen: service.sendOpen,
   sendBid: service.sendBid,
   sendRegister: service.sendRegister,
