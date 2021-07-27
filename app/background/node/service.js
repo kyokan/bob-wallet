@@ -138,6 +138,9 @@ export class NodeService extends EventEmitter {
 
   async startNode() {
     if (this.hsd) {
+      // The app was restarted but the nodes are already running,
+      // just re-dispatch to redux store.
+      this.emit('start local');
       return;
     }
 
@@ -188,16 +191,27 @@ export class NodeService extends EventEmitter {
   }
 
   async setHSDLocalClient() {
-    const client = new NodeClient({
+    if (this.client) {
+      // The app was restarted but the nodes are already running,
+      // just re-dispatch to redux store.
+      return this.refreshNodeInfo();
+    }
+
+    this.client = new NodeClient({
       network: this.network,
       port: this.network.rpcPort,
       apiKey: this.apiKey,
     });
-    await retry(() => client.getInfo(), 20, 200);
-    this.client = client;
   }
 
   async setCustomRPCClient() {
+    if (this.client) {
+      // The app was restarted but the nodes are already running,
+      // just re-dispatch to redux store.
+      await this.refreshNodeInfo();
+      this.emit('start remote');
+    }
+
     this.client = await this.createCustomRPCClient();
     this.emit('start remote', this.network);
   }

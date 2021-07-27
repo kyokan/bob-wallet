@@ -66,6 +66,21 @@ class WalletService {
 
   // Wallet as a plugin to the hsd full node is the default configuration
   _usePlugin = async (plugin, apiKey) => {
+    if (this.node) {
+      // The app was restarted but the nodes are already running,
+      // just re-dispatch to redux store.
+      dispatchToMainWindow({
+        type: SET_WALLET_NETWORK,
+        payload: this.networkName,
+      });
+      const wallets = await this.listWallets(false, true);
+      dispatchToMainWindow({
+        type: SET_WALLETS,
+        payload: createPayloadForSetWallets(wallets),
+      });
+      return;
+    }
+
     this.conn = await getConnection();
     assert(this.conn.type === ConnectionTypes.P2P);
 
@@ -114,6 +129,25 @@ class WalletService {
 
   // Wallet as a separate process only runs in Custom RPC mode
   _useWalletNode = async (network) => {
+    if (this.node) {
+      // The app was restarted but the nodes are already running,
+      // just re-dispatch to redux store.
+      dispatchToMainWindow({
+        type: SET_WALLET_NETWORK,
+        payload: this.networkName,
+      });
+      dispatchToMainWindow({
+        type: SET_API_KEY,
+        payload: this.walletApiKey,
+      });
+      const wallets = await this.listWallets(false, true);
+      dispatchToMainWindow({
+        type: SET_WALLETS,
+        payload: createPayloadForSetWallets(wallets),
+      });
+      return;
+    }
+
     this.conn = await getConnection();
     assert(this.conn.type === ConnectionTypes.Custom);
 
