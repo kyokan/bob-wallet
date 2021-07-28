@@ -2,7 +2,6 @@ import { clientStub } from '../background/node/client';
 import { clientStub as settingClientStub } from '../background/setting/client';
 import { clientStub as walletClientStub } from '../background/wallet/client';
 import { getNetwork, setNetwork } from '../db/system';
-import { listWallets } from './walletActions';
 
 import {
   END_NETWORK_CHANGE,
@@ -61,8 +60,6 @@ export const start = (network) => async (dispatch) => {
     if (!walletNetwork)
       throw new Error('Could not connect to wallet.');
 
-    await dispatch(listWallets());
-
     const info = await nodeClient.getInfo();
     if (!info)
       throw new Error('Could not connect to node.');
@@ -74,9 +71,7 @@ export const start = (network) => async (dispatch) => {
 
     dispatch({
       type: SET_NODE_INFO,
-      payload: {
-        info,
-      }
+      payload: info.chain,
     });
     dispatch(setFees());
 
@@ -97,9 +92,7 @@ const setFees = () => async (dispatch) => {
   const fees = await nodeClient.getFees();
   dispatch({
     type: SET_FEE_INFO,
-    payload: {
-      fees,
-    },
+    payload: fees,
   });
 };
 

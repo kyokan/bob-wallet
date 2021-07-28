@@ -82,7 +82,7 @@ export default function nodeReducer(state = getInitialState(), action = {}) {
     case SET_NODE_INFO:
       return {
         ...state,
-        chain: action.payload.info.chain,
+        chain: action.payload,
       };
     case SET_CUSTOM_RPC_STATUS:
       return {
@@ -97,7 +97,7 @@ export default function nodeReducer(state = getInitialState(), action = {}) {
     case SET_FEE_INFO:
       return {
         ...state,
-        fees: action.payload.fees,
+        fees: action.payload,
       };
     case START_NETWORK_CHANGE:
     case END_NETWORK_CHANGE:

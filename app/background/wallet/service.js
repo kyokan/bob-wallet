@@ -19,7 +19,6 @@ import {
   SET_WALLET_NETWORK,
 } from '../../ducks/walletReducer';
 import {STOP, SET_CUSTOM_RPC_STATUS} from '../../ducks/nodeReducer';
-import {SET_FEE_INFO, SET_NODE_INFO} from "../../ducks/nodeReducer";
 import createRegisterAll from "./create-register-all";
 import {createFinalizeMany, createTransferMany} from "./bulk-transfer";
 import {createRenewMany} from "./bulk-renewal";
@@ -112,14 +111,6 @@ class WalletService {
       timeout: 10000,
     });
 
-    // TODO: feels like this belongs in node module not here...
-    await this.refreshNodeInfo();
-
-    // TODO: all this does is set the balance?
-    // might be redundant with fetchWallet() in wallet Actions,
-    // which is called by whoever (re)starts the wallet...
-    await this.refreshWalletInfo();
-
     const wallets = await this.listWallets(false, true);
     dispatchToMainWindow({
       type: SET_WALLETS,
@@ -210,14 +201,6 @@ class WalletService {
       apiKey: this.walletApiKey,
       timeout: 10000,
     });
-
-    // TODO: feels like this belongs in node module not here...
-    await this.refreshNodeInfo();
-
-    // TODO: all this does is set the balance?
-    // might be redundant with fetchWallet() in wallet Actions,
-    // which is called by whoever (re)starts the wallet...
-    await this.refreshWalletInfo();
 
     const wallets = await this.listWallets(false, true);
     dispatchToMainWindow({
@@ -1035,34 +1018,8 @@ class WalletService {
     });
   };
 
-  // TODO: this is sorta-duplicated in app/ducks/node.js setNodeInfo()
-  // and that's probably the correct place for it.
-  refreshNodeInfo = async () => {
-    const info = await nodeService.getInfo().catch(() => null);
-    const fees = await nodeService.getFees().catch(() => null);
-
-    if (info) {
-      const {chain: {height: chainHeight}} = info;
-
-      this.lastKnownChainHeight = chainHeight;
-
-      dispatchToMainWindow({
-        type: SET_NODE_INFO,
-        payload: {info},
-      });
-    }
-
-    if (fees) {
-      dispatchToMainWindow({
-        type: SET_FEE_INFO,
-        payload: {fees},
-      });
-    }
-  };
-
   onNewBlock = async (entry) => {
     await this._ensureClient();
-    await this.refreshNodeInfo();
     await this.refreshWalletInfo();
 
     dispatchToMainWindow({
@@ -1080,17 +1037,11 @@ class WalletService {
    */
 
   onRescanBlock = async (entry) => {
-    const walletHeight = entry.height;
-
-    // TODO: seems pretty inefficient but this is the problem
-    // with rescan events -- the wallet never really knows it's "done".
-    const info = await nodeService.getInfo().catch(() => null);
-    
-    if (walletHeight === info.chain.height) {
+    if (entry.height === nodeService.height) {
       dispatchToMainWindow({type: STOP_SYNC_WALLET});
       dispatchToMainWindow({
         type: SYNC_WALLET_PROGRESS,
-        payload: walletHeight,
+        payload: entry.height,
       });
       await this.refreshWalletInfo();
       return;
@@ -1103,7 +1054,7 @@ class WalletService {
       dispatchToMainWindow({type: START_SYNC_WALLET});
       dispatchToMainWindow({
         type: SYNC_WALLET_PROGRESS,
-        payload: walletHeight,
+        payload: entry.height,
       });
       await this.refreshWalletInfo();
       this.lastProgressUpdate = now;
@@ -1453,8 +1404,6 @@ function enforce(value, msg) {
   }
 }
 
-// TODO: looks like this is the same as app/ducks/walletActions.js listWallets()
-// which calls listWallets() from this file, but dispaches that data.
 function createPayloadForSetWallets(wallets, addName = null) {
   let wids = wallets.map((wallet) => wallet.wid);
   if (addName !== null) {

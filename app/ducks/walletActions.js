@@ -344,18 +344,6 @@ export const watchActivity = () => dispatch => {
   }
 };
 
-export const listWallets = () => async (dispatch) => {
-  const wallets = await walletClient.listWallets(false, true);
-
-  dispatch({
-    type: SET_WALLETS,
-    payload: {
-      wallets: wallets.map(wallet => wallet.wid),
-      walletsDetails: wallets.reduce((obj, wallet) => {obj[wallet.wid] = wallet; return obj}, {}), // array of objects to object with wid as key
-    },
-  });
-};
-
 async function parseInputsOutputs(net, tx) {
   // Look for covenants. A TX with multiple covenant types is not supported
   let covAction = null;
