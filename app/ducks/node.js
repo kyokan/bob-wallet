@@ -76,7 +76,7 @@ export const start = (network) => async (dispatch) => {
     dispatch(setFees());
 
   } catch (error) {
-    console.log(error);
+    console.error('node start error', error);
     dispatch({ type: STOP });
   } finally {
     dispatch({ type: END_NODE_STATUS_CHANGE });

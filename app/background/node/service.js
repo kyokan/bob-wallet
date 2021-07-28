@@ -218,6 +218,10 @@ export class NodeService extends EventEmitter {
       apiKey: this.apiKey,
     });
 
+    this.client.on('error', e => {
+      console.error('nodeclient error', e);
+    });
+
     await this.client.open();
     await this.refreshNodeInfo()
   }
@@ -231,6 +235,11 @@ export class NodeService extends EventEmitter {
     }
 
     this.client = await this.createCustomRPCClient();
+
+    this.client.on('error', e => {
+      console.error('nodeclient error', e);
+    });
+
     await this.client.open();
     await this.refreshNodeInfo()
     this.client.bind('block connect', async () => this.refreshNodeInfo());
@@ -282,8 +291,6 @@ export class NodeService extends EventEmitter {
   }
 
   async stop() {
-    this.emit('stopped');
-
     if (this.client)
       await this.client.close();
 
@@ -293,6 +300,8 @@ export class NodeService extends EventEmitter {
     this.hsd = null;
     this.client = null;
     this.height = 0;
+
+    this.emit('stopped');
   }
 
   async reset() {
@@ -302,20 +311,27 @@ export class NodeService extends EventEmitter {
   }
 
   async refreshNodeInfo() {
-    const info = await this.getInfo();
-    const fees = await this.getFees();
+    if (!this.client)
+      return;
 
-    dispatchToMainWindow({
-      type: SET_NODE_INFO,
-      payload: info.chain,
-    });
+    try {
+      const info = await this.getInfo();
+      const fees = await this.getFees();
 
-    dispatchToMainWindow({
-      type: SET_FEE_INFO,
-      payload: fees,
-    });
+      dispatchToMainWindow({
+        type: SET_NODE_INFO,
+        payload: info.chain,
+      });
 
-    this.height = info.chain.height;
+      dispatchToMainWindow({
+        type: SET_FEE_INFO,
+        payload: fees,
+      });
+
+      this.height = info.chain.height;
+    } catch (e) {
+      ;
+    }
   };
 
   async generateToAddress(numblocks, address) {
@@ -440,17 +456,8 @@ export class NodeService extends EventEmitter {
   }
 
   async _ensureStarted() {
-    return new Promise((resolve, reject) => {
-      if (this.client) {
-        resolve();
-        return;
-      }
-
-      setTimeout(async () => {
-        await this._ensureStarted();
-        resolve();
-      }, 500);
-    });
+    if (!this.client)
+      throw new Error('No client.');
   }
 
   async _execRPC(method, args) {
