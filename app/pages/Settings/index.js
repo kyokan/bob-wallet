@@ -450,7 +450,7 @@ export default class Settings extends Component {
               )}
               {this.renderSection(
                 'Remote HSD node',
-                isCustomRPCConnected
+                isCustomRPCConnected && isRunning
                   ? <><span className="node-status--active" /><span>Custom RPC Connected</span></>
                   : <><span className="node-status--inactive" />Connect to a remote HSD node via HTTP</>,
                 'Configure',
