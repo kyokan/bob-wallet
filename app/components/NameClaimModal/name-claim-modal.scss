@@ -7,11 +7,17 @@
   box-sizing: border-box;
   cursor: default;
 
+  a {
+    color: $azure-blue;
+    &:hover {
+      cursor: pointer;
+    }
+  }
+
   &__container {
     @extend %col-nowrap;
 
     .alert {
-      word-break: break-all;
       margin: 0 1.875rem 1rem;
     }
   }
@@ -193,13 +199,13 @@
     &__txt-table {
       .table__row__item:nth-of-type(1),
       .table__header__item:nth-of-type(1) {
-        width: 4rem;
+        width: 2rem;
         flex: 0 0 auto;
       }
 
       .table__row__item:nth-of-type(2),
       .table__header__item:nth-of-type(2) {
-        width: 4rem;
+        width: 10rem;
         flex: 0 0 auto;
       }
 

@@ -17,6 +17,7 @@ import Alert from "../Alert";
 import CopyButton from "../CopyButton";
 import {HeaderItem, HeaderRow, Table, TableItem, TableRow} from "../Table";
 import {MiniModal} from "../Modal/MiniModal";
+import { shell } from 'electron';
 
 const {Proof} = Ownership;
 const wallet = wClientStub(() => require('electron').ipcRenderer);
@@ -107,17 +108,20 @@ export default class NameClaimModal extends Component {
         proof: null,
         keys: [],
         txt: '',
+        url: '',
       });
       return;
     }
 
     if (url && claim.target !== url) {
       this.setState({
+        name: '',
         error: `"${name}" is reserved, but belongs to "${claim.target}", not "${url}"`,
         claim: {reward: '', fee: '', txt: ''},
         proof: null,
         keys: [],
         txt: '',
+        url: '',
       });
       return;
     }
@@ -517,7 +521,7 @@ export default class NameClaimModal extends Component {
       default:
         return (
           <CheckName
-            url={(!error && !!claim.reward) ? url : ''}
+            url={url}
             name={name}
             fee={claim.fee}
             reward={claim.reward}
@@ -668,17 +672,42 @@ class ClaimOption extends Component {
   }
 
   renderBASE64() {
+    const {
+      txt,
+      url,
+    } = this.props;
+
+    const fakeproof = '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';
+
     return (
       <div className="name-claim__claim-content">
         <div className="name-claim__claim-content__title">
-          Using bns-prove on a machine with DNS lookup capabilities and access to your DNSSEC keys or HSM, generate a base64 proof and paste the entire string here
+          Using <a onClick={() => shell.openExternal('https://github.com/pinheadmz/bns/tree/pkcs11')}>bns-prove</a> on
+          a machine with DNS lookup capabilities and access to your DNSSEC keys,
+          sign the string below to generate a base64 proof and paste the entire output below:
         </div>
+        <Table className="name-claim__claim-content__txt-table">
+          <HeaderRow>
+            <HeaderItem width="0rem"></HeaderItem>
+            <HeaderItem width="0rem"></HeaderItem>
+            <HeaderItem>text string</HeaderItem>
+          </HeaderRow>
+          <TableRow>
+            <TableItem width="0rem"></TableItem>
+            <TableItem width="0rem"></TableItem>
+            <TableItem className="wrap">
+              {txt}
+              <CopyButton content={txt} />
+            </TableItem>
+          </TableRow>
+        </Table>
         <textarea
           className="name-claim__claim-content__textarea"
           value={this.state.blob}
           onChange={(e) => this.setState({
             blob: e.target.value,
           })}
+          placeholder={fakeproof}
         />
       </div>
     );
@@ -690,25 +719,31 @@ class ClaimOption extends Component {
       url,
     } = this.props;
 
+    const faketxt = (!!url && !!txt)
+        ? `${url} 300 IN TXT "${txt}"`
+        : ''; 
     const fakesig = (!!url && !!txt)
         ? `${url} 300 IN RRSIG TXT 13 2 300 20210603180907 20210601160907 34505 ${url} f6x5CBP1ySenfPodSGSPNPCdzLzhlXK8shtpfzcEmCs09amCSqCIwniq eEIR1EYCuijP4OCKFyEnEhfEk+l81A==`
         : '';
-    const fakeRRs = txt + '\n' + fakesig;
+    const fakeRRs = faketxt + '\n\n' + fakesig;
 
     return (
       <div className="name-claim__claim-content">
         <div className="name-claim__claim-content__title">
-          Using your own software like BIND9 dnssec-signzone, create and sign a zone file with a TXT record below and RRSIG, then paste both records in the text box below in DNS zone file format to continue.
+          Using your own software
+          like <a onClick={() => shell.openExternal('https://linux.die.net/man/8/dnssec-signzone')}>BIND9 dnssec-signzone</a>,
+          create a TXT record using the string below, add it to a zone file and sign it. Then paste both TXT and RRSIG records
+          in DNS zone file format below to continue.
         </div>
         <Table className="name-claim__claim-content__txt-table">
           <HeaderRow>
             <HeaderItem>Type</HeaderItem>
-            <HeaderItem>Host</HeaderItem>
+            <HeaderItem>Host/Name</HeaderItem>
             <HeaderItem>Value</HeaderItem>
           </HeaderRow>
           <TableRow>
             <TableItem>TXT</TableItem>
-            <TableItem>@</TableItem>
+            <TableItem>{url}</TableItem>
             <TableItem className="wrap">
               {txt}
               <CopyButton content={txt} />
@@ -730,21 +765,23 @@ class ClaimOption extends Component {
   renderTXT() {
     const {
       txt,
+      url,
     } = this.props;
+
     return (
       <div className="name-claim__claim-content">
         <div className="name-claim__claim-content__title">
-          Create a TXT record with the below string in your zone using your domain name service provider, then click next
+          Create a TXT record with the below string in your zone using your domain name service provider, then click "Check DNS".
         </div>
         <Table className="name-claim__claim-content__txt-table">
           <HeaderRow>
             <HeaderItem>Type</HeaderItem>
-            <HeaderItem>Host</HeaderItem>
+            <HeaderItem>Host/Name</HeaderItem>
             <HeaderItem>Value</HeaderItem>
           </HeaderRow>
           <TableRow>
             <TableItem>TXT</TableItem>
-            <TableItem>@</TableItem>
+            <TableItem>{url}</TableItem>
             <TableItem className="wrap">
               {txt}
               <CopyButton content={txt} />
@@ -763,9 +800,8 @@ class ClaimOption extends Component {
 
       rows.push(
         <TableRow>
-          <TableItem>{json.data.keyTag}</TableItem>
-          <TableItem>{json.data.keyType}</TableItem>
-          <TableItem shrink={0} grow={0} width="96px">{json.data.algName}</TableItem>
+          <TableItem width="3rem">{json.data.keyTag}</TableItem>
+          <TableItem width="8rem">{json.data.algName}</TableItem>
           <TableItem>{filename}</TableItem>
         </TableRow>
       );
@@ -774,13 +810,12 @@ class ClaimOption extends Component {
     return (
       <div className="name-claim__claim-content">
         <div className="name-claim__claim-content__title">
-          Select your DNSSEC zone-signing private key to automatically sign and broadcast the claim proof
+          Select your DNSSEC zone-signing private key to automatically sign and broadcast the claim proof.
         </div>
         <Table className="name-claim__claim-content__txt-table">
           <HeaderRow>
-            <HeaderItem>Key tag</HeaderItem>
-            <HeaderItem>Key type</HeaderItem>
-            <HeaderItem shrink={0} grow={0} width="96px">Key algorithm</HeaderItem>
+            <HeaderItem width="3rem">Key tag</HeaderItem>
+            <HeaderItem width="8rem">Key algorithm</HeaderItem>
             <HeaderItem>Filename</HeaderItem>
           </HeaderRow>
           {rows}
@@ -836,13 +871,13 @@ class ChooseOptions extends Component {
           />
           <div className="name-claim__choose-options">
             <div className="name-claim__choose-options__title">
-              How would you like to claim your names?
+              How is your domain's DNSSEC managed?
             </div>
             <div className="name-claim__choose-options__options">
-              { this.renderOption('TXT Record', CLAIM_TYPE.TXT)}
-              { this.renderOption('DNSSEC Key', CLAIM_TYPE.DNSSEC)}
-              { this.renderOption('RRSIG', CLAIM_TYPE.RRSIG)}
-              { this.renderOption('OpenDNSSEC + HSM', CLAIM_TYPE.BASE64)}
+              { this.renderOption('Online DNS service', CLAIM_TYPE.TXT)}
+              { this.renderOption('Local DNSSEC key', CLAIM_TYPE.DNSSEC)}
+              { this.renderOption('Offline DNSSEC key', CLAIM_TYPE.RRSIG)}
+              { this.renderOption('HSM / PKCS#11', CLAIM_TYPE.BASE64)}
             </div>
           </div>
         </div>
@@ -865,29 +900,32 @@ class ChooseOptions extends Component {
       case CLAIM_TYPE.TXT:
         return (
           <div className="name-claim__option-description">
-            <div><b>Method 1 (online): Add TXT record to legacy DNS</b></div>
+            <div><b>Online DNS service: add TXT record to legacy DNS</b></div>
             Create a TXT record in your zone using your domain name service provider. Your domain and its top-level domain must have strong DNSSEC enabled.
           </div>
         );
       case CLAIM_TYPE.RRSIG:
         return (
           <div className="name-claim__option-description">
-            <div><b>Method 3 (offline - airgapped): Paste TXT + RRSIG</b></div>
-            Using your own software like BIND9 dnssec-signzone, create and sign a zone file with a TXT record and RRSIG.
+            <div><b>Offline DNSSEC key: sign offline, paste TXT + RRSIG</b></div>
+            Using your own software
+            like <a onClick={() => shell.openExternal('https://linux.die.net/man/8/dnssec-signzone')}>BIND9 dnssec-signzone</a>,
+            create and sign a zone file with a TXT record and RRSIG.
           </div>
         );
       case CLAIM_TYPE.DNSSEC:
         return (
           <div className="name-claim__option-description">
-            <div><b>Method 2 (offline): Sign with local DNSSEC key</b></div>
+            <div><b>Local DNSSEC key: sign using private key on this computer</b></div>
             If your DNSSEC zone-signing private key is available on this machine you can select it to automatically sign and broadcast the claim proof.
           </div>
         );
       case CLAIM_TYPE.BASE64:
         return (
           <div className="name-claim__option-description">
-            <div><b>Method 4 (offline - airgapped + DNS): Paste entire base64 claim</b></div>
-            Using bns-prove on a machine with DNS lookup capabilities and access to your DNSSEC keys or HSM, generate a base64 proof and paste the entire string here.
+            <div><b>HSM / PKCS#11: sign with secure device, then paste base64 claim</b></div>
+            Using <a onClick={() => shell.openExternal('https://github.com/pinheadmz/bns/tree/pkcs11')}>bns-prove</a> on
+            a machine with DNS lookup capabilities and access to your DNSSEC keys or PKCS11-compatabile HSM, generate a complete base64 proof.
           </div>
         );
       default:
