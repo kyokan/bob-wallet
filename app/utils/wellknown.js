@@ -32,7 +32,7 @@ const getAddress = (host, { dane = false, ca = !dane, token = 'HNS' } = {}) =>
             rejectUnauthorized: ca,
         };
 
-        const req = https.get(`https://${host}/c${token}`, options, res => {
+        const req = https.get(`https://${host}/.well-known/wallets/${token}`, options, res => {
             res.setEncoding('utf8');
             let data = '';
             res.on('data', chunk => (data += chunk));
@@ -65,18 +65,20 @@ const caAndDane = (host, token = 'HNS') => getAddress(host, { dane: true, ca: tr
 
 const daneOrCa = (host, token = 'HNS') =>
     dane(host, token).catch(error => {
-        if (error.code === 'EINSECURE') {
-            return ca(host, token);
-        }
-        return Promise.reject(error);
+        return ca(host,token);
+        // if (error.code === 'EINSECURE') {
+        //     return ca(host, token);
+        // }
+        // return Promise.reject(error);
     });
 
 const caOrDane = (host, token = 'HNS') =>
     ca(host, token).catch(error => {
-        if (error.code === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE') {
-            return dane(host, token);
-        }
-        return Promise.reject(error);
+        return dane(host,token);
+        // if (error.code === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE') {
+        //     return dane(host, token);
+        // }
+        // return Promise.reject(error);
     });
 
 const Strategy = {
@@ -89,13 +91,17 @@ const Strategy = {
 
 const wellKnownClient = {
     loadWellKnownAddress: async (wellknownName)=> {
+        // console.log(wellknownName);
         return new Promise(async success=>{
-            const address = await dane(wellknownName,"HNS").catch(err=>{
-
-                return success({ok:false,address:"",type:"",message:err.message});
+            const address = await daneOrCa(wellknownName,"HNS").catch(error=>{
+                return success({
+                    ok:false,address:"",message:error.message
+                })
             });
+            // const caAddress = await ca(wellknownName,"HNS").catch();
+            // console.log(caAddress,caAddress);
             return success({
-                ok:true,address:address,type:""
+                ok:true,address,type:""
             });
         });
     },
