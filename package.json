@@ -150,6 +150,7 @@
     "devtron": "1.4.0",
     "electron-debug": "2.0.0",
     "electron-updater": "4.1.2",
+    "hdns": "^0.7.0",
     "history": "4.7.2",
     "hs-airdrop": "^0.10.0",
     "hs-client": "https://github.com/handshake-org/hs-client.git",

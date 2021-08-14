@@ -4,6 +4,7 @@ import { BigNumber as bn } from 'bignumber.js';
 import { connect } from 'react-redux';
 import c from 'classnames';
 import './send.scss';
+import  wellKnownClient  from '../../utils/wellknown';
 import { displayBalance, toDisplayUnits } from '../../utils/balances';
 import * as walletActions from '../../ducks/walletActions';
 import Alert from '../Alert';
@@ -12,6 +13,7 @@ import * as logger from '../../utils/logClient';
 import { clientStub as aClientStub } from '../../background/analytics/client';
 import walletClient from '../../utils/walletClient';
 import { shell } from 'electron';
+import wellKnowClient from '../../utils/wellknown';
 
 const Sentry = require('@sentry/electron');
 
@@ -54,6 +56,9 @@ class SendModal extends Component {
     super(props);
 
     this.state = {
+      parseName:"",
+      showAddress:"",
+      addressWithName:"",
       selectedGasOption: STANDARD,
       gasFee: props.fees[STANDARD.toLowerCase()],
       isConfirming: false,
@@ -74,18 +79,25 @@ class SendModal extends Component {
   }
 
   updateToAddress = e => {
-    this.setState({to: e.target.value, errorMessage: ''});
-    if (e.target.value.length > 2 && !isValidAddress(e.target.value, this.props.network)) {
+    const inputAddress = e.target.value;
+    const parseName = wellKnownClient.parseName(inputAddress);
+    this.setState({to: inputAddress, errorMessage: '',parseName});
+    if (inputAddress.length > 0 &&!( isValidAddress(inputAddress, this.props.network) || wellKnowClient.isWellKnownName(inputAddress))) {
       this.setState({errorMessage: 'Invalid Address Prefix'});
     }
-  };
+
+    this.setState({
+      showAddress:"Transfer to : " + inputAddress
+    });
+   
+  }
 
   updateAmount = e => this.setState({amount: e.target.value, errorMessage: ''});
 
   validate() {
-    const {to, amount} = this.state;
+    const {to, amount,sendingToName} = this.state;
 
-    if (!to || !amount || !isValidAddress(to, this.props.network)) {
+    if(!to || !amount ){
       return {isValid: false};
     }
 
@@ -144,9 +156,27 @@ class SendModal extends Component {
       return;
     }
 
+    let transferTo = {
+      ok:true,
+      address:this.state.to
+    };
+    const wellKnownAddress = "";
+    
+    if(this.state.parseName != "") {
+        transferTo = await wellKnownClient.loadWellKnownAddress(this.state.parseName);
+        if(!transferTo.ok) {
+          this.setState({errorMessage:"wellknown parser error ! " + transferTo.message});
+          return;
+        }
+        this.setState({
+          to:transferTo.address,
+          addressWithName: transferTo.address  + " " + this.state.to
+        });
+    }
+
     let feeInfo;
     try {
-      feeInfo = await walletClient.estimateTxFee(this.state.to, this.state.amount, this.state.gasFee);
+      feeInfo = await walletClient.estimateTxFee(transferTo.address, this.state.amount, this.state.gasFee);
     } catch (e) {
       this.setState({
         errorMessage: e.message,
@@ -185,18 +215,20 @@ class SendModal extends Component {
   }
 
   renderSend() {
-    const {selectedGasOption, amount, to} = this.state;
+    const {selectedGasOption, amount, to,showAddress} = this.state;
     const {isValid} = this.validate();
 
     return (
       <div className="send__container">
         <div className="send__content">
           <div className="send__header">
-            <div className="send__title">Send Funds</div>
+            <div className="send__title">Send Funds Extend</div>
           </div>
           <Alert type="error" message={this.state.errorMessage} />
           <div className="send__to">
-            <div className="send__label">Sending to</div>
+            <div className="send__label">
+              Sending to
+            </div>
             <div className="send__input" key="send-input">
               <input
                 type="text"
@@ -204,6 +236,9 @@ class SendModal extends Component {
                 onChange={this.updateToAddress}
                 value={to}
               />
+            </div>
+            <div className="send__input-disclaimer">
+               {showAddress}
             </div>
           </div>
           <div className="send__amount">
@@ -300,8 +335,10 @@ class SendModal extends Component {
           <Alert type="error" message={this.state.errorMessage} />
           <div className="send__confirm__to">
             <div className="send__confirm__label">Sending to</div>
-            <div className="send__confirm__address">{to}</div>
+            <div className="send__confirm__address">{this.state.addressWithName}</div>
+            
           </div>
+         
           <div className="send__confirm__from">
             <div className="send__confirm__label">Sending from</div>
             <div className="send__confirm__time-text">Default account</div>
