@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import PropTypes from "prop-types";
 import './index.scss';
 
 export class Table extends Component {
@@ -22,9 +23,28 @@ export class HeaderRow extends Component {
 }
 
 export class HeaderItem extends Component {
+  static propTypes = {
+    shrink: PropTypes.number,
+    grow: PropTypes.number,
+    width: PropTypes.string,
+  };
+
   render() {
+    const {
+      shrink,
+      grow,
+      width
+    } = this.props;
+
     return (
-      <div className="table__header__item">
+      <div
+        className="table__header__item"
+        style={{
+          flexShrink: shrink,
+          flexGrow: grow,
+          width: width,
+        }}
+      >
         {this.props.children}
       </div>
     )
@@ -45,9 +65,28 @@ export class TableRow extends Component {
 }
 
 export class TableItem extends Component {
+  static propTypes = {
+    shrink: PropTypes.number,
+    grow: PropTypes.number,
+    width: PropTypes.string,
+  };
+
   render() {
+    const {
+      shrink,
+      grow,
+      width
+    } = this.props;
+
     return (
-      <div className={`table__row__item ${this.props.className}`}>
+      <div
+        className={`table__row__item ${this.props.className}`}
+        style={{
+          flexShrink: shrink,
+          flexGrow: grow,
+          width: width,
+        }}
+      >
         {this.props.children}
       </div>
     )

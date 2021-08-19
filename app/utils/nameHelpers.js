@@ -42,10 +42,20 @@ export const isAvailable = name => {
 
 export const isReserved = name => {
   const {start} = name || {};
+  const {info} = name || {};
+
+  // Maybe already claimed
+  if (isClosed(name))
+    return false;
 
   // Not available if start is undefined
   if (!start) {
     return false;
+  }
+
+  // Reserved names become un-reserved after they are expired or revoked.
+  if (info) {
+    return !!start.reserved && !info.expired;
   }
 
   return !!start.reserved;
@@ -106,3 +116,10 @@ export const formatName = name => {
 
   return `${name}/`;
 }
+
+export const ensureDot = (string) => {
+  if (string[string.length - 1] !== '.')
+    return string + '.';
+
+  return string;
+};

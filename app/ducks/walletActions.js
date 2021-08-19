@@ -418,7 +418,12 @@ async function parseInputsOutputs(net, tx) {
         ? output.value
         : tx.inputs[i].value - output.value;
     } else {
-      covValue += output.value;
+      // Special case for reserved name claims, we are receiving
+      // coins but they are locked. The spendable balance will
+      // be incremented by the reward value when we REGISTER.
+      // (The name's value is burned at 0 but we get the reward as change)
+      if (covenant.action !== 'CLAIM')
+        covValue += output.value;
     }
 
     if (covenant.action == 'FINALIZE') {
@@ -502,6 +507,8 @@ async function parseInputsOutputs(net, tx) {
 
 async function parseCovenant(net, covenant) {
   switch (covenant.action) {
+    case 'CLAIM':
+      return {type: 'CLAIM', meta: {domain: await nameByHash(net, covenant)}};
     case 'OPEN':
       return {type: 'OPEN', meta: {domain: await nameByHash(net, covenant)}};
     case 'BID':

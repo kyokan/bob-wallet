@@ -16,11 +16,22 @@ class Modal extends Component {
     className: '',
   };
 
+  onClose = e => {
+    const selected = window.getSelection().toString();
+    if (selected || !this.props.onClose) {
+      return;
+    }
+    this.props.onClose();
+  };
+
   render() {
     const { className, onClose, children } = this.props;
 
     return ReactDOM.createPortal(
-      <div className="modal__overlay" onClick={onClose}>
+      <div
+        className="modal__overlay"
+        onClick={this.onClose}
+      >
         <div className={`modal__wrapper ${className}`} onClick={e => e.stopPropagation()}>
           {children}
         </div>
