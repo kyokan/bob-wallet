@@ -455,6 +455,14 @@ export class NodeService extends EventEmitter {
     }
   }
 
+  async getDNSSECProof(url) {
+    return this._execRPC('getdnssecproof', [url, true]);
+  }
+
+  async sendRawClaim(base64) {
+    return this._execRPC('sendrawclaim', [base64]);
+  }
+
   async _ensureStarted() {
     if (!this.client)
       throw new Error('No client.');
@@ -514,6 +522,8 @@ const methods = {
   getDir: () => service.getDir(),
   getHNSPrice: () => service.getHNSPrice(),
   testCustomRPCClient: (networkType) => service.testCustomRPCClient(networkType),
+  getDNSSECProof: (url) => service.getDNSSECProof(url),
+  sendRawClaim: (base64) => service.sendRawClaim(base64),
 };
 
 export async function start(server) {

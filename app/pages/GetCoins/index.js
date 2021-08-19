@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router';
 import { shell } from 'electron';
 import ProofModal from '../../components/ProofModal/index';
 import './get-coins.scss';
 import { clientStub as aClientStub } from '../../background/analytics/client';
+import NameClaimModal from "../../components/NameClaimModal";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -17,24 +19,68 @@ const Step = ({number, title, paragraph}) => (
   </div>
 );
 
-export default class GetCoins extends Component {
+class GetCoins extends Component {
   state = {
     isShowingGitHubModal: false,
     isShowingPGPModal: false,
     isShowingFaucetModal: false,
+    isShowingNameClaimModal: false,
   };
 
   componentDidMount() {
     analytics.screenView('Get Coins');
   }
 
-  closeModal = () => this.setState({isShowingFaucetModal: false, isShowingGitHubModal: false, isShowingPGPModal: false});
-  openGitHubModal = () => this.setState({isShowingFaucetModal: false, isShowingGitHubModal: true, isShowingPGPModal: false});
-  openPGPModal = () => this.setState({isShowingFaucetModal: false, isShowingGitHubModal: false, isShowingPGPModal: true});
-  openFaucetModal = () => this.setState({isShowingFaucetModal: true, isShowingGitHubModal: false, isShowingPGPModal: false});
+  closeModal = () => this.setState({
+    isShowingFaucetModal: false,
+    isShowingGitHubModal: false,
+    isShowingPGPModal: false,
+    isShowingNameClaimModal: false,
+  });
+
+  openGitHubModal = () => this.setState({
+    isShowingFaucetModal: false,
+    isShowingGitHubModal: true,
+    isShowingPGPModal: false,
+    isShowingNameClaimModal: false,
+  });
+
+  openPGPModal = () => this.setState({
+    isShowingFaucetModal: false,
+    isShowingGitHubModal: false,
+    isShowingPGPModal: true,
+    isShowingNameClaimModal: false,
+  });
+
+  openFaucetModal = () => this.setState({
+    isShowingFaucetModal: true,
+    isShowingGitHubModal: false,
+    isShowingPGPModal: false,
+    isShowingNameClaimModal: false,
+  });
+
+  openNameClaimModal = () => this.setState({
+    isShowingFaucetModal: false,
+    isShowingGitHubModal: false,
+    isShowingPGPModal: false,
+    isShowingNameClaimModal: true,
+  });
 
   renderModal() {
-    const {isShowingGitHubModal, isShowingPGPModal, isShowingFaucetModal} = this.state;
+    const {
+      isShowingGitHubModal,
+      isShowingPGPModal,
+      isShowingFaucetModal,
+      isShowingNameClaimModal,
+    } = this.state;
+
+    if (isShowingNameClaimModal) {
+      return (
+        <NameClaimModal
+          onClose={this.closeModal}
+        />
+      );
+    }
 
     if (isShowingGitHubModal) {
       return (
@@ -132,7 +178,6 @@ export default class GetCoins extends Component {
         </div>
         <div className="get-coins__right">
           <div className="get-coins__panel">
-            <div className="get-coins__panel__title">Reserved for Top Developers</div>
             <div className="get-coins__panel__offer">
               <div>GitHub Developers</div>
               <div>+ 4,662.598321 HNS</div>
@@ -153,6 +198,15 @@ export default class GetCoins extends Component {
               <div>Seed phrase</div>
               <button onClick={this.openFaucetModal}>Redeem</button>
             </div>
+            <div className="get-coins__panel__offer">
+              <div>Reserved Name Claims</div>
+              <div>+ 503 HNS and up</div>
+              <div>ICANN root zone TLDs</div>
+              <div>Alexa top 100,000</div>
+              <button onClick={this.openNameClaimModal}>
+                Claim
+              </button>
+            </div>
           </div>
         </div>
         {this.renderModal()}
@@ -160,3 +214,5 @@ export default class GetCoins extends Component {
     );
   }
 }
+
+export default withRouter(GetCoins);
