@@ -34,7 +34,7 @@ const GAS_TO_ESTIMATES = {
     address: state.wallet.address,
     fees: state.node.fees,
     spendableBalance: state.wallet.balance.spendable,
-    network: state.node.network,
+    network: state.wallet.network,
     explorer: state.node.explorer,
   }),
   dispatch => ({

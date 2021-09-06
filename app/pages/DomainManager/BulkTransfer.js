@@ -10,7 +10,7 @@ import {transferMany} from "../../ducks/names";
 
 @connect(
   (state) => ({
-    network: state.node.network,
+    network: state.wallet.network,
     names: state.myDomains.names,
   }),
   (dispatch) => ({

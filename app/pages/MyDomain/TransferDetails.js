@@ -254,7 +254,7 @@ export default connect(
   (state, ownProps) => ({
     domain: state.names[ownProps.name],
     height: state.node.chain.height,
-    network: state.node.network,
+    network: state.wallet.network,
     wid: state.wallet.wid,
   }),
   (dispatch, ownProps) => ({

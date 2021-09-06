@@ -16,6 +16,7 @@ const Network = require('hsd/lib/protocol/network');
 export const ConnectionTypes = {
   P2P: 'P2P',
   Custom: 'Custom',
+  TEST: 'TEST',
 };
 
 export async function getAPIKey() {
@@ -57,6 +58,7 @@ async function setConnection(opts) {
       return;
     case ConnectionTypes.Custom:
       await put(CONNECTION_TYPE_KEY, ConnectionTypes.Custom);
+    case ConnectionTypes.TEST:
       await put(CUSTOM_RPC_HOST, opts.host || '');
       await put(CUSTOM_RPC_PORT, opts.port || '');
       await put(CUSTOM_RPC_NETWORK_TYPE, opts.networkType || '');

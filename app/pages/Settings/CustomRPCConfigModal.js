@@ -5,6 +5,7 @@ import MiniModal from "../../components/Modal/MiniModal";
 import {withRouter} from "react-router-dom";
 import {connect} from "react-redux";
 import * as nodeActions from "../../ducks/node";
+import * as walletActions from '../../ducks/walletActions';
 import {setCustomRPCStatus} from "../../ducks/node";
 import {ConnectionTypes} from "../../background/connections/service";
 import {clientStub as cClientStub} from "../../background/connections/client";
@@ -19,16 +20,20 @@ const nodeClient = nClientStub(() => require('electron').ipcRenderer);
 
 @withRouter
 @connect(
-  null,
+  (state) => ({
+    walletNetwork: state.wallet.network,
+  }),
   dispatch => ({
-    changeCustomNetwork: (net) => dispatch(nodeActions.changeCustomNetwork(net)),
     setCustomRPCStatus: isConnected => dispatch(setCustomRPCStatus(isConnected)),
+    testRPC: (walletNetwork) => dispatch(nodeActions.testRPC(walletNetwork)),
+    fetchWallet: () => dispatch(walletActions.fetchWallet()),
   }),
 )
 export default class CustomRPCConfigModal extends Component {
   static propTypes = {
-    changeCustomNetwork: PropTypes.func.isRequired,
+    walletNetwork: PropTypes.string.isRequired,
     setCustomRPCStatus: PropTypes.func.isRequired,
+    fetchWallet: PropTypes.func.isRequired,
   };
 
   state = {
@@ -84,27 +89,44 @@ export default class CustomRPCConfigModal extends Component {
     } = this.state;
     const conn = await connClient.getCustomRPC();
 
+    // Set everything but don't switch connection yet
     await connClient.setConnection({
-      type: ConnectionTypes.Custom,
+      type: ConnectionTypes.TEST,
       host,
       port,
-      networkType: conn.networkType,
+      networkType: this.props.walletNetwork,
       apiKey,
       pathname,
       protocol,
     });
 
-    this.props.history.push('/settings/connection');
+    // Test first
+    const [status, data] = await this.props.testRPC(this.props.walletNetwork);
 
-    await this.props.changeCustomNetwork(networkType);
+    if (!status) {
+      this.setState({
+        errorMessage: data,
+      });
+      return;
+    }
 
     try {
+      // OK
+      await connClient.setConnectionType(ConnectionTypes.Custom);
+      await nodeClient.reset();
+
       if (!await nodeClient.getInfo()) {
         throw new Error('cannot get node info');
       }
+
       await this.props.setCustomRPCStatus(true);
+      this.props.history.push('/settings/connection');
     } catch (e) {
       await this.props.setCustomRPCStatus(false);
+      await this.props.fetchWallet();
+      this.setState({
+        errorMessage: e.message,
+      });
     }
   };
 
@@ -226,7 +248,6 @@ export default class CustomRPCConfigModal extends Component {
           <div className="settings__input-title">Network Type</div>
           <NetworkPicker
             className="custom-rpc__network-picker"
-            currentNetwork={networkType}
             onNetworkChange={(net) => this.setState({
               networkType: net,
               port:  Network.get(net).rpcPort,
@@ -272,7 +293,7 @@ export default class CustomRPCConfigModal extends Component {
         {
           errorMessage && (
             <div className="rpc-modal-warning">
-              {errorMessage}`
+              {errorMessage}
             </div>
           )
         }
