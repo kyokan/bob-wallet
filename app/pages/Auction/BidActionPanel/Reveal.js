@@ -189,7 +189,7 @@ export default connect(
     needsRepair: getTotalBids(domain) < 0,
     totalBids: getTotalBids(domain),
     totalMasks: getTotalMasks(domain),
-    network: state.node.network,
+    network: state.wallet.network,
   }),
   (dispatch, {name}) => ({
     sendReveal: () => dispatch(nameActions.sendReveal(name)),

@@ -35,15 +35,18 @@ import ChangeDirectoryModal from "./ChangeDirectoryModal";
 import dbClient from "../../utils/dbClient";
 import {clientStub} from "../../background/node/client";
 import APIKeyModal from "./APIKeyModal";
+import {clientStub as cClientStub} from "../../background/connections/client";
+import {ConnectionTypes} from "../../background/connections/service";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 const shakedex = sClientStub(() => require('electron').ipcRenderer);
 const nodeClient = clientStub(() => require('electron').ipcRenderer);
+const connClient = cClientStub(() => require('electron').ipcRenderer);
 
 @withRouter
 @connect(
   (state) => ({
-    network: state.node.network,
+    network: state.wallet.network,
     apiKey: state.node.apiKey,
     noDns: state.node.noDns,
     walletApiKey: state.wallet.apiKey,
@@ -67,6 +70,7 @@ const nodeClient = clientStub(() => require('electron').ipcRenderer);
     fetchWalletAPIKey: () => dispatch(fetchWalletAPIKey()),
     showError: (message) => dispatch(showError(message)),
     showSuccess: (message) => dispatch(showSuccess(message)),
+    fetchWallet: () => dispatch(walletActions.fetchWallet()),
   }),
 )
 export default class Settings extends Component {
@@ -90,6 +94,7 @@ export default class Settings extends Component {
     showSuccess: PropTypes.func.isRequired,
     setCustomRPCStatus: PropTypes.func.isRequired,
     transactions: PropTypes.object.isRequired,
+    fetchWallet: PropTypes.func.isRequired,
   };
 
   constructor(props) {
@@ -98,6 +103,7 @@ export default class Settings extends Component {
       changeDepth: props.changeDepth,
       receiveDepth: props.receiveDepth,
       isUpdatingDepth: false,
+      customRPCStatus: '',
     }
   }
 
@@ -242,11 +248,12 @@ export default class Settings extends Component {
     onClick,
     children,
     disabled = false,
+    disableButtonOnly = false,
   ) {
     return (
       <div
         className={c("settings__content__section", {
-          'settings__content__section--disabled': disabled,
+          'settings__content__section--disabled': disabled && !disableButtonOnly,
         })}
       >
         <div className="settings__content__section__info">
@@ -372,6 +379,13 @@ export default class Settings extends Component {
     )
   }
 
+  startNode = async () => {
+    await connClient.setConnectionType(ConnectionTypes.P2P);
+    await nodeClient.reset();
+    await this.props.setCustomRPCStatus(false);
+    await this.props.fetchWallet();
+  }
+
   renderContent() {
     const {
       isRunning,
@@ -418,41 +432,32 @@ export default class Settings extends Component {
           <Route path="/settings/connection">
             <>
               {this.renderSection(
-                'HSD status',
-                isRunning
+                'Internal HSD node',
+                !isCustomRPCConnected && isRunning
                   ? <><span className="node-status--active" /><span>Node is running</span></>
                   : <><span className="node-status--inactive" /><span>Node is not running</span></>,
-                isRunning ? 'Stop' : 'Start',
-                isRunning ? stopNode : startNode,
+                'Start node',
+                this.startNode,
                 <button
                   className="settings__view-api-btn"
-                  disabled={!isRunning || isChangingNodeStatus || isTestingCustomRPC}
+                  disabled={!isRunning || isChangingNodeStatus || isTestingCustomRPC || isCustomRPCConnected}
                   onClick={() => history.push('/settings/connection/view-api-key')}
                 >
                   View API Key
                 </button>,
-                isChangingNodeStatus || isTestingCustomRPC,
+                isChangingNodeStatus || isTestingCustomRPC || !isCustomRPCConnected && isRunning,
+                true
               )}
               {this.renderSection(
-                'Custom RPC',
-                isRunning
-                  ? 'Disabled while HSD is running'
-                  : (
-                    isCustomRPCConnected ?
-                      <><span className="node-status--active" /><span>Custom RPC Connected</span></>
-                      :
-                      'Set custom rpc to a Handshake node'
-                  ),
+                'Remote HSD node',
+                isCustomRPCConnected && isRunning
+                  ? <><span className="node-status--active" /><span>Custom RPC Connected</span></>
+                  : <><span className="node-status--inactive" />Connect to a remote HSD node via HTTP</>,
                 'Configure',
                 () => history.push("/settings/connection/configure"),
-                <button
-                  className="settings__view-api-btn"
-                  disabled={isRunning || isChangingNodeStatus || isTestingCustomRPC}
-                  onClick={stopNode}
-                >
-                  Test Connection
-                </button>,
-                isRunning || isTestingCustomRPC || isChangingNodeStatus,
+                null,
+                isCustomRPCConnected || isTestingCustomRPC || isChangingNodeStatus,
+                true
               )}
               {this.renderSection(
                 'DNS Servers',
@@ -462,7 +467,7 @@ export default class Settings extends Component {
                 noDns ? 'Enable' : 'Disable',
                 () => {setNoDns(!noDns)},
                 null,
-                isChangingNodeStatus || isTestingCustomRPC || !isRunning,
+                isChangingNodeStatus || isTestingCustomRPC || isCustomRPCConnected,
               )}
               {this.renderSection(
                 'HSD Home Directory',
@@ -476,17 +481,11 @@ export default class Settings extends Component {
               )}
               {this.renderSection(
                 'Network type',
-                (
-                  isCustomRPCConnected
-                  ?
-                    `Cannot change custom RPC network. RPC network set to: ${network || 'main'}`
-                    :
-                    'Switch network type'
-                ),
+                'Switch network type',
                 null,
                 null,
-                isRunning ? <NetworkPicker /> : null,
-                !isRunning || isTestingCustomRPC || isChangingNodeStatus,
+                <NetworkPicker />,
+                isTestingCustomRPC || isChangingNodeStatus,
               )}
             </>
           </Route>

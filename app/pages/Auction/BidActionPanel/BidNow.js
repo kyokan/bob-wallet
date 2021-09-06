@@ -402,7 +402,7 @@ export default connect(
     ownHighestBid: _ownHighestBid(domain),
     totalBids: getTotalBids(domain),
     totalMasks: getTotalMasks(domain),
-    network: state.node.network,
+    network: state.wallet.network,
     isPending: domain.pendingOperation === 'BID',
   }),
   (dispatch, {name}) => ({
