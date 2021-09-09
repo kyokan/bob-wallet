@@ -9,7 +9,7 @@ import { waitForPassphrase, hasAddress } from '../../ducks/walletActions';
 
 @connect(
   (state) => ({
-    network: state.node.network,
+    network: state.wallet.network,
   }),
   (dispatch) => ({
     showSuccess: (message) => dispatch(showSuccess(message)),

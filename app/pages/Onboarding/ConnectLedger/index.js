@@ -17,7 +17,7 @@ const ledgerClient = lClientStub(() => require('electron').ipcRenderer);
 
 @withRouter
 @connect((state) => ({
-  network: state.node.network,
+  network: state.wallet.network,
 }), (dispatch) => ({
   completeInitialization: (name, passphrase) => dispatch(walletActions.completeInitialization(name, passphrase)),
 }))

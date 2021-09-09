@@ -47,7 +47,7 @@ export const indicesNetworks = [
 @withRouter
 @connect(
   (state) => ({
-    network: state.node.network,
+    network: state.wallet.network,
   }),
   (dispatch) => ({
     changeNetwork: (net) => dispatch(nodeActions.changeNetwork(net)),
@@ -58,7 +58,6 @@ export default class NetworkPicker extends Component {
     network: PropTypes.string.isRequired,
     changeNetwork: PropTypes.func.isRequired,
     className: PropTypes.string,
-    currentNetwork: PropTypes.string,
     onNetworkChange: PropTypes.func,
   };
 
@@ -68,12 +67,9 @@ export default class NetworkPicker extends Component {
       onNetworkChange,
       className,
       network,
-      currentNetwork,
     } = this.props;
 
-    const net = currentNetwork || network;
-
-    if (!net) {
+    if (!network) {
       return (
         <div className={c('network-picker', className)}>
           <Dropdown
@@ -89,7 +85,7 @@ export default class NetworkPicker extends Component {
         <Dropdown
           reversed
           items={networks}
-          currentIndex={networksIndices[net]}
+          currentIndex={networksIndices[network]}
           onChange={(i) => {
             if (onNetworkChange) {
               onNetworkChange(indicesNetworks[i]);

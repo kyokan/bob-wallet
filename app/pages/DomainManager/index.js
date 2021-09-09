@@ -374,7 +374,7 @@ export default withRouter(
       isFetching: state.myDomains.isFetching,
       namesList: Object.keys(state.myDomains.names),
       height: state.node.chain.height,
-      network: state.node.network,
+      network: state.wallet.network,
       wid: state.wallet.wid,
     }),
     dispatch => ({
@@ -390,7 +390,7 @@ export default withRouter(
 const DomainRow = connect(
   state => ({
     names: state.myDomains.names,
-    network: state.node.network,
+    network: state.wallet.network,
   }),
 )(_DomainRow);
 

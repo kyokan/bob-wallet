@@ -131,7 +131,7 @@ class OpenBid extends Component {
 export default connect(
   (state) => ({
     currentBlock: state.node.chain.height,
-    network: state.node.network,
+    network: state.wallet.network,
   }),
   (dispatch, {name}) => ({
     sendOpen: () => dispatch(nameActions.sendOpen(name)),

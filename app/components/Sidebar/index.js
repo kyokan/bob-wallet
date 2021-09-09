@@ -12,7 +12,7 @@ const nodeClient = clientStub(() => require('electron').ipcRenderer);
 @withRouter
 @connect(
   state => ({
-    network: state.node.network,
+    network: state.wallet.network,
     chainHeight: state.node.chain.height,
     tip: state.node.chain.tip,
     newBlockStatus: state.node.newBlockStatus,

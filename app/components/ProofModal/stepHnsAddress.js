@@ -7,7 +7,7 @@ import isValidAddress from "../../utils/verifyAddress";
 
 @connect((state) => ({
   address: state.wallet.address,
-  network: state.node.network,
+  network: state.wallet.network,
 }))
 export default class StepHnsAddress extends Component {
   static propTypes = {

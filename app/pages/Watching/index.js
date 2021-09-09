@@ -456,7 +456,7 @@ export default withRouter(
   connect(
     state => ({
       names: state.watching.names,
-      network: state.node.network,
+      network: state.wallet.network,
     }),
     dispatch => ({
       addName: (name, network) => dispatch(watchingActions.addName(name, network)),

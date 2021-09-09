@@ -131,7 +131,7 @@ export default withRouter(
     (state) => ({
       watchList: state.watching.names,
       currentBlock: state.node.chain.height,
-      network: state.node.network,
+      network: state.wallet.network,
     }),
     dispatch => ({
       watchDomain: (name, network) => dispatch(watchingActions.addName(name, network)),
