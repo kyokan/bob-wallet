@@ -22,7 +22,6 @@ import Watching from '../Watching';
 import SearchTLD from '../SearchTLD';
 import * as nodeActions from "../../ducks/node";
 import * as walletActions from '../../ducks/walletActions';
-import { listWallets } from '../../ducks/walletActions';
 import './app.scss';
 import AccountLogin from '../AcountLogin';
 import PassphraseModal from '../AcountLogin/PassphraseModal';
@@ -46,7 +45,6 @@ const settingClient = sClientStub(() => require('electron').ipcRenderer);
     wallets: state.wallet.wallets,
   }),
   (dispatch) => ({
-    listWallets: () => dispatch(listWallets()),
     setExplorer: (explorer) => dispatch(nodeActions.setExplorer(explorer)),
   }),
 )
@@ -70,7 +68,6 @@ class App extends Component {
     this.setState({isLoading: true});
     await this.props.startNode();
     this.props.watchActivity();
-    await this.props.listWallets();
 
     const {type} = await connClient.getConnection();
 

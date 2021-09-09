@@ -10,10 +10,17 @@ import { NodeClient } from 'hs-client';
 import { BigNumber } from 'bignumber.js';
 import { ConnectionTypes, getConnection, getCustomRPC } from '../connections/service';
 import FullNode from 'hsd/lib/node/fullnode';
+import plugin from 'hsd/lib/wallet/plugin';
 import { prefixHash } from '../../db/names';
 import { get, put } from '../db/service';
 import {dispatchToMainWindow} from "../../mainWindow";
-import {SET_NODE_API} from "../../ducks/nodeReducer";
+import {
+  SET_NODE_API,
+  SET_CUSTOM_RPC_STATUS,
+  START,
+  SET_FEE_INFO,
+  SET_NODE_INFO,
+} from "../../ducks/nodeReducer";
 
 const Network = require('hsd/lib/protocol/network');
 
@@ -26,6 +33,8 @@ const NODE_NO_DNS = 'nodeNoDns';
 export class NodeService extends EventEmitter {
   constructor() {
     super();
+
+    this.height = 0;
   }
 
   async getAPIKey() {
@@ -88,25 +97,47 @@ export class NodeService extends EventEmitter {
   }
 
   async start(networkName) {
+    await this.setNetworkAndNodeOptions(networkName);
     const conn = await getConnection();
 
     switch (conn.type) {
       case ConnectionTypes.P2P:
-        await this.setNetworkAndNodeOptions(networkName);
         await this.startNode();
         await this.setHSDLocalClient();
-        return;
+        dispatchToMainWindow({
+          type: SET_CUSTOM_RPC_STATUS,
+          payload: false,
+        });
+        dispatchToMainWindow({
+          type: START,
+          payload: {
+            network: this.networkName,
+            apiKey: this.apiKey,
+            noDns: this.noDns,
+          },
+        });
+        break;
       case ConnectionTypes.Custom:
         await this.setCustomRPCClient();
-        return;
+        dispatchToMainWindow({
+          type: SET_CUSTOM_RPC_STATUS,
+          payload: true,
+        });
+        dispatchToMainWindow({
+          type: START,
+          payload: {
+            network: this.networkName,
+            apiKey: null,
+            noDns: true,
+          },
+        });
+        break;
+      default:
+        throw new Error('Unknown connection type.');
     }
   }
 
   async setNetworkAndNodeOptions(networkName) {
-    if (this.hsd) {
-      return;
-    }
-
     if (!VALID_NETWORKS[networkName]) {
       throw new Error('Invalid network.');
     }
@@ -117,12 +148,14 @@ export class NodeService extends EventEmitter {
     this.network = network;
     this.apiKey = await this.getAPIKey();
     this.noDns = await this.getNoDns();
-
-    this.emit('started', this.networkName, this.network, this.apiKey);
   }
 
   async startNode() {
     if (this.hsd) {
+      // The app was restarted but the nodes are already running,
+      // just re-dispatch to redux store.
+      await this.refreshNodeInfo();
+      this.emit('start local');
       return;
     }
 
@@ -136,7 +169,7 @@ export class NodeService extends EventEmitter {
 
     const dir = await this.getDir();
 
-    const hsd = new FullNode({
+    this.hsd = new FullNode({
       config: true,
       argv: true,
       env: true,
@@ -151,33 +184,86 @@ export class NodeService extends EventEmitter {
       indexAddress: true,
       indexTX: true,
       apiKey: this.apiKey,
+      walletApiKey: this.apiKey,
       cors: true,
       noDns: this.noDns,
+      listen: this.networkName === 'regtest', // improves remote rpc dev/testing
     });
 
-    await hsd.ensure();
-    await hsd.open();
-    await hsd.connect();
-    await hsd.startSync();
+    this.hsd.use(plugin);
+
+    await this.hsd.ensure();
+    await this.hsd.open();
+    this.emit('start local', this.hsd.get('walletdb'), this.apiKey);
+    await this.hsd.connect();
+    await this.hsd.startSync();
 
     if (!(await get('hsd-2.4.0-migrate'))) {
       await put('hsd-2.4.0-migrate', true);
     }
 
-    this.hsd = hsd;
+    this.hsd.on('connect', async () => this.refreshNodeInfo());
   }
 
   async setHSDLocalClient() {
-    const client = new NodeClient({
+    if (this.client) {
+      // The app was restarted but the nodes are already running,
+      // just re-dispatch to redux store.
+      return this.refreshNodeInfo();
+    }
+
+    this.client = new NodeClient({
       network: this.network,
       port: this.network.rpcPort,
       apiKey: this.apiKey,
     });
-    await retry(() => client.getInfo(), 20, 200);
-    this.client = client;
+
+    this.client.on('error', e => {
+      console.error('nodeclient error', e);
+    });
+
+    await this.client.open();
+    await this.refreshNodeInfo()
   }
 
   async setCustomRPCClient() {
+    if (this.client) {
+      // The app was restarted but the nodes are already running,
+      // just re-dispatch to redux store.
+      await this.refreshNodeInfo();
+      this.emit('start remote');
+    }
+
+    this.client = await this.createCustomRPCClient();
+
+    this.client.on('error', e => {
+      console.error('nodeclient error', e);
+    });
+
+    await this.client.open();
+    await this.refreshNodeInfo()
+    this.client.bind('block connect', async () => this.refreshNodeInfo());
+    this.emit('start remote', this.network);
+  }
+
+  async testCustomRPCClient(walletNetwork) {
+    try {
+      if(!walletNetwork)
+        throw new Error('Could not determine wallet network.');
+
+      const testClient = await this.createCustomRPCClient();
+      const info = await testClient.getInfo();
+
+      if (info.network !== walletNetwork)
+        throw new Error('Wallet / Node network mismatch.');
+
+      return [true, null];
+    } catch (e) {
+      return [false, e.message];
+    }
+  }
+
+  async createCustomRPCClient() {
     const rpc = await getCustomRPC();
     const {
       protocol,
@@ -186,38 +272,36 @@ export class NodeService extends EventEmitter {
       pathname,
       apiKey,
     } = rpc;
-    const networkType = rpc.networkType || 'main';
-
-    if (!VALID_NETWORKS[networkType]) {
-      throw new Error('Invalid network.');
-    }
-
-    const network = Network.get(networkType);
-    this.networkName = networkType;
-    this.network = network;
-
-    this.emit('started', this.networkName, this.network);
 
     const portString = port ? `:${port}` : '';
     const pathString = (!pathname || pathname === '/') ? '' : pathname;
     const protoString = protocol || 'http';
 
     const url = `${protoString}://${host}${portString}${pathString}`;
-    this.client = new NodeClient({
-      network: network,
-      apiKey: apiKey,
-      url: url,
+
+    // Not really used after this point,
+    // but overwrite the local getAPIKey() just in case.
+    this.apiKey = apiKey;
+
+    return new NodeClient({
+      network: this.network,
+      apiKey,
+      url,
     });
   }
 
   async stop() {
-    if (this.hsd) {
-      await this.hsd.close();
-    }
+    if (this.client)
+      await this.client.close();
 
-    this.emit('stopped');
+    if (this.hsd)
+      await this.hsd.close();
+
     this.hsd = null;
     this.client = null;
+    this.height = 0;
+
+    this.emit('stopped');
   }
 
   async reset() {
@@ -225,6 +309,30 @@ export class NodeService extends EventEmitter {
     await new Promise(resolve => setTimeout(resolve, 3000));
     await this.start(this.networkName);
   }
+
+  async refreshNodeInfo() {
+    if (!this.client)
+      return;
+
+    try {
+      const info = await this.getInfo();
+      const fees = await this.getFees();
+
+      dispatchToMainWindow({
+        type: SET_NODE_INFO,
+        payload: info.chain,
+      });
+
+      dispatchToMainWindow({
+        type: SET_FEE_INFO,
+        payload: fees,
+      });
+
+      this.height = info.chain.height;
+    } catch (e) {
+      ;
+    }
+  };
 
   async generateToAddress(numblocks, address) {
     return this._execRPC('generatetoaddress', [numblocks, address]);
@@ -356,17 +464,8 @@ export class NodeService extends EventEmitter {
   }
 
   async _ensureStarted() {
-    return new Promise((resolve, reject) => {
-      if (this.client) {
-        resolve();
-        return;
-      }
-
-      setTimeout(async () => {
-        await this._ensureStarted();
-        resolve();
-      }, 500);
-    });
+    if (!this.client)
+      throw new Error('No client.');
   }
 
   async _execRPC(method, args) {
@@ -391,22 +490,6 @@ async function checkHSDPortsFree(network) {
   }
 
   return true;
-}
-
-async function retry(action, attempts = 10, interval = 200) {
-  let lastErr;
-  for (let i = 0; i < attempts; i++) {
-    try {
-      await action();
-      return;
-    } catch (e) {
-      lastErr = e;
-      await new Promise((resolve) => setTimeout(resolve, interval));
-    }
-  }
-
-  console.error('Last err in retry:', lastErr);
-  throw new Error('timed out');
 }
 
 export const service = new NodeService();
@@ -438,6 +521,7 @@ const methods = {
   setNoDns: data => service.setNoDns(data),
   getDir: () => service.getDir(),
   getHNSPrice: () => service.getHNSPrice(),
+  testCustomRPCClient: (networkType) => service.testCustomRPCClient(networkType),
   getDNSSECProof: (url) => service.getDNSSECProof(url),
   sendRawClaim: (base64) => service.sendRawClaim(base64),
 };

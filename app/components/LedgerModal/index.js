@@ -10,7 +10,7 @@ const ipc = require('electron').ipcRenderer;
 
 @connect(
   (state) => ({
-    network: state.node.network,
+    network: state.wallet.network,
     isLocked: state.wallet.isLocked,
   }),
 )

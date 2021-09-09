@@ -7,7 +7,6 @@ import {
   getInitialState,
   INCREMENT_IDLE,
   LOCK_WALLET,
-  NONE,
   RESET_IDLE,
   SET_MAX_IDLE,
   SET_PENDING_TRANSACTIONS,
@@ -33,7 +32,6 @@ export const setWallet = opts => {
     watchOnly = false,
     initialized = false,
     address = '',
-    type = NONE,
     balance = {},
     apiKey = '',
     changeDepth,
@@ -47,7 +45,6 @@ export const setWallet = opts => {
       watchOnly,
       initialized,
       address,
-      type,
       balance,
       apiKey,
       changeDepth,
@@ -57,7 +54,7 @@ export const setWallet = opts => {
 };
 
 export const completeInitialization = (name, passphrase) => async (dispatch, getState) => {
-  const network = getState().node.network;
+  const network = getState().wallet.network;
   await walletClient.unlock(name, passphrase);
   await setInitializationState(network, true);
   await dispatch(fetchWallet());
@@ -75,7 +72,7 @@ export const fetchWalletAPIKey = () => async (dispatch) => {
 };
 
 export const fetchWallet = () => async (dispatch, getState) => {
-  const network = getState().node.network;
+  const network = getState().wallet.network;
 
   const maxIdle = await getMaxIdleMinutes();
   dispatch({
@@ -88,42 +85,22 @@ export const fetchWallet = () => async (dispatch, getState) => {
   if (!isInitialized) {
     return dispatch(setWallet({
       initialized: false,
-      address: '',
-      type: NONE,
-      balance: {
-        ...getInitialState().balance,
-      },
     }));
   }
 
-  let accountInfo;
-
-  try {
-    accountInfo = await walletClient.getAccountInfo();
-  } catch (e) {
-    accountInfo = null;
+  const accountInfo = await walletClient.getAccountInfo();
+  if (!accountInfo) {
+    throw new Error('Could not load wallet.');
   }
 
-  const apiKey = await walletClient.getAPIKey();
-
-
-  const {
-    changeDepth = 0,
-    receiveDepth = 0,
-  } = accountInfo || {};
-
   dispatch(setWallet({
-    wid: accountInfo ? accountInfo.wid : '',
-    watchOnly: accountInfo ? accountInfo.watchOnly : false,
-    initialized: isInitialized,
-    address: accountInfo && accountInfo.receiveAddress,
-    type: NONE,
-    balance: (accountInfo && accountInfo.balance) || {
-      ...getInitialState().balance,
-    },
-    apiKey,
-    changeDepth,
-    receiveDepth,
+    wid: accountInfo.wid,
+    watchOnly: accountInfo.watchOnly,
+    initialized: true,
+    address: accountInfo.receiveAddress,
+    balance: accountInfo.balance,
+    changeDepth: accountInfo.changeDepth,
+    receiveDepth: accountInfo.receiveDepth,
   }));
 };
 
@@ -175,7 +152,7 @@ export const lockWallet = () => async (dispatch) => {
 };
 
 export const reset = () => async (dispatch, getState) => {
-  const network = getState().node.network;
+  const network = getState().wallet.network;
   await walletClient.reset();
   await setInitializationState(network, false);
   return dispatch(fetchWallet());
@@ -239,7 +216,7 @@ export const waitForWalletSync = () => async (dispatch, getState) => {
 
 export const fetchTransactions = () => async (dispatch, getState) => {
   const state = getState();
-  const net = state.node.network;
+  const net = state.wallet.network;
   const currentTXs = state.wallet.transactions;
 
   if (state.wallet.isFetching) {
@@ -365,18 +342,6 @@ export const watchActivity = () => dispatch => {
     document.addEventListener('mousemove', handler);
     document.addEventListener('keypress', handler);
   }
-};
-
-export const listWallets = () => async (dispatch) => {
-  const wallets = await walletClient.listWallets(false, true);
-
-  dispatch({
-    type: SET_WALLETS,
-    payload: {
-      wallets: wallets.map(wallet => wallet.wid),
-      walletsDetails: wallets.reduce((obj, wallet) => {obj[wallet.wid] = wallet; return obj}, {}), // array of objects to object with wid as key
-    },
-  });
 };
 
 async function parseInputsOutputs(net, tx) {

@@ -68,13 +68,21 @@ export default function nodeReducer(state = getInitialState(), action = {}) {
         noDns: action.payload.noDns,
       };
     case STOP:
-      return {...state, isRunning: false, network: null};
+      return {
+        ...state,
+        isRunning: false,
+        network: null,
+        chain: {
+          height: 0,
+          tip: '',
+        },
+      };
     case START_ERROR:
       return {...state, error: action.payload.error};
     case SET_NODE_INFO:
       return {
         ...state,
-        chain: action.payload.info.chain,
+        chain: action.payload,
       };
     case SET_CUSTOM_RPC_STATUS:
       return {
@@ -89,7 +97,7 @@ export default function nodeReducer(state = getInitialState(), action = {}) {
     case SET_FEE_INFO:
       return {
         ...state,
-        fees: action.payload.fees,
+        fees: action.payload,
       };
     case START_NETWORK_CHANGE:
     case END_NETWORK_CHANGE:
