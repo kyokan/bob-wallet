@@ -15,6 +15,7 @@ import { showError, showSuccess } from "../../ducks/notifications";
 import * as nameActions from "../../ducks/names";
 import * as nodeActions from "../../ducks/node";
 import { fetchTransactions } from "../../ducks/walletActions";
+import throttle from "lodash.throttle";
 
 const analytics = aClientStub(() => require("electron").ipcRenderer);
 
@@ -72,6 +73,11 @@ export default class Account extends Component {
       registerable: { HNS: null, num: null },
     },
   };
+
+  constructor(props) {
+    super(props);
+    this.updateStatsAndBalance = throttle(this.updateStatsAndBalance, 15000, { trailing: true });
+  }
 
   componentDidMount() {
     analytics.screenView("Account");
