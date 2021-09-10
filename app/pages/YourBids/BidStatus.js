@@ -108,15 +108,20 @@ class BidStatus extends Component {
 
     if (this.isBidding()) {
       const { bids } = domain;
+      const bidLength = bids.length || 0;
+      let bidText = '';
+
+      if (bidLength === 1)
+        bidText = `${bidLength} bid`;
+      else
+        bidText = `${bidLength} bids`;
 
       return (
         <span>
           <span>BIDDING NOW</span>
           <span className="bid-status__text__paren">
             <span>(</span>
-            <span className="bid-status__text__link">
-              {`${bids ? bids.length : '0'} bids`}
-            </span>
+            <span className="bid-status__text__link">{bidText}</span>
             <span>)</span>
           </span>
         </span>
