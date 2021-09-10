@@ -12,6 +12,11 @@ import { ConnectionTypes, getConnection, getCustomRPC } from '../connections/ser
 import FullNode from 'hsd/lib/node/fullnode';
 import SPVNode from 'hsd/lib/node/spvnode';
 import plugin from 'hsd/lib/wallet/plugin';
+import Address from 'hsd/lib/primitives/address';
+const blake2b = require('bcrypto/lib/blake2b');
+const secp256k1 = require('bcrypto/lib/secp256k1');
+const {safeEqual} = require('bcrypto/lib/safe');
+import pkg from 'hsd/lib/pkg';
 import { prefixHash } from '../../db/names';
 import { get, put } from '../db/service';
 import {dispatchToMainWindow} from "../../mainWindow";
@@ -389,19 +394,19 @@ export class NodeService extends EventEmitter {
   }
 
   async getNameInfo(name) {
-    return this._execRPC('getnameinfo', [name]);
+    return this._execRPC('getnameinfo', [name], true);
   }
 
   async getNameByHash(hash) {
     const cached = await get(prefixHash(hash));
     if (cached) return cached;
-    const name = await this._execRPC('getnamebyhash', [hash]);
+    const name = await this._execRPC('getnamebyhash', [hash], true);
     put(prefixHash(hash), name);
     return name;
   }
 
   async getAuctionInfo(name) {
-    return this._execRPC('getauctioninfo', [name]);
+    return this._execRPC('getauctioninfo', [name], true);
   }
 
   async getBlock(height) {
@@ -412,7 +417,7 @@ export class NodeService extends EventEmitter {
   }
 
   async getBlockByHeight(height, verbose, details) {
-    return this._execRPC('getblockbyheight', [height, verbose ? 1 : 0, details ? 1 : 0]);
+    return this._execRPC('getblockbyheight', [height, verbose ? 1 : 0, details ? 1 : 0], true);
   }
 
   async getTx(hash) {
@@ -433,9 +438,9 @@ export class NodeService extends EventEmitter {
 
   async getFees() {
     await this._ensureStarted();
-    const slowRes = await this._execRPC('estimatesmartfee', [5]);
-    const standardRes = await this._execRPC('estimatesmartfee', [2]);
-    const fastRes = await this._execRPC('estimatesmartfee', [1]);
+    const slowRes = await this._execRPC('estimatesmartfee', [5], true);
+    const standardRes = await this._execRPC('estimatesmartfee', [2], true);
+    const fastRes = await this._execRPC('estimatesmartfee', [1], true);
     const slow = BigNumber.max(new BigNumber(slowRes.fee), MIN_FEE).toFixed(6);
     const standard = BigNumber.max(new BigNumber(standardRes.fee), MIN_FEE * 5).toFixed(6);
     const fast = BigNumber.max(new BigNumber(fastRes.fee), MIN_FEE * 10).toFixed(6);
@@ -462,7 +467,7 @@ export class NodeService extends EventEmitter {
     let count = 0;
     let sum = 0;
     for (let i = startHeight; i <= height; i++) {
-      const block = await this._execRPC('getblockbyheight', [i, true, false]);
+      const block = await this._execRPC('getblockbyheight', [i, true, false], true);
       if (previous === 0) {
         previous = block.time;
         continue;
@@ -483,7 +488,44 @@ export class NodeService extends EventEmitter {
     return this.client.getCoin(hash, index);
   }
 
-  async verifyMessageWithName(name, signature, message) {
+  async verifyMessageWithName(name, signature, str) {
+    if (await this.getSpvMode()) {
+      const result = await this.getNameInfo(name);
+      const owner = result?.info?.owner;
+
+      if (!owner) {
+        throw new Error('Cannot find the name owner.');
+      }
+
+      const coin = await this.getCoin(owner.hash, owner.index);
+
+      if (!coin) {
+        throw new Error('Cannot find the owner\'s address.');
+      }
+
+      const addr = Address.fromString(coin.address, this.network);
+
+      if (addr.version !== 0 || addr.hash.length !== 20)
+        return false;
+
+      const MAGIC_STRING = `${pkg.currency} signed message:\n`;
+      const msg = Buffer.from(MAGIC_STRING + str, 'utf8');
+      const hash = blake2b.digest(msg);
+      const sig = Buffer.from (signature, 'base64');
+
+      for (let i = 0; i < 4; i++) {
+        const key = secp256k1.recover(hash, sig, i, true);
+
+        if (!key)
+          continue;
+
+        if (safeEqual(blake2b.digest(key, 20), addr.hash))
+          return true;
+      }
+
+      return false;
+    }
+
     return this._execRPC('verifymessagewithname', [name, signature, message]);
   }
 
@@ -530,10 +572,13 @@ export class NodeService extends EventEmitter {
     return json.result;
   }
 
-  async _execRPC(method, args) {
-    if (await this.getSpvMode()) {
-      return this._execHostedRPC(method, args);
+  async _execRPC(method, args, proxy) {
+    if (proxy) {
+      if (await this.getSpvMode()) {
+        return this._execHostedRPC(method, args);
+      }
     }
+
     await this._ensureStarted();
     return this.client.execute(method, args);
   }
