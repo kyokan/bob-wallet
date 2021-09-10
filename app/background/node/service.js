@@ -316,21 +316,26 @@ export class NodeService extends EventEmitter {
 
     try {
       const info = await this.getInfo();
-      const fees = await this.getFees();
 
       dispatchToMainWindow({
         type: SET_NODE_INFO,
         payload: info.chain,
       });
 
-      dispatchToMainWindow({
-        type: SET_FEE_INFO,
-        payload: fees,
-      });
+
+      if (info.chain.progress > 0.99) {
+        const fees = await this.getFees();
+
+        if (fees) {
+          dispatchToMainWindow({
+            type: SET_FEE_INFO,
+            payload: fees,
+          });
+        }
+      }
 
       this.height = info.chain.height;
     } catch (e) {
-      ;
     }
   };
 
