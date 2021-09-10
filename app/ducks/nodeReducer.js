@@ -15,6 +15,7 @@ export const END_RPC_TEST = 'node/END_RPC_TEST';
 export const SET_EXPLORER = 'node/SET_EXPLORER';
 export const UPDATE_HNS_PRICE = 'node/UPDATE_HNS_PRICE';
 export const SET_NO_DNS = 'node/SET_NO_DNS';
+export const SET_SPV_MODE = 'node/SET_SPV_MODE';
 
 export function getInitialState() {
   return {
@@ -27,6 +28,7 @@ export function getInitialState() {
     network: 'main',
     apiKey: null,
     noDns: true,
+    spv: false,
     fees: {
       slow: 0,
       medium: 0,
@@ -124,6 +126,11 @@ export default function nodeReducer(state = getInitialState(), action = {}) {
       return {
         ...state,
         noDns: action.payload,
+      };
+    case SET_SPV_MODE:
+      return {
+        ...state,
+        spv: action.payload,
       };
     default:
       return state;

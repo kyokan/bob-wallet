@@ -17,8 +17,6 @@ import { clientStub as aClientStub } from '../../background/analytics/client';
 const pkg = require('../../../package.json');
 import c from "classnames";
 import {Redirect} from "react-router";
-import MiniModal from "../../components/Modal/MiniModal";
-import copy from "copy-to-clipboard";
 import {setCustomRPCStatus} from "../../ducks/node";
 import CustomRPCConfigModal from "./CustomRPCConfigModal";
 import {fetchWalletAPIKey} from "../../ducks/walletActions";
@@ -48,6 +46,7 @@ const connClient = cClientStub(() => require('electron').ipcRenderer);
   (state) => ({
     network: state.wallet.network,
     apiKey: state.node.apiKey,
+    spv: state.node.spv,
     noDns: state.node.noDns,
     walletApiKey: state.wallet.apiKey,
     walletSync: state.wallet.walletSync,
@@ -78,6 +77,7 @@ export default class Settings extends Component {
     network: PropTypes.string.isRequired,
     apiKey: PropTypes.string.isRequired,
     noDns: PropTypes.bool.isRequired,
+    spv: PropTypes.bool.isRequired,
     wid: PropTypes.string.isRequired,
     changeDepth: PropTypes.number.isRequired,
     receiveDepth: PropTypes.number.isRequired,
@@ -392,6 +392,7 @@ export default class Settings extends Component {
       history,
       stopNode,
       startNode,
+      spv,
       noDns,
       setNoDns,
       isChangingNodeStatus,
@@ -446,6 +447,18 @@ export default class Settings extends Component {
                   View API Key
                 </button>,
                 isChangingNodeStatus || isTestingCustomRPC || !isCustomRPCConnected && isRunning,
+                true
+              )}
+              {this.renderSection(
+                'SPV Node',
+                'Use Bob Wallet without running a full node',
+                spv ? 'Disable' : 'Enable',
+                async () => {
+                  await nodeClient.setSpvMode(!spv);
+                  await this.startNode();
+                },
+                null,
+                isChangingNodeStatus || isTestingCustomRPC,
                 true
               )}
               {this.renderSection(

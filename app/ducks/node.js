@@ -16,7 +16,7 @@ import {
   END_RPC_TEST,
   SET_EXPLORER,
   UPDATE_HNS_PRICE,
-  SET_NO_DNS,
+  SET_NO_DNS, SET_SPV_MODE,
 } from './nodeReducer';
 import { VALID_NETWORKS } from '../constants/networks';
 
@@ -74,6 +74,12 @@ export const start = (network) => async (dispatch) => {
       payload: info.chain,
     });
     dispatch(setFees());
+
+    const spv = await nodeClient.getSpvMode();
+    dispatch({
+      type: SET_SPV_MODE,
+      payload: spv,
+    });
 
   } catch (error) {
     console.error('node start error', error);
