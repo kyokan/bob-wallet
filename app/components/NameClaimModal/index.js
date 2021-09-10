@@ -287,7 +287,29 @@ export default class NameClaimModal extends Component {
     const rr = this.getTXT();
     const lifespan = 365 * 24 * 60 * 60;
 
-    const sig = dnssec.sign(this.state.keys[0], privateKey, [rr], lifespan);
+    let chosenKey = null;
+    for (const key of this.state.keys) {
+      if (key.filename === fileName) {
+        chosenKey = key;
+        break;
+      }
+    }
+    if (!chosenKey) {
+      this.setState({
+        error: `Can not sign with key: ${fileName}`,
+      });
+      return;
+    }
+
+    let sig
+    try {
+      sig = dnssec.sign(chosenKey, privateKey, [rr], lifespan);
+    } catch (e) {
+      this.setState({
+        error: `Can not sign with key: ${e.message}`,
+      });
+      return;
+    }
 
     const proof = this.state.proof;
     const zone = proof.zones[proof.zones.length - 1];
@@ -549,7 +571,7 @@ class ClaimOption extends Component {
     reward: PropTypes.string,
     fee: PropTypes.string,
     txt: PropTypes.string,
-    keys: PropTypes.object,
+    keys: PropTypes.array,
     error: PropTypes.string,
   };
 
