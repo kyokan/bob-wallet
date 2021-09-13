@@ -488,7 +488,7 @@ export class NodeService extends EventEmitter {
     return this.client.getCoin(hash, index);
   }
 
-  async verifyMessageWithName(name, signature, str) {
+  async verifyMessageWithName(name, signature, message) {
     if (await this.getSpvMode()) {
       const result = await this.getNameInfo(name);
       const owner = result?.info?.owner;
@@ -503,27 +503,7 @@ export class NodeService extends EventEmitter {
         throw new Error('Cannot find the owner\'s address.');
       }
 
-      const addr = Address.fromString(coin.address, this.network);
-
-      if (addr.version !== 0 || addr.hash.length !== 20)
-        return false;
-
-      const MAGIC_STRING = `${pkg.currency} signed message:\n`;
-      const msg = Buffer.from(MAGIC_STRING + str, 'utf8');
-      const hash = blake2b.digest(msg);
-      const sig = Buffer.from (signature, 'base64');
-
-      for (let i = 0; i < 4; i++) {
-        const key = secp256k1.recover(hash, sig, i, true);
-
-        if (!key)
-          continue;
-
-        if (safeEqual(blake2b.digest(key, 20), addr.hash))
-          return true;
-      }
-
-      return false;
+      return this._execRPC('verifymessage', [coin.address, signature, message]);
     }
 
     return this._execRPC('verifymessagewithname', [name, signature, message]);
@@ -572,11 +552,9 @@ export class NodeService extends EventEmitter {
     return json.result;
   }
 
-  async _execRPC(method, args, proxy) {
-    if (proxy) {
-      if (await this.getSpvMode()) {
-        return this._execHostedRPC(method, args);
-      }
+  async _execRPC(method, args, useHostedRPCOnSpv) {
+    if (useHostedRPCOnSpv && await this.getSpvMode()) {
+      return this._execHostedRPC(method, args);
     }
 
     await this._ensureStarted();
@@ -644,11 +622,10 @@ export async function start(server) {
 }
 
 async function hapiGet(path = '') {
-  const res = await fetch(`https://5pi.io/hsd${path}`, {
+  const res = await fetch(`https://api.handshakeapi.com/hsd${path}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Basic ' + Buffer.from(`x:775f8ca39e1748a7b47ff16ad4b1b9ad`).toString('base64'),
     }
   });
   const json = await res.json();
@@ -671,11 +648,10 @@ async function hapiGet(path = '') {
 }
 
 async function hapiPost(path = '', body) {
-  const res = await fetch(`https://5pi.io/hsd${path}`, {
+  const res = await fetch(`https://api.handshakeapi.com/hsd${path}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Basic ' + Buffer.from(`x:775f8ca39e1748a7b47ff16ad4b1b9ad`).toString('base64'),
     },
     body: JSON.stringify(body)
   });
