@@ -387,7 +387,12 @@ export class NodeService extends EventEmitter {
 
   async getTXByAddresses(addresses) {
     if (await this.getSpvMode()) {
-      return hapiPost('/tx/address', { addresses });
+      const json = await hapiPost('/tx/address', {
+        addresses,
+        startBlock: 0,
+        endBlock: this.height,
+      });
+      return json.txs;
     }
     await this._ensureStarted();
     return this.client.getTXByAddresses(addresses);
