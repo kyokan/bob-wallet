@@ -23,7 +23,7 @@ import {
   FULFILLMENT_STATUS,
   getExchangeFullfillments,
   getExchangeListings,
-  LISTING_STATUS, setAuctionPage,
+  LISTING_STATUS, rescanShakedex, setAuctionPage,
   submitToShakedex,
 } from "../../ducks/exchange";
 import {formatName} from "../../utils/nameHelpers";
@@ -39,6 +39,7 @@ import {getPageIndices} from "../../utils/pageable";
 import Dropdown from "../../components/Dropdown";
 import SpinnerSVG from '../../assets/images/brick-loader.svg';
 import ConfirmFeeModal from './ConfirmFeeModal.js';
+const Address = require('hsd/lib/primitives/address.js');
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 const shakedex = sClientStub(() => require('electron').ipcRenderer);
@@ -324,17 +325,25 @@ class Exchange extends Component {
       <div className="exchange">
         <div className="exchange__button-header">
           <h2>Your Listings </h2>
-          <button
-            className="exchange__button-header-button extension_cta_button"
-            onClick={() => this.setState({
-              isPlacingListing: true,
-            })}
-          >
-            Create Listing
-          </button>
+          <div className="exchange__button-header__actions">
+            <button
+              className="exchange__button-header-button extension_secondary_button"
+              onClick={this.props.rescanShakedex}
+            >
+              Rescan
+            </button>
+            <button
+              className="exchange__button-header-button extension_cta_button"
+              onClick={() => this.setState({
+                isPlacingListing: true,
+              })}
+            >
+              Create Listing
+            </button>
+          </div>
         </div>
         <div className="exchange__button-header__sub">
-          Reminder: Don't forget to backup your exchange data in <Link to="/settings/exchange/backup">Settings/Exchange</Link>
+          If you have backed up listing before v0.8.0, you can restore them in <Link to="/settings/exchange">Settings/Exchange</Link>
         </div>
         <Table className="exchange-table">
           <HeaderRow>
@@ -540,12 +549,13 @@ class Exchange extends Component {
     const { lockTime = 0 } = lastBid || {}
     const now = Date.now();
     const hasLastBidReleased = now > lockTime * 1000;
+
     return (
-      <TableRow key={l.nameLock.name}>
+      <TableRow key={l.nameLock.transferTxHash}>
         <TableItem>{formatName(l.nameLock.name)}</TableItem>
         <TableItem>{this.renderListingStatus(l.status)}</TableItem>
-        <TableItem>{displayBalance(l.params.startPrice)}</TableItem>
-        <TableItem>{displayBalance(l.params.endPrice)}</TableItem>
+        <TableItem>{l.params?.startPrice ? displayBalance(l.params?.startPrice) : 'Unknown'}</TableItem>
+        <TableItem>{l.params?.endPrice ? displayBalance(l.params?.endPrice) : 'Unknown'}</TableItem>
         <TableItem>
           {l.status === LISTING_STATUS.TRANSFER_CONFIRMED && (
             <div className="bid-action">
@@ -722,6 +732,7 @@ export default connect(
     getExchangeFullfillments: (page) => dispatch(getExchangeFullfillments(page)),
     getExchangeListings: (page) => dispatch(getExchangeListings(page)),
     finalizeExchangeBid: (fulfillment) => dispatch(finalizeExchangeBid(fulfillment)),
+    rescanShakedex: () => dispatch(rescanShakedex()),
     finalizeExchangeLock: (nameLock) => dispatch(finalizeExchangeLock(nameLock)),
     cancelExchangeLock: (nameLock) => dispatch(cancelExchangeLock(nameLock)),
     finalizeCancelExchangeLock: (nameLock) => dispatch(finalizeCancelExchangeLock(nameLock)),

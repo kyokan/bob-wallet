@@ -34,6 +34,18 @@
     color: $manatee-gray;
     margin-bottom: .5rem;
   }
+
+  &__actions {
+    @extend %row-nowrap;
+    flex: 1 1 auto;
+    justify-content: flex-end;
+    align-items: center;
+
+    .extension_cta_button,
+    .extension_secondary_button{
+      margin-left: 1rem;
+    }
+  }
 }
 
 .exchange__button-header-button {

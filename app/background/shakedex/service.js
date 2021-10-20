@@ -12,9 +12,11 @@ import {
   finalizeNameLockCancel,
 } from 'shakedex/src/swapService.js';
 import { SwapFill } from 'shakedex/src/swapFill.js';
+import { createLockScript } from 'shakedex/src/script';
 import { Auction, AuctionFactory, linearReductionStrategy } from 'shakedex/src/auction.js';
 const jsonSchemaValidate = require('jsonschema').validate;
 import { NameLockFinalize } from 'shakedex/src/nameLock.js';
+const Address = require('hsd/lib/primitives/address.js');
 import stream from 'stream';
 import {encrypt, decrypt} from "../../utils/encrypt";
 import path from "path";
@@ -28,6 +30,7 @@ import {
   paramSchema
 } from "../../utils/shakedex";
 import {Client} from "bcurl";
+import {add} from "winston";
 
 let db;
 
@@ -163,12 +166,14 @@ function listingPrefix() {
 
 export async function transferLock(name, startPrice, endPrice, durationDays, password) {
   const context = getContext(password);
-  const nameLock = await transferNameLock(context, name);
+  const listings = await getListings();
+  const walletKey = await walletService.deriveAddressForShakedex(listings.length);
+  const nameLock = await transferNameLock(context, name, walletKey.getPrivateKey());
   const {privateKey, ...nameLockJSON} = nameLock.toJSON();
   const out = {
     nameLock: {
       ...nameLockJSON,
-      encryptedPrivateKey: encrypt(privateKey, password)
+      encryptedPrivateKey: encrypt(privateKey, password),
     },
     params: {
       startPrice,
@@ -228,7 +233,7 @@ export async function finalizeCancel(nameLock, password) {
     `${listingPrefix()}/${nameLock.name}/${nameLock.transferTxHash}`,
   );
   const {nameLockCancel} = existing;
-  const decrypted = Buffer.from(decrypt(nameLockCancel.encryptedPrivateKey, password), 'hex');
+  const decrypted = Buffer.from(decrypt(nameLock.encryptedPrivateKey, password), 'hex');
   const finalizeCancelLock = await finalizeNameLockCancel(context, {
     ...nameLockCancel,
     publicKey: secp256k1.publicKeyCreate(decrypted),
@@ -249,13 +254,226 @@ export async function finalizeCancel(nameLock, password) {
   return out;
 }
 
+export async function rescanShakedex(password) {
+  const {transactions, addresses, keys} = await _rescanShakedex();
+  const result = [];
+
+  for (let i = 0; i < addresses.length; i++) {
+    const address = addresses[i];
+    const parsed = await parseTX(transactions, address.toString(walletService.network));
+
+    if (parsed) {
+      const walletKey = keys[i];
+      const publicKey = await walletKey.getPublicKey();
+      const privkey = await walletKey.getPrivateKey();
+      const pubkeyHex = Buffer.from(publicKey).toString('hex');
+      const privkeyHex = Buffer.from(privkey).toString('hex');
+
+      if (parsed.auction) {
+        parsed.auction.publicKey = pubkeyHex;
+      }
+
+      parsed.nameLock.lockScriptAddr = {
+        hash: {
+          data: Array.from(address.hash),
+          type: 'Buffer',
+        },
+        version: address.version,
+      };
+      parsed.nameLock.encryptedPrivateKey = encrypt(privkeyHex, password);
+      parsed.nameLock.publicKey = pubkeyHex;
+
+      try {
+        await restoreOneListing(parsed);
+      } catch (e) {
+        console.error(e);
+      }
+      result.push(parsed);
+    }
+  }
+
+  return result;
+}
+
+async function parseTX(transactions, address) {
+  let transferTxHash;
+  let transferTxIndex;
+  let cancelTxIndex;
+  let lockingOutputIdx;
+  let finalizeTx;
+  let cancelTx;
+  let cancelFinalizeTx;
+  let cancelFinalizeTxIdx;
+  let name;
+  let cancelAddr;
+
+  for (let i = 0; i < transactions.length; i++) {
+    const tx = transactions[i];
+
+    for (let j = 0; j < tx.inputs.length; j++) {
+      const input = tx.inputs[j];
+      if (input.coin?.address === address) {
+        if (input.coin?.covenant?.action === 'TRANSFER') {
+          if (await isRecipientSelf(tx)) {
+            cancelFinalizeTx = tx;
+            cancelFinalizeTxIdx = j;
+          }
+        } else if (input.coin?.covenant?.action === 'FINALIZE') {
+          cancelAddr = selectTransferAddr(tx);
+          if (await walletService.hasAddress(cancelAddr)) {
+            cancelTx = tx;
+            cancelTxIndex = j;
+          }
+        }
+      }
+    }
+
+    for (let k = 0; k < tx.outputs.length; k++) {
+      const output = tx.outputs[k];
+      if (output.address === address) {
+        if (output.covenant?.action === 'FINALIZE') {
+          const { hash, index } = selectTransferPrevout(tx) || {};
+          finalizeTx = tx;
+          lockingOutputIdx = k;
+          transferTxHash = hash;
+          transferTxIndex = index;
+          name = await nodeService.getNameByHash(output.covenant?.items[0]);
+        }
+      }
+    }
+  }
+
+  if (!transferTxHash && !finalizeTx && !cancelTx && !cancelFinalizeTx) {
+    return null;
+  }
+
+  const listing = {
+    nameLock: {
+      broadcastAt: finalizeTx.time * 1000,
+      name: name,
+      transferTxHash: transferTxHash,
+    },
+  };
+
+  try {
+    const resp = await fetch(`https://api.shakedex.com/api/v1/auctions/n/${name}`);
+    const json = await resp.json();
+    if (json?.auction?.bids && json?.auction?.lockingTxHash === finalizeTx.hash) {
+      const first = json.auction.bids[0];
+      const last = json.auction.bids[json.auction.bids.length - 1];
+      listing.auction = {
+        data: json.auction.bids,
+        lockingOutputIdx: lockingOutputIdx,
+        lockingTxHash: finalizeTx.hash,
+        name: name,
+      };
+      listing.params = {
+        durationDays: Math.ceil((last.lockTime-first.lockTime)/(1000*60*60*24)),
+        endPrice: last.price,
+        startPrice: first.price,
+
+      }
+    }
+  } catch (e) {
+
+  }
+
+  if (cancelTx) {
+    listing.nameLockCancel = {
+      broadcastAt: cancelTx.time * 1000,
+      cancelAddr: cancelAddr,
+      name: name,
+      transferOutputIdx: cancelTxIndex,
+      transferTxHash: cancelTx.hash,
+    }
+  }
+
+  if (cancelFinalizeTx) {
+    listing.cancelFinalize = {
+      broadcastAt: cancelFinalizeTx.time * 1000,
+      name: name,
+      finalizeOutputIdx: cancelFinalizeTxIdx,
+      finalizeTxHash: cancelFinalizeTx.hash,
+    }
+  }
+
+  return listing;
+}
+
+function selectTransferPrevout(tx) {
+  for (let j = 0; j < tx.inputs.length; j++) {
+    const input = tx.inputs[j];
+    if (input.coin?.covenant.action === 'TRANSFER') {
+      return input.prevout;
+    }
+  }
+}
+
+function selectTransferAddr(tx) {
+  const network = walletService.network;
+  for (let j = 0; j < tx.outputs.length; j++) {
+    const output = tx.outputs[j];
+    if (output.covenant?.action === 'TRANSFER') {
+      const addr = new Address(
+        {
+          hash: Buffer.from(output.covenant?.items[3], 'hex'),
+          version: Number(output.covenant?.items[2]),
+        },
+        network,
+      );
+
+      return addr.toString(network);
+    }
+  }
+}
+
+async function isRecipientSelf(tx) {
+  for (let j = 0; j < tx.outputs.length; j++) {
+    const output = tx.outputs[j];
+    if (output.covenant?.action === 'FINALIZE' || output.covenant?.action === 'TRANSFER') {
+      return await walletService.hasAddress(output.address);
+    }
+  }
+
+  return false;
+}
+
+async function _rescanShakedex(index = 0, txs = [], addrs = [], wkeys = []) {
+  const {addresses: newAddrs, walletKeys} = await generateAddresses(index, index + 10);
+  const newTXs = await nodeService.getTXByAddresses(newAddrs.map(addr => addr.toString(walletService.network)));
+  const transactions = txs.concat(newTXs);
+  const addresses = addrs.concat(newAddrs);
+  const keys = wkeys.concat(walletKeys);
+
+  if (!newTXs.length) {
+    return {transactions, addresses, keys};
+  }
+
+  return await _rescanShakedex(index + 10, transactions, addresses, keys);
+}
+
+async function generateAddresses(start = 0, end = 10) {
+  const addresses = [];
+  const walletKeys = [];
+
+  for (let i = start; i < end; i++) {
+    const walletKey = await walletService.deriveAddressForShakedex(i);
+    const lockScript = createLockScript(walletKey.getPublicKey());
+    const lockScriptAddr = new Address().fromScript(lockScript);
+    walletKeys.push(walletKey);
+    addresses.push(lockScriptAddr);
+  }
+
+  return {addresses, walletKeys};
+}
+
 export async function restoreOneListing(listing) {
   const {valid: auctionValid} = jsonSchemaValidate(listing.auction, auctionSchema);
   const {valid: nameLockValid} = jsonSchemaValidate(listing.nameLock || {}, nameLockSchema);
   const {valid: paramsValid} = jsonSchemaValidate(listing.params, paramSchema);
 
   if (!auctionValid || !nameLockValid || !paramsValid) {
-    throw new Error('Invalid backup file schema');
+    throw new Error('Invalid listing schema');
   }
   const {nameLock} = listing;
   const existing = await get(
@@ -306,7 +524,6 @@ export async function finalizeLock(nameLock, password) {
     ...existing,
     finalizeLock: {
       ...finalizeLockJSON,
-      encryptedPrivateKey: encrypt(privateKey, password),
     },
   };
   await put(
@@ -467,6 +684,7 @@ const methods = {
   getListings,
   launchAuction,
   downloadProofs,
+  rescanShakedex,
   restoreOneListing,
   restoreOneFill,
   getExchangeAuctions,

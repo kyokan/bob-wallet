@@ -393,6 +393,19 @@ $monospace: 'Roboto Mono', monospace;
   @extend %btn-primary;
 }
 
+.extension_secondary_button {
+  height: 38px;
+  width: 100%;
+  border-radius: 8px;
+  // font-family: 'SF-Pro-Display-Regular';
+  font-family: 'Roboto', sans-serif;
+  //font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+  @extend %btn-secondary;
+}
+
 .extension_primary_line_break {
   height: 5px;
   border-bottom: 1px solid $grey;
