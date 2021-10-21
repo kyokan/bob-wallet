@@ -67,7 +67,7 @@ class RescanFillsModal extends Component {
               disabled={isRescanningFills}
               onClick={this.onRescanFill}
             >
-              {isRescanningFills ? 'Loading...' : 'Place Listing'}
+              {isRescanningFills ? <div className="spinner" /> : 'Rescan'}
             </button>
           </div>
         </div>

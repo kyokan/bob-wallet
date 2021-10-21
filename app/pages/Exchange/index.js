@@ -273,8 +273,6 @@ class Exchange extends Component {
           />
         )}
 
-
-
         {this.state.isShowingRescanFillModal && (
           <RescanFillsModal
             onClose={() => this.setState({
