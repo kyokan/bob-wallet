@@ -50,3 +50,4 @@ dll
 *.iml
 npm-debug.log.*
 test-dist/
+SHA512SUMS*.txt
