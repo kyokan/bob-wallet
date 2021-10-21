@@ -492,8 +492,7 @@ export const finalizeExchangeLock = (nameLock) => async (dispatch, getState) => 
 export const rescanShakedex = () => async (dispatch, getState) => {
   try {
     const passphrase = await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
-    const result = await shakedex.rescanShakedex(passphrase);
-    console.log(result);
+    await shakedex.rescanShakedex(passphrase);
   } catch (e) {
     dispatch(showError(e.message));
     return;
@@ -501,6 +500,12 @@ export const rescanShakedex = () => async (dispatch, getState) => {
 
   dispatch(getExchangeListings());
   dispatch(showSuccess('Successfully rescanned auction!'));
+};
+
+
+export const rescanFillByName = (name) => async (dispatch, getState) => {
+  await shakedex.rescanFillByName(name);
+  dispatch(getExchangeFullfillments());
 };
 
 export const launchExchangeAuction = (nameLock, overrideParams) => async (dispatch, getState) => {

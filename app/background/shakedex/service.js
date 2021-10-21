@@ -23,7 +23,7 @@ import path from "path";
 import {app} from "electron";
 import bdb from "bdb";
 import {
-  auctionSchema,
+  auctionSchema, fetchShakedexAuction,
   fulfillmentSchema,
   getFinalizeFromTransferTx,
   nameLockSchema,
@@ -252,6 +252,44 @@ export async function finalizeCancel(nameLock, password) {
   );
 
   return out;
+}
+
+export async function rescanFillByName(name) {
+  const data = await nodeService.getNameInfo(name);
+  const owner = data?.info?.owner;
+  if (owner) {
+    const ownerCoin = await nodeService.getCoin(owner.hash, owner.index);
+    const xferAddr = selectTransferAddr({ outputs: [ownerCoin ]});
+
+    if (!xferAddr) return;
+
+    const owned = await walletService.hasAddress(xferAddr);
+
+    if (!owned) return;
+
+    const tx = await nodeService.getTx(owner.hash);
+
+    if (!tx) return;
+
+    const outputs = tx.outputs;
+    const lastOutputs = outputs[outputs.length - 1];
+
+    const sAuction = await fetchShakedexAuction(name);
+
+    if (!sAuction || sAuction.lockingTxHash !== owner.hash) return;
+
+    const lockingPublicKey = sAuction.publicKey;
+
+    await restoreOneFill({
+      fulfillment: {
+        broadcastAt: tx.time * 1000,
+        fulfillmentTxHash: tx.hash,
+        lockingPublicKey,
+        name,
+        price: lastOutputs.value,
+      },
+    });
+  }
 }
 
 export async function rescanShakedex(password) {
@@ -685,6 +723,7 @@ const methods = {
   launchAuction,
   downloadProofs,
   rescanShakedex,
+  rescanFillByName,
   restoreOneListing,
   restoreOneFill,
   getExchangeAuctions,

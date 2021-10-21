@@ -39,7 +39,7 @@ import {getPageIndices} from "../../utils/pageable";
 import Dropdown from "../../components/Dropdown";
 import SpinnerSVG from '../../assets/images/brick-loader.svg';
 import ConfirmFeeModal from './ConfirmFeeModal.js';
-import Spinner from '../../assets/images/brick-loader.svg';
+import RescanFillsModal from "./RescanFillsModal";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 const shakedex = sClientStub(() => require('electron').ipcRenderer);
@@ -63,6 +63,8 @@ class Exchange extends Component {
       generatingListing: null,
       isLoading: true,
       isRescanning: false,
+      isRescanningFills: false,
+      isShowingRescanFillModal: false,
     };
   }
 
@@ -216,6 +218,212 @@ class Exchange extends Component {
     this.setState({ isRescanning: false });
   };
 
+  render() {
+    if (this.props.walletWatchOnly) {
+      return "Not currently supported with Ledger wallet.";
+    }
+
+    if (this.props.isLoading) {
+      return 'Loading...';
+    }
+
+    return (
+      <div className="exchange">
+        { this.renderYourListings() }
+        { this.renderYourFills() }
+        { this.renderLiveAuctions() }
+
+        {this.state.placingAuction && this.state.placingCurrentBid && (
+          <PlaceBidModal
+            auction={this.state.placingAuction}
+            bid={this.state.placingCurrentBid}
+            onClose={() => this.setState({
+              placingAuction: null,
+              placingCurrentBid: null,
+            })}
+          />
+        )}
+
+        {this.state.isPlacingListing && (
+          <PlaceListingModal
+            onClose={() => this.setState({
+              isPlacingListing: false,
+            })}
+          />
+        )}
+
+        {this.state.isGeneratingListing && (
+          <GenerateListingModal
+            listing={this.state.generatingListing}
+            onClose={() => this.setState({
+              isGeneratingListing: false,
+              generatingListing: null,
+            })}
+          />
+        )}
+
+        {this.state.isShowingFeeConfirmationFor && (
+          <ConfirmFeeModal
+            listing={this.state.isShowingFeeConfirmationFor}
+            feeInfo={this.state.feeInfo}
+            onClose={() => this.setState({
+              isShowingFeeConfirmationFor: null,
+              feeInfo: null,
+            })}
+          />
+        )}
+
+
+
+        {this.state.isShowingRescanFillModal && (
+          <RescanFillsModal
+            onClose={() => this.setState({
+              isShowingRescanFillModal: false,
+            })}
+          />
+        )}
+      </div>
+    );
+  }
+
+  renderLiveAuctions = () => {
+    return (
+      <>
+        <h2>Live Auctions</h2>
+        <Table className="exchange-table">
+          <Header />
+          {this.state.isLoading && (
+            <TableRow>
+              <div className="loader" style={{ backgroundImage: `url(${SpinnerSVG})`}} />
+            </TableRow>
+          )}
+          {!this.state.isLoading && !!this.props.auctions.length && this.props.auctions.map(this.renderAuctionRow)}
+          {this.renderListingControls()}
+          {!this.state.isLoading && !this.props.auctions.length && (
+            <TableRow>
+              <TableItem>
+                No auctions found.
+              </TableItem>
+            </TableRow>
+          )}
+          {this.props.isError && (
+            <div>
+              An error occurred. Please try again.
+            </div>
+          )}
+        </Table>
+      </>
+    );
+  };
+
+  renderYourListings = () => {
+    return (
+      <>
+        <div className="exchange__button-header">
+          <h2>Your Listings </h2>
+          <div className="exchange__button-header__actions">
+            <button
+              className="exchange__button-header-button extension_secondary_button"
+              onClick={this.onRescanShakedex}
+              disabled={this.state.rescanning}
+            >
+              { this.state.isRescanning ? <div className="spinner" />  : 'Rescan'}
+            </button>
+            <button
+              className="exchange__button-header-button extension_cta_button"
+              onClick={() => this.setState({
+                isPlacingListing: true,
+              })}
+            >
+              Create Listing
+            </button>
+          </div>
+        </div>
+        <div className="exchange__button-header__sub">
+          If you have backed up listing before v0.8.0, you can restore them in <Link to="/settings/exchange">Settings/Exchange</Link>
+        </div>
+        <Table className="exchange-table">
+          <HeaderRow>
+            <HeaderItem>Name</HeaderItem>
+            <HeaderItem>Status</HeaderItem>
+            <HeaderItem>Start Bid</HeaderItem>
+            <HeaderItem>End Bid</HeaderItem>
+            <HeaderItem />
+          </HeaderRow>
+          {!this.props.listings.length && (
+            <TableRow>
+              <TableItem>
+                No listings found.
+              </TableItem>
+            </TableRow>
+          )}
+          {!!this.props.listings.length && this.props.listings.map(l => this.renderListingRow(l))}
+        </Table>
+      </>
+    )
+  };
+
+  renderYourFills = () => {
+    return (
+      <>
+        <div className="exchange__button-header">
+          <h2>Your Fills</h2>
+            <div className="exchange__button-header__actions">
+            <button
+              className="exchange__button-header-button extension_secondary_button"
+              onClick={() => this.setState({ isShowingRescanFillModal: true })}
+              disabled={this.state.isShowingRescanFillModal}
+            >
+              Rescan
+            </button>
+            <button
+              className="exchange__button-header-button extension_cta_button"
+              onClick={this.onUploadPresigns}
+            >
+              Upload Auction File
+            </button>
+          </div>
+        </div>
+        <Table className="exchange-table">
+          <HeaderRow>
+            <HeaderItem>Name</HeaderItem>
+            <HeaderItem>Status</HeaderItem>
+            <HeaderItem>Amount</HeaderItem>
+            <HeaderItem>Fill Placed At</HeaderItem>
+            <HeaderItem />
+          </HeaderRow>
+
+          {!!this.props.fulfillments.length && this.props.fulfillments.map(f => (
+            <TableRow>
+              <TableItem>{formatName(f.fulfillment.name)}</TableItem>
+              <TableItem>{this.renderFulfillmentStatus(f.status)}</TableItem>
+              <TableItem>{displayBalance(f.fulfillment.price, true)}</TableItem>
+              <TableItem>{moment(f.fulfillment.broadcastAt).format('MM/DD/YYYY HH:MM:SS')}</TableItem>
+              <TableItem>
+                {[FULFILLMENT_STATUS.CONFIRMED].includes(f.status)  && (
+                  <div className="bid-action">
+                    <div
+                      className="bid-action__link"
+                      onClick={() => this.props.finalizeExchangeBid(f.fulfillment)}
+                    >
+                      {this.props.finalizingName === f.name ? 'Finalizing...' : 'Finalize'}
+                    </div>
+                  </div>
+                )}
+              </TableItem>
+            </TableRow>
+          ))}
+          {!this.props.fulfillments.length && (
+            <TableRow>
+              <TableItem>No fills found.</TableItem>
+            </TableRow>
+          )}
+        </Table>
+      </>
+    )
+  };
+
+
   renderListingStatus(status) {
     let statusText = status;
 
@@ -317,166 +525,6 @@ class Exchange extends Component {
         {statusText}
       </div>
     )
-  }
-
-  render() {
-    if (this.props.walletWatchOnly) {
-      return "Not currently supported with Ledger wallet.";
-    }
-
-    if (this.props.isLoading) {
-      return 'Loading...';
-    }
-
-    return (
-      <div className="exchange">
-        <div className="exchange__button-header">
-          <h2>Your Listings </h2>
-          <div className="exchange__button-header__actions">
-            <button
-              className="exchange__button-header-button extension_secondary_button"
-              onClick={this.onRescanShakedex}
-              disabled={this.state.rescanning}
-            >
-              { this.state.isRescanning ? <div className="spinner" />  : 'Rescan'}
-            </button>
-            <button
-              className="exchange__button-header-button extension_cta_button"
-              onClick={() => this.setState({
-                isPlacingListing: true,
-              })}
-            >
-              Create Listing
-            </button>
-          </div>
-        </div>
-        <div className="exchange__button-header__sub">
-          If you have backed up listing before v0.8.0, you can restore them in <Link to="/settings/exchange">Settings/Exchange</Link>
-        </div>
-        <Table className="exchange-table">
-          <HeaderRow>
-            <HeaderItem>Name</HeaderItem>
-            <HeaderItem>Status</HeaderItem>
-            <HeaderItem>Start Bid</HeaderItem>
-            <HeaderItem>End Bid</HeaderItem>
-            <HeaderItem />
-          </HeaderRow>
-          {!this.props.listings.length && (
-            <TableRow>
-              <TableItem>
-                No listings found.
-              </TableItem>
-            </TableRow>
-          )}
-          {!!this.props.listings.length && this.props.listings.map(l => this.renderListingRow(l))}
-        </Table>
-
-        <div className="exchange__button-header">
-          <h2>Your Fills</h2>
-          <button
-            className="exchange__button-header-button extension_cta_button"
-            onClick={this.onUploadPresigns}
-          >
-            Upload Auction File
-          </button>
-        </div>
-        <Table className="exchange-table">
-          <HeaderRow>
-            <HeaderItem>Name</HeaderItem>
-            <HeaderItem>Status</HeaderItem>
-            <HeaderItem>Amount</HeaderItem>
-            <HeaderItem>Fill Placed At</HeaderItem>
-            <HeaderItem />
-          </HeaderRow>
-
-          {!!this.props.fulfillments.length && this.props.fulfillments.map(f => (
-            <TableRow>
-              <TableItem>{formatName(f.fulfillment.name)}</TableItem>
-              <TableItem>{this.renderFulfillmentStatus(f.status)}</TableItem>
-              <TableItem>{displayBalance(f.fulfillment.price, true)}</TableItem>
-              <TableItem>{moment(f.fulfillment.broadcastAt).format('MM/DD/YYYY HH:MM:SS')}</TableItem>
-              <TableItem>
-                {[FULFILLMENT_STATUS.CONFIRMED].includes(f.status)  && (
-                  <div className="bid-action">
-                    <div
-                      className="bid-action__link"
-                      onClick={() => this.props.finalizeExchangeBid(f.fulfillment)}
-                    >
-                      {this.props.finalizingName === f.name ? 'Finalizing...' : 'Finalize'}
-                    </div>
-                  </div>
-                )}
-              </TableItem>
-            </TableRow>
-          ))}
-          {!this.props.fulfillments.length && (
-            <TableRow>
-              <TableItem>No fills found.</TableItem>
-            </TableRow>
-          )}
-        </Table>
-
-        <h2>Live Auctions</h2>
-        <Table className="exchange-table">
-          <Header />
-          {this.state.isLoading && (
-            <TableRow>
-              <div className="loader" style={{ backgroundImage: `url(${SpinnerSVG})`}} />
-            </TableRow>
-          )}
-          {!this.state.isLoading && !!this.props.auctions.length && this.props.auctions.map(this.renderAuctionRow)}
-          {this.renderListingControls()}
-          {!this.state.isLoading && !this.props.auctions.length && (
-            <TableRow>
-              <TableItem>
-                No auctions found.
-              </TableItem>
-            </TableRow>
-          )}
-          {this.props.isError && (
-            <div>
-              An error occurred. Please try again.
-            </div>
-          )}
-        </Table>
-        {this.state.placingAuction && this.state.placingCurrentBid && (
-          <PlaceBidModal
-            auction={this.state.placingAuction}
-            bid={this.state.placingCurrentBid}
-            onClose={() => this.setState({
-              placingAuction: null,
-              placingCurrentBid: null,
-            })}
-          />
-        )}
-        {this.state.isPlacingListing && (
-          <PlaceListingModal
-            onClose={() => this.setState({
-              isPlacingListing: false,
-            })}
-          />
-        )}
-        {this.state.isGeneratingListing && (
-          <GenerateListingModal
-            listing={this.state.generatingListing}
-            onClose={() => this.setState({
-              isGeneratingListing: false,
-              generatingListing: null,
-            })}
-          />
-        )}
-        {this.state.isShowingFeeConfirmationFor && (
-          <ConfirmFeeModal
-            listing={this.state.isShowingFeeConfirmationFor}
-            feeInfo={this.state.feeInfo}
-            onClose={() => this.setState({
-              isShowingFeeConfirmationFor: null,
-              feeInfo: null,
-            })}
-          />
-        )}
-      </div>
-    );
   }
 
   renderListingControls = () => {
