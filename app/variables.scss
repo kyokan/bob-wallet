@@ -391,6 +391,9 @@ $monospace: 'Roboto Mono', monospace;
   line-height: 16px;
   text-align: center;
   @extend %btn-primary;
+  @extend %row-nowrap;
+  align-items: center;
+  justify-content: center;
 }
 
 .extension_secondary_button {
@@ -404,6 +407,9 @@ $monospace: 'Roboto Mono', monospace;
   line-height: 16px;
   text-align: center;
   @extend %btn-secondary;
+  @extend %row-nowrap;
+  align-items: center;
+  justify-content: center;
 }
 
 .extension_primary_line_break {
@@ -433,4 +439,14 @@ $monospace: 'Roboto Mono', monospace;
   font-size: 0.75rem;
   font-weight: 500;
   line-height: 1rem;
+}
+
+.spinner {
+  height: 1rem;
+  width: 1rem;
+  border: 2px solid transparent;
+  border-top-color: $azure-blue;
+  border-radius: 50%;
+  animation: spin 750ms infinite cubic-bezier(0.55, 0.09, 0.68, 0.53);
+  margin: 0 auto;
 }

@@ -39,7 +39,7 @@ import {getPageIndices} from "../../utils/pageable";
 import Dropdown from "../../components/Dropdown";
 import SpinnerSVG from '../../assets/images/brick-loader.svg';
 import ConfirmFeeModal from './ConfirmFeeModal.js';
-const Address = require('hsd/lib/primitives/address.js');
+import Spinner from '../../assets/images/brick-loader.svg';
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 const shakedex = sClientStub(() => require('electron').ipcRenderer);
@@ -62,6 +62,7 @@ class Exchange extends Component {
       feeInfo: null,
       generatingListing: null,
       isLoading: true,
+      isRescanning: false,
     };
   }
 
@@ -209,6 +210,12 @@ class Exchange extends Component {
     });
   };
 
+  onRescanShakedex = async () => {
+    this.setState({ isRescanning: true });
+    await this.props.rescanShakedex();
+    this.setState({ isRescanning: false });
+  };
+
   renderListingStatus(status) {
     let statusText = status;
 
@@ -328,9 +335,10 @@ class Exchange extends Component {
           <div className="exchange__button-header__actions">
             <button
               className="exchange__button-header-button extension_secondary_button"
-              onClick={this.props.rescanShakedex}
+              onClick={this.onRescanShakedex}
+              disabled={this.state.rescanning}
             >
-              Rescan
+              { this.state.isRescanning ? <div className="spinner" />  : 'Rescan'}
             </button>
             <button
               className="exchange__button-header-button extension_cta_button"
@@ -577,6 +585,12 @@ class Exchange extends Component {
                 })}
               >
                 Generate
+              </div>
+              <div
+                className="bid-action__link"
+                onClick={() => this.props.cancelExchangeLock(l.nameLock)}
+              >
+                Cancel
               </div>
             </div>
           )}
