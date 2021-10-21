@@ -137,10 +137,10 @@ class CreateNewAccount extends Component {
                 false, // isLedger
                 null   // xpub (Ledger only)
               );
-              const masterHDKey = await walletClient.getMasterHDKey();
+              const phrase = await walletClient.revealSeed(this.state.passphrase);
               this.setState({
                 currentStep: COPY_SEEDPHRASE,
-                seedphrase: masterHDKey.mnemonic.phrase,
+                seedphrase: phrase,
                 isLoading: false,
               });
             }}
