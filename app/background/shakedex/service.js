@@ -30,7 +30,6 @@ import {
   paramSchema
 } from "../../utils/shakedex";
 import {Client} from "bcurl";
-import {add} from "winston";
 
 let db;
 
