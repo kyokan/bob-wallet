@@ -144,6 +144,7 @@
     "bcurl": "^0.1.9",
     "bdb": "^1.2.2",
     "bignumber.js": "8.0.1",
+    "bns": "~0.15.0",
     "classnames": "2.2.6",
     "copy-to-clipboard": "3.0.8",
     "deep-equal": "2.0.1",
