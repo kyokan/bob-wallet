@@ -175,7 +175,7 @@
     "rimraf": "2.6.2",
     "semver": "^7.3.5",
     "sha3": "2.0.0",
-    "shakedex": "0.0.15",
+    "shakedex": "https://github.com/chikeichan/shakedex#patch-3",
     "source-map-support": "0.5.9",
     "tcp-port-used": "1.0.1",
     "uuid": "3.3.3",
