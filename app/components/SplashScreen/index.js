@@ -4,10 +4,15 @@ import BobLogo from '../../assets/images/bob-logo-circle.svg';
 import Spinner from '../../assets/images/brick-loader.svg';
 import dbClient from "../../utils/dbClient";
 import Alert from "../Alert";
+import {withRouter} from "react-router-dom";
+import {connect} from "react-redux";
 
-export default class SplashScreen extends Component {
+
+class SplashScreen extends Component {
   static propTypes = {
     error: Proptype.string,
+    network: Proptype.string,
+    spv: Proptype.bool,
   };
 
   static defaultProps = {
@@ -19,7 +24,9 @@ export default class SplashScreen extends Component {
   };
 
   async componentWillMount() {
-    const hasMigrated300 = await dbClient.get('hsd-3.0.0-migrate');
+    const {network, spv} = this.props;
+    const migrateFlag = `${network}-hsd-3.0.0-migrate${spv ? '-spv' : ''}`;
+    const hasMigrated300 = await dbClient.get(migrateFlag);
     this.setState({ hasMigrated300 });
   }
 
@@ -60,6 +67,15 @@ export default class SplashScreen extends Component {
     );
   }
 }
+
+export default withRouter(
+  connect(
+    (state) => ({
+      network: state.node.network,
+      spv: state.node.spv,
+    }),
+  )(SplashScreen)
+);
 
 const wrapperStyle = {
   display: 'flex',
