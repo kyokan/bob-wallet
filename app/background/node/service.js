@@ -218,6 +218,8 @@ export class NodeService extends EventEmitter {
       cors: true,
       noDns: this.noDns,
       listen: this.networkName === 'regtest', // improves remote rpc dev/testing
+      chainMigrate: 2,
+      walletMigrate: 1
     });
 
     this.hsd.use(plugin);
@@ -228,8 +230,8 @@ export class NodeService extends EventEmitter {
     await this.hsd.connect();
     await this.hsd.startSync();
 
-    if (!(await get('hsd-2.4.0-migrate'))) {
-      await put('hsd-2.4.0-migrate', true);
+    if (!(await get('hsd-3.0.0-migrate'))) {
+      await put('hsd-3.0.0-migrate', true);
     }
 
     this.hsd.on('connect', async () => this.refreshNodeInfo());

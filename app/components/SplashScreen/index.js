@@ -15,12 +15,12 @@ export default class SplashScreen extends Component {
   };
 
   state = {
-    hasMigrated240: false,
+    hasMigrated300: false,
   };
 
   async componentWillMount() {
-    const hasMigrated240 = await dbClient.get('hsd-2.4.0-migrate');
-    this.setState({ hasMigrated240 });
+    const hasMigrated300 = await dbClient.get('hsd-3.0.0-migrate');
+    this.setState({ hasMigrated300 });
   }
 
   render() {
@@ -39,9 +39,17 @@ export default class SplashScreen extends Component {
                 <div style={spinnerStyle} />
                 <div style={textStyles}>Loading node...</div>
                 {
-                  !this.state.hasMigrated240 && (
+                  !this.state.hasMigrated300 && (
                     <Alert type="warning" style={alertStyle}>
-                      Migration in progress. This will take several minutes. PLEASE DO NOT CLOSE BOB!
+                      <div>
+                        Database migration in progress!
+                      </div>
+                      <div>
+                        This will take several minutes.
+                        If Bob Wallet is closed during migration, it will resume on the next open.
+                        Migration must be complete before proceeding to login screen.
+                        Once complete, you can not downgrade Bob Wallet to an earlier version.
+                      </div>
                     </Alert>
                   )
                 }
