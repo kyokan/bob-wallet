@@ -412,9 +412,16 @@ async function parseInputsOutputs(net, tx) {
     // Renewals and Updates have a value, but it doesn't
     // affect the spendable balance of the wallet.
     if (covenant.action === 'RENEW' ||
-      covenant.action === 'UPDATE' ||
-      covenant.action === 'TRANSFER') {
+      covenant.action === 'UPDATE') {
       covValue = 0;
+    }
+
+    if (covenant.action === 'TRANSFER' ) {
+      if (output.path) {
+        covValue = 0;
+      } else {
+        covValue = getNetValue(tx);
+      }
     }
 
     // May be called redundantly but should be handled by cache
@@ -468,6 +475,26 @@ async function parseInputsOutputs(net, tx) {
     value: output.value,
     fee: tx.fee,
   };
+}
+
+function getNetValue(tx) {
+  let totalValue = 0;
+
+  for (let i = 0; i < tx.outputs.length; i++) {
+    const output = tx.outputs[i];
+    if (output.path) {
+      totalValue += output.value;
+    }
+  }
+
+  for (let j = 0; j < tx.inputs.length; j++) {
+    const input = tx.inputs[j];
+    if (input.path) {
+      totalValue -= input.value;
+    }
+  }
+
+  return totalValue;
 }
 
 async function parseCovenant(net, covenant) {

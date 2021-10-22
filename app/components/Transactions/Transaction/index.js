@@ -61,20 +61,22 @@ class Transaction extends Component {
           || tx.type === REVEAL
           || tx.type === REDEEM
           || tx.type === REGISTER
-          || (tx.type === FINALIZE && tx.value > 0))
+          || (tx.type === FINALIZE && tx.value > 0)
+          || (tx.type === TRANSFER && tx.value > 0))
         && !tx.pending,
       'transaction__number--neutral':
         (tx.type === UPDATE
           || tx.type === CLAIM
           || tx.type === RENEW
           || tx.type === OPEN
-          || tx.type === TRANSFER
-          || (tx.type === FINALIZE && tx.value === 0))
+          || (tx.type === FINALIZE && tx.value === 0)
+          || (tx.type === TRANSFER && tx.value === 0))
         && !tx.pending,
       'transaction__number--negative':
         (tx.type === SEND
           || tx.type === BID
-          || (tx.type === FINALIZE && tx.value < 0))
+          || (tx.type === FINALIZE && tx.value < 0)
+          || (tx.type === TRANSFER && tx.value < 0))
         && !tx.pending,
     });
 
@@ -161,11 +163,16 @@ class Transaction extends Component {
         {tx.pending ? <em>(pending)</em> : null}
         {' '}
         {
-          tx.type === RECEIVE || tx.type === COINBASE || tx.type === REDEEM || tx.type === REVEAL || tx.type === REGISTER ? '+'
-            : tx.type === UPDATE || tx.type === RENEW || tx.type === OPEN || tx.type === FINALIZE || tx.type === CLAIM ? ''
-            : '-'
+          [RECEIVE, COINBASE, REDEEM, REVEAL, REGISTER].includes(tx.type)
+            ? '+'
+            : [UPDATE,  RENEW,  OPEN,  FINALIZE,  CLAIM].includes(tx.type)
+              ? ''
+              : [SEND, BID].includes(tx.type)
+                ? '-'
+                : ''
         }
         { (tx.type === FINALIZE && tx.value > 0) ? '+': '' }
+        { (tx.type === TRANSFER && tx.value > 0) ? '+': '' }
         {displayBalance(tx.value)} HNS
       </div>
     </div>
