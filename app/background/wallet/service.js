@@ -163,7 +163,6 @@ class WalletService {
       apiKey: this.walletApiKey,
       memory: false,
       prefix: HSD_DATA_DIR,
-      migrate: 0,
       logFile: true,
       logConsole: false,
       logLevel: 'debug',
