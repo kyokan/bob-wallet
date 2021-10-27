@@ -40,7 +40,6 @@ export default class CustomRPCConfigModal extends Component {
     protocol: 'http',
     host: '',
     pathname: '',
-    networkType: 'main',
     port: '',
     apiKey: '',
     errorMessage: '',
@@ -55,12 +54,13 @@ export default class CustomRPCConfigModal extends Component {
   async fetchCustomRPC() {
     const conn = await connClient.getCustomRPC();
 
+    const {rpcPort} = Network.get(this.props.walletNetwork);
+
     this.setState({
-      networkType: conn.networkType || 'main',
       protocol: conn.protocol || 'http',
       apiKey: conn.apiKey,
-      port: conn.port,
-      host: conn.host,
+      port: conn.port || rpcPort,
+      host: conn.host || '127.0.0.1',
       pathname: conn.pathname,
     });
   }
@@ -72,15 +72,7 @@ export default class CustomRPCConfigModal extends Component {
      return;
     }
 
-    if (!this.state.confirming && this.isDangerousURL()) {
-      this.setState({
-        confirming: true,
-      });
-      return;
-    }
-
     const {
-      networkType,
       apiKey,
       host,
       port,
@@ -187,12 +179,15 @@ export default class CustomRPCConfigModal extends Component {
     const {
       host,
       pathname,
-      networkType,
       apiKey,
       port,
       protocol,
-      errorMessage,
     } = this.state;
+
+    let {errorMessage} = this.state;
+    if (!errorMessage && this.isDangerousURL())
+      errorMessage = 'Remote connection over HTTP is prohibited.';
+    
 
     return (
       <MiniModal
@@ -222,7 +217,6 @@ export default class CustomRPCConfigModal extends Component {
             type="text"
             className="settings__input"
             value={host}
-            placeholder={`127.0.0.1`}
             onChange={e => this.setState({
               host: e.target.value,
               errorMessage: '',
@@ -236,21 +230,8 @@ export default class CustomRPCConfigModal extends Component {
             type="text"
             className="settings__input"
             value={pathname}
-            placeholder={`/`}
             onChange={e => this.setState({
               pathname: e.target.value,
-              errorMessage: '',
-            })}
-          />
-        </div>
-
-        <div className="settings__input-row">
-          <div className="settings__input-title">Network Type</div>
-          <NetworkPicker
-            className="custom-rpc__network-picker"
-            onNetworkChange={(net) => this.setState({
-              networkType: net,
-              port:  Network.get(net).rpcPort,
               errorMessage: '',
             })}
           />
@@ -262,7 +243,6 @@ export default class CustomRPCConfigModal extends Component {
             type="text"
             className="settings__input"
             value={port}
-            placeholder={`12037`}
             onChange={e => this.setState({
               port: e.target.value,
               errorMessage: '',
@@ -273,6 +253,7 @@ export default class CustomRPCConfigModal extends Component {
         <div className="settings__input-row">
           <div className="settings__input-title">API Key</div>
           <input
+            spellCheck={false}
             type="text"
             className="settings__input"
             value={apiKey}
@@ -282,14 +263,6 @@ export default class CustomRPCConfigModal extends Component {
             })}
           />
         </div>
-        {
-          !errorMessage && this.state.confirming && (
-            <div className="rpc-modal-warning">
-              Remote connection over HTTP is not recommended. Are you sure you want to continue?
-            </div>
-          )
-        }
-
         {
           errorMessage && (
             <div className="rpc-modal-warning">
@@ -305,13 +278,11 @@ export default class CustomRPCConfigModal extends Component {
             Cancel
           </button>
           <button
-            className={c('settings__btn', {
-              'settings__btn--confirm': this.state.confirming,
-            })}
+            className={"settings__btn settings__btn--confirm"}
             onClick={this.saveCustomRPC}
             disabled={errorMessage}
           >
-            {this.state.confirming ? 'Confirm' : 'Save'}
+            Save
           </button>
         </div>
       </MiniModal>
