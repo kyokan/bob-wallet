@@ -158,8 +158,9 @@ class WalletService {
     this.node = new WalletNode({
       network: this.networkName,
       nodeHost: this.conn.host,
-      nodePort: this.conn.port || undefined,
+      nodePort: parseInt(this.conn.port, 10),
       nodeApiKey: this.conn.apiKey,
+      nodeSSL: this.conn.protocol === 'https',
       apiKey: this.walletApiKey,
       memory: false,
       prefix: HSD_DATA_DIR,

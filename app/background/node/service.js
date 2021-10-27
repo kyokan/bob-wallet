@@ -307,20 +307,17 @@ export class NodeService extends EventEmitter {
       apiKey,
     } = rpc;
 
-    const portString = port ? `:${port}` : '';
-    const pathString = (!pathname || pathname === '/') ? '' : pathname;
-    const protoString = protocol || 'http';
-
-    const url = `${protoString}://${host}${portString}${pathString}`;
-
     // Not really used after this point,
     // but overwrite the local getAPIKey() just in case.
     this.apiKey = apiKey;
 
     return new NodeClient({
-      network: this.network,
       apiKey,
-      url,
+      ssl: protocol === 'https',
+      host,
+      port: parseInt(port, 10),
+      path: pathname,
+      timeout: 30000,
     });
   }
 

@@ -206,7 +206,7 @@ export default class CustomRPCConfigModal extends Component {
             className="network-picker custom-rpc__network-picker"
             items={[
               { label: 'http', value: 'http' },
-              // { label: 'https', value: 'https' },
+              { label: 'https', value: 'https' },
             ]}
             currentIndex={['http', 'https'].indexOf(protocol)}
             onChange={(value) => this.setState({
