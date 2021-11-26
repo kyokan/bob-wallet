@@ -12,11 +12,6 @@ import { ConnectionTypes, getConnection, getCustomRPC } from '../connections/ser
 import FullNode from 'hsd/lib/node/fullnode';
 import SPVNode from 'hsd/lib/node/spvnode';
 import plugin from 'hsd/lib/wallet/plugin';
-import Address from 'hsd/lib/primitives/address';
-const blake2b = require('bcrypto/lib/blake2b');
-const secp256k1 = require('bcrypto/lib/secp256k1');
-const {safeEqual} = require('bcrypto/lib/safe');
-import pkg from 'hsd/lib/pkg';
 import { prefixHash } from '../../db/names';
 import { get, put } from '../db/service';
 import {dispatchToMainWindow} from "../../mainWindow";
@@ -30,6 +25,7 @@ import {
   START_NODE_STATUS_CHANGE,
   END_NODE_STATUS_CHANGE,
 } from "../../ducks/nodeReducer";
+import pkg from '../../../package.json';
 
 const Network = require('hsd/lib/protocol/network');
 
@@ -199,6 +195,7 @@ export class NodeService extends EventEmitter {
     const Node = spv ? SPVNode : FullNode;
 
     this.hsd = new Node({
+      agent: this.getAgent(),
       config: true,
       argv: true,
       env: true,
@@ -540,6 +537,12 @@ export class NodeService extends EventEmitter {
 
   async sendRawClaim(base64) {
     return this._execRPC('sendrawclaim', [base64]);
+  }
+
+  getAgent() {
+    const { name, version } = pkg;
+
+    return `${name}:${version}`; 
   }
 
   async _ensureStarted() {
