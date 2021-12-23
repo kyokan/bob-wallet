@@ -24,6 +24,7 @@ const analytics = aClientStub(() => require("electron").ipcRenderer);
   (state) => ({
     spendableBalance: state.wallet.balance.spendable,
     height: state.node.chain.height,
+    progress: state.node.chain.progress,
     isFetching: state.wallet.isFetching,
     network: state.wallet.network,
     hnsPrice: state.node.hnsPrice,
@@ -45,6 +46,7 @@ export default class Account extends Component {
   static propTypes = {
     spendableBalance: PropTypes.number.isRequired,
     height: PropTypes.number.isRequired,
+    progress: PropTypes.number.isRequired,
     isFetching: PropTypes.bool.isRequired,
     network: PropTypes.string.isRequired,
     updateHNSPrice: PropTypes.func.isRequired,
@@ -263,6 +265,11 @@ export default class Account extends Component {
   }
 
   renderCards() {
+    // Hide cards until (almost) synced
+    if (this.props.progress < 0.9999) {
+      return;
+    }
+
     const network = this.props.network;
     const {
       revealable,
