@@ -17,7 +17,7 @@ class Record extends Component {
     const currentTypeIndex = DROPDOWN_TYPES.findIndex((d) => d.label === type);
 
     return (
-      <TableRow className={classNames(this.props.className)}>
+      <TableRow className={this.props.className}>
         <TableItem className="record__type">{DROPDOWN_TYPES[currentTypeIndex].label}</TableItem>
         <TableItem className="record__value">{value}</TableItem>
       </TableRow>
