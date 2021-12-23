@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from "prop-types";
+import classNames from 'classnames';
 import './index.scss';
 
 export class Table extends Component {
@@ -55,7 +56,7 @@ export class TableRow extends Component {
   render() {
     return (
       <div
-        className={`table__row ${this.props.className}`}
+        className={classNames('table__row', this.props.className)}
         onClick={this.props.onClick}
       >
         {this.props.children}

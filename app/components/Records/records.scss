@@ -264,3 +264,17 @@
     }
   }
 }
+
+.domain-detail-records {
+  min-height: 2.125rem !important;
+}
+
+.record {
+  &__type {
+    user-select: none;
+  }
+  &__value {
+    font-family: "Roboto Mono" !important;
+    white-space: pre !important;
+  }
+}
