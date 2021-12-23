@@ -5,6 +5,7 @@ import { clientStub as nodeClientStub } from '../background/node/client.js';
 import { showSuccess, showError } from './notifications.js';
 import networks from 'hsd/lib/protocol/networks.js';
 import {getFinalizeFromTransferTx} from "../utils/shakedex";
+const Address = require('hsd/lib/primitives/address.js');
 
 const shakedex = shakedexClientStub(() => require('electron').ipcRenderer);
 const nodeClient = nodeClientStub(() => require('electron').ipcRenderer);
@@ -214,15 +215,33 @@ export const getExchangeListings = (page = 1) => async (dispatch, getState) => {
   const transferLockup = networks[info.network].names.transferLockup;
 
   for (const listing of listings) {
-    console.log({ listing });
     let transferTx;
     let finalizeTx;
     let finalizeCoin;
     let cancelTx;
     let cancelFinalizeTx;
     let cancelCoin;
+    let nameInfo;
+    let ownerCoin;
+    let isOwnedByLockScriptAddr;
+
     try {
       transferTx = await nodeClient.getTx(listing.nameLock.transferTxHash);
+      nameInfo = await nodeClient.getNameInfo(listing.nameLock.name);
+
+      if (nameInfo) {
+        ownerCoin = await nodeClient.getCoin(nameInfo.info?.owner?.hash, nameInfo.info?.owner?.index);
+
+        const addr = new Address(
+          {
+            hash: Buffer.from(listing.nameLock.lockScriptAddr.hash.data),
+            version: listing.nameLock.lockScriptAddr.version,
+          },
+          info.network,
+        );
+
+        isOwnedByLockScriptAddr = ownerCoin.address === addr.toString(info.network);
+      }
 
       const finalize = await getFinalizeFromTransferTx(
         listing.nameLock.transferTxHash,
@@ -259,6 +278,28 @@ export const getExchangeListings = (page = 1) => async (dispatch, getState) => {
       continue;
     }
 
+    if (cancelTx && !cancelFinalizeTx) {
+      listing.status = cancelTx.height > 0 && info.chain.height - cancelTx.height > transferLockup
+        ? LISTING_STATUS.CANCEL_CONFIRMED
+        : LISTING_STATUS.CANCEL_CONFIRMING;
+      continue;
+    }
+
+    if (cancelFinalizeTx && cancelFinalizeTx.height === -1) {
+      listing.status = LISTING_STATUS.FINALIZE_CANCEL_CONFIRMING;
+      continue;
+    }
+
+    if (cancelCoin) {
+      listing.status = LISTING_STATUS.FINALIZE_CANCEL_CONFIRMED;
+      continue;
+    }
+
+    if (!isOwnedByLockScriptAddr || (isOwnedByLockScriptAddr && ownerCoin?.covenant?.action === 'TRANSFER')) {
+      listing.status = LISTING_STATUS.SOLD;
+      continue;
+    }
+
     if (finalizeTx.height === -1) {
       listing.status = LISTING_STATUS.FINALIZE_CONFIRMING;
       continue;
@@ -273,26 +314,6 @@ export const getExchangeListings = (page = 1) => async (dispatch, getState) => {
       listing.status = LISTING_STATUS.ACTIVE;
       continue;
     }
-
-    if (cancelTx && !cancelFinalizeTx) {
-      listing.status = cancelTx.height > 0 && info.chain.height - cancelTx.height > transferLockup
-        ? LISTING_STATUS.CANCEL_CONFIRMED
-        : LISTING_STATUS.CANCEL_CONFIRMING;
-      continue;
-    }
-
-    if (cancelFinalizeTx && cancelFinalizeTx.height === -1) {
-      listing.status = LISTING_STATUS.FINALIZE_CANCEL_CONFIRMING;
-      continue;
-    }
-
-
-    if (cancelCoin) {
-      listing.status = LISTING_STATUS.FINALIZE_CANCEL_CONFIRMED;
-      continue;
-    }
-
-    listing.status = LISTING_STATUS.SOLD;
   }
 
   dispatch({
@@ -466,6 +487,25 @@ export const finalizeExchangeLock = (nameLock) => async (dispatch, getState) => 
     type: FINALIZE_EXCHANGE_LOCK_OK,
   });
   dispatch(showSuccess('Successfully finalized auction! Please wait 15 minutes for it to confirm on-chain.'));
+};
+
+export const rescanShakedex = () => async (dispatch, getState) => {
+  try {
+    const passphrase = await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
+    await shakedex.rescanShakedex(passphrase);
+  } catch (e) {
+    dispatch(showError(e.message));
+    return;
+  }
+
+  dispatch(getExchangeListings());
+  dispatch(showSuccess('Successfully rescanned auction!'));
+};
+
+
+export const rescanFillByName = (name) => async (dispatch, getState) => {
+  await shakedex.rescanFillByName(name);
+  dispatch(getExchangeFullfillments());
 };
 
 export const launchExchangeAuction = (nameLock, overrideParams) => async (dispatch, getState) => {

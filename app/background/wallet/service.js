@@ -26,6 +26,7 @@ import {getStats} from "./stats";
 import {get, put} from "../db/service";
 import hsdLedger from 'hsd-ledger';
 import {NAME_STATES} from "../../constants/names";
+import {ADDRESS_BRANCH} from "../../utils/shakedex";
 
 const WalletNode = require('hsd/lib/wallet/node');
 const TX = require('hsd/lib/primitives/tx');
@@ -36,6 +37,7 @@ const MasterKey = require('hsd/lib/wallet/masterkey');
 const Mnemonic = require('hsd/lib/hd/mnemonic');
 const Covenant = require('hsd/lib/primitives/covenant');
 const common = require('hsd/lib/wallet/common');
+const Path = require('hsd/lib/wallet/path');
 const ipc = require('electron').ipcMain;
 
 const randomAddrs = {
@@ -319,6 +321,17 @@ class WalletService {
   getPublicKey = async (address) => {
     const wallet = await this.node.wdb.get(this.name);
     return wallet.getKey(address);
+  };
+
+  deriveAddressForShakedex = async (index) => {
+    const wallet = await this.node.wdb.get(this.name);
+    const account = await wallet.getAccount('default');
+    const walletPath = new Path({
+      keyType: Path.types.HD,
+      branch: ADDRESS_BRANCH,
+      index,
+    });
+    return account.derivePath(walletPath, wallet.master);
   };
 
   /**

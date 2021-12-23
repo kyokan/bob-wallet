@@ -6,7 +6,20 @@ const hexRegex = (len = null) => {
   return new RegExp(`^[a-f0-9]${len ? `{${len}}` : '+'}$`);
 };
 
+export const ADDRESS_BRANCH = 7562348;
+
 const addressRegex = /^(hs|rs|ts|ss)1[a-zA-HJ-NP-Z0-9]{25,39}$/i;
+
+export async function fetchShakedexAuction (name) {
+  try {
+    const resp = await fetch(`https://api.shakedex.com/api/v1/auctions/n/${name}`);
+    const json = await resp.json();
+    return json.auction;
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+}
 
 export const fulfillmentSchema = {
   type: 'object',
@@ -47,8 +60,6 @@ export const auctionSchema = {
     'lockingTxHash',
     'lockingOutputIdx',
     'publicKey',
-    'paymentAddr',
-    'data',
   ],
   properties: {
     name: {
@@ -105,11 +116,6 @@ export const auctionSchema = {
 
 export const paramSchema = {
   type: 'object',
-  required: [
-    'durationDays',
-    'endPrice',
-    'startPrice',
-  ],
   properties: {
     durationDays: {
       type: 'integer',

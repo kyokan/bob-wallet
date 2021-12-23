@@ -17,10 +17,15 @@ export class GenerateListingModal extends Component {
 
     this.durationOpts = [1, 3, 5, 7, 14];
 
+    const startPriceRaw = Number(props.listing?.params?.startPrice) || 0;
+    const endPriceRaw = Number(props.listing?.params?.endPrice) || 0;
+    const durationIdx = props.listing.params?.durationDays
+      ? this.durationOpts.indexOf(props.listing.params.durationDays)
+      : 0;
     this.state = {
-      startPrice: Number(props.listing.params.startPrice) / 1e6,
-      endPrice: Number(props.listing.params.endPrice) / 1e6,
-      durationIdx: this.durationOpts.indexOf(props.listing.params.durationDays),
+      startPrice: startPriceRaw / 1e6,
+      endPrice: endPriceRaw / 1e6,
+      durationIdx: durationIdx,
       errorMessage: '',
     };
   }

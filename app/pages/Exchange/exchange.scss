@@ -16,6 +16,10 @@
 
 .exchange__input {
   margin-bottom: 0.8rem;
+
+  input {
+
+  }
 }
 
 .exchange__label {
@@ -33,6 +37,18 @@
     @extend %h6;
     color: $manatee-gray;
     margin-bottom: .5rem;
+  }
+
+  &__actions {
+    @extend %row-nowrap;
+    flex: 1 1 auto;
+    justify-content: flex-end;
+    align-items: center;
+
+    .extension_cta_button,
+    .extension_secondary_button{
+      margin-left: 1rem;
+    }
   }
 }
 
@@ -53,9 +69,10 @@
   margin-top: 1rem;
   display: flex;
   align-items: center;
+  justify-content: space-between;
 
   button {
-    width: 50%;
+    width: calc(50% - .5rem);
   }
 }
 
