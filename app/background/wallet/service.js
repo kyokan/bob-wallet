@@ -155,15 +155,28 @@ class WalletService {
       payload: this.walletApiKey,
     });
 
+    // This is an unfortunate work-around for the fact that
+    // WalletNode doesn't accept a `nodePath` option to 
+    // pass to NodeClient which gets passed to bcurl/client.
+    const nodeURL =
+      this.conn.pathname
+      ?
+        this.conn.protocol + '://' +
+        'username_is_ignored:' + this.conn.apiKey + '@' +
+        this.conn.host + ':' + this.conn.port + this.conn.pathname
+      :
+        null;
+
     this.node = new WalletNode({
       network: this.networkName,
       nodeHost: this.conn.host,
-      nodePort: this.conn.port || undefined,
+      nodePort: parseInt(this.conn.port, 10),
       nodeApiKey: this.conn.apiKey,
+      nodeSSL: this.conn.protocol === 'https',
+      nodeURL,
       apiKey: this.walletApiKey,
       memory: false,
       prefix: HSD_DATA_DIR,
-      migrate: 0,
       logFile: true,
       logConsole: false,
       logLevel: 'debug',
