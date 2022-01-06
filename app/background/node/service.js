@@ -219,7 +219,8 @@ export class NodeService extends EventEmitter {
       noDns: this.noDns,
       listen: this.networkName === 'regtest', // improves remote rpc dev/testing
       chainMigrate: 2,
-      walletMigrate: 1
+      walletMigrate: 1,
+      maxOutbound: 4,
     });
 
     this.hsd.use(plugin);
