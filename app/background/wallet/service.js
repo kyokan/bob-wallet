@@ -156,7 +156,7 @@ class WalletService {
     });
 
     // This is an unfortunate work-around for the fact that
-    // WalletNode doesn't accept a `nodePath` option to 
+    // WalletNode doesn't accept a `nodePath` option to
     // pass to NodeClient which gets passed to bcurl/client.
     const nodeURL =
       this.conn.pathname
@@ -167,6 +167,8 @@ class WalletService {
       :
         null;
 
+    const prefix = await nodeService.getDir();
+
     this.node = new WalletNode({
       network: this.networkName,
       nodeHost: this.conn.host,
@@ -176,7 +178,7 @@ class WalletService {
       nodeURL,
       apiKey: this.walletApiKey,
       memory: false,
-      prefix: HSD_DATA_DIR,
+      prefix: prefix,
       logFile: true,
       logConsole: false,
       logLevel: 'debug',
