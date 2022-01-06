@@ -1,0 +1,9 @@
+{
+  "loginTitle": "登入",
+  "loginError": "密碼無效.",
+  "unlockWallet": "解鎖錢包",
+  "forgotPassword": "忘記密碼？",
+  "restoreWithSeed": "使用助記詞恢復錢包",
+  "createNewWallet": "創建新錢包",
+  "passwordInputPlaceholder": "你的密碼"
+}

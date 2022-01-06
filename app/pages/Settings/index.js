@@ -35,6 +35,9 @@ import {clientStub} from "../../background/node/client";
 import APIKeyModal from "./APIKeyModal";
 import {clientStub as cClientStub} from "../../background/connections/client";
 import {ConnectionTypes} from "../../background/connections/service";
+import Dropdown from "../../components/Dropdown";
+import {langs, languageDropdownItems} from "../../utils/i18n";
+import {setLocale} from "../../ducks/app";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 const shakedex = sClientStub(() => require('electron').ipcRenderer);
@@ -44,6 +47,7 @@ const connClient = cClientStub(() => require('electron').ipcRenderer);
 @withRouter
 @connect(
   (state) => ({
+    locale: state.app.locale,
     network: state.wallet.network,
     apiKey: state.node.apiKey,
     spv: state.node.spv,
@@ -70,12 +74,14 @@ const connClient = cClientStub(() => require('electron').ipcRenderer);
     showError: (message) => dispatch(showError(message)),
     showSuccess: (message) => dispatch(showSuccess(message)),
     fetchWallet: () => dispatch(walletActions.fetchWallet()),
+    setLocale: (locale) => dispatch(setLocale(locale)),
   }),
 )
 export default class Settings extends Component {
   static propTypes = {
     network: PropTypes.string.isRequired,
     apiKey: PropTypes.string.isRequired,
+    locale: PropTypes.string.isRequired,
     noDns: PropTypes.bool.isRequired,
     spv: PropTypes.bool.isRequired,
     wid: PropTypes.string.isRequired,
@@ -92,6 +98,7 @@ export default class Settings extends Component {
     setNoDns: PropTypes.func.isRequired,
     showError: PropTypes.func.isRequired,
     showSuccess: PropTypes.func.isRequired,
+    setLocale: PropTypes.func.isRequired,
     setCustomRPCStatus: PropTypes.func.isRequired,
     transactions: PropTypes.object.isRequired,
     fetchWallet: PropTypes.func.isRequired,
@@ -390,15 +397,13 @@ export default class Settings extends Component {
     const {
       isRunning,
       history,
-      stopNode,
-      startNode,
       spv,
       noDns,
       setNoDns,
       isChangingNodeStatus,
       isTestingCustomRPC,
       isCustomRPCConnected,
-      network
+      locale,
     } = this.props;
 
     return (
@@ -427,6 +432,19 @@ export default class Settings extends Component {
                 </span>,
                 'Change',
                 () => history.push('/settings/general/max-idle'),
+              )}
+              {this.renderSection(
+                'Language',
+                'Change language for Bob',
+                null,
+                null,
+                <Dropdown
+                  className="locale-dropdown"
+                  items={languageDropdownItems}
+                  onChange={val => this.props.setLocale(val)}
+                  currentIndex={languageDropdownItems.findIndex(item => item.value === locale)}
+                />,
+                false,
               )}
             </>
           </Route>

@@ -57,8 +57,7 @@ export default class AccountLogin extends Component {
   render() {
     const {passphrase, showError} = this.state;
     const {walletsDetails} = this.props;
-
-    console.log(this.context.t('sample'));
+    const {t} = this.context;
 
     if (!this.props.wallets.length) {
       return <Redirect to="/funding-options" />;
@@ -66,7 +65,7 @@ export default class AccountLogin extends Component {
 
     return (
       <div className="login">
-        <div className="login_header_text">Log in to your wallet</div>
+        <div className="login_header_text">{t('loginTitle')}</div>
         <Submittable onSubmit={() => this.handleLogin(passphrase)}>
           <Dropdown
             items={this.props.wallets.map((w) => ({
@@ -81,7 +80,7 @@ export default class AccountLogin extends Component {
                 "login_password_input--error": showError,
               })}
               type="password"
-              placeholder="Your password"
+              placeholder={t('passwordInputPlaceholder')}
               onChange={(e) =>
                 this.setState({ passphrase: e.target.value, showError: false })
               }
@@ -90,27 +89,27 @@ export default class AccountLogin extends Component {
             />
           </div>
           <div className="login_password_error">
-            {showError && `Invalid password.`}
+            {showError && t('loginError')}
           </div>
         </Submittable>
         <button
           className="extension_cta_button login_cta"
           onClick={() => this.handleLogin(passphrase)}
         >
-          Unlock Wallet
+          {t('unlockWallet')}
         </button>
-        <div className="login_subheader_text">Forgot your password?</div>
+        <div className="login_subheader_text">{t('forgotPassword')}</div>
         <Link
           to="/import-seed"
           className="login_subheader_text login_subheader_text__accent"
         >
-          Restore with your seed phrase
+          {t('restoreWithSeed')}
         </Link>
         <Link
           to="/funding-options"
           className="login_subheader_text login_subheader_text__accent"
         >
-          Create new wallet
+          {t('createNewWallet')}
         </Link>
       </div>
     );

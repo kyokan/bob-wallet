@@ -3,7 +3,6 @@ import {connect, Provider} from 'react-redux';
 import { ConnectedRouter } from 'connected-react-router';
 import App from './App';
 import translations, {I18nContext} from "../utils/i18n";
-import * as walletActions from "../ducks/walletActions";
 
 export default class Root extends Component {
 
@@ -13,9 +12,7 @@ export default class Root extends Component {
 
     return (
       <Provider store={store}>
-        <ConnectedRouter history={history}>
-          <Content />
-        </ConnectedRouter>
+        <Content history={history} />
       </Provider>
     );
   }
@@ -42,7 +39,9 @@ class Content extends Component {
           }
         }}
       >
-        <App />
+        <ConnectedRouter history={this.props.history}>
+          <App />
+        </ConnectedRouter>
       </I18nContext.Provider>
     );
   }

@@ -14,5 +14,10 @@ export const I18nContext = React.createContext({
 
 export default translations;
 
+export const languageDropdownItems = [
+  { label: 'English (US)', value: 'en-US' },
+  { label: '中文', value: 'zh' },
+];
+
 
 

@@ -1,3 +1,9 @@
 {
-  "sample": "Sample"
+  "loginTitle": "Log in to your wallet",
+  "loginError": "Invalid password.",
+  "unlockWallet": "Unlock Wallet",
+  "forgotPassword": "Forgot your password?",
+  "restoreWithSeed": "Restore with your seed phrase",
+  "createNewWallet": "Create new wallet",
+  "passwordInputPlaceholder": "Your password"
 }

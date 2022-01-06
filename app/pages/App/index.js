@@ -69,7 +69,7 @@ class App extends Component {
 
   async componentDidMount() {
     this.setState({isLoading: true});
-    this.props.fetchLocale().catch(e => console.log(e));
+    this.props.fetchLocale();
     await this.props.startNode();
     this.props.watchActivity();
 
