@@ -9,6 +9,7 @@ import { Link, Redirect } from 'react-router-dom';
 import Dropdown from '../../components/Dropdown';
 import { withRouter } from 'react-router';
 import walletClient from "../../utils/walletClient";
+import {I18nContext} from "../../utils/i18n";
 
 @connect(
   (state) => ({
@@ -29,6 +30,8 @@ export default class AccountLogin extends Component {
   static defaultProps = {
     className: '',
   };
+
+  static contextType = I18nContext;
 
   state = {
     passphrase: '',
@@ -54,6 +57,8 @@ export default class AccountLogin extends Component {
   render() {
     const {passphrase, showError} = this.state;
     const {walletsDetails} = this.props;
+
+    console.log(this.context.t('sample'));
 
     if (!this.props.wallets.length) {
       return <Redirect to="/funding-options" />;

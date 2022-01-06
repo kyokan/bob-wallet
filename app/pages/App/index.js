@@ -37,6 +37,7 @@ import AppHeader from "../AppHeader";
 import Exchange from '../Exchange';
 import SignMessage from "../SignMessage";
 import VerifyMessage from "../VerifyMessage";
+import {fetchLocale} from "../../ducks/app";
 const connClient = cClientStub(() => require('electron').ipcRenderer);
 const settingClient = sClientStub(() => require('electron').ipcRenderer);
 
@@ -46,6 +47,7 @@ const settingClient = sClientStub(() => require('electron').ipcRenderer);
   }),
   (dispatch) => ({
     setExplorer: (explorer) => dispatch(nodeActions.setExplorer(explorer)),
+    fetchLocale: () => dispatch(fetchLocale()),
   }),
 )
 class App extends Component {
@@ -55,6 +57,7 @@ class App extends Component {
     initialized: PropTypes.bool.isRequired,
     startNode: PropTypes.func.isRequired,
     watchActivity: PropTypes.func.isRequired,
+    fetchLocale: PropTypes.func.isRequired,
     isChangingNetworks: PropTypes.bool.isRequired,
   };
 
@@ -66,6 +69,7 @@ class App extends Component {
 
   async componentDidMount() {
     this.setState({isLoading: true});
+    this.props.fetchLocale().catch(e => console.log(e));
     await this.props.startNode();
     this.props.watchActivity();
 
@@ -79,7 +83,7 @@ class App extends Component {
 
     this.fetchExplorer().then(explorer => {
       this.props.setExplorer(explorer)
-    })
+    });
 
     setTimeout(() => this.setState({isLoading: false}), 1000);
   }
