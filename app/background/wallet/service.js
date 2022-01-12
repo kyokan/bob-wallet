@@ -779,9 +779,6 @@ class WalletService {
 
   // price is in WHOLE HNS!
   finalizeWithPayment = async (name, fundingAddr, nameReceiveAddr, price) => {
-    if (price > 2000) {
-      throw new Error('Refusing to create a transfer for more than 2000 HNS.');
-    }
 
     const {wdb} = this.node;
     const wallet = await wdb.get(this.name);
