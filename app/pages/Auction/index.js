@@ -29,6 +29,7 @@ import Records from '../../components/Records';
 import './domains.scss';
 import { clientStub as aClientStub } from '../../background/analytics/client';
 import NameClaimModal from "../../components/NameClaimModal";
+import {I18nContext} from "../../utils/i18n";
 
 const Sentry = require('@sentry/electron');
 
@@ -80,6 +81,8 @@ export default class Auction extends Component {
   state = {
     isShowingClaimModal: false,
   };
+
+  static contextType = I18nContext;
 
   async componentWillMount() {
     try {
@@ -201,18 +204,22 @@ export default class Auction extends Component {
     const domain = this.props.domain || {};
     const bids = domain.bids || domain.reveals || [];
     const pillContent = bids.length === 1 ? `${bids.length} bid` : `${bids.length} bids`;
+    const t = this.context.t;
 
     if (isAvailable(domain) || isOpening(domain) || isBidding(domain) || isReveal(domain) || isClosed(domain)) {
       return (
         <React.Fragment>
 
           <Collapsible className="domains__content__info-panel" title="Bids" pillContent={pillContent}>
-            {this.props.domain ?
-              <BidHistory
-                bids={this.props.domain.bids}
-                reveals={this.props.domain.reveals}
-              /> :
-              'Loading...'
+            {
+              this.props.domain
+                ? (
+                  <BidHistory
+                    bids={this.props.domain.bids}
+                    reveals={this.props.domain.reveals}
+                  />
+                )
+              : t('loading') + '...'
             }
           </Collapsible>
 
@@ -282,44 +289,45 @@ export default class Auction extends Component {
 
   renderStatusInfo() {
     const {domain} = this.props;
+    const {t} = this.context;
     let status = '';
     let description = '';
 
     if (isReserved(domain)) {
-      status = 'Reserved';
+      status = t('reserved');
       description = (
         <button
           onClick={() => this.setState({ isShowingClaimModal: true })}
         >
-          Claim this name
+          {t('reservedCTAText')}
         </button>
       );
     } else if (isOpening(domain)) {
-      status = 'Opening';
-      description = 'Bidding Soon';
+      status = t('opening');
+      description = t('biddingSoon');
     } else if (isBidding(domain)) {
       const bids = domain.bids || [];
-      status = 'Available';
-      description = `Bidding Now (${bids.length} bids)`;
+      status = t('available');
+      description = `${t('biddingNow')} (${bids.length} ${t('bids')})`;
     } else if (isComingSoon(domain, this.props.chain.height)) {
-      status = 'Coming Soon';
+      status = t('comingSoon');
       description = (
         <span>
-          Available around <Blocktime height={domain.start.start} format="ll" />
+          {t('available')} <Blocktime height={domain.start.start} format="ll" />
         </span>
       );
     } else if (isAvailable(domain)) {
-      status = 'Available';
-      description = 'No Bids';
+      status = t('available');
+      description = t('noBids');
     } else if (isClosed(domain)) {
-      status = 'Sold';
+      status = t('sold');
       // this.setState({ showCollapsibles: false })
     } else if (isReveal(domain)) {
-      status = 'Revealing';
+      status = t('revealing');
     } else {
-      status = 'Unavailable';
+      status = t('unavailable');
     }
 
-    return this.renderDetailBlock('Status', status, description);
+    return this.renderDetailBlock(t('status'), status, description);
   }
 }
