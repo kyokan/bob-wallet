@@ -416,6 +416,9 @@
   "soldFor": "Sold For",
   "sortBy": "Sort By",
   "spendable": "SPENDABLE",
+  "splashLoading": "Loading node...",
+  "splashMigrate3001": "Database migration in progress!",
+  "splashMigrate3002": "This will take several minutes. If Bob Wallet is closed during migration, it will resume on the next open. Migration must be complete before proceeding to login screen. Once complete, you can not downgrade Bob Wallet to an earlier version.",
   "startAuction": "Start Auction",
   "startTransfer": "Start Transfer",
   "startedIn": "Started in Block #%s",
@@ -501,8 +504,5 @@
   "zapCTA": "Delete Unconfirmed Transactions",
   "zapNoPending": "You do not have any pending transactions.",
   "zapSuccess": "All pending transactions have been deleted!",
-  "zapTitle": "Delete unconfirmed transactions",
-  "splashLoading": "Loading node...",
-  "splashMigrate3001": "Database migration in progress!",
-  "splashMigrate3002": "This will take several minutes. If Bob Wallet is closed during migration, it will resume on the next open. Migration must be complete before proceeding to login screen. Once complete, you can not downgrade Bob Wallet to an earlier version."
+  "zapTitle": "Delete unconfirmed transactions"
 }
