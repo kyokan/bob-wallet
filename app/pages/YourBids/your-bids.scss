@@ -31,6 +31,7 @@
     margin-right: 1rem;
     cursor: pointer;
     color: $azure-blue;
+    text-transform: uppercase;
 
     &--active {
       cursor: default;
@@ -156,6 +157,7 @@
     font-size: .6rem;
     font-weight: 500;
     color: $dark-grey;
+    text-transform: uppercase;
 
     &__paren {
       padding-left: .25rem;

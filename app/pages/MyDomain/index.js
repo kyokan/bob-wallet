@@ -15,6 +15,7 @@ import { showError, showSuccess } from '../../ducks/notifications';
 import { fetchPendingTransactions } from '../../ducks/walletActions';
 import { clientStub as aClientStub } from '../../background/analytics/client';
 import TransferDetails from './TransferDetails';
+import {I18nContext} from "../../utils/i18n";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -32,6 +33,8 @@ class MyDomain extends Component {
     explorer: PropTypes.object.isRequired,
   };
 
+  static contextType = I18nContext;
+
   async componentWillMount() {
     await this.props.getNameInfo();
     await this.props.fetchPendingTransactions();
@@ -44,7 +47,7 @@ class MyDomain extends Component {
   handleRegister = () => {
     this.props.sendRegister(this.props.name)
       .then(() => {
-        this.props.showSuccess('Your register request is submitted! Please wait around 15 minutes for it to be confirmed.');
+        this.props.showSuccess(this.context.t('registerSuccess'));
         analytics.track('registered domain');
       })
       .catch(e => this.props.showError(e.message));
@@ -53,7 +56,7 @@ class MyDomain extends Component {
   handleRenew = () => {
     this.props.sendRenewal(this.props.name)
       .then(() => {
-        this.props.showSuccess('Your renew request is submitted! Please wait around 15 minutes for it to be confirmed.');
+        this.props.showSuccess(this.context.t('renewSuccess'));
         analytics.track('renewed domain');
       })
       .catch(e => this.props.showError(e.message));
@@ -61,6 +64,7 @@ class MyDomain extends Component {
 
   renderRegisterOrRenewal() {
     const {chain} = this.props;
+    const {t} = this.context;
     const domain = this.props.domain || {};
     const info = domain.info || {};
     const stats = info.stats || {};
@@ -82,7 +86,7 @@ class MyDomain extends Component {
           <div
             className="my-domain__header__renewing-link"
           >
-            Renewing...
+            {t('renewing')}...
           </div>
         );
       }
@@ -92,7 +96,7 @@ class MyDomain extends Component {
           className="my-domain__header__reveal-link"
           onClick={this.handleRenew}
         >
-          Send Renewal
+          {t('renew')}
         </div>
       );
 
@@ -103,7 +107,7 @@ class MyDomain extends Component {
           <div
             className="my-domain__header__renewing-link"
           >
-            Registering...
+            {t('registering')}...
           </div>
         );
       }
@@ -113,7 +117,7 @@ class MyDomain extends Component {
           className="my-domain__header__reveal-link"
           onClick={this.handleRegister}
         >
-          Send Register
+          {t('register')}
         </div>
       );
     }
@@ -121,6 +125,7 @@ class MyDomain extends Component {
 
   render() {
     const {name, history, domain = {}} = this.props;
+    const {t} = this.context;
 
     const viewOnExplorer = () => {
       shell.openExternal(this.props.explorer.name.replace('%s', this.props.domain.name))
@@ -132,7 +137,7 @@ class MyDomain extends Component {
           className="my-domain__back-arrow"
           onClick={() => history.push('/domain_manager')}
         >
-          Back
+          {t('back')}
         </div>
         <div className="my-domain__header">
           <div className="my-domain__header__title">
@@ -146,17 +151,17 @@ class MyDomain extends Component {
           </div>
           {this.renderRegisterOrRenewal()}
         </div>
-        <Collapsible className="my-domain__info-panel" title="Domain Details" defaultCollapsed>
+        <Collapsible className="my-domain__info-panel" title={t('domainDetails')} defaultCollapsed>
           <DomainDetails name={name} />
         </Collapsible>
-        <Collapsible className="my-domain__info-panel" title="Records">
+        <Collapsible className="my-domain__info-panel" title={t('records')}>
           <Records
             name={name}
             transferring={!!domain.info && domain.info.transfer !== 0}
             editable
           />
         </Collapsible>
-        <Collapsible className="my-domain__info-panel" title="Bids" defaultCollapsed>
+        <Collapsible className="my-domain__info-panel" title={t('bidsTitle')} defaultCollapsed>
           {
             this.props.domain
               ? (
@@ -165,12 +170,12 @@ class MyDomain extends Component {
                   reveals={domain.reveals || []}
                 />
               )
-              : 'Loading...'
+              : t('loading')
           }
         </Collapsible>
         {
           domain.isOwner && (
-            <Collapsible className="my-domain__info-panel" title="Transfer" defaultCollapsed>
+            <Collapsible className="my-domain__info-panel" title={t('transfer')} defaultCollapsed>
               <TransferDetails name={name} />
             </Collapsible>
           )
@@ -188,7 +193,7 @@ class MyDomain extends Component {
 
     const expired = moment().add(domain.info.stats.daysUntilExpire, 'd').format('YYYY-MM-DD');
 
-    return `Expires ${expired}`;
+    return `${this.context.t('expiresOn')} ${expired}`;
   }
 }
 

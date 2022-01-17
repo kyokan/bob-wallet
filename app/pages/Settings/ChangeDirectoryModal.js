@@ -6,6 +6,7 @@ import {connect} from "react-redux";
 import {withRouter} from "react-router-dom";
 import Alert from "../../components/Alert";
 import dbClient from "../../utils/dbClient";
+import {I18nContext} from "../../utils/i18n";
 const nodeClient = clientStub(() => require('electron').ipcRenderer);
 const {dialog} = require('electron').remote;
 
@@ -16,6 +17,8 @@ const {dialog} = require('electron').remote;
   null,
 )
 export default class ChangeDirectoryModal extends Component {
+  static contextType = I18nContext;
+
   state = {
     directory: '',
     errorMessage: '',
@@ -68,20 +71,21 @@ export default class ChangeDirectoryModal extends Component {
 
   render() {
     const { errorMessage, directory, originalDirectory, userDir, saving } = this.state;
+    const {t} = this.context;
 
     return (
       <MiniModal
         closeRoute="/settings/connection"
-        title="Change HSD Directory"
+        title={t('changeDirectoryTitle')}
       >
         <Alert type="warning">
-          This will only change your hsd home directory. Your other data, such as user setting and wallet data, will still be saved in <i>{userDir}</i>. <b>Please restart Bob for new setting to take effect.</b>
+          {t('changeDirectoryWarning', userDir)}
         </Alert>
         <div className="settings__input-row">
           <div className="settings__input-title">
-            Home Directory
+            {t('homeDirectory')}
             <a onClick={this.pickDirectory}>
-              Pick Directory
+              {t('pickDirectory')}
             </a>
           </div>
           <input
@@ -107,7 +111,7 @@ export default class ChangeDirectoryModal extends Component {
             onClick={this.reset}
             disabled={originalDirectory === directory}
           >
-            Cancel
+            {t('cancel')}
           </button>
           <button
             className={c('settings__btn', {
@@ -116,7 +120,7 @@ export default class ChangeDirectoryModal extends Component {
             onClick={this.saveDir}
             disabled={errorMessage || originalDirectory === directory}
           >
-            Change Directory
+            {t('changeDirectoryTitle')}
           </button>
         </div>
       </MiniModal>

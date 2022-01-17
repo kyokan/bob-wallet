@@ -5,6 +5,7 @@ import {consensus} from 'hsd/lib/protocol';
 import walletClient from '../../utils/walletClient';
 import * as names from '../../ducks/names';
 import { showError } from '../../ducks/notifications';
+import {I18nContext} from "../../utils/i18n";
 
 export class RepairBid extends Component {
   static propTypes = {
@@ -12,6 +13,8 @@ export class RepairBid extends Component {
     getNameInfo: PropTypes.func.isRequired,
     showError: PropTypes.func.isRequired,
   };
+
+  static contextType = I18nContext;
 
   constructor(props) {
     super(props);
@@ -23,12 +26,13 @@ export class RepairBid extends Component {
   };
 
   renderRepairableBid() {
+    const {t} = this.context;
     return (
       <div
         className="bid-history__repair-bid"
         onClick={() => this.setState({isEditing: true})}
       >
-        {"⚠️ Unknown Bid"}
+        {`⚠️ ${t('unknownBid')}`}
       </div>
     );
   }
@@ -37,7 +41,7 @@ export class RepairBid extends Component {
     return (
       <input
         className={this.state.isCorrect ? 'bid-history__correct' : ''}
-        placeholder="0.000000"
+        placeholder="0.00"
         value={this.state.value}
         onChange={(e) => {
             this.processValue(e.target.value);
@@ -57,7 +61,7 @@ export class RepairBid extends Component {
       return;
 
     return this.verifyBid(parsed);
-  }
+  };
 
   async verifyBid(value) {
     const {bid} = this.props;

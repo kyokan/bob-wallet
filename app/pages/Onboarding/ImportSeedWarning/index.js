@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import Checkbox from '../../../components/Checkbox/index';
 import WizardHeader from '../../../components/WizardHeader/index';
 import './importwarning.scss';
+import {I18nContext} from "../../../utils/i18n";
 
 @withRouter
 class ImportSeedWarning extends Component {
@@ -14,6 +15,8 @@ class ImportSeedWarning extends Component {
     onCancel: PropTypes.func.isRequired,
     onBack: PropTypes.func.isRequired,
   };
+
+  static contextType = I18nContext;
 
   state = {
     agreementConfirmed: false,
@@ -27,6 +30,7 @@ class ImportSeedWarning extends Component {
   render() {
     const {agreementConfirmed} = this.state;
     const {currentStep, totalSteps} = this.props;
+    const {t} = this.context;
 
     return (
       <div className="import-seed-warning create-password">
@@ -37,13 +41,11 @@ class ImportSeedWarning extends Component {
           onCancel={this.props.onCancel}
         />
         <div className="create-password__content">
-          <div className="backup-warning__header_text">Import your recovery seed phrase</div>
+          <div className="backup-warning__header_text">{t('obImportWarningHeader')}</div>
 
           <div className="import_warning_text">
             <span>
-              Entering your seed on any website is dangerous. You could lose all
-              your funds if you accidentally visit a phishing website or if your
-              computer is compromised.
+              {t('obImportWarningText')}
             </span>
           </div>
           <div className="import_user_input">
@@ -54,7 +56,7 @@ class ImportSeedWarning extends Component {
               />
             </span>
             <span className="import_checkbox_text">
-              I understand the risks, let me enter my seed phrase.
+              {t('obImportWarningAckText')}
             </span>
           </div>
         </div>
@@ -65,7 +67,7 @@ class ImportSeedWarning extends Component {
             onClick={this.props.onNext}
             disabled={!agreementConfirmed}
           >
-            Continue
+            {t('next')}
           </button>
         </div>
       </div>

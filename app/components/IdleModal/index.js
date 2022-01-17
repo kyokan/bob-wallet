@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import Modal from '../Modal';
 import * as walletAction from '../../ducks/walletActions';
 import './idle-modal.scss';
+import {I18nContext} from "../../utils/i18n";
 
 class IdleModal extends Component {
   static propTypes = {
@@ -12,6 +13,8 @@ class IdleModal extends Component {
     resetIdle: PropTypes.func.isRequired,
     logout: PropTypes.func.isRequired,
   };
+
+  static contextType = I18nContext;
 
   state = {
     isShowing: false,
@@ -80,6 +83,7 @@ class IdleModal extends Component {
   };
 
   render() {
+    const {t} = this.context;
     if (!this.state.isShowing) {
       return <noscript />;
     }
@@ -88,7 +92,7 @@ class IdleModal extends Component {
       <Modal className="idle-modal__wrapper" onClose={() => ({})}>
         <div className="idle-modal">
           <div className="idle-modal__title">
-            You will be automatically logged out in:
+            {t('idleModalTitle')}
           </div>
           <div className="idle-modal__time">{this.state.timeRemaining}s</div>
           <div className="idle-modal__actions">
@@ -96,13 +100,13 @@ class IdleModal extends Component {
               className="idle-modal__actions__extend"
               onClick={this.extend}
             >
-              Extend
+              {t('extend')}
             </button>
             <button
               className="idle-modal__actions__logout"
               onClick={this.logout}
             >
-              Logout
+              {t('logout')}
             </button>
           </div>
         </div>

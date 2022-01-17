@@ -12,6 +12,7 @@ import { displayBalance } from '../../../utils/balances';
 import Blocktime from '../../../components/Blocktime';
 import * as names from '../../../ducks/names';
 import { showError, showSuccess } from '../../../ducks/notifications';
+import {I18nContext} from "../../../utils/i18n";
 
 class Owned extends Component {
   static propTypes = {
@@ -27,15 +28,17 @@ class Owned extends Component {
     }).isRequired,
   };
 
+  static contextType = I18nContext;
+
   sendRenewal = () => {
     this.props.sendRenewal()
-      .then(() => this.props.showSuccess('Your renew request is submitted! Please wait around 15 minutes for it to be confirmed.'))
+      .then(() => this.props.showSuccess(this.context.t('renewSuccess')))
       .catch(e => this.props.showError(e.message))
   };
 
   sendRegister = () => {
     this.props.sendRegister()
-      .then(() => this.props.showSuccess('Your register request is submitted! Please wait around 15 minutes for it to be confirmed.'))
+      .then(() => this.props.showSuccess(this.context.t('registerSuccess')))
       .catch(e => this.props.showError(e.message))
   };
 
@@ -46,31 +49,32 @@ class Owned extends Component {
     const { renewalPeriodStart, renewalPeriodEnd } = stats || {};
     const isPendingRenew = domain.pendingOperation === 'RENEW';
     const isPendingRegister = domain.pendingOperation === 'REGISTER';
+    const {t} = this.context;
 
     return (
       <AuctionPanel>
-        <AuctionPanelHeader title="You are the owner of this domain!">
-          <AuctionPanelHeaderRow label="Expires On:">
+        <AuctionPanelHeader title={t('ownedTitle')}>
+          <AuctionPanelHeaderRow label={t('expiresOn') + ':'}>
             <Blocktime
               height={renewalPeriodEnd}
               format="ll"
             />
           </AuctionPanelHeaderRow>
-          <AuctionPanelHeaderRow label="Total Bids:">
+          <AuctionPanelHeaderRow label={t('totalBids') + ':'}>
             {bids.length}
           </AuctionPanelHeaderRow>
-          <AuctionPanelHeaderRow label="Highest Bid:">
+          <AuctionPanelHeaderRow label={t('highestBid') + ':'}>
             {displayBalance(highest, true)}
           </AuctionPanelHeaderRow>
         </AuctionPanelHeader>
         <AuctionPanelFooter className="domains__action-panel__owned-actions">
-          { info.registered ? 
+          { info.registered ?
             <button
               className="domains__action-panel__renew-domain-btn"
               onClick={this.sendRenewal}
               disabled={isPendingRenew || !chain || chain.height < renewalPeriodStart}
             >
-              { isPendingRenew ? 'Renewing': 'Renew my domain' }
+              { isPendingRenew ? t('renewing') : t('renewMyDomain') }
             </button>
             :
             <button
@@ -78,14 +82,14 @@ class Owned extends Component {
               onClick={this.sendRegister}
               disabled={isPendingRegister}
             >
-              { isPendingRegister ? 'Registering': 'Register my domain' }
+              { isPendingRegister ? t('registering') : t('registerMyDomain') }
             </button>
           }
           <button
             className="domains__action-panel__manage-domain-btn"
             onClick={() => history.push(`/domain_manager/${name}`)}
           >
-            Manage my domain
+            {t('manageMyDomain')}
           </button>
         </AuctionPanelFooter>
       </AuctionPanel>

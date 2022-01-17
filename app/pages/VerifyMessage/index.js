@@ -4,6 +4,7 @@ import "./verify-message.scss";
 import nodeClient from "../../utils/nodeClient";
 import {showError, showSuccess} from "../../ducks/notifications";
 import PropTypes from "prop-types";
+import {I18nContext} from "../../utils/i18n";
 
 @connect(
   (state) => ({
@@ -19,6 +20,8 @@ class VerifyMessage extends Component {
     showSuccess: PropTypes.func.isRequired,
   };
 
+  static contextType = I18nContext;
+
   state = {
     name: '',
     rawMessage: '',
@@ -29,13 +32,15 @@ class VerifyMessage extends Component {
   onVerify = async () => {
     const {rawMessage, signature, name} = this.state;
     const {showError, showSuccess} = this.props;
+    const {t} = this.context;
+
     try {
       const result = await nodeClient.verifyMessageWithName(name, signature, rawMessage);
 
       if (result) {
-        showSuccess(`The message was signed by ${name}.`);
+        showSuccess(t('verifySuccess', name));
       } else {
-        showError(`Invalid signature.`);
+        showError(t('verifyFailure'));
       }
     } catch (e) {
       showError(e.message);
@@ -43,6 +48,8 @@ class VerifyMessage extends Component {
   };
 
   render() {
+    const {t} = this.context;
+
     return (
       <div className="verify-message">
         <div className="verify-message__top">
@@ -60,13 +67,13 @@ class VerifyMessage extends Component {
             onClick={this.onVerify}
             disabled={!this.state.rawMessage || !this.state.name || !this.state.signature}
           >
-            Verify Message
+            {t('verifyCTA')}
           </button>
         </div>
         <div className="verify-message__content">
           <div className="verify-message__content__textarea">
             <div className="verify-message__content__textarea__title">
-              Message
+              {t('signMessageTextareaLabel')}
             </div>
             <textarea
               className="verify-message__content__textarea__message"
@@ -78,7 +85,7 @@ class VerifyMessage extends Component {
           </div>
           <div className="verify-message__content__textarea">
             <div className="verify-message__content__textarea__title">
-              <span>Signature</span>
+              <span>{t('signMessageSigLabel')}</span>
             </div>
             <textarea
               className="verify-message__content__textarea__signature"

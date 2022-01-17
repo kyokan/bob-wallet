@@ -5,6 +5,7 @@ import { connect } from "react-redux";
 import MiniModal from "../../components/Modal/MiniModal";
 import { setMaxIdle } from "../../ducks/walletActions";
 import "./max-idle-modal.scss";
+import {I18nContext} from "../../utils/i18n";
 
 @withRouter
 @connect(
@@ -24,6 +25,8 @@ export default class MaxIdleModal extends Component {
     }).isRequired,
   };
 
+  static contextType = I18nContext;
+
   constructor(props) {
     super(props);
     this.state = {
@@ -41,11 +44,12 @@ export default class MaxIdleModal extends Component {
   };
 
   render() {
+    const {t} = this.context;
+
     return (
-      <MiniModal title="Change idle timeout" closeRoute="/settings" centered>
+      <MiniModal title={t('changeIdleTitle')} closeRoute="/settings" centered>
         <div className="max-idle-modal__instructions">
-          Enter the time of inactivity after which the wallet should
-          automatically lock (0 to disable auto-lock).
+          {t('changeIdleInstruction')}
         </div>
         <div className="max-idle-modal__input">
           <input
@@ -56,13 +60,13 @@ export default class MaxIdleModal extends Component {
             min="0"
             autoFocus
           />{" "}
-          minutes
+          {t('changeIdleUnit')}
         </div>
         <button
           className="max-idle-modal__submit"
           onClick={this.onUpdateMaxIdle}
         >
-          Change timeout
+          {t('update')}
         </button>
       </MiniModal>
     );

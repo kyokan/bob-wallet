@@ -5,10 +5,13 @@ import { finalizeWithPayment } from '../../ducks/names';
 import { connect } from 'react-redux';
 import {consensus} from 'hsd/lib/protocol';
 import { waitForPassphrase } from '../../ducks/walletActions';
+import {I18nContext} from "../../utils/i18n";
 
 const wallet = wClientStub(() => require('electron').ipcRenderer);
 
 export class FinalizeWithPaymentModal extends Component {
+  static contextType = I18nContext;
+
   constructor(props) {
     super(props);
 
@@ -42,7 +45,7 @@ export class FinalizeWithPaymentModal extends Component {
     const {hex} = this.state;
 
     return (
-      <MiniModal title="Finalize With Payment" onClose={this.props.onClose}>
+      <MiniModal title={this.context.t('finalizeWithPayment')} onClose={this.props.onClose}>
         {hex && this.renderInstructions()}
         {!hex && this.renderForm()}
       </MiniModal>
@@ -50,9 +53,11 @@ export class FinalizeWithPaymentModal extends Component {
   }
 
   renderInstructions() {
+    const {t} = this.context;
+
     return (
       <>
-        <p>Send the hex string below to your counterparty.</p>
+        <p>{t('finalizeWithPaymentInstruction')}</p>
 
         <div className="import-enter__textarea-container">
             <textarea
@@ -68,7 +73,7 @@ export class FinalizeWithPaymentModal extends Component {
             className="send__cta-btn"
             onClick={this.props.onClose}
           >
-            Done
+            {t('done')}
           </button>
         </div>
       </>
@@ -85,6 +90,7 @@ export class FinalizeWithPaymentModal extends Component {
   }
 
   renderForm() {
+    const {t} = this.context;
     const isValid = !!this.state.price && (
       !!this.state.price && Number(this.state.price) <= 2000
     );
@@ -92,15 +98,12 @@ export class FinalizeWithPaymentModal extends Component {
     return (
       <>
         <p>
-          To require payment to finalize this transfer,
-          verify the recipient's name transfer address and
-          enter the agreed price in HNS below.
+          {t('finalizeWithPaymentWarning1')}
         </p>
 
         <p>
           <strong>
-            As a precaution, transfers are limited to 2000 HNS
-            until this feature has been sufficiently tested.
+            {t('finalizeWithPaymentWarning2')}
           </strong>
         </p>
 
@@ -116,7 +119,7 @@ export class FinalizeWithPaymentModal extends Component {
           </div>
         </div>
         <div className="send__to">
-          Name recipient address:
+          {t('recipientAddress')}:
         </div>
         <div className="send__to">
           {this.props.transferTo}
@@ -127,7 +130,7 @@ export class FinalizeWithPaymentModal extends Component {
             onClick={this.onClickFinalize}
             disabled={!isValid}
           >
-            Finalize
+            {t('finalize')}
           </button>
         </div>
       </>
