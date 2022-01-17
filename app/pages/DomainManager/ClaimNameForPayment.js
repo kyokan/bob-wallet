@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import { showSuccess } from '../../ducks/notifications';
 import { claimPaidTransfer } from '../../ducks/names';
 import { waitForPassphrase, hasAddress } from '../../ducks/walletActions';
+import {I18nContext} from "../../utils/i18n";
 
 @connect(
   (state) => ({
@@ -19,6 +20,8 @@ import { waitForPassphrase, hasAddress } from '../../ducks/walletActions';
   }),
 )
 export default class ClaimNameForPayment extends Component {
+  static contextType = I18nContext;
+
   constructor(props) {
     super(props);
     this.state = {
@@ -29,6 +32,8 @@ export default class ClaimNameForPayment extends Component {
   }
 
   onClickVerify = async () => {
+    const { t } = this.context;
+
     try {
       const {network, hasAddress} = this.props;
       const mtx = MTX.decode(Buffer.from(this.state.hex, 'hex'));
@@ -43,7 +48,7 @@ export default class ClaimNameForPayment extends Component {
       if (!isOwn && !this.state.isConfirming) {
         this.setState({
           isConfirming: true,
-          hexError: 'Receiving address is not yours. Are you are you want to pay for this name?',
+          hexError: t('claimNamePaymentNotOwnedError'),
         });
       } else {
         this.setState({
@@ -56,19 +61,20 @@ export default class ClaimNameForPayment extends Component {
       }
     } catch (e) {
       this.setState({
-        hexError: 'Invalid hex value.',
+        hexError: t('claimNamePaymentInvalidHexError'),
       });
     }
   };
 
   onClickTransfer = async () => {
+    const { t } = this.context;
     try {
       this.setState({
         isLoading: true,
       });
       await this.props.claimPaidTransfer(this.state.hex);
       this.props.onClose();
-      this.props.showSuccess('Successfully claimed paid transfer. Please wait 1 block for the name to appear.');
+      this.props.showSuccess(t('claimNamePaymentSuccess'));
     } catch (e) {
       this.setState({
         transferError: e.message,
@@ -79,7 +85,7 @@ export default class ClaimNameForPayment extends Component {
 
   render() {
     return (
-      <MiniModal title="Claim Name For Payment" onClose={this.props.onClose}>
+      <MiniModal title={this.context.t('claimNamePaymentTitle')} onClose={this.props.onClose}>
         {this.renderSteps()}
       </MiniModal>
     );
@@ -95,12 +101,11 @@ export default class ClaimNameForPayment extends Component {
   }
 
   renderEnterHex() {
+    const { t } = this.context;
     return (
       <>
         <p>
-          If your counterparty has sent you a name transfer for payment,
-          paste the hex string into the box below to verify it and claim
-          your name.
+          { t('claimNamePaymentBody') }
         </p>
 
         {this.state.hexError && (
@@ -126,7 +131,7 @@ export default class ClaimNameForPayment extends Component {
             onClick={this.onClickVerify}
             disabled={!this.state.hex.length}
           >
-            Verify
+            {t('verify')}
           </button>
         </div>
       </>
@@ -134,11 +139,11 @@ export default class ClaimNameForPayment extends Component {
   }
 
   renderVerify() {
+    const { t } = this.context;
     return (
       <>
         <p>
-          Please verify all the information below. If anything looks invalid,
-          please close this window.
+          { t('claimNamePaymentVerifyBody') }
         </p>
 
         {this.state.transferError && (
@@ -148,13 +153,13 @@ export default class ClaimNameForPayment extends Component {
         )}
 
         <dl className="claim-name-for-payment-verification">
-          <dt>Name</dt>
+          <dt>{t('domain')}</dt>
           <dd>{this.state.name}</dd>
-          <dt>Address Receiving Name</dt>
+          <dt>{t('addressReceivingName')}</dt>
           <dd>{this.state.nameReceiveAddr}</dd>
-          <dt>Address Receiving Funds</dt>
+          <dt>{t('addressReceivingFunds')}</dt>
           <dd>{this.state.fundingAddr}</dd>
-          <dt>Price</dt>
+          <dt>{t('price')}</dt>
           <dd>{Amount.fromValue(this.state.price).toCoins()} HNS</dd>
         </dl>
 
@@ -163,14 +168,14 @@ export default class ClaimNameForPayment extends Component {
             className="abort"
             onClick={this.props.onClose}
           >
-            Abort
+            {t('abort')}
           </button>
           <button
             className="pay-and-transfer"
             onClick={this.onClickTransfer}
             disabled={this.state.isLoading}
           >
-            {this.state.isLoading ? 'Creating...' : 'Pay and Transfer'}
+            {this.state.isLoading ? t('creating') : t('payAndTransfer')}
           </button>
         </div>
       </>

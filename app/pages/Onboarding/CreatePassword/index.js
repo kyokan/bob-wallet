@@ -5,6 +5,7 @@ import c from 'classnames';
 import './create.scss';
 import Submittable from '../../../components/Submittable';
 import WizardHeader from '../../../components/WizardHeader';
+import {I18nContext} from "../../../utils/i18n";
 
 const HIGHLIGHT_ONLY = '$$HIGHLIGHT_ONLY$$';
 
@@ -18,6 +19,8 @@ export default class CreatePassword extends Component {
     onCancel: PropTypes.func.isRequired
   };
 
+  static contextType = I18nContext;
+
   constructor(props) {
     super(props);
     this.state = {
@@ -29,9 +32,11 @@ export default class CreatePassword extends Component {
   }
 
   onSubmit = () => {
+    const {t} = this.context;
+
     if (this.state.password.length < 8) {
       this.setState({
-        passwordError: 'Password must be at least 8 characters long.',
+        passwordError: t('obCreatePasswordLengthError'),
         passwordConfirmationError: ''
       });
       return;
@@ -40,7 +45,7 @@ export default class CreatePassword extends Component {
     if (this.state.password !== this.state.passwordConfirmation) {
       this.setState({
         passwordError: HIGHLIGHT_ONLY,
-        passwordConfirmationError: 'Passwords do not match.'
+        passwordConfirmationError: t('obCreatePasswordConfirmError')
       });
       return;
     }
@@ -72,6 +77,7 @@ export default class CreatePassword extends Component {
 
   render() {
     const { currentStep, totalSteps, onBack } = this.props;
+    const {t} = this.context;
 
     return (
       <div className="create-password">
@@ -84,10 +90,10 @@ export default class CreatePassword extends Component {
         <div className="create-password__content">
           <Submittable onSubmit={this.onSubmit}>
             <div className="create-password__header_text">
-              Set up a password
+              {t('obCreatePasswordHeader')}
             </div>
             <div className="create-password__body-text">
-              Your password must be at least 8 characters long.
+              {t('obCreatePasswordBody')}
             </div>
             <div
               className={c('create-password__input', {
@@ -96,7 +102,7 @@ export default class CreatePassword extends Component {
             >
               <input
                 type="password"
-                placeholder="Enter Password"
+                placeholder={t('obCreatePasswordPlaceholder')}
                 value={this.state.password}
                 onChange={this.onChange('password')}
                 autoFocus
@@ -111,7 +117,7 @@ export default class CreatePassword extends Component {
             >
               <input
                 type="password"
-                placeholder="Confirm Password"
+                placeholder={t('obCreatePasswordConfirmPlaceholder')}
                 value={this.state.passwordConfirmation}
                 onChange={this.onChange('passwordConfirmation')}
               />
@@ -125,7 +131,7 @@ export default class CreatePassword extends Component {
             onClick={this.onSubmit}
             disabled={!this.isValidPassword()}
           >
-            Next
+            {t('next')}
           </button>
         </div>
       </div>

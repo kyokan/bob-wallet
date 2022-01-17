@@ -318,7 +318,7 @@ export default class Account extends Component {
             text={
               <Fragment>
                 <strong>{t('renew')}</strong> {renewable.domains.length}{" "}
-                {pluralize(renewable.domains.length, t('domain'))}
+                {t('domains')}
               </Fragment>
             }
             subtext={
@@ -341,7 +341,7 @@ export default class Account extends Component {
             text={
               <Fragment>
                 <strong>{t('redeem')}</strong> {redeemable.num}{" "}
-                {pluralize(redeemable.num, t('bid'))}
+                {t('bids')}
               </Fragment>
             }
             subtext={
@@ -362,7 +362,7 @@ export default class Account extends Component {
             text={
               <Fragment>
                 <strong>{t('register')}</strong> {registerable.num}{" "}
-                {pluralize(registerable.num, t('domain'))}
+                {t('domains')}
               </Fragment>
             }
             subtext={
@@ -383,7 +383,7 @@ export default class Account extends Component {
             text={
               <Fragment>
                 <strong>{t('finalize')}</strong> {finalizable.domains.length}{" "}
-                {pluralize(finalizable.domains.length, t('domain'))}
+                {t('domains')}
               </Fragment>
             }
             subtext={
@@ -406,7 +406,7 @@ export default class Account extends Component {
             text={
               <Fragment>
                 <strong>{t('transferring')}</strong> {transferring.domains.length}{" "}
-                {pluralize(transferring.domains.length, t('domain'))}
+                {t('domains')}
               </Fragment>
             }
             subtext={

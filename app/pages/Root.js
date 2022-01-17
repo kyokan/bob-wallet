@@ -34,9 +34,15 @@ class Content extends Component {
     return (
       <I18nContext.Provider
         value={{
-          t: (key, value) => {
+          t: (key, ...values) => {
             const str = localeT[key] || rootT[key] || translations.en[key] || `this.context.t(${key})`;
-            return str.replace('%s', value);
+            let result = str;
+
+            for (let val of values) {
+              result = result.replace('%s', val);
+            }
+
+            return result;
           }
         }}
       >

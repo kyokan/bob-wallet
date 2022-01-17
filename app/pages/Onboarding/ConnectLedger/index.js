@@ -10,6 +10,7 @@ import DefaultConnectLedgerSteps from '../../../components/ConnectLedgerStep/def
 import './connect.scss';
 import {LEDGER_MINIMUM_VERSION} from '../../../constants/ledger';
 import semver from 'semver';
+import {I18nContext} from "../../../utils/i18n";
 
 const ledgerClient = lClientStub(() => require('electron').ipcRenderer);
 
@@ -30,6 +31,8 @@ class ConnectLedger extends React.Component {
     completeInitialization: PropTypes.func.isRequired,
     network: PropTypes.string.isRequired,
   };
+
+  static contextType = I18nContext;
 
   state = {
     isLoading: false,
@@ -52,13 +55,11 @@ class ConnectLedger extends React.Component {
 
     try {
       const appVersion = await ledgerClient.getAppVersion(this.props.network);
-      console.log(`HNS Ledger app verison is ${appVersion}, minimum is ${LEDGER_MINIMUM_VERSION}`);
       if (!semver.gte(appVersion, LEDGER_MINIMUM_VERSION)) {
         this.setState({
           isLoading: false,
           isCreating: false,
-          errorMessage:
-            `Ledger app version ${LEDGER_MINIMUM_VERSION} is required. (${appVersion} installed)`
+          errorMessage: this.context.t('obLedgerVersionError', LEDGER_MINIMUM_VERSION, appVersion),
         });
         return;
       }
@@ -69,7 +70,7 @@ class ConnectLedger extends React.Component {
       this.setState({
         isLoading: false,
         isCreating: false,
-        errorMessage: "Error connecting to device.",
+        errorMessage: this.context.t('obLedgerGenericError', e?.message),
       });
       return;
     }
@@ -88,6 +89,7 @@ class ConnectLedger extends React.Component {
   };
 
   render() {
+    const {t} = this.context;
     const {isCreating} = this.state;
 
     const {onBack, onCancel} = this.props;
@@ -99,11 +101,11 @@ class ConnectLedger extends React.Component {
             onClick={onBack}
           />
           <span className="wizard-header__cancel" onClick={onCancel}>
-            Cancel
+            {t('cancel')}
           </span>
         </div>
         <div className="create-password__content">
-          <div className="header_text">Connect your Ledger</div>
+          <div className="header_text">{t('obLedgerHeader')}</div>
           <DefaultConnectLedgerSteps completedSteps={[isCreating, isCreating, isCreating]} />
         </div>
         <div
@@ -118,7 +120,11 @@ class ConnectLedger extends React.Component {
             onClick={this.connect}
             disabled={this.state.isLoading}
           >
-            {this.state.isLoading ? (this.state.isCreating ? 'Creating wallet...' : 'Connecting...') : 'Connect to Ledger'}
+            {
+              this.state.isLoading
+                ? (this.state.isCreating ? t('obLedgerCreatingWallet') : t('obLedgerConnecting'))
+                : t('obLedgerConnectLedger')
+            }
           </button>
         </div>
         <div className="create-password__error-container">

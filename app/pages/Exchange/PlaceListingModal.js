@@ -6,8 +6,11 @@ import Dropdown from '../../components/Dropdown';
 import { transferExchangeLock } from '../../ducks/exchange.js';
 import Anchor from "../../components/Anchor";
 import Alert from "../../components/Alert";
+import {I18nContext} from "../../utils/i18n";
 
 export class PlaceListingModal extends Component {
+  static contextType = I18nContext;
+
   constructor(props) {
     super(props);
 
@@ -56,6 +59,7 @@ export class PlaceListingModal extends Component {
 
   render() {
     const {onClose, names} = this.props;
+    const {t} = this.context;
 
     const isValid = this.state.startPrice.length &&
       this.state.endPrice.length &&
@@ -64,15 +68,15 @@ export class PlaceListingModal extends Component {
       Number(this.state.startPrice) > Number(this.state.endPrice);
 
     return (
-      <MiniModal title="Create Listing" onClose={onClose}>
+      <MiniModal title={t('createListing')} onClose={onClose}>
         <div className="exchange__place-listing-modal">
           <p>
-            In order to list your name for auction on secondary market, you will first need to transfer your name to a listing address that you control.
+            {t('shakedexCreateListingNote')}
           </p>
           <p>
-            Transfer takes about 48 hours. For more detail on how secondary market works, checkout the <Anchor href="https://github.com/kurumiimari/shakedex#selling-a-name">documentation</Anchor>.
+            <Anchor href="https://github.com/kurumiimari/shakedex#selling-a-name">{t('learnMore')}</Anchor>
           </p>
-          <div className="exchange__label">Choose Name:</div>
+          <div className="exchange__label">{`${t('chooseName')}:`}</div>
           <div className="exchange__input">
             <Dropdown
               items={names.map(n => ({
@@ -86,7 +90,7 @@ export class PlaceListingModal extends Component {
             />
           </div>
 
-          <label className="exchange__label">Starting price:</label>
+          <label className="exchange__label">{`${t('startingPrice')}:`}</label>
           <div className="exchange__input send__input">
             <input
               type="number"
@@ -98,7 +102,7 @@ export class PlaceListingModal extends Component {
             />
           </div>
 
-          <label className="exchange__label">Ending price:</label>
+          <label className="exchange__label">{`${t('endingPrice')}:`}</label>
           <div className="exchange__input send__input">
             <input
               type="number"
@@ -110,10 +114,10 @@ export class PlaceListingModal extends Component {
             />
           </div>
 
-          <label className="exchange__label">Duration:</label>
+          <label className="exchange__label">{`${t('duration')}:`}</label>
           <Dropdown
             items={this.durationOpts.map(d => ({
-              label: `${d} days`,
+              label: `${d} ${t('days')}`,
             }))}
             onChange={(i) => this.setState({
               durationIdx: i,
@@ -128,7 +132,7 @@ export class PlaceListingModal extends Component {
               onClick={onClose}
               disabled={this.props.isPlacingListing}
             >
-              Cancel
+              {t('cancel')}
             </button>
 
             <button
@@ -136,7 +140,7 @@ export class PlaceListingModal extends Component {
               onClick={this.createListing}
               disabled={this.props.isPlacingListing || !isValid}
             >
-              {this.props.isPlacingListing ? 'Loading...' : 'Place Listing'}
+              {this.props.isPlacingListing ? t('loading') : t('placeListing')}
             </button>
           </div>
         </div>

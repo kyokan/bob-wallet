@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import c from 'classnames';
 import './confirm-seed.scss';
 import WizardHeader from '../../../components/WizardHeader';
+import {I18nContext} from "../../../utils/i18n";
 
 export default class ConfirmSeed extends Component {
   static propTypes = {
@@ -14,6 +15,8 @@ export default class ConfirmSeed extends Component {
     onNext: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired
   };
+
+  static contextType = I18nContext;
 
   state = {
     words: '',
@@ -36,6 +39,8 @@ export default class ConfirmSeed extends Component {
       seedphrase
     } = this.props;
 
+    const {t} = this.context;
+
     return (
       <div className="create-password">
         <WizardHeader
@@ -46,11 +51,10 @@ export default class ConfirmSeed extends Component {
         />
         <div className="create-password__content">
           <div className="backup-warning__header_text">
-            Confirm your recovery phrase
+            {t('obConfirmSeedHeader')}
           </div>
           <div className="import_warning_text">
-            Type in your recovery words below. Pasting is disabled to ensure that you have securely backed up your
-            wallet on paper.
+            {t('obConfirmSeedBody')}
           </div>
           <div
             className={c('import-enter__textarea-container', {
@@ -59,7 +63,7 @@ export default class ConfirmSeed extends Component {
           >
             <textarea
               className="import_enter_textarea"
-              placeholder="Enter your seed phrase"
+              placeholder={t('obConfirmSeedPlaceholder')}
               onKeyDown={this.handleKeyDown}
               onChange={e => this.setState({ words: e.target.value })}
               value={this.state.words}
@@ -88,7 +92,7 @@ export default class ConfirmSeed extends Component {
             }}
             disabled={!this.state.words}
           >
-            Create New Wallet
+            {t('obConfirmSeedCTA')}
           </button>
         </div>
       </div>

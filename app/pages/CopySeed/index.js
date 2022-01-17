@@ -6,6 +6,7 @@ import classNames from 'classnames';
 import { shell } from 'electron'
 import './copy.scss';
 import WizardHeader from '../../components/WizardHeader';
+import {I18nContext} from "../../utils/i18n";
 
 @connect()
 export default class CopySeed extends Component {
@@ -23,6 +24,8 @@ export default class CopySeed extends Component {
       'witch collapse practice feed shame open despair creek road again ice least'
   };
 
+  static contextType = I18nContext;
+
   render() {
     const {
       currentStep,
@@ -33,6 +36,8 @@ export default class CopySeed extends Component {
       seedphrase
     } = this.props;
 
+    const {t} = this.context;
+
     return (
       <div className="create-password">
         <WizardHeader
@@ -42,10 +47,15 @@ export default class CopySeed extends Component {
           onCancel={onCancel}
         />
         <div className="create-password__content">
-          <div className="backup-warning__header_text">Your Recovery Seed Phrase</div>
+          <div className="backup-warning__header_text">{t('backupWarningHeader')}</div>
           <div className="import_warning_text">
-            Write down these 24 words on paper and keep it safe and secure. Do
-            not email or screenshot your seed. <span className="import-learn-more-text" onClick={() => shell.openExternal('https://en.bitcoinwiki.org/wiki/Mnemonic_phrase')}>Learn more</span>
+            {t('backupWarningText')}
+            <span
+              className="import-learn-more-text"
+              onClick={() => shell.openExternal('https://en.bitcoinwiki.org/wiki/Mnemonic_phrase')}
+            >
+              {t('learnMore')}
+            </span>
           </div>
           <div className="import-enter__textarea-container">
             <textarea
@@ -63,7 +73,7 @@ export default class CopySeed extends Component {
           ])}
         >
           <button className="extension_cta_button create_cta" onClick={onNext}>
-            I've copied this somewhere safe
+            {t('backupConfirmText')}
           </button>
         </div>
       </div>

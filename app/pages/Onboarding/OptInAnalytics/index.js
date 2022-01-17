@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import WizardHeader from '../../../components/WizardHeader';
 import Checkbox from '../../../components/Checkbox';
 import './opt-in-analytics.scss';
+import {I18nContext} from "../../../utils/i18n";
 
 export default class OptInAnalytics extends Component {
   static propTypes = {
@@ -13,6 +14,8 @@ export default class OptInAnalytics extends Component {
     onCancel: PropTypes.func.isRequired,
     isLoading: PropTypes.bool.isRequired,
   };
+
+  static contextType = I18nContext;
 
   constructor(props) {
     super(props);
@@ -30,16 +33,17 @@ export default class OptInAnalytics extends Component {
 
   render() {
     const {currentStep, totalSteps, onBack, onCancel} = this.props;
+    const {t} = this.context;
 
     return (
       <div className="opt-in-analytics">
         <WizardHeader currentStep={currentStep} totalSteps={totalSteps} onBack={onBack} onCancel={onCancel} />
         <div className="opt-in-analytics__content">
           <div className="opt-in-analytics__header-text">
-            Opt in to analytics
+            {t('obAnalyticsHeader')}
           </div>
           <div className="opt-in-analytics__body-text">
-            Do you want to send anonymous usage data to Kyokan?
+            {t('obAnalyticsBody')}
           </div>
           <div className="opt-in-analytics__checkbox-container">
             <Checkbox
@@ -48,7 +52,7 @@ export default class OptInAnalytics extends Component {
               onChange={this.toggleOptIn}
             />
             <span className="opt-in-analytics__checkbox-description">
-              Yes, opt me in
+              {t('obAnalyticsAck')}
             </span>
           </div>
         </div>
@@ -58,7 +62,7 @@ export default class OptInAnalytics extends Component {
             onClick={() => this.props.onNext(this.state.optIn)}
             disabled={this.props.isLoading}
           >
-            {this.props.isLoading ? 'Creating wallet...' : 'Continue'}
+            {this.props.isLoading ? t('obAnalyticsCreatingWallet') : t('next') }
           </button>
         </div>
       </div>

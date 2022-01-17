@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import WizardHeader from '../../../components/WizardHeader/index';
 import './importenter.scss';
+import {I18nContext} from "../../../utils/i18n";
 
 export default class ImportSeedEnterMnemonic extends Component {
   constructor(props) {
@@ -21,6 +22,8 @@ export default class ImportSeedEnterMnemonic extends Component {
     onCancel: PropTypes.func.isRequired
   };
 
+  static contextType = I18nContext;
+
   onChangeMnemonic = e => {
     this.setState({
       mnemonic: e.target.value
@@ -29,7 +32,8 @@ export default class ImportSeedEnterMnemonic extends Component {
 
   render() {
     const { currentStep, totalSteps, onBack, onNext } = this.props;
-    const importPlaceholder = 'Enter or paste your mnemonic seed phrase here';
+    const {t} = this.context;
+    const importPlaceholder = t('obImportSeedPlaceholder');
 
     return (
       <div className="create-password">
@@ -40,11 +44,10 @@ export default class ImportSeedEnterMnemonic extends Component {
           onCancel={this.props.onCancel}
         />
         <div className="create-password__content">
-          <div className="backup-warning__header_text">Import your recovery phrase</div>
+          <div className="backup-warning__header_text">{t('obImportSeedHeader')}</div>
 
           <div className="import_warning_text">
-            Enter your 12- or 24-word seed phrase that was assigned to you when you
-            created your previous wallet.
+            {t('obImportSeedWarning')}
           </div>
           <div className="import-enter__textarea-container">
             <textarea
@@ -67,7 +70,7 @@ export default class ImportSeedEnterMnemonic extends Component {
             onClick={() => onNext(this.state.mnemonic)}
             disabled={this.disableButton() || this.props.isLoading}
           >
-            { this.props.isLoading ? 'Loading...' : 'Unlock Wallet' }
+            { this.props.isLoading ? t('loading') : t('obImportSeedCTA') }
           </button>
         </div>
       </div>

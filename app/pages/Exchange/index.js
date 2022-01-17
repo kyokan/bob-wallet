@@ -39,6 +39,7 @@ import {getPageIndices} from "../../utils/pageable";
 import Dropdown from "../../components/Dropdown";
 import SpinnerSVG from '../../assets/images/brick-loader.svg';
 import ConfirmFeeModal from './ConfirmFeeModal.js';
+import {I18nContext} from "../../utils/i18n";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 const shakedex = sClientStub(() => require('electron').ipcRenderer);
@@ -48,6 +49,8 @@ class Exchange extends Component {
     deeplinkParams: PropTypes.object.isRequired,
     clearDeeplinkParams: PropTypes.func.isRequired,
   };
+
+  static contextType = I18nContext;
 
   constructor(props) {
     super(props);
@@ -210,40 +213,41 @@ class Exchange extends Component {
 
   renderListingStatus(status) {
     let statusText = status;
+    const {t} = this.context;
 
     switch (status) {
       case LISTING_STATUS.NOT_FOUND:
-        statusText = 'NOT FOUND';
+        statusText = t('shakedexStatusNotFound');
         break;
       case LISTING_STATUS.SOLD:
-        statusText = 'SOLD';
+        statusText = t('shakedexStatusSold');
         break;
       case LISTING_STATUS.ACTIVE:
-        statusText = 'ACTIVE';
+        statusText = t('shakedexStatusActive');
         break;
       case LISTING_STATUS.TRANSFER_CONFIRMING:
-        statusText = 'TRANSFERRING TO LISTING ADDRESS';
+        statusText = t('shakedexStatusTransferConfirming');
         break;
       case LISTING_STATUS.TRANSFER_CONFIRMED:
-        statusText = 'READY TO FINALIZE LISTING';
+        statusText = t('shakedexStatusTransferConfirmed');
         break;
       case LISTING_STATUS.FINALIZE_CONFIRMING:
-        statusText = 'FINALIZING LISTING';
+        statusText = t('shakedexStatusFinalizeConfirming');
         break;
       case LISTING_STATUS.FINALIZE_CONFIRMED:
-        statusText = 'READY TO GENERATE AUCTION FILE';
+        statusText = t('shakedexStatusFinalizeConfirmed');
         break;
       case LISTING_STATUS.CANCEL_CONFIRMING:
-        statusText = 'CANCELLING LISTING';
+        statusText = t('shakedexStatusCancelConfirming');
         break;
       case LISTING_STATUS.CANCEL_CONFIRMED:
-        statusText = 'READY TO FINALIZE CANCEL';
+        statusText = t('shakedexStatusCancelConfirmed');
         break;
       case LISTING_STATUS.FINALIZE_CANCEL_CONFIRMING:
-        statusText = 'FINALIZING CANCEL';
+        statusText = t('shakedexStatusFinalizeCancelConfirming');
         break;
       case LISTING_STATUS.FINALIZE_CANCEL_CONFIRMED:
-        statusText = 'CANCELLED';
+        statusText = t('shakedexStatusFinalizeCancelConfirmed');
         break;
     }
 
@@ -275,25 +279,26 @@ class Exchange extends Component {
 
   renderFulfillmentStatus(status) {
     let statusText = status;
+    const { t } = this.context;
 
     switch (status) {
       case FULFILLMENT_STATUS.NOT_FOUND:
-        statusText = 'NOT FOUND';
+        statusText = t('shakedexStatusNotFound');
         break;
       case FULFILLMENT_STATUS.CONFIRMING:
-        statusText = 'TRANSFERRING NAME';
+        statusText = t('shakedexStatusTransferringName');
         break;
       case FULFILLMENT_STATUS.CONFIRMED:
-        statusText = 'READY TO FINALIZE TRANSFER';
+        statusText = t('shakedexStatusTransferredName');
         break;
       case FULFILLMENT_STATUS.CONFIRMED_LOCKUP:
-        statusText = 'TRANSFERRING NAME TO YOU';
+        statusText = t('shakedexStatusConfirmedLockup');
         break;
       case FULFILLMENT_STATUS.FINALIZING:
-        statusText = 'FINALIZING TRANSFER';
+        statusText = t('shakedexStatusFinalizingTransfer');
         break;
       case FULFILLMENT_STATUS.FINALIZED:
-        statusText = 'AUCTION FULFILLED';
+        statusText = t('shakedexStatusFulfilled');
         break;
     }
 
@@ -312,42 +317,44 @@ class Exchange extends Component {
   }
 
   render() {
+    const { t } = this.context;
     if (this.props.walletWatchOnly) {
-      return "Not currently supported with Ledger wallet.";
+      return t('notSupportWithLedger');
     }
 
     if (this.props.isLoading) {
-      return 'Loading...';
+      return t('loading');
     }
 
     return (
       <div className="exchange">
         <div className="exchange__button-header">
-          <h2>Your Listings </h2>
+          <h2>{t('yourListings')}</h2>
           <button
             className="exchange__button-header-button extension_cta_button"
             onClick={() => this.setState({
               isPlacingListing: true,
             })}
           >
-            Create Listing
+            {t('createListing')}
           </button>
         </div>
         <div className="exchange__button-header__sub">
-          Reminder: Don't forget to backup your exchange data in <Link to="/settings/exchange/backup">Settings/Exchange</Link>
+          {t('sdBackupReminder', '')}
+          <Link to="/settings/exchange/backup">Settings/Exchange</Link>
         </div>
         <Table className="exchange-table">
           <HeaderRow>
-            <HeaderItem>Name</HeaderItem>
-            <HeaderItem>Status</HeaderItem>
-            <HeaderItem>Start Bid</HeaderItem>
-            <HeaderItem>End Bid</HeaderItem>
+            <HeaderItem>{t('domain')}</HeaderItem>
+            <HeaderItem>{t('status')}</HeaderItem>
+            <HeaderItem>{t('startingPrice')}</HeaderItem>
+            <HeaderItem>{t('endingPrice')}</HeaderItem>
             <HeaderItem />
           </HeaderRow>
           {!this.props.listings.length && (
             <TableRow>
               <TableItem>
-                No listings found.
+                {t('noListingFound')}
               </TableItem>
             </TableRow>
           )}
@@ -355,20 +362,20 @@ class Exchange extends Component {
         </Table>
 
         <div className="exchange__button-header">
-          <h2>Your Fills</h2>
+          <h2>{t('yourFills')}</h2>
           <button
             className="exchange__button-header-button extension_cta_button"
             onClick={this.onUploadPresigns}
           >
-            Upload Auction File
+            {t('uploadAuctionFile')}
           </button>
         </div>
         <Table className="exchange-table">
           <HeaderRow>
-            <HeaderItem>Name</HeaderItem>
-            <HeaderItem>Status</HeaderItem>
-            <HeaderItem>Amount</HeaderItem>
-            <HeaderItem>Fill Placed At</HeaderItem>
+            <HeaderItem>{t('domain')}</HeaderItem>
+            <HeaderItem>{t('status')}</HeaderItem>
+            <HeaderItem>{t('amount')}</HeaderItem>
+            <HeaderItem>{t('fillPlacedAt')}</HeaderItem>
             <HeaderItem />
           </HeaderRow>
 
@@ -394,12 +401,12 @@ class Exchange extends Component {
           ))}
           {!this.props.fulfillments.length && (
             <TableRow>
-              <TableItem>No fills found.</TableItem>
+              <TableItem>{t('noFillsFound')}</TableItem>
             </TableRow>
           )}
         </Table>
 
-        <h2>Live Auctions</h2>
+        <h2>{t('liveAuctions')}</h2>
         <Table className="exchange-table">
           <Header />
           {this.state.isLoading && (
@@ -412,13 +419,13 @@ class Exchange extends Component {
           {!this.state.isLoading && !this.props.auctions.length && (
             <TableRow>
               <TableItem>
-                No auctions found.
+                {t('noAuctionsFound')}
               </TableItem>
             </TableRow>
           )}
           {this.props.isError && (
             <div>
-              An error occurred. Please try again.
+              {t('genericError')}
             </div>
           )}
         </Table>
@@ -469,6 +476,8 @@ class Exchange extends Component {
       currentPage: currentPageIndex,
     } = this.props;
 
+    const {t} = this.context;
+
     if (!auctions.length) {
       return null;
     }
@@ -517,7 +526,7 @@ class Exchange extends Component {
           />
         </div>
         <div className="domain-manager__go-to">
-          <div className="domain-manager__go-to__text">Page</div>
+          <div className="domain-manager__go-to__text">{t('page')}</div>
           <Dropdown
             className="domain-manager__go-to__dropdown"
             items={Array(totalPages).fill(0).map((_, i) => ({ label: `${i + 1}` }))}
@@ -540,6 +549,8 @@ class Exchange extends Component {
     const { lockTime = 0 } = lastBid || {}
     const now = Date.now();
     const hasLastBidReleased = now > lockTime * 1000;
+    const {t} = this.context;
+
     return (
       <TableRow key={l.nameLock.name}>
         <TableItem>{formatName(l.nameLock.name)}</TableItem>
@@ -553,7 +564,7 @@ class Exchange extends Component {
                 className="bid-action__link"
                 onClick={() => this.props.finalizeExchangeLock(l.nameLock)}
               >
-                {this.props.finalizingName === l.nameLock.name ? 'Finalizing...' : 'Finalize'}
+                {this.props.finalizingName === l.nameLock.name ? `${t('finalizing')}...` : t('finalize')}
               </div>
             </div>
           )}
@@ -566,7 +577,7 @@ class Exchange extends Component {
                   generatingListing: l,
                 })}
               >
-                Generate
+                {t('generate')}
               </div>
             </div>
           )}
@@ -576,7 +587,7 @@ class Exchange extends Component {
                 className="bid-action__link"
                 onClick={() => this.props.finalizeCancelExchangeLock(l.nameLock)}
               >
-                Finalize Cancel
+                {t('finalizeCancel')}
               </div>
             </div>
           )}
@@ -591,7 +602,7 @@ class Exchange extends Component {
                       generatingListing: l,
                     })}
                   >
-                    Regenerate
+                    {t('regenerate')}
                   </div>
                 )
               }
@@ -599,20 +610,20 @@ class Exchange extends Component {
                 className="bid-action__link"
                 onClick={() => this.onDownloadPresigns(l)}
               >
-                Download
+                {t('download')}
               </div>
               <div
                 className="bid-action__link"
                 onClick={() => this.onClickSubmitShakedex(l)}
               >
-                Submit
+                {t('submit')}
               </div>
 
               <div
                 className="bid-action__link"
                 onClick={() => this.props.cancelExchangeLock(l.nameLock)}
               >
-                Cancel
+                {t('cancel')}
               </div>
             </div>
           )}
@@ -622,6 +633,7 @@ class Exchange extends Component {
   };
 
   renderAuctionRow = (auction) => {
+    const {t} = this.context;
     const currentBid = getCurrentBid(auction);
 
     return (
@@ -647,7 +659,7 @@ class Exchange extends Component {
                     });
                   }}
                 >
-                  Fill
+                  {t('fill')}
                 </div>
                 <div
                   className="bid-action__link"
@@ -656,7 +668,7 @@ class Exchange extends Component {
                     this.onClickDownload(auction);
                   }}
                 >
-                  Download Proofs
+                  {t('downloadProofs')}
                 </div>
               </div>
             )
@@ -667,12 +679,14 @@ class Exchange extends Component {
   };
 
   renderNextBid(auction) {
+    const {t} = this.context;
+
     if (auction.spendingStatus) {
       switch (auction.spendingStatus) {
         case "COMPLETED":
-          return 'Sold';
+          return t('sold');
         case "CANCELLED":
-          return 'Cancelled';
+          return t('cancelled');
       }
     }
 
@@ -687,22 +701,27 @@ class Exchange extends Component {
     }
 
     if (!nextBid) {
-      return 'All Bids Released';
+      return t('allBidsReleased');
     }
 
     return moment(nextBid.lockTime).fromNow();
   }
 }
 
-function Header() {
-  return (
-    <HeaderRow>
-      <HeaderItem>Name</HeaderItem>
-      <HeaderItem>Current Bid</HeaderItem>
-      <HeaderItem>Next Bid</HeaderItem>
-      <HeaderItem />
-    </HeaderRow>
-  );
+class Header extends Component {
+  static contextType = I18nContext;
+
+  render() {
+    const {t} = this.context;
+    return (
+      <HeaderRow>
+        <HeaderItem>{t('domain')}</HeaderItem>
+        <HeaderItem>{t('currentBid')}</HeaderItem>
+        <HeaderItem>{t('nextBid')}</HeaderItem>
+        <HeaderItem />
+      </HeaderRow>
+    );
+  }
 }
 
 export default connect(

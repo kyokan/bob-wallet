@@ -7,6 +7,7 @@ import { waitForPassphrase, hasAddress } from '../../ducks/walletActions';
 import isValidAddress from "../../utils/verifyAddress";
 import Alert from "../../components/Alert";
 import {transferMany} from "../../ducks/names";
+import {I18nContext} from "../../utils/i18n";
 
 @connect(
   (state) => ({
@@ -27,6 +28,8 @@ export default class BulkTransfer extends Component {
     names: PropTypes.object.isRequired,
   };
 
+  static contextType = I18nContext;
+
   constructor(props) {
     super(props);
     this.state = {
@@ -43,7 +46,7 @@ export default class BulkTransfer extends Component {
     });
     if (e.target.value.length > 2 && !isValidAddress(e.target.value, this.props.network)) {
       this.setState({
-        errorMessage: 'Invalid Address Prefix',
+        errorMessage: this.context.t('invalidAddressPrefix'),
       });
     }
   };
@@ -52,7 +55,7 @@ export default class BulkTransfer extends Component {
     const { selectedOptions, recipientAddress } = this.state;
     try {
       await this.props.transferMany(selectedOptions, recipientAddress);
-      this.props.showSuccess(`Your transfer request is submitted! Please wait around 15 minutes for it to be confirmed.`);
+      this.props.showSuccess(this.context.t('bulkTransferSuccess'));
       this.props.onClose();
     } catch (e) {
       this.setState({
@@ -63,22 +66,24 @@ export default class BulkTransfer extends Component {
 
   render() {
     const {names} = this.props;
+    const { t } = this.context;
+
     return (
       <MiniModal
-        title="Bulk Transfer"
+        title={t('bulkTransfer')}
         onClose={this.props.onClose}
       >
         <div className="bulk-transfer">
           <Alert type="error" message={this.state.errorMessage} />
           <p>
-            Select the domains you wish to transfer
+            {t('bulkTransferLabel')}
           </p>
           <div className="bulk-transfer">
-            <div className="bulk-transfer__label">Transferring to</div>
+            <div className="bulk-transfer__label">{t('transferringTo')}</div>
             <div className="bulk-transfer__input">
               <input
                 type="text"
-                placeholder="Recipient address"
+                placeholder={t('recipientAddress')}
                 onChange={this.updateToAddress}
                 value={this.state.recipientAddress}
               />
@@ -114,7 +119,7 @@ export default class BulkTransfer extends Component {
               disabled={!this.state.selectedOptions.length || !this.state.recipientAddress}
               onClick={this.onTransfer}
             >
-              Start Transfer
+              {t(`startTransfer`)}
             </button>
           </div>
         </div>

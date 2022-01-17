@@ -219,7 +219,7 @@ export default class Auction extends Component {
                     reveals={this.props.domain.reveals}
                   />
                 )
-              : t('loading') + '...'
+              : t('loading')
             }
           </Collapsible>
 

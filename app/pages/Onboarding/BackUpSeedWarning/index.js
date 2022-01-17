@@ -5,6 +5,7 @@ import c from 'classnames';
 import Checkbox from '../../../components/Checkbox/index';
 import WizardHeader from '../../../components/WizardHeader';
 import './index.scss';
+import {I18nContext} from "../../../utils/i18n";
 
 @connect()
 export default class BackUpSeedWarning extends Component {
@@ -16,12 +17,15 @@ export default class BackUpSeedWarning extends Component {
     onCancel: PropTypes.func.isRequired
   };
 
+  static contextType = I18nContext;
+
   state = {
     hasAccepted: false
   };
 
   render() {
     const { currentStep, totalSteps, onBack, onNext, onCancel } = this.props;
+    const {t} = this.context;
 
     return (
       <div className="backup-warning">
@@ -33,11 +37,10 @@ export default class BackUpSeedWarning extends Component {
         />
         <div className="backup-warning__content">
           <div className="backup-warning__header_text">
-            Back up your recovery seed phrase
+            {t('obBackupSeedHeader')}
           </div>
           <div className="backup-warning__body-text">
-            Your seed phrase will be generated in the next screen. It will allow
-            you to recover your wallet if lost, stolen, or compromised.
+            {t('obBackupSeedBody')}
           </div>
           <div className="backup-warning__accept-container">
             <Checkbox
@@ -46,8 +49,7 @@ export default class BackUpSeedWarning extends Component {
               checked={this.state.hasAccepted}
             />
             <div className="backup-warning__check-box-description">
-              I understand that if I lose my seed phrase, I will no longer be
-              able to access my wallet.
+              {t('obBackupSeedWarning')}
             </div>
           </div>
         </div>
@@ -57,7 +59,7 @@ export default class BackUpSeedWarning extends Component {
             onClick={onNext}
             disabled={!this.state.hasAccepted || this.props.isLoading}
           >
-            { this.props.isLoading ? 'Loading...' : 'I agree' }
+            { this.props.isLoading ? t('loading') : t('obBackupSeedCTA') }
           </button>
         </div>
       </div>
