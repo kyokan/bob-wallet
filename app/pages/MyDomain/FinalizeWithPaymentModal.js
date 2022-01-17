@@ -91,9 +91,7 @@ export class FinalizeWithPaymentModal extends Component {
 
   renderForm() {
     const {t} = this.context;
-    const isValid = !!this.state.price && (
-      !!this.state.price && Number(this.state.price) <= 2000
-    );
+    const isValid = !!this.state.price;
 
     return (
       <>
