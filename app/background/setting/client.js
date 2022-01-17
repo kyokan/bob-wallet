@@ -4,4 +4,5 @@ export const clientStub = ipcRendererInjector => makeClient(ipcRendererInjector,
   'getExplorer',
   'setExplorer',
   'getLocale',
+  'setLocale',
 ]);

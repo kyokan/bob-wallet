@@ -15,10 +15,13 @@ export const fetchLocale = () => async dispatch => {
   dispatch(setLocale(locale));
 };
 
-export const setLocale = locale => ({
-  type: SET_LOCALE,
-  payload: locale,
-});
+export const setLocale = locale => async (dispatch) => {
+  await settingsClient.setLocale(locale);
+  dispatch({
+    type: SET_LOCALE,
+    payload: locale,
+  });
+};
 
 export const setDeeplink = url => ({
   type: SET_DEEPLINK,

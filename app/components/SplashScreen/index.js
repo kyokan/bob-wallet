@@ -6,6 +6,7 @@ import dbClient from "../../utils/dbClient";
 import Alert from "../Alert";
 import {withRouter} from "react-router-dom";
 import {connect} from "react-redux";
+import {I18nContext} from "../../utils/i18n";
 
 
 class SplashScreen extends Component {
@@ -18,6 +19,8 @@ class SplashScreen extends Component {
   static defaultProps = {
     error: '',
   };
+
+  static contextType = I18nContext;
 
   state = {
     hasMigrated300: false,
@@ -32,6 +35,7 @@ class SplashScreen extends Component {
 
   render() {
     const {error} = this.props;
+    const {t} = this.context;
 
     return (
       <div style={wrapperStyle}>
@@ -44,18 +48,15 @@ class SplashScreen extends Component {
             : (
               <React.Fragment>
                 <div style={spinnerStyle} />
-                <div style={textStyles}>Loading node...</div>
+                <div style={textStyles}>{t('splashLoading')}</div>
                 {
                   !this.state.hasMigrated300 && (
                     <Alert type="warning" style={alertStyle}>
                       <div>
-                        Database migration in progress!
+                        {t('splashMigrate3001')}
                       </div>
                       <div>
-                        This will take several minutes.
-                        If Bob Wallet is closed during migration, it will resume on the next open.
-                        Migration must be complete before proceeding to login screen.
-                        Once complete, you can not downgrade Bob Wallet to an earlier version.
+                        {t('splashMigrate3002')}
                       </div>
                     </Alert>
                   )
