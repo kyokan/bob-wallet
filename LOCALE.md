@@ -11,7 +11,7 @@ A locale json looks like this:
 en.json
 ```json
 {
-  "helloWorld": "Hello World!"
+  "hello": "Hello, %s!"
 }
 ```
 
@@ -27,9 +27,9 @@ class Example extends Component {
     render() {
         const {t} = this.context;
         
-        // This will render "Hello World!" based on en.json above
+        // This will render "Hello, World!" based on en.json above
         return (
-            <div>{t('helloWorld')}</div>
+            <div>{t('hello', 'World')}</div>
         );     
     } 
 }
@@ -54,4 +54,6 @@ When getting string using the injected `this.context.t(localeKey)` function, the
 7. Make sure you select **Create a new branch for this commit and start a pull request.**
 8. Click **Propose Change**
 
+## Note to Maintainers
 
+When merging in a new locale json, be sure to update the dropdown list in `app/util/i18n.js` with the new locale.
