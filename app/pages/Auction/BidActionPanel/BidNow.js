@@ -19,6 +19,7 @@ import * as logger from '../../../utils/logClient';
 import walletClient from '../../../utils/walletClient';
 import * as walletActions from '../../../ducks/walletActions';
 import { clientStub as aClientStub } from '../../../background/analytics/client';
+import {I18nContext} from "../../../utils/i18n";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -38,6 +39,8 @@ class BidNow extends Component {
     stopWalletSync: PropTypes.func.isRequired,
     network: PropTypes.string.isRequired,
   };
+
+  static contextType = I18nContext;
 
   state = {
     isPlacingBid: false,
@@ -132,6 +135,7 @@ class BidNow extends Component {
     const {bids = [], info} = domain || {};
     const {highest = 0, stats} = info || {};
     const {bidPeriodEnd} = stats || {};
+    const {t} = this.context;
 
     return (
       <AuctionPanel>
@@ -145,26 +149,26 @@ class BidNow extends Component {
             />
           )
         }
-        <AuctionPanelHeader title="Auction Details">
-          <AuctionPanelHeaderRow label="Bidding Ends:">
+        <AuctionPanelHeader title={t('auctionDetailTitle')}>
+          <AuctionPanelHeaderRow label={t('biddingEnds') + ':'}>
             <div className="domains__bid-now__info__time-remaining">
               <div>
                 {this.getTimeRemaining()}
               </div>
             </div>
           </AuctionPanelHeaderRow>
-          <AuctionPanelHeaderRow label="Total Bids:">
+          <AuctionPanelHeaderRow label={t('totalBids') + ':'}>
             {bids.length}
           </AuctionPanelHeaderRow>
-          <AuctionPanelHeaderRow label="Highest Lockup:">
+          <AuctionPanelHeaderRow label={t('highestLockup') + ':'}>
             {highest}
           </AuctionPanelHeaderRow>
           <div className="domains__bid-now__info__disclaimer">
             <Tooltipable
-              tooltipContent={'To prevent price sniping, Handshake uses a blind second-price auction called a Vickrey Auction. Users can buy and register top-level domains (TLDs) with Handshake coins (HNS).'}>
+              tooltipContent={t('bidNowDisclaimer')}>
               <div className="domains__bid-now__info__icon" />
             </Tooltipable>
-            Winner pays 2nd highest bid price.
+            {t('winnerPays')}
           </div>
         </AuctionPanelHeader>
         {isPlacingBid ? this.renderBidNow() : this.renderOwnBidAction()}
@@ -181,12 +185,14 @@ class BidNow extends Component {
 
     const {spendableBalance} = this.props;
 
+    const {t} = this.context;
+
     return (
       <AuctionPanelFooter>
         <div className="domains__bid-now__action domains__bid-now__action--placing-bid">
           <div className="domains__bid-now__form">
             <div className="domains__bid-now__form__row">
-              <div className="domains__bid-now__form__row__label">Bid Amount:</div>
+              <div className="domains__bid-now__form__row__label">{t('bidAmount')}:</div>
               <div className="domains__bid-now__form__row__input">
                 <input
                   placeholder="0.00"
@@ -203,12 +209,12 @@ class BidNow extends Component {
             // bid amount of zero is allowed as long as a disguise is used
             disabled={bidAmount > 0 ? false : (disguiseAmount > 0 ? false : true)}
           >
-            Review Bid
+            {t('reviewBid')}
           </button>
         </div>
         <div className="domains__bid-now__action domains__bid-now__action--placing-bid">
           <div className="domains__bid-now__HNS-status">
-            {`${displayBalance(spendableBalance)} HNS Spendable Balance Available`}
+            {t('availableHNSText', displayBalance(spendableBalance))}
           </div>
         </div>
       </AuctionPanelFooter>
@@ -221,6 +227,8 @@ class BidNow extends Component {
       disguiseAmount,
     } = this.state;
 
+    const {t} = this.context;
+
     if (shouldAddDisguise) {
       return (
         <div className="domains__bid-now__form__row">
@@ -229,18 +237,16 @@ class BidNow extends Component {
               className="domains__bid-now__mask"
               tooltipContent={(
                 <span className="domains__bid-now__mask-tooltip">
-                  <span>You can add a blind to your bid amount to cover up your actual bid. Your bid + blind is called lockup, which is the only value that other bidders see. The entire lockup will be frozen during the bidding period.</span>
-                  <span>The blind will be returned when it is revealed during the reveal period, whether you win the auction or not.</span>
+                  {t('blindTooltip')}
                 </span>
               )}
             >
-              Blind
+              {t('blindAmount') + ':'}
             </Tooltipable>
-            <span> Amount:</span>
           </div>
           <div className="domains__bid-now__form__row__input">
             <input
-              placeholder="Optional"
+              placeholder={t('optional')}
               onChange={e => this.processValue(e.target.value, 'disguiseAmount')}
               value={disguiseAmount}
             />
@@ -254,23 +260,24 @@ class BidNow extends Component {
         className="domains__bid-now__form__link"
         onClick={() => this.setState({shouldAddDisguise: true})}
       >
-        Add a blind
+        {t('addABlind')}
       </div>
     );
   }
 
   renderOwnHighestBid() {
     const {ownHighestBid, totalBids, totalMasks} = this.props;
+    const {t} = this.context;
 
     if (ownHighestBid) {
       return (
         <div className="domains__bid-now__own-highest-bid">
-          <div className="domains__bid-now__own-highest-bid__title">Your Highest Bid</div>
+          <div className="domains__bid-now__own-highest-bid__title">{t('yourHighestBid')}</div>
           <div className="domains__bid-now__content">
-            <AuctionPanelHeaderRow label="Total Bids:">
+            <AuctionPanelHeaderRow label={t('totalBids') + ':'}>
               {totalBids < 0 ? '?' : displayBalance(totalBids, true)}
             </AuctionPanelHeaderRow>
-            <AuctionPanelHeaderRow label="Total Lockups:">
+            <AuctionPanelHeaderRow label={t('totalLockups') + ':'}>
               {displayBalance(totalMasks, true)}
             </AuctionPanelHeaderRow>
           </div>
@@ -280,6 +287,7 @@ class BidNow extends Component {
   }
 
   renderOwnBidAction() {
+    const {t} = this.context;
     return (
       <AuctionPanelFooter>
         {this.renderOwnHighestBid()}
@@ -289,7 +297,7 @@ class BidNow extends Component {
             onClick={() => this.setState({isPlacingBid: true})}
             disabled={this.isBidPending()}
           >
-            {this.isBidPending() ? 'Bid Pending...' : 'Place Bid'}
+            {this.isBidPending() ? t('bidPending') : t('placeBid')}
           </button>
         </div>
       </AuctionPanelFooter>
@@ -303,12 +311,14 @@ class BidNow extends Component {
       hasAccepted,
     } = this.state;
 
+    const {t} = this.context;
+
     return (
       <AuctionPanelFooter>
         <div className="domains__bid-now__action--placing-bid">
-          <div className="domains__bid-now__title">Review Your Bid</div>
+          <div className="domains__bid-now__title">{t('reviewYourBid')}</div>
           <div className="domains__bid-now__content">
-            <AuctionPanelHeaderRow label="Bid Amount:">
+            <AuctionPanelHeaderRow label={t('bidAmount') + ':'}>
               <div className="domains__bid-now__review-info">
                 <div className="domains__bid-now__info__value">
                   {`${bidAmount} HNS`}
@@ -319,7 +329,7 @@ class BidNow extends Component {
                 />
               </div>
             </AuctionPanelHeaderRow>
-            <AuctionPanelHeaderRow label="Blind Amount:">
+            <AuctionPanelHeaderRow label={t('blindAmount') + ':'}>
               <div className="domains__bid-now__review-info">
                 <div className="domains__bid-now__info__value">
                   {disguiseAmount ? `${disguiseAmount} HNS` : ' - '}
@@ -335,7 +345,7 @@ class BidNow extends Component {
             </AuctionPanelHeaderRow>
             <div className="domains__bid-now__divider" />
             <AuctionPanelHeaderRow
-              label="Total Lockup:"
+              label={t('totalLockups') + ':'}
               className="domains__bid-now__review-total"
             >
               <div className="domains__bid-now__info__value">
@@ -350,7 +360,7 @@ class BidNow extends Component {
                 checked={hasAccepted}
               />
               <div className="domains__bid-now__action__agreement-text">
-                I understand my bid cannot be changed after I submit it.
+                {t('bidAgreementText')}
               </div>
             </div>
             <button
@@ -358,7 +368,7 @@ class BidNow extends Component {
               onClick={this.sendBid}
               disabled={!hasAccepted}
             >
-              Submit Bid
+              {t('submitBid')}
             </button>
           </div>
         </div>
@@ -377,19 +387,20 @@ class BidNow extends Component {
   }
 
   renderRescanButton() {
+    const {t} = this.context;
     return (
       <div className="domains__bid-now__action">
         <button
           className="domains__bid-now__action__cta"
           onClick={this.rescanAuction}
         >
-          Rescan Auction
-            <Tooltipable
-              left={"-130px"}
-              className="domains__bid-now__rescan-tooltip"
-              tooltipContent={'Rewinds blockchain to look for bids placed in the past. This may take a few minutes to complete, during which time the wallet will be unresponsive.'}>
-              <div className="account__info-icon" />
-            </Tooltipable>
+          {t('rescanAuction')}
+          <Tooltipable
+            left={"-130px"}
+            className="domains__bid-now__rescan-tooltip"
+            tooltipContent={t('rescanTooltip')}>
+            <div className="account__info-icon" />
+          </Tooltipable>
         </button>
       </div>
     );

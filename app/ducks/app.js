@@ -1,9 +1,26 @@
+import settingsClient from "../utils/settingsClient";
+
 const SET_DEEPLINK = 'app/setDeeplink';
+const SET_LOCALE = 'app/setLocale';
 const SET_DEEPLINK_PARAMS = 'app/setDeeplinkParams';
 
 const initialState = {
   deeplink: '',
   deeplinkParams: {},
+  locale: '',
+};
+
+export const fetchLocale = () => async dispatch => {
+  const locale = await settingsClient.getLocale();
+  dispatch(setLocale(locale));
+};
+
+export const setLocale = locale => async (dispatch) => {
+  await settingsClient.setLocale(locale);
+  dispatch({
+    type: SET_LOCALE,
+    payload: locale,
+  });
 };
 
 export const setDeeplink = url => ({
@@ -37,6 +54,11 @@ export default function appReducer(state = initialState, action) {
       return {
         ...state,
         deeplinkParams: action.payload,
+      };
+    case SET_LOCALE:
+      return {
+        ...state,
+        locale: action.payload,
       };
     default:
       return state;

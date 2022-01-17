@@ -4,6 +4,7 @@ import {withRouter} from "react-router-dom";
 import Checkbox from "../../components/Checkbox";
 import Alert from "../../components/Alert";
 import PropTypes from 'prop-types'
+import {I18nContext} from "../../utils/i18n";
 
 @withRouter
 export default class BulkFinalizeWarningModal extends Component {
@@ -11,6 +12,8 @@ export default class BulkFinalizeWarningModal extends Component {
     onClose: PropTypes.func.isRequired,
     onClick: PropTypes.func.isRequired,
   };
+
+  static contextType = I18nContext;
 
   constructor(props) {
     super(props);
@@ -21,16 +24,18 @@ export default class BulkFinalizeWarningModal extends Component {
 
   render() {
     const { hasConfirmed } = this.state;
+    const { t } = this.context;
+
     return (
       <MiniModal
         onClose={this.props.onClose}
-        title="Bulk Finalize"
+        title={t('bulkFinalize')}
         centered
       >
         <Alert
           type="warning"
         >
-          Make sure there are no pending finalize in the Exchange tab. If there are pending finalize in Exchange, you will need finalize them individually before continuing.
+          {t('bulkFinalizeWarning')}
         </Alert>
         <div className="interstitial-warning-modal__checkbox">
           <Checkbox
@@ -39,7 +44,7 @@ export default class BulkFinalizeWarningModal extends Component {
             checked={hasConfirmed}
           />
           <div className="interstitial-warning-modal__checkbox-label">
-            I have no pending finalize in Exchange tab.
+            {t('bulkFinalizeConfirm')}
           </div>
         </div>
         <button
@@ -47,7 +52,7 @@ export default class BulkFinalizeWarningModal extends Component {
           onClick={this.props.onClick}
           disabled={!hasConfirmed}
         >
-          Finalize All
+          {t('finalizeAll')}
         </button>
       </MiniModal>
     );

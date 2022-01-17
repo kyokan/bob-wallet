@@ -50,6 +50,10 @@ $school-bus-yellow: #ffe000;
   }
 }
 
+.link {
+  @extend %link;
+}
+
 %btn-primary {
   border: 1px solid $azure-blue;
   padding: 0.6875rem 1rem;

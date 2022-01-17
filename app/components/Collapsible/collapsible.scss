@@ -11,6 +11,7 @@
       @extend %row-nowrap;
       flex: 1 1 auto;
       width: 0;
+      text-transform: capitalize;
     }
 
     &__toggle {

@@ -14,6 +14,7 @@ import { showError, showSuccess } from '../../../ducks/notifications';
 import { isOpening } from '../../../utils/nameHelpers';
 import * as logger from '../../../utils/logClient';
 import { clientStub as aClientStub } from '../../../background/analytics/client';
+import {I18nContext} from "../../../utils/i18n";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -26,17 +27,20 @@ class OpenBid extends Component {
     currentBlock: PropTypes.number.isRequired,
   };
 
+  static contextType = I18nContext;
+
   sendOpen = async () => {
     const {sendOpen} = this.props;
+    const {t} = this.context;
 
     try {
       await sendOpen();
-      this.props.showSuccess('Successfully opened auction! Check back in a few minutes to start bidding.');
+      this.props.showSuccess(t('openSuccessText'));
       analytics.track('opened bid');
     } catch (e) {
       console.error(e);
       logger.error(`Error received from OpenBid - sendOpen]\n\n${e.message}\n${e.stack}\n`);
-      this.props.showError(`Failed to open auction: ${e.message}`);
+      this.props.showError(t('openSuccessText', e.message));
     }
   };
 
@@ -44,11 +48,12 @@ class OpenBid extends Component {
     const {currentBlock, domain} = this.props;
     const {start} = domain || {};
     const startBlock = start.start;
+    const {t} = this.context;
 
     return (
       <AuctionPanel>
-        <AuctionPanelHeader title="Auction Details">
-          <AuctionPanelHeaderRow label="Available:">
+        <AuctionPanelHeader title={t('auctionDetailTitle')}>
+          <AuctionPanelHeaderRow label={t('available') + ':'}>
             <div
               className={c('domains__bid-now__info__value', {
                 'domains__bid-now__info__value--green': startBlock <= currentBlock,
@@ -56,7 +61,7 @@ class OpenBid extends Component {
             >
               {
                 startBlock <= currentBlock
-                  ? 'Now'
+                  ? t('now')
                   : (
                     <div>
                       <Blocktime height={startBlock} format="ll" />
@@ -65,8 +70,8 @@ class OpenBid extends Component {
               }
             </div>
           </AuctionPanelHeaderRow>
-          <AuctionPanelHeaderRow label="Block Number:">{startBlock}</AuctionPanelHeaderRow>
-          <AuctionPanelHeaderRow label="Current Block:">{currentBlock}</AuctionPanelHeaderRow>
+          <AuctionPanelHeaderRow label={t('blockNumber') + ':'}>{startBlock}</AuctionPanelHeaderRow>
+          <AuctionPanelHeaderRow label={t('currentBlock') + ':'}>{currentBlock}</AuctionPanelHeaderRow>
         </AuctionPanelHeader>
         <AuctionPanelFooter>
           {this.renderBottom()}
@@ -77,22 +82,22 @@ class OpenBid extends Component {
 
   renderBottom() {
     const {domain, currentBlock} = this.props;
+    const {t} = this.context;
     const {start} = domain || {};
     const startBlock = start.start;
-    console.log('my new start block is', startBlock);
 
     if (isOpening(domain)) {
       return (
         <div className="domains__bid-now__action--placing-bid">
           <div className="domains__bid-now__content domains__bid-now__opening-text">
-            Your open auction request is pending and will be mined within the next block.
+            {t('openingText')}
           </div>
           <div className="domains__bid-now__action">
             <button
               className="domains__bid-now__action__cta"
               disabled
             >
-              Starting Auction...
+              {t('startingAuction')}
             </button>
           </div>
         </div>
@@ -104,14 +109,17 @@ class OpenBid extends Component {
         <div className="domains__bid-now__content domains__open-bid__content">
           {
             startBlock <= currentBlock
-              ?
-              'Start the auction process by making an open bid.'
-              :
-              <span>
-                Come back around{' '}
-                <Blocktime height={startBlock} format="ll" /> to open the auction. You can add the domain
-                to your watchlist to make sure you don't miss it.
+              ? t('openBidText')
+              : (
+                <span>
+                  Come back around
+                  {' '}
+                  <Blocktime height={startBlock} format="ll" />
+                  {' '}
+                  to open the auction. You can add the domain to your watchlist to make sure you don't miss it.
               </span>
+              )
+
           }
         </div>
         <div className="domains__bid-now__action">
@@ -120,7 +128,7 @@ class OpenBid extends Component {
             onClick={this.sendOpen}
             disabled={!(startBlock <= currentBlock)}
           >
-            Start Auction
+            {t('startAuction')}
           </button>
         </div>
       </div>

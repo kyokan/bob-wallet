@@ -14,6 +14,7 @@ import NetworkPicker from "../NetworkPicker";
 const Network = require('hsd/lib/protocol/network');
 import './custom-rpc.scss';
 import Dropdown from "../../components/Dropdown";
+import {I18nContext} from "../../utils/i18n";
 
 const connClient = cClientStub(() => require('electron').ipcRenderer);
 const nodeClient = nClientStub(() => require('electron').ipcRenderer);
@@ -35,6 +36,8 @@ export default class CustomRPCConfigModal extends Component {
     setCustomRPCStatus: PropTypes.func.isRequired,
     fetchWallet: PropTypes.func.isRequired,
   };
+
+  static contextType = I18nContext;
 
   state = {
     protocol: 'http',
@@ -183,20 +186,21 @@ export default class CustomRPCConfigModal extends Component {
       port,
       protocol,
     } = this.state;
+    const {t} = this.context;
 
     let {errorMessage} = this.state;
     if (!errorMessage && this.isDangerousURL())
-      errorMessage = 'Remote connection over HTTP is prohibited.';
-    
+      errorMessage = t('customRPCNoHTTP');
+
 
     return (
       <MiniModal
         closeRoute="/settings/connection"
-        title="Configure Custom RPC"
+        title={t('customRPCTitle')}
         centered
       >
         <div className="settings__input-row">
-          <div className="settings__input-title">Protocol</div>
+          <div className="settings__input-title">{t('protocol')}</div>
           <Dropdown
             className="network-picker custom-rpc__network-picker"
             items={[
@@ -212,7 +216,7 @@ export default class CustomRPCConfigModal extends Component {
         </div>
 
         <div className="settings__input-row">
-          <div className="settings__input-title">Host</div>
+          <div className="settings__input-title">{t('host')}</div>
           <input
             type="text"
             className="settings__input"
@@ -225,7 +229,7 @@ export default class CustomRPCConfigModal extends Component {
         </div>
 
         <div className="settings__input-row">
-          <div className="settings__input-title">Path</div>
+          <div className="settings__input-title">{t('path')}</div>
           <input
             type="text"
             className="settings__input"
@@ -238,7 +242,7 @@ export default class CustomRPCConfigModal extends Component {
         </div>
 
         <div className="settings__input-row">
-          <div className="settings__input-title">Port</div>
+          <div className="settings__input-title">{t('port')}</div>
           <input
             type="text"
             className="settings__input"
@@ -251,7 +255,7 @@ export default class CustomRPCConfigModal extends Component {
         </div>
 
         <div className="settings__input-row">
-          <div className="settings__input-title">API Key</div>
+          <div className="settings__input-title">{t('apiKey')}</div>
           <input
             spellCheck={false}
             type="text"
@@ -275,14 +279,14 @@ export default class CustomRPCConfigModal extends Component {
             className="settings__secondary-btn"
             onClick={() => this.props.history.push('/settings/connection')}
           >
-            Cancel
+            {t('cancel')}
           </button>
           <button
             className={"settings__btn settings__btn--confirm"}
             onClick={this.saveCustomRPC}
             disabled={errorMessage}
           >
-            Save
+            {t('update')}
           </button>
         </div>
       </MiniModal>

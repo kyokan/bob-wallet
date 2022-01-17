@@ -3,6 +3,7 @@ import { withRouter, Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import './access.scss';
+import {I18nContext} from "../../../utils/i18n";
 
 class FundAccessOptions extends Component {
   static propTypes = {
@@ -11,7 +12,10 @@ class FundAccessOptions extends Component {
     }).isRequired
   };
 
+  static contextType = I18nContext;
+
   render() {
+    const {t} = this.context;
     return (
       <div className="extension_primary_section funding-options">
         <div className="funding-options__header">
@@ -19,11 +23,10 @@ class FundAccessOptions extends Component {
         </div>
         <div className="funding-options__content">
           <div className="funding-options__content__title">
-            Hi, I am Bob.
+            {t('obMainTitle')}
           </div>
           <div className="funding-options__content__body-text">
-            I am your Handshake Wallet and full node. I can help you take control of your Handshake coins,
-            browse Handshake websites, and participate in domain auctions.
+            {t('obMainBody')}
           </div>
         </div>
         <div className="funding-options__footer">
@@ -32,21 +35,21 @@ class FundAccessOptions extends Component {
             className="funding-options__footer__primary-btn"
             onClick={() => this.props.history.push('/new-wallet/local')}
           >
-            Create a new wallet
+            {t('obMainCreateText')}
           </button>
           <button
             type="button"
             className="funding-options__footer__secondary-btn"
             onClick={() => this.props.history.push('/existing-options')}
           >
-            Import a wallet
+            {t('obMainImportText')}
           </button>
           <button
             type="button"
             className="funding-options__footer__secondary-btn"
             onClick={() => this.props.history.push('/new-wallet/ledger')}
           >
-            Connect Ledger
+            {t('obMainConnectLedger')}
           </button>
 
           {!!this.props.wallets.length && (
@@ -54,7 +57,7 @@ class FundAccessOptions extends Component {
               to="/"
               className="login_subheader_text login_subheader_text__accent"
             >
-              Return to login
+              {t('obMainReturnToLogin')}
             </Link>
           )}
         </div>

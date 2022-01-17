@@ -11,6 +11,7 @@ import Dropdown from '../Dropdown';
 import BidSearchInput from '../BidSearchInput';
 import Fuse from '../../vendor/fuse';
 import dbClient from "../../utils/dbClient";
+import {I18nContext} from "../../utils/i18n";
 
 const SORT_BY_TYPES = {
   DATE_DESCENDING: 'Date - Descending',
@@ -44,6 +45,8 @@ export default class Transactions extends Component {
   static propTypes = {
     transactions: PropTypes.instanceOf(Map).isRequired,
   };
+
+  static contextType = I18nContext;
 
   async componentWillMount() {
     const itemsPerPage = await dbClient.get(TX_VIEW_ITEMS_PER_PAGE_KEY);
@@ -98,6 +101,7 @@ export default class Transactions extends Component {
 
   render() {
     const { currentPageIndex, itemsPerPage } = this.state;
+    const {t} = this.context;
     let i = currentPageIndex * itemsPerPage;
     let result = [];
     const len = i + itemsPerPage;
@@ -107,7 +111,7 @@ export default class Transactions extends Component {
     if (!transactions.length) {
       result.push(
         <div key="empty" className="transactions__empty-list">
-          You do not have any transactions
+          {t('txnsEmpty')}
         </div>
       );
     }
@@ -128,12 +132,12 @@ export default class Transactions extends Component {
         <div className="transactions__header">
           <BidSearchInput
             className="transactions__search"
-            placeholder="Search your transaction history"
+            placeholder={t('txnsSearchPlaceholder')}
             onChange={this.handleOnChange}
             value={this.state.query}
           />
           <div className="transactions__go-to">
-            <div className="transactions__go-to__text">Sort By:</div>
+            <div className="transactions__go-to__text">{t('sortBy')}:</div>
             <Dropdown
               className="transactions__go-to__dropdown transactions__sort-by__dropdown"
               items={SORT_BY_DROPDOWN}
@@ -149,12 +153,13 @@ export default class Transactions extends Component {
   }
 
   renderGoTo(transactions) {
+    const {t} = this.context;
     const { currentPageIndex, itemsPerPage } = this.state;
     const totalPages = Math.ceil(transactions.length / itemsPerPage);
     return (
       <div className="transactions__page-control__dropdowns">
         <div className="transactions__go-to">
-          <div className="transactions__go-to__text">Items per Page:</div>
+          <div className="transactions__go-to__text">{t('itemsPerPage')}:</div>
           <Dropdown
             className="transactions__go-to__dropdown transactions__items-per__dropdown"
             items={ITEM_PER_DROPDOWN}
@@ -169,7 +174,7 @@ export default class Transactions extends Component {
           />
         </div>
         <div className="transactions__go-to">
-          <div className="transactions__go-to__text">Page</div>
+          <div className="transactions__go-to__text">{t('page')}</div>
           <Dropdown
             className="transactions__go-to__dropdown"
             items={Array(totalPages).fill(0).map((_, i) => ({ label: `${i + 1}` }))}

@@ -6,6 +6,7 @@ import './create.scss';
 import Submittable from '../../../components/Submittable';
 import WizardHeader from '../../../components/WizardHeader';
 import walletClient from "../../../utils/walletClient";
+import {I18nContext} from "../../../utils/i18n";
 
 @connect(
   (state) => ({
@@ -22,6 +23,8 @@ export default class CreatePassword extends Component {
     onCancel: PropTypes.func.isRequired,
   };
 
+  static contextType = I18nContext;
+
   constructor(props) {
     super(props);
     this.state = {
@@ -31,6 +34,8 @@ export default class CreatePassword extends Component {
   }
 
   onSubmit = async () => {
+    const {t} = this.context;
+
     if (this.isValidName()) {
       const allWallets = await walletClient.listWallets(true);
       const {wallets} = this.props;
@@ -38,9 +43,9 @@ export default class CreatePassword extends Component {
       let errorMessage = '';
 
       if (wallets.includes(name)) {
-        errorMessage = `"${name}" already exists`;
+        errorMessage = t('obSetNameAlreadyExistError', name);
       } else if (allWallets.includes(name)) {
-        errorMessage = `cannot use "${name}" as name`;
+        errorMessage = t('obSetNameCannotUseError', name);
       }
 
       if (errorMessage) {
@@ -62,11 +67,12 @@ export default class CreatePassword extends Component {
   onChange = (name) => async (e) => {
     const {wallets} = this.props;
     const inputValue = e.target.value;
+    const {t} = this.context;
 
     let errorMessage = '';
 
     if (wallets.includes(inputValue)) {
-      errorMessage = `"${inputValue}" already exists`;
+      errorMessage = t('obSetNameAlreadyExistError', inputValue);
     }
 
     this.setState({
@@ -78,6 +84,7 @@ export default class CreatePassword extends Component {
   render() {
     const {currentStep, totalSteps, onBack} = this.props;
     const {errorMessage} = this.state;
+    const {t} = this.context;
 
     return (
       <div className="create-password">
@@ -90,10 +97,10 @@ export default class CreatePassword extends Component {
         <div className="create-password__content">
           <Submittable onSubmit={this.onSubmit}>
             <div className="create-password__header_text">
-              Name this wallet
+              {t('obSetNameHeader')}
             </div>
             <div className="create-password__body-text">
-              The name can only contain alphanumeric lowercase characters.
+              {t('obSetNameBody')}
             </div>
             <div
               className={c('create-password__input', {
@@ -102,7 +109,7 @@ export default class CreatePassword extends Component {
             >
               <input
                 type="text"
-                placeholder="Enter a name"
+                placeholder={t('obSetNamePlaceholder')}
                 value={this.state.name}
                 onChange={this.onChange('name')}
                 autoFocus
@@ -119,7 +126,7 @@ export default class CreatePassword extends Component {
             onClick={this.onSubmit}
             disabled={!this.isValidName()}
           >
-            Next
+            {t('next')}
           </button>
         </div>
       </div>

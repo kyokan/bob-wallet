@@ -1,8 +1,11 @@
 import React, { Component } from 'react';
 import MiniModal from '../../components/Modal/MiniModal';
 import './account-index-modal.scss';
+import {I18nContext} from "../../utils/i18n";
 
 export default class AccountIndexModal extends Component {
+  static contextType = I18nContext;
+
   render() {
     return (
       <MiniModal title="Change account index" closeRoute="/settings" centered>

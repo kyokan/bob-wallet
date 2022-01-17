@@ -20,6 +20,7 @@ import * as nameActions from "../../ducks/names";
 import * as notifActions from "../../ducks/notifications";
 import dbClient from "../../utils/dbClient";
 import {NAME_STATES} from "../../constants/names";
+import {I18nContext} from "../../utils/i18n";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -42,6 +43,8 @@ class YourBids extends Component {
     showError: PropTypes.func.isRequired,
     showSuccess: PropTypes.func.isRequired,
   };
+
+  static contextType = I18nContext;
 
   state = {
     isShowingNameClaimForPayment: false,
@@ -76,7 +79,7 @@ class YourBids extends Component {
 
     try {
       await sendRegisterAll();
-      showSuccess('Your register request is submitted! Please wait about 15 minutes for it to complete.');
+      showSuccess(this.context.t('registerSuccess'));
     } catch (e) {
       showError(e.message)
     }
@@ -91,7 +94,7 @@ class YourBids extends Component {
 
     try {
       await sendRedeemAll();
-      showSuccess('Your redeem request is submitted! Please wait about 15 minutes for it to complete.');
+      showSuccess(this.context.t('redeemSuccess'));
     } catch (e) {
       showError(e.message)
     }
@@ -106,7 +109,7 @@ class YourBids extends Component {
 
     try {
       await sendRevealAll();
-      showSuccess('Your reveal request is submitted! Please wait about 15 minutes for it to complete.');
+      showSuccess(this.context.t('revealSuccess'));
     } catch (e) {
       showError(e.message)
     }
@@ -124,6 +127,7 @@ class YourBids extends Component {
   }
 
   render() {
+    const {t} = this.context;
     return (
       <div className="bids">
         <div className="bids__top">
@@ -137,27 +141,27 @@ class YourBids extends Component {
               className="bids__top__btn"
               onClick={this.onRevealAll}
             >
-              Reveal All
+              {t('revealAll')}
             </button>
             <button
               className="bids__top__btn"
               onClick={this.onRedeemAll}
             >
-              Redeem All
+              {t('redeemAll')}
             </button>
             <button
               className="bids__top__btn"
               onClick={this.onRegisterAll}
             >
-              Register All
+              {t('registerAll')}
             </button>
           </div>
         </div>
         <div className="bids__filters">
-          {this.renderFilter('ALL', '')}
-          {this.renderFilter(NAME_STATES.BIDDING, NAME_STATES.BIDDING)}
-          {this.renderFilter(NAME_STATES.REVEAL, NAME_STATES.REVEAL)}
-          {this.renderFilter(NAME_STATES.CLOSED, NAME_STATES.CLOSED)}
+          {this.renderFilter(t('all'), '')}
+          {this.renderFilter(t('bidding'), NAME_STATES.BIDDING)}
+          {this.renderFilter(t('reveal'), NAME_STATES.REVEAL)}
+          {this.renderFilter(t('closed'), NAME_STATES.CLOSED)}
         </div>
         <Table className="bids-table">
           <Header />
@@ -187,12 +191,13 @@ class YourBids extends Component {
 
   renderGoTo() {
     const { currentPageIndex, itemsPerPage } = this.state;
+    const {t} = this.context;
     const yourBids = this.getCurrentBids();
     const totalPages = Math.ceil(yourBids.length / itemsPerPage);
     return (
       <div className="domain-manager__page-control__dropdowns">
         <div className="domain-manager__go-to">
-          <div className="domain-manager__go-to__text">Items per Page:</div>
+          <div className="domain-manager__go-to__text">{t('itemsPerPage')}:</div>
           <Dropdown
             className="domain-manager__go-to__dropdown transactions__items-per__dropdown"
             items={ITEM_PER_DROPDOWN}
@@ -207,7 +212,7 @@ class YourBids extends Component {
           />
         </div>
         <div className="domain-manager__go-to">
-          <div className="domain-manager__go-to__text">Page</div>
+          <div className="domain-manager__go-to__text">{t('page')}</div>
           <Dropdown
             className="domain-manager__go-to__dropdown"
             items={Array(totalPages).fill(0).map((_, i) => ({ label: `${i + 1}` }))}
@@ -331,33 +336,49 @@ export default withRouter(
   )(YourBids)
 );
 
-function Header() {
-  return (
-    <HeaderRow>
-      <HeaderItem>
-        <div>Status</div>
-      </HeaderItem>
-      <HeaderItem>TLD</HeaderItem>
-      <HeaderItem>Time Left</HeaderItem>
-      <HeaderItem>Your Bid</HeaderItem>
-      <HeaderItem />
-    </HeaderRow>
-  )
+class Header extends Component {
+  static contextType = I18nContext;
+
+  render() {
+    const {t} = this.context;
+    return (
+      <HeaderRow>
+        <HeaderItem>
+          <div>{t('status')}</div>
+        </HeaderItem>
+        <HeaderItem>{t('domain')}</HeaderItem>
+        <HeaderItem>{t('timeLeft')}</HeaderItem>
+        <HeaderItem>{t('yourBid')}</HeaderItem>
+        <HeaderItem />
+      </HeaderRow>
+    )
+  }
+
 }
 
-function EmptyResult() {
-  return (
-    <TableRow className="bids-table__empty-row">
-      No Bids Found
-    </TableRow>
-  );
+class EmptyResult extends Component {
+  static contextType = I18nContext;
+
+  render() {
+    return (
+      <TableRow className="bids-table__empty-row">
+        {this.context.t('yourBidsEmpty')}
+      </TableRow>
+    );
+  }
+
 }
 
 
-function LoadingResult() {
-  return (
-    <TableRow className="bids-table__empty-row">
-      Loading Bids...
-    </TableRow>
-  );
+class LoadingResult extends Component {
+  static contextType = I18nContext;
+
+  render() {
+    return (
+      <TableRow className="bids-table__empty-row">
+        {this.context.t('loading')}
+      </TableRow>
+    );
+  }
+
 }

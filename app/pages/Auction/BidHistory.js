@@ -5,6 +5,7 @@ import { displayBalance } from '../../utils/balances';
 import ellipsify from '../../utils/ellipsify';
 import RepairBid from './RepairBid';
 import './bid-history.scss';
+import {I18nContext} from "../../utils/i18n";
 
 export default class BidHistory extends Component {
   static propTypes = {
@@ -12,14 +13,17 @@ export default class BidHistory extends Component {
     reveals: PropTypes.array.isRequired,
   };
 
+  static contextType = I18nContext;
+
   render() {
     const bids = this.props.bids || [];
     const reveals = this.props.reveals || [];
+    const {t} = this.context;
 
     if (!bids.length && !reveals.length) {
       return (
         <div className="bid-history__empty">
-          No bids found.
+          {t('noBids')}
         </div>
       );
     }
@@ -50,28 +54,26 @@ export default class BidHistory extends Component {
         <table className="bid-history__table">
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Address</th>
-              <th>Bid</th>
-              <th>Lockup</th>
+              <th>{t('date')}</th>
+              <th>{t('address')}</th>
+              <th>{t('bid')}</th>
+              <th>{t('lockup')}</th>
             </tr>
           </thead>
           <tbody>
             {order.map(fromAddress => {
               const bid = map[fromAddress];
               const {month, day, year} = bid.date;
-              let bidValue = 'Hidden Until Reveal';
+              let bidValue = t('hiddenUntilReveal');
               if (bid.bid == null && bid.own) {
-                bidValue = <RepairBid
-                  bid={bid}
-                />;
+                bidValue = <RepairBid bid={bid} />;
               }
               if (bid.bid != null)
                 bidValue = displayBalance(bid.bid, true);
               return (
                 <tr key={fromAddress}>
                   <td>{month}/{day}/{year}</td>
-                  <td>{bid.own ? 'You' : ellipsify(fromAddress, 10)}</td>
+                  <td>{bid.own ? t('you') : ellipsify(fromAddress, 10)}</td>
                   <td>{bidValue}</td>
                   <td>{displayBalance(bid.mask, true)}</td>
                 </tr>

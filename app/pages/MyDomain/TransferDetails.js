@@ -8,6 +8,7 @@ import { clientStub as aClientStub } from '../../background/analytics/client';
 import * as networks from 'hsd/lib/protocol/networks';
 import Checkbox from '../../components/Checkbox';
 import FinalizeWithPaymentModal from './FinalizeWithPaymentModal';
+import {I18nContext} from "../../utils/i18n";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -16,6 +17,8 @@ class TransferDetails extends Component {
     name: PropTypes.string.isRequired,
     domain: PropTypes.object,
   };
+
+  static contextType = I18nContext;
 
   constructor(props) {
     super(props);
@@ -48,7 +51,7 @@ class TransferDetails extends Component {
   sendTransfer = () => {
     this.props.sendTransfer(this.state.recipient)
       .then(() => {
-        this.props.showSuccess('Your transfer request is submitted! Please wait around 15 minutes for it to be confirmed.');
+        this.props.showSuccess(this.context.t('transferSuccess'));
         analytics.track('transferred domain');
       })
       .catch(e => this.props.showError(e.message));
@@ -57,7 +60,7 @@ class TransferDetails extends Component {
   cancelTransfer = () => {
     this.props.cancelTransfer()
       .then(() => {
-        this.props.showSuccess('Your cancellation request is submitted! Please wait around 15 minutes for it to be confirmed.');
+        this.props.showSuccess(this.context.t('cancelSuccess'));
         analytics.track('cancelled transfer');
       })
       .catch(e => this.props.showError(e.message));
@@ -66,7 +69,7 @@ class TransferDetails extends Component {
   revokeName = () => {
     this.props.revokeName()
       .then(() => {
-        this.props.showSuccess('This name has been revoked. Please wait around 15 minutes for it to be confirmed.');
+        this.props.showSuccess(this.context.t('revokeSuccess'));
         analytics.track('revoked name');
       })
       .catch(e => this.props.showError(e.message));
@@ -75,7 +78,7 @@ class TransferDetails extends Component {
   finalizeTransfer = () => {
     this.props.finalizeTransfer()
       .then(() => {
-        this.props.showSuccess('Your transfer is finalized! Please wait around 15 minutes for it to be confirmed.');
+        this.props.showSuccess(this.context.t('finalizeSuccess'));
         analytics.track('finalized transfer');
       })
       .catch(e => this.props.showError(e.message));
@@ -89,12 +92,13 @@ class TransferDetails extends Component {
 
   render() {
     const domain = this.props.domain || {};
+    const {t} = this.context;
     const {info} = domain;
 
     if (!info) {
       return (
         <div className="transfer-details">
-          Loading...
+          {t('loading')}
         </div>
       );
     }
@@ -103,7 +107,7 @@ class TransferDetails extends Component {
       return (
         <div className="transfer-details">
           <p>
-            This domain can only be transferred after it is registered.
+            {t('transferAfterRegisterWarning')}
           </p>
         </div>
       );
@@ -113,7 +117,7 @@ class TransferDetails extends Component {
       return (
         <div className="transfer-details">
           <p>
-            Your transfer is in progress. Please check back in about 15 minutes.
+            {t('transferInProgressWarning')}
           </p>
         </div>
       );
@@ -126,17 +130,17 @@ class TransferDetails extends Component {
         return (
           <div className="transfer-details">
             <p>
-              You must finalize your transfer before it can complete.
+              {t('finalizeTransferWarning')}
             </p>
             <p>
               <button className="extension_cta_button transfer-details__danger" onClick={this.cancelTransfer}>
-                Cancel Transfer
+                {t('cancel')}
               </button>
               <button className="extension_cta_button" onClick={this.finalizeTransfer}>
-                Finalize Transfer
+                {t('finalize')}
               </button>
               <button className="extension_cta_button" onClick={this.finalizeWithPayment}>
-                Finalize With Payment
+                {t('finalizeWithPayment')}
               </button>
             </p>
             {this.state.isShowingFinalizeWithPayment && (
@@ -156,11 +160,11 @@ class TransferDetails extends Component {
       return (
         <div className="transfer-details">
           <p>
-            Your transfer is in progress. You will be able to finalize the transfer in {remainingBlocks} blocks.
+            {t('transferInProgressWarningWithBlocks', remainingBlocks)}
           </p>
           <p>
             <button className="extension_cta_button transfer-details__danger" onClick={this.cancelTransfer}>
-              Cancel Transfer
+              {t('cancel')}
             </button>
           </p>
           {this.renderRevoke()}
@@ -178,7 +182,7 @@ class TransferDetails extends Component {
               onChange={(e) => this.setState({
                 recipient: e.target.value,
               })}
-              placeholder="Enter a recipient..."
+              placeholder={this.context.t('recipientAddress')}
             />
           </div>
           <div className="transfer-details__cta">
@@ -187,7 +191,7 @@ class TransferDetails extends Component {
               disabled={!this.state.recipient}
               onClick={this.sendTransfer}
             >
-              Transfer
+              {this.context.t('transfer')}
             </button>
           </div>
         </div>
@@ -196,15 +200,15 @@ class TransferDetails extends Component {
   }
 
   renderRevoke() {
+    const {t} = this.context;
     return (
       <>
         <p>
-          <strong>For emergency use only:</strong> If someone has compromised your key or transferred this name
-          without
-          your permission, you can revoke the name. Revoking a name will release it back to the public.
+          <strong>{t('revokeWarningLabel')}</strong>
+          {t('revokeWarning')}
         </p>
         <p>
-          To revoke this name, please acknowledge the following:
+          {t('revokeAckTitle')}
         </p>
         <div className="interstitial-warning-modal__checkbox">
           <Checkbox
@@ -213,7 +217,7 @@ class TransferDetails extends Component {
             checked={this.state.acceptances[0]}
           />
           <div className="interstitial-warning-modal__checkbox-label">
-            The name will go back into the public auction pool.
+            {t('revokeAck1')}
           </div>
         </div>
         <div className="interstitial-warning-modal__checkbox">
@@ -223,7 +227,7 @@ class TransferDetails extends Component {
             checked={this.state.acceptances[1]}
           />
           <div className="interstitial-warning-modal__checkbox-label">
-            The only way to own this name again is to win it again at auction.
+            {t('revokeAck2')}
           </div>
         </div>
         <div className="interstitial-warning-modal__checkbox">
@@ -233,7 +237,7 @@ class TransferDetails extends Component {
             checked={this.state.acceptances[2]}
           />
           <div className="interstitial-warning-modal__checkbox-label">
-            There is no way to undo this action.
+            {t('revokeAck3')}
           </div>
         </div>
         <p>
@@ -242,7 +246,7 @@ class TransferDetails extends Component {
             onClick={this.revokeName}
             disabled={this.checkDisabled()}
           >
-            Revoke Name
+            {t('revoke')}
           </button>
         </p>
       </>

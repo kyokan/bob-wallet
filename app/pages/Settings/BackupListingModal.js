@@ -4,6 +4,7 @@ import MiniModal from '../../components/Modal/MiniModal';
 import './interstitial-warning-modal.scss';
 import PropTypes from 'prop-types';
 import Checkbox from '../../components/Checkbox';
+import {I18nContext} from "../../utils/i18n";
 
 @withRouter
 export default class BackupListingModal extends Component {
@@ -15,6 +16,8 @@ export default class BackupListingModal extends Component {
   static defaultProps = {
     nextAction: () => Promise.resolve(),
   };
+
+  static contextType = I18nContext;
 
   constructor(props) {
     super(props);
@@ -52,13 +55,15 @@ export default class BackupListingModal extends Component {
   };
 
   render() {
+    const {t} = this.context;
+
     return (
       <MiniModal
         closeRoute="/settings/exchange"
-        title="Backup your listing"
+        title={t('backupYourListing')}
       >
         <div className="interstitial-warning-modal__instructions">
-          This will generate a backup file containing your encrypted private keys for all of your listings. Be sure to store this file somewhere safe after it is downloaded.
+          {t('backupListingWarningHeader')}
         </div>
         <div className="interstitial-warning-modal__checkbox">
           <Checkbox
@@ -67,7 +72,7 @@ export default class BackupListingModal extends Component {
             checked={this.state.acceptances[0]}
           />
           <div className="interstitial-warning-modal__checkbox-label">
-            I will need my password to restore access to my names in case they are not sold.
+            {t('backupListingWarning1')}
           </div>
         </div>
         <div className="interstitial-warning-modal__checkbox">
@@ -77,7 +82,7 @@ export default class BackupListingModal extends Component {
             checked={this.state.acceptances[1]}
           />
           <div className="interstitial-warning-modal__checkbox-label">
-            I will store this file somewhere safe.
+            {t('backupListingWarning2')}
           </div>
         </div>
         <div className="interstitial-warning-modal__buttons">
@@ -85,14 +90,14 @@ export default class BackupListingModal extends Component {
             className="interstitial-warning-modal__cancel-button"
             onClick={this.onClickCancel}
           >
-            Cancel
+            {t('cancel')}
           </button>
           <button
             className="backup-listing-modal__download-button"
             disabled={this.checkDisabled()}
             onClick={this.onClickSubmit}
           >
-            Download File
+            {t('download')}
           </button>
         </div>
       </MiniModal>

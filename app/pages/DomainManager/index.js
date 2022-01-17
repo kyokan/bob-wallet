@@ -19,8 +19,8 @@ import * as networks from "hsd/lib/protocol/networks";
 import {finalizeMany} from "../../ducks/names";
 import {showError, showSuccess} from "../../ducks/notifications";
 import dbClient from "../../utils/dbClient";
-import MiniModal from "../../components/Modal/MiniModal";
 import BulkFinalizeWarningModal from "./BulkFinalizeWarningModal";
+import {I18nContext} from "../../utils/i18n";
 
 const {dialog} = require('electron').remote;
 
@@ -42,6 +42,8 @@ class DomainManager extends Component {
     namesList: PropTypes.array.isRequired,
     names: PropTypes.object.isRequired,
   };
+
+  static contextType = I18nContext;
 
   state = {
     isShowingNameClaimForPayment: false,
@@ -100,6 +102,8 @@ class DomainManager extends Component {
       showSuccess,
     } = this.props;
 
+    const { t } = this.context;
+
     if (!this.state.isConfirmingBulkFinalize) {
       return this.setState({ isConfirmingBulkFinalize: true });
     }
@@ -116,7 +120,7 @@ class DomainManager extends Component {
       }
 
       await finalizeMany(finalizables);
-      showSuccess(`Your finalize request is submitted! Please wait around 15 minutes for it to be confirmed.`)
+      showSuccess(t('finalizeSuccess'));
       this.setState({ isConfirmingBulkFinalize: false });
     } catch (e) {
       showError(e.message);
@@ -127,11 +131,13 @@ class DomainManager extends Component {
 
   renderGoTo(namesList) {
     const {currentPageIndex, itemsPerPage} = this.state;
+    const { t } = this.context;
+
     const totalPages = Math.ceil(namesList.length / itemsPerPage);
     return (
       <div className="domain-manager__page-control__dropdowns">
         <div className="domain-manager__go-to">
-          <div className="domain-manager__go-to__text">Items per Page:</div>
+          <div className="domain-manager__go-to__text">{`${t('itemsPerPage')}:`}</div>
           <Dropdown
             className="domain-manager__go-to__dropdown transactions__items-per__dropdown"
             items={ITEM_PER_DROPDOWN}
@@ -146,7 +152,7 @@ class DomainManager extends Component {
           />
         </div>
         <div className="domain-manager__go-to">
-          <div className="domain-manager__go-to__text">Page</div>
+          <div className="domain-manager__go-to__text">{t('page')}</div>
           <Dropdown
             className="domain-manager__go-to__dropdown"
             items={Array(totalPages).fill(0).map((_, i) => ({label: `${i + 1}`}))}
@@ -229,13 +235,14 @@ class DomainManager extends Component {
         className="extension_cta_button domain-manager__export-btn"
         onClick={this.handleFinalizeMany}
       >
-        {`Bulk Finalize (${finalizables.length})`}
+        {`${this.context.t('bulkFinalize')} (${finalizables.length})`}
       </button>
     )
   }
 
   renderList() {
     const {namesList, history} = this.props;
+    const {t} = this.context;
     const {
       currentPageIndex: i,
       itemsPerPage: n,
@@ -251,7 +258,7 @@ class DomainManager extends Component {
             className="extension_cta_button domain-manager__export-btn"
             onClick={this.handleExportClick.bind(this)}
           >
-            Export
+            {t('export')}
           </button>
           <button
             className="extension_cta_button domain-manager__export-btn"
@@ -259,7 +266,7 @@ class DomainManager extends Component {
               isShowingNameClaimForPayment: true,
             })}
           >
-            Claim Paid Transfer
+            {t('claimPaidTransfer')}
           </button>
           <button
             className="extension_cta_button domain-manager__export-btn"
@@ -267,15 +274,15 @@ class DomainManager extends Component {
               isShowingBulkTransfer: true,
             })}
           >
-            Bulk Transfer
+            {t('bulkTransfer')}
           </button>
           {this.renderBulkFinalize()}
         </div>
         <Table className="domain-manager__table">
           <HeaderRow>
-            <HeaderItem>TLD</HeaderItem>
-            <HeaderItem>Expiry</HeaderItem>
-            <HeaderItem>HNS Paid</HeaderItem>
+            <HeaderItem>{t('domain')}</HeaderItem>
+            <HeaderItem>{t('expiresOn')}</HeaderItem>
+            <HeaderItem>{t('hnsPaid')}</HeaderItem>
           </HeaderRow>
           {namesList.slice(start, end).map((name) => {
             return (
@@ -292,6 +299,7 @@ class DomainManager extends Component {
   }
 
   renderEmpty() {
+    const { t } = this.context;
     return (
       <div className="domain-manager">
         <div className="domain-manager__buttons">
@@ -301,11 +309,11 @@ class DomainManager extends Component {
               isShowingNameClaimForPayment: true,
             })}
           >
-            Claim Name For Payment
+            {t('claimNamePaymentTitle')}
           </button>
         </div>
         <div className="domain-manager__empty-text">
-          You do not own any domains.
+          {t('domainManagerEmpty')}
         </div>
       </div>
     );
@@ -313,12 +321,13 @@ class DomainManager extends Component {
 
   renderBody() {
     const {namesList, isFetching} = this.props;
+    const { t } = this.context;
 
     if (isFetching) {
       return (
         <div className="domain-manager">
           <div className="domain-manager__loading">
-            {`Loading ${namesList.length} domains...`}
+            {t('loadingNDomains', namesList.length)}
           </div>
         </div>
       );

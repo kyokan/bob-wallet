@@ -6,11 +6,14 @@ import Dropdown from '../../components/Dropdown';
 import Alert from "../../components/Alert";
 import {launchExchangeAuction} from "../../ducks/exchange";
 import {formatName} from "../../utils/nameHelpers";
+import {I18nContext} from "../../utils/i18n";
 
 export class GenerateListingModal extends Component {
   static propTypes = {
     listing: PropTypes.object.isRequired,
   };
+
+  static contextType = I18nContext;
 
   constructor(props) {
     super(props);
@@ -44,6 +47,7 @@ export class GenerateListingModal extends Component {
 
   render() {
     const {onClose, listing} = this.props;
+    const {t} = this.context;
 
     const isValid = String(this.state.startPrice).length &&
       String(this.state.endPrice).length &&
@@ -52,14 +56,14 @@ export class GenerateListingModal extends Component {
       Number(this.state.startPrice) > Number(this.state.endPrice);
 
     return (
-      <MiniModal title="Create Listing" onClose={onClose}>
+      <MiniModal title={t('createListing')} onClose={onClose}>
         <div className="exchange__place-listing-modal">
-          <div className="exchange__label">Listing Name:</div>
+          <div className="exchange__label">{`${t('listingName')}:`}</div>
           <div className="exchange__input">
             {formatName(listing.nameLock.name)}
           </div>
 
-          <label className="exchange__label">Starting price:</label>
+          <label className="exchange__label">{`${t('startingPrice')}:`}</label>
           <div className="exchange__input send__input">
             <input
               type="number"
@@ -71,7 +75,7 @@ export class GenerateListingModal extends Component {
             />
           </div>
 
-          <label className="exchange__label">Ending price:</label>
+          <label className="exchange__label">{`${t('endingPrice')}:`}</label>
           <div className="exchange__input send__input">
             <input
               type="number"
@@ -83,10 +87,10 @@ export class GenerateListingModal extends Component {
             />
           </div>
 
-          <label className="exchange__label">Duration:</label>
+          <label className="exchange__label">{`${t('duration')}:`}</label>
           <Dropdown
             items={this.durationOpts.map(d => ({
-              label: `${d} days`,
+              label: `${d} ${t('days')}`,
             }))}
             onChange={(i) => this.setState({
               durationIdx: i,
@@ -100,14 +104,14 @@ export class GenerateListingModal extends Component {
               className="place-bid-modal__cancel"
               onClick={onClose}
             >
-              Cancel
+              {t('cancel')}
             </button>
             <button
               className="place-bid-modal__send"
               onClick={this.generateProofs}
               disabled={!isValid}
             >
-              {'Generate Proofs'}
+              {t('generateProofs')}
             </button>
           </div>
         </div>

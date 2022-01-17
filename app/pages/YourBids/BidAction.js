@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import * as nameActions from '../../ducks/names';
 import { isReveal, isBidding, isOpening, isClosed } from '../../utils/nameHelpers';
 import { showError, showSuccess } from '../../ducks/notifications';
+import {I18nContext} from "../../utils/i18n";
 
 class BidAction extends Component {
   static propTypes = {
@@ -17,6 +18,8 @@ class BidAction extends Component {
     showSuccess: PropTypes.func.isRequired,
     showError: PropTypes.func.isRequired,
   };
+
+  static contextType = I18nContext;
 
   componentDidMount() {
     const {
@@ -42,6 +45,7 @@ class BidAction extends Component {
 
   render() {
     const { domain, history, name } = this.props;
+    const {t} = this.context;
 
     if (!domain) {
       return 'N/A';
@@ -61,7 +65,7 @@ class BidAction extends Component {
               history.push(`/domain_manager/${name}`)
             }}
           >
-            Manage
+            {t('manage')}
           </div>
         </div>
       );
@@ -87,7 +91,7 @@ class BidAction extends Component {
       showSuccess,
       showError,
     } = this.props;
-
+    const {t} = this.context;
     const domain = this.props.domain || {};
     const reveals = domain.reveals || [];
 
@@ -102,11 +106,11 @@ class BidAction extends Component {
               onClick={e => {
                 e.stopPropagation();
                 sendRegister(name)
-                  .then(() => showSuccess('Your register request is submitted! Please wait about 15 minutes for it to complete.'))
+                  .then(() => showSuccess(t('registerSuccess')))
                   .catch(e => showError(e.message));
               }}
             >
-              Register
+              {t('register')}
             </div>
           );
         }
@@ -117,6 +121,7 @@ class BidAction extends Component {
   renderRedeem() {
     const domain = this.props.domain || {};
     const reveals = domain.reveals || [];
+    const {t} = this.context;
 
     for (let i = 0; i < reveals.length; i++) {
       const reveal = reveals[i];
@@ -129,11 +134,11 @@ class BidAction extends Component {
               onClick={e => {
                 e.stopPropagation();
                 this.props.sendRedeem()
-                  .then(() => this.props.showSuccess('Your redeem request is submitted! Please wait about 15 minutes for it to complete.'))
+                  .then(() => this.props.showSuccess(t('redeemSuccess')))
                   .catch(e => this.props.showError(e.message));
               }}
             >
-              Redeem
+              {t('redeem')}
             </div>
           );
         }

@@ -3,6 +3,7 @@ import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 // import classNames from 'classnames';
 import './existing.scss';
+import {I18nContext} from "../../../utils/i18n";
 
 const NONE = 0;
 const CONNECT_LEDGER = 1;
@@ -16,6 +17,8 @@ class ExistingAccountOptions extends Component {
     })
   };
 
+  static contextType = I18nContext;
+
   state = {
     hovered: NONE
   };
@@ -23,7 +26,7 @@ class ExistingAccountOptions extends Component {
   getTip() {
     switch (this.state.hovered) {
       case IMPORT_SEED:
-        return 'A 24 word secret phrase that was given to you when you generated a previous Handshake wallet (e.g. developer faucet).';
+        return this.context.t('obImportOptionTip1');
       case CONNECT_LEDGER:
         return 'A small device that generates and holds onto your private key. Transactions are signed directly on the device.';
       case NONE:
@@ -33,6 +36,7 @@ class ExistingAccountOptions extends Component {
   }
 
   render() {
+    const {t} = this.context;
     return (
       <div className="existing-options">
         <div className="existing-options__header">
@@ -43,7 +47,7 @@ class ExistingAccountOptions extends Component {
         </div>
         <div className="existing-options__content">
           <div className="existing-options__content__title">
-            How would you like to access your Handshake wallet?
+            {t('obImportOptionHeader')}
           </div>
           <div
             className="existing-options__content__option"
@@ -52,7 +56,7 @@ class ExistingAccountOptions extends Component {
             onClick={() => this.props.history.push('/import-seed')}
           >
             <div className="existing-options__content__option__title">
-              Import Your Seed Phrase
+              {t('obImportOption1Title')}
             </div>
           </div>
         </div>
