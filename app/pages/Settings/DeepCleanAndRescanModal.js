@@ -5,9 +5,12 @@ import Checkbox from "../../components/Checkbox";
 import Anchor from "../../components/Anchor";
 import Alert from "../../components/Alert";
 import walletClient from '../../utils/walletClient';
+import {I18nContext} from "../../utils/i18n";
 
 @withRouter
 export default class DeepCleanAndRescanModal extends Component {
+  static contextType = I18nContext;
+
   constructor(props) {
     super(props);
     this.state = {
@@ -17,16 +20,17 @@ export default class DeepCleanAndRescanModal extends Component {
 
   render() {
     const { hasBackup } = this.state;
+    const {t} = this.context;
     return (
       <MiniModal
         closeRoute="/settings/wallet"
-        title="Deep Clean + Rescan"
+        title={t('deepcleanTitle')}
         centered
       >
         <Alert
           type="warning"
         >
-          This action wipes out balance and transaction history in the wallet DB but retains key hashes and name maps. It should be used only if the wallet state has been corrupted by issues like the <Anchor href="https://github.com/handshake-org/hsd/issues/454">reserved name registration bug</Anchor> or the <Anchor href="https://github.com/handshake-org/hsd/pull/464">locked coins balance after FINALIZE bug</Anchor>.
+          {t('deepcleanWarning')}
         </Alert>
         <div className="interstitial-warning-modal__checkbox">
           <Checkbox
@@ -35,7 +39,7 @@ export default class DeepCleanAndRescanModal extends Component {
             checked={hasBackup}
           />
           <div className="interstitial-warning-modal__checkbox-label">
-            I have backed up my Wallet DB.
+            {t('deepcleanBackupAck')}
           </div>
         </div>
         <button
@@ -48,7 +52,7 @@ export default class DeepCleanAndRescanModal extends Component {
           }}
           disabled={!hasBackup}
         >
-          Deep Clean and Rescan
+          {t('deepcleanTitle')}
         </button>
       </MiniModal>
     );

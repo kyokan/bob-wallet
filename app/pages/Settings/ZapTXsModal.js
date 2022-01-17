@@ -8,6 +8,7 @@ import MiniModal from '../../components/Modal/MiniModal';
 import { fetchTransactions } from '../../ducks/walletActions';
 import walletClient from '../../utils/walletClient';
 import {showError, showSuccess } from '../../ducks/notifications';
+import {I18nContext} from "../../utils/i18n";
 
 @connect(
   (state) => ({
@@ -26,6 +27,8 @@ class ZapTXsModal extends Component {
     showSuccess: PropTypes.func.isRequired,
   };
 
+  static contextType = I18nContext;
+
   async componentDidMount() {
     await this.props.fetchTransactions()
   }
@@ -38,7 +41,7 @@ class ZapTXsModal extends Component {
     this.props.history.push('/settings/wallet');
     try {
       await walletClient.zap();
-      this.props.showSuccess('All pending transactions have been deleted!');
+      this.props.showSuccess(this.context.t('zapSuccess'));
     } catch (e) {
       this.props.showError(e.message);
     }
@@ -46,6 +49,7 @@ class ZapTXsModal extends Component {
 
   render() {
     const txList = [];
+    const {t} = this.context;
     let disabled = true;
 
     if (this.props.transactions) {
@@ -59,7 +63,7 @@ class ZapTXsModal extends Component {
       if (txs.length === 0) {
         txList.push(
           <div key="empty" className="transactions__empty-list">
-            You do not have any pending transactions.
+            {t('zapNoPending')}
           </div>
         );
       }
@@ -75,7 +79,7 @@ class ZapTXsModal extends Component {
     } else {
       txList.push(
         <div key="empty" className="transactions__empty-list">
-          Loading pending transactions...
+          {t('loading')}
         </div>
       );
     }
@@ -83,7 +87,7 @@ class ZapTXsModal extends Component {
     return (
       <MiniModal
         closeRoute="/settings/wallet"
-        title="Delete unconfirmed transactions"
+        title={t('zapTitle')}
         wide
         centered
       >
@@ -102,11 +106,7 @@ class ZapTXsModal extends Component {
             disabled={disabled}
           />
           <div className="zap-txs-modal__checkbox-label">
-            I understand this will remove unconfirmed transactions from my wallet
-            but may not completely remove them from the network. They may still be
-            relayed between nodes and confirmed in blocks. By deleting pending
-            transactions this wallet may re-spend "stuck" coins, but those
-            new transactions are not guaranteed to replace the originals.
+            {t('zapAck')}
           </div>
         </div>
         <div className="">
@@ -115,7 +115,7 @@ class ZapTXsModal extends Component {
             onClick={this.zapTXs}
             disabled={!this.state.accepted}
           >
-            Delete Unconfirmed Transactions
+            {t('zapCTA')}
           </button>
         </div>
       </MiniModal>

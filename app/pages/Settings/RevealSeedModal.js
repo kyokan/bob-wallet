@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import MiniModal from '../../components/Modal/MiniModal';
 import Submittable from '../../components/Submittable';
 import * as walletActions from '../../ducks/walletActions';
+import {I18nContext} from "../../utils/i18n";
 
 @connect(
   (state) => ({
@@ -14,6 +15,8 @@ import * as walletActions from '../../ducks/walletActions';
   })
 )
 class RevealSeedModal extends Component {
+  static contextType = I18nContext;
+
   constructor(props) {
     super(props);
 
@@ -33,7 +36,7 @@ class RevealSeedModal extends Component {
     } catch (e) {
       this.setState({
         errorMessage:
-          typeof e === 'string' ? e : 'An error occurred, please try again.'
+          typeof e === 'string' ? e : `An error occurred, please try again: ${e?.message}`
       });
     }
   };
@@ -46,15 +49,16 @@ class RevealSeedModal extends Component {
 
   render() {
     const { walletWatchOnly } = this.props;
+    const {t} = this.context;
 
     return (
       <MiniModal
         closeRoute="/settings/wallet"
-        title="Reveal your seed phrase"
+        title={t('revealSeedTitle')}
         centered
       >
         {walletWatchOnly
-          ? "Seed phrases cannot be read from hardware wallets."
+          ? t('revealSeedNoLedger')
           : this.state.mnemonic
           ? this.renderMnemonic()
           : this.renderPassword()}
@@ -66,7 +70,7 @@ class RevealSeedModal extends Component {
     return (
       <React.Fragment>
         <div className="reveal-seed-modal__instructions">
-          Enter your password to reveal your seed phrase.
+          {this.context.t('revealSeedEnterPW')}
         </div>
         <div className="reveal-seed-modal__seed-phrase">
           {this.state.mnemonic}
@@ -76,16 +80,18 @@ class RevealSeedModal extends Component {
   }
 
   renderPassword() {
+    const {t} = this.context;
+
     return (
       <React.Fragment>
         <div className="reveal-seed-modal__instructions">
-          Enter your password to reveal your seed phrase.
+          {t('revealSeedEnterPW')}
         </div>
         <Submittable onSubmit={this.onClickReveal}>
           <input
             type="password"
             className="reveal-seed-modal__password"
-            placeholder="Your password"
+            placeholder={t('revealSeedPlaceholder')}
             value={this.state.passphrase}
             onChange={this.onChangePassphrase}
             autoFocus
@@ -96,7 +102,7 @@ class RevealSeedModal extends Component {
           className="reveal-seed-modal__submit"
           onClick={this.onClickReveal}
         >
-          Reveal recovery phrase
+          {t('revealSeedCTA')}
         </button>
       </React.Fragment>
     );

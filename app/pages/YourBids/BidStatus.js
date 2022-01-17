@@ -11,6 +11,7 @@ import {
 } from '../../utils/nameHelpers';
 import Blocktime from '../../components/Blocktime';
 import * as namesActions from "../../ducks/names";
+import {I18nContext} from "../../utils/i18n";
 
 
 class BidStatus extends Component {
@@ -20,6 +21,8 @@ class BidStatus extends Component {
     address: PropTypes.string.isRequired,
     fetchName: PropTypes.func.isRequired,
   };
+
+  static contextType = I18nContext;
 
   componentDidMount() {
     if (!this.props.domain) {
@@ -85,44 +88,39 @@ class BidStatus extends Component {
 
   getStatusText() {
     const { domain } = this.props;
+    const {t} = this.context;
 
     if (!domain) {
-      return 'LOADING...';
+      return t('loading');
     }
 
     if (this.isReveal()) {
-      return 'REVEALING NOW';
+      return t('revealingNow');
     }
 
     if (this.isOwned()) {
-      return 'WINNING BID';
+      return t('winningBid')
     }
 
     if (this.isSold()) {
-      return 'SOLD';
+      return t('sold');
     }
 
     if (this.isOpening()) {
-      return 'OPENING NOW';
+      return t('openingNow');
     }
 
     if (this.isBidding()) {
       const { bids } = domain;
       const bidLength = bids.length || 0;
-      let bidText = '';
-
-      if (bidLength === 1)
-        bidText = `${bidLength} bid`;
-      else
-        bidText = `${bidLength} bids`;
+      const {t} = this.context;
+      const bidText = `(${bidLength} ${t('bids')})`;
 
       return (
         <span>
-          <span>BIDDING NOW</span>
+          <span>{t('biddingNow')}</span>
           <span className="bid-status__text__paren">
-            <span>(</span>
             <span className="bid-status__text__link">{bidText}</span>
-            <span>)</span>
           </span>
         </span>
       );
@@ -131,7 +129,7 @@ class BidStatus extends Component {
     if (this.isAvailable()) {
       return (
         <span>
-          <span>AVAILABLE ON</span>
+          <span>{t('available')}</span>
           <span className="bid-status__text__paren">
             <Blocktime height={domain.start.start} />
           </span>
@@ -139,7 +137,7 @@ class BidStatus extends Component {
       )
     }
 
-    return "UNAVAILABLE";
+    return t('unavailable');
 
   }
 }

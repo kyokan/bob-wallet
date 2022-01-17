@@ -3,6 +3,7 @@ import React, {Component} from "react";
 import PropTypes from "prop-types";
 import crypto from "crypto";
 import Alert from "../../components/Alert";
+import {I18nContext} from "../../utils/i18n";
 
 export default class APIKeyModal extends Component {
   static propTypes = {
@@ -11,6 +12,8 @@ export default class APIKeyModal extends Component {
     apiKey: PropTypes.string.isRequired,
     updateAPIKey: PropTypes.func.isRequired,
   };
+
+  static contextType = I18nContext;
 
   constructor(props) {
     super(props);
@@ -48,19 +51,21 @@ export default class APIKeyModal extends Component {
       apiKey,
     } = this.props;
 
+    const {t} = this.context;
+
     return (
       <MiniModal
         closeRoute={closeRoute}
         title={title}
       >
         <Alert type="warning">
-          API Key will only take effect after you restart Bob.
+          {t('settingAPIKeyWarning')}
         </Alert>
         <div className="settings__input-row">
           <div className="settings__input-title">
-            API Key
+            {t('apiKey')}
             <a onClick={this.generateNewKey}>
-              Generate New key
+              {t('generateNewKey')}
             </a>
           </div>
           <input
@@ -77,14 +82,14 @@ export default class APIKeyModal extends Component {
             onClick={() => this.setState({ apiKey: apiKey })}
             disabled={apiKey === this.state.apiKey || this.state.saving}
           >
-            Cancel
+            {t('cancel')}
           </button>
           <button
             className="settings__btn"
             onClick={this.updateAPIKey}
             disabled={apiKey === this.state.apiKey || this.state.saving}
           >
-            Update
+            {t('update')}
           </button>
         </div>
       </MiniModal>
