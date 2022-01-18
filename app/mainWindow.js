@@ -1,5 +1,7 @@
 import path from 'path';
-import { BrowserWindow, app } from 'electron';
+import * as electron from 'electron';
+import * as remoteMain from '@electron/remote/main';
+remoteMain.initialize();
 
 let mainWindow;
 
@@ -9,15 +11,18 @@ export default function showMainWindow() {
     return;
   }
 
-  mainWindow = new BrowserWindow({
+  mainWindow = new electron.BrowserWindow({
     show: false,
     width: 1024,
     height: 728,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
-      nodeIntegration: true
+      nodeIntegration: true,
+      contextIsolation: false,
     }
   });
+
+  remoteMain.enable(mainWindow.webContents);
 
   mainWindow.loadURL(`file://${__dirname}/app.html`);
 
@@ -42,7 +47,7 @@ export default function showMainWindow() {
     // the HSD window) once the main window is closed
     // on Windows
     if (process.platform === 'win32') {
-      app.quit();
+      electron.app.quit();
     }
   });
 }

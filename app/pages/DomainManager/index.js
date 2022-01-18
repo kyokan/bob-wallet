@@ -22,7 +22,7 @@ import dbClient from "../../utils/dbClient";
 import BulkFinalizeWarningModal from "./BulkFinalizeWarningModal";
 import {I18nContext} from "../../utils/i18n";
 
-const {dialog} = require('electron').remote;
+const {dialog} = require('@electron/remote');
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 

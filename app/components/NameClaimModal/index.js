@@ -11,7 +11,7 @@ import {clientStub as wClientStub} from "../../background/wallet/client";
 import {constants, dnssec, wire, Ownership, util} from 'bns';
 import blake2b from "bcrypto/lib/blake2b";
 import fs from "fs";
-const { dialog } = require("electron").remote;
+const { dialog } = require('@electron/remote');
 import {clientStub as nClientStub} from "../../background/node/client";
 import Alert from "../Alert";
 import CopyButton from "../CopyButton";
