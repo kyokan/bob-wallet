@@ -7,7 +7,7 @@ export default class DefaultConnectLedgerSteps extends Component {
 
   render() {
     const {completedSteps} = this.props;
-    const {t} = this.props;
+    const {t} = this.context;
 
     return (
       <React.Fragment>

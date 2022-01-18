@@ -21,29 +21,37 @@ export default class Root extends Component {
 @connect(
   (state) => ({
     locale: state.app.locale,
+    customLocale: state.app.customLocale,
   }),
 )
 class Content extends Component {
+  translate = (key, ...values) => {
+    try {
+      const locale = this.props.locale;
+      const customLocale = this.props.customLocale || {};
+      const rootLocale = locale.split('-')[0];
+
+      const localeT = locale === 'custom' ? customLocale : (translations[locale] || {});
+      const rootT = translations[rootLocale] || {};
+
+      const str = localeT[key] || rootT[key] || translations.en[key] || `this.context.t(${key})`;
+      let result = str;
+
+      for (let val of values) {
+        result = result.replace('%s', val);
+      }
+
+      return result;
+    } catch (e) {
+      return `this.context.t(${key})`;
+    }
+  };
+
   render() {
-    const locale = this.props.locale;
-    const rootLocale = locale.split('-')[0];
-
-    const localeT = translations[locale] || {};
-    const rootT = translations[rootLocale] || {};
-
     return (
       <I18nContext.Provider
         value={{
-          t: (key, ...values) => {
-            const str = localeT[key] || rootT[key] || translations.en[key] || `this.context.t(${key})`;
-            let result = str;
-
-            for (let val of values) {
-              result = result.replace('%s', val);
-            }
-
-            return result;
-          }
+          t: this.translate,
         }}
       >
         <ConnectedRouter history={this.props.history}>

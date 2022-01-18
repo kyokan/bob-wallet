@@ -54,6 +54,18 @@ When getting string using the injected `this.context.t(localeKey)` function, the
 7. Make sure you select **Create a new branch for this commit and start a pull request.**
 8. Click **Propose Change**
 
+## Adding New Keys to Existing JSON
+
+As new copies are added to Bob Wallet, new keys will be added to `en.json`. There is a npm script added to help extend new key to existing locale json. 
+
+The following script will extend `zh.json` with any new keys from `en.json` without overwritting existing translations.
+```bash
+npm run add-locale zh
+```
+
 ## Note to Maintainers
 
-When merging in a new locale json, be sure to update the dropdown list in `app/util/i18n.js` with the new locale.
+- When merging in a new locale json, be sure to update the dropdown list in `app/util/i18n.js` with the new locale.
+- When new keys are added to `en.json`, make sure to run `npm run add-locale` to extend new keys to existing locale json.
+
+

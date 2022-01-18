@@ -20,7 +20,8 @@
     "postinstall": "electron-builder install-app-deps",
     "clean": "./scripts/clean.sh",
     "pretest": "webpack --config ./configs/webpack.config.test.babel.js",
-    "test": "tape -r jsdom-global/register ./test-dist/test.js"
+    "test": "tape -r jsdom-global/register ./test-dist/test.js",
+    "add-locale": "node scripts/add-locale.js"
   },
   "main": "./dist/main.js",
   "build": {
