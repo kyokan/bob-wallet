@@ -37,7 +37,7 @@ import {clientStub as cClientStub} from "../../background/connections/client";
 import {ConnectionTypes} from "../../background/connections/service";
 import Dropdown from "../../components/Dropdown";
 import {I18nContext, langs, languageDropdownItems} from "../../utils/i18n";
-import {setLocale} from "../../ducks/app";
+import {setLocale, setCustomLocale} from "../../ducks/app";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 const shakedex = sClientStub(() => require('electron').ipcRenderer);
@@ -75,6 +75,7 @@ const connClient = cClientStub(() => require('electron').ipcRenderer);
     showSuccess: (message) => dispatch(showSuccess(message)),
     fetchWallet: () => dispatch(walletActions.fetchWallet()),
     setLocale: (locale) => dispatch(setLocale(locale)),
+    setCustomLocale: (locale) => dispatch(setCustomLocale(locale)),
   }),
 )
 export default class Settings extends Component {
@@ -99,6 +100,7 @@ export default class Settings extends Component {
     showError: PropTypes.func.isRequired,
     showSuccess: PropTypes.func.isRequired,
     setLocale: PropTypes.func.isRequired,
+    setCustomLocale: PropTypes.func.isRequired,
     setCustomRPCStatus: PropTypes.func.isRequired,
     transactions: PropTypes.object.isRequired,
     fetchWallet: PropTypes.func.isRequired,
@@ -179,6 +181,29 @@ export default class Settings extends Component {
         });
       }
     });
+  };
+
+  onSetLocale = async (locale) => {
+    if (locale === 'custom') {
+      const {
+        filePaths: [filepath]
+      } = await dialog.showOpenDialog({
+        properties: ['openFile'],
+        filters: {
+          extensions: ['json'],
+        },
+      });
+
+      try {
+        const buf = await fs.promises.readFile(filepath);
+        const customLocale = JSON.parse(buf);
+        return this.props.setCustomLocale(customLocale);
+      } catch (e) {
+        return this.props.showError(e.message);
+      }
+    } else {
+      return this.props.setLocale(locale);
+    }
   };
 
   onRestoreExchangeListing = async () => {
@@ -448,7 +473,7 @@ export default class Settings extends Component {
                 <Dropdown
                   className="locale-dropdown"
                   items={languageDropdownItems}
-                  onChange={val => this.props.setLocale(val)}
+                  onChange={this.onSetLocale}
                   currentIndex={languageDropdownItems.findIndex(item => item.value === locale)}
                 />,
                 false,
