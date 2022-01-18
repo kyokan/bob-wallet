@@ -114,7 +114,7 @@ class SyncStatus extends Component {
     }
 
     if (isChangingNodeStatus || isTestingCustomRPC) {
-      return t('pleaesWait');
+      return t('pleaseWait');
     }
 
     return t('noConnection');
