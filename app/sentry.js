@@ -3,7 +3,8 @@ const electron = require('electron');
 const pkg = require('../package.json');
 
 (function () {
-  if (!(electron.app || electron.remote.app).isPackaged) {
+  // Will not initialize in renderer process, for now
+  if (!electron.app || !electron.app.isPackaged) {
     return;
   }
   Sentry.init({
