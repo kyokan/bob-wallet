@@ -1,5 +1,7 @@
 import webpack from "webpack";
 
+const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
+
 const path = require('path');
 
 module.exports = {
@@ -35,7 +37,8 @@ module.exports = {
           {
             loader: 'css-loader',
             options: {
-              sourceMap: true
+              sourceMap: true,
+              modules: false,
             }
           }
         ]
@@ -49,7 +52,7 @@ module.exports = {
           {
             loader: 'css-loader',
             options: {
-              modules: true,
+              modules: false,
               sourceMap: true,
               importLoaders: 1,
               localIdentName: '[name]__[local]__[hash:base64:5]'
@@ -146,11 +149,14 @@ module.exports = {
      * 'staging', for example, by changing the ENV variables in the npm scripts
      */
     new webpack.EnvironmentPlugin({
-      NODE_ENV: 'development'
+      NODE_ENV: 'development',
+      ELECTRON_OVERRIDE_DIST_PATH:
+        path.join(__dirname, '..', '..', 'node_modules', 'electron', 'path.txt')
     }),
     new webpack.LoaderOptionsPlugin({
       debug: true
-    })
+    }),
+    new NodePolyfillPlugin({excludeAliases: ['process']})
   ],
 
   node: {

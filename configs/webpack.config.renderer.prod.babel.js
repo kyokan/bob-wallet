@@ -2,6 +2,8 @@
  * Build config for electron renderer process
  */
 
+const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
+
 import path from 'path';
 import webpack from 'webpack';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
@@ -9,6 +11,8 @@ import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 
 export default {
   devtool: 'source-map',
+
+  stats: 'errors-only',
 
   mode: 'production',
 
@@ -47,7 +51,8 @@ export default {
           {
             loader: 'css-loader',
             options: {
-              sourceMap: true
+              sourceMap: true,
+              modules: false,
             }
           }
         ]
@@ -179,7 +184,9 @@ export default {
      * development checks
      */
     new webpack.EnvironmentPlugin({
-      NODE_ENV: 'production'
+      NODE_ENV: 'production',
+      ELECTRON_OVERRIDE_DIST_PATH:
+        path.join(__dirname, '..', '..', 'node_modules', 'electron', 'path.txt')
     }),
 
     new MiniCssExtractPlugin({
@@ -190,6 +197,8 @@ export default {
       analyzerMode:
         process.env.OPEN_ANALYZER === 'true' ? 'server' : 'disabled',
       openAnalyzer: process.env.OPEN_ANALYZER === 'true'
-    })
+    }),
+
+    new NodePolyfillPlugin({excludeAliases: ['process']}),
   ]
 };

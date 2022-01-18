@@ -7,10 +7,11 @@
  * https://webpack.js.org/concepts/hot-module-replacement/
  */
 
+const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
+
 import path from 'path';
 import webpack from 'webpack';
 import { spawn } from 'child_process';
-import { dependencies } from '../package.json';
 
 const port = process.env.PORT || 1212;
 const publicPath = `http://localhost:${port}/dist`;
@@ -22,7 +23,7 @@ export default {
 
   target: 'electron-renderer',
 
-  entry: require.resolve('../app/index'),
+  entry: path.join(__dirname, '..', 'app', 'index'),
 
   output: {
     publicPath: `http://localhost:${port}/dist/`,
@@ -82,7 +83,8 @@ export default {
           {
             loader: 'css-loader',
             options: {
-              sourceMap: true
+              sourceMap: true,
+              modules: false,
             }
           },
           {
@@ -163,12 +165,16 @@ export default {
      * 'staging', for example, by changing the ENV variables in the npm scripts
      */
     new webpack.EnvironmentPlugin({
-      NODE_ENV: 'development'
+      NODE_ENV: 'development',
+      ELECTRON_OVERRIDE_DIST_PATH:
+        path.join(__dirname, '..', '..', 'node_modules', 'electron', 'path.txt')
     }),
 
     new webpack.LoaderOptionsPlugin({
       debug: true
-    })
+    }),
+
+    new NodePolyfillPlugin({excludeAliases: ['process']}),
   ],
 
   node: {
@@ -178,24 +184,22 @@ export default {
 
   devServer: {
     port,
-    publicPath,
-    compress: true,
-    noInfo: true,
-    stats: 'errors-only',
-    inline: true,
-    lazy: false,
+    devMiddleware: {
+      publicPath,
+      stats: 'errors-only',
+    },
     headers: {'Access-Control-Allow-Origin': '*'},
-    contentBase: path.join(__dirname, 'dist'),
-    watchOptions: {
-      aggregateTimeout: 300,
-      ignored: /node_modules/,
-      poll: 100
+    static: {
+      directory: path.join(__dirname, 'dist'),
+      watch: {
+        ignored: /node_modules/
+      },
     },
     historyApiFallback: {
       verbose: true,
       disableDotRule: false
     },
-    before() {
+    onBeforeSetupMiddleware() {
       if (process.env.START_HOT) {
         console.log('Starting Main Process...');
         spawn('npm', ['run', 'start-main-dev'], {
