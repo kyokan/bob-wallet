@@ -26,22 +26,26 @@ export default class Root extends Component {
 )
 class Content extends Component {
   translate = (key, ...values) => {
-    const locale = this.props.locale;
-    const customLocale = this.props.customLocale || {};
-    const rootLocale = locale.split('-')[0];
+    try {
+      const locale = this.props.locale;
+      const customLocale = this.props.customLocale || {};
+      const rootLocale = locale.split('-')[0];
 
-    const localeT = locale === 'custom' ? customLocale : (translations[locale] || {});
-    const rootT = translations[rootLocale] || {};
+      const localeT = locale === 'custom' ? customLocale : (translations[locale] || {});
+      const rootT = translations[rootLocale] || {};
 
-    const str = localeT[key] || rootT[key] || translations.en[key] || `this.context.t(${key})`;
-    let result = str;
+      const str = localeT[key] || rootT[key] || translations.en[key] || `this.context.t(${key})`;
+      let result = str;
 
-    for (let val of values) {
-      result = result.replace('%s', val);
+      for (let val of values) {
+        result = result.replace('%s', val);
+      }
+
+      return result;
+    } catch (e) {
+      return `this.context.t(${key})`;
     }
-
-    return result;
-  }
+  };
 
   render() {
     return (
