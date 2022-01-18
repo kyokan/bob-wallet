@@ -504,5 +504,24 @@
   "zapCTA": "Delete Unconfirmed Transactions",
   "zapNoPending": "You do not have any pending transactions.",
   "zapSuccess": "All pending transactions have been deleted!",
-  "zapTitle": "Delete unconfirmed transactions"
+  "zapTitle": "Delete unconfirmed transactions",
+  "sendTitle": "Send Funds",
+  "sendToLabel": "Sending to",
+  "sendMaxLabel": "Send Max",
+  "sendAvailableText": "Available to send (including fee): %s",
+  "sendFeeLabel": "Network Fee Rate",
+  "sendConfirmTitle": "Confirm Transaction",
+  "sendFromLabel": "Sending from",
+  "sendDefaultAccountLabel": "Default account",
+  "sendTxTimeLabel": "Transaction time",
+  "sendAmountLabel": "Amount to send:",
+  "sendTxSizeLabel": "Estimated TX Size:",
+  "sendEstimatedFeeLabel": "Estimated Fee:",
+  "sendTotalLabel": "Total:",
+  "sendTxSentTitle": "Transaction Sent",
+  "sendTxSentDesc": "you just sent %s HNS to an external Handshake address.",
+  "viewOnExplorer": "View on Explorer",
+  "createNewTransaction": "Create New Transaction",
+  "sendTxConfirmTime": "Your transaction will take around 15 minutes to be confirmed."
+
 }
