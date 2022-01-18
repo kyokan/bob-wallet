@@ -522,6 +522,10 @@
   "sendTxSentDesc": "you just sent %s HNS to an external Handshake address.",
   "viewOnExplorer": "View on Explorer",
   "createNewTransaction": "Create New Transaction",
-  "sendTxConfirmTime": "Your transaction will take around 15 minutes to be confirmed."
-
+  "sendTxConfirmTime": "Your transaction will take around 15 minutes to be confirmed.",
+  "receiveModalYourAddressLabel": "Your Address:",
+  "receiveModalQRDisclaimer": "This QR code can be scanned by the person who is sending you HNS coins.",
+  "receiveModalWarning": "Only receive HNS from this address",
+  "receiveModalWarning2": "Sending coins other than HNS will result in permanent loss. There is no way to recover those funds.",
+  "receiveModalShowAddress": "Show address"
 }
