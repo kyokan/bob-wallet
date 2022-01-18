@@ -63,6 +63,11 @@ The following script will extend `zh.json` with any new keys from `en.json` with
 npm run add-locale zh
 ```
 
+## Testing New Translation
+1. Go to Setting -> General
+2. From the language dropdown, select Custom JSON
+3. Upload your translation json file
+
 ## Note to Maintainers
 
 - When merging in a new locale json, be sure to update the dropdown list in `app/util/i18n.js` with the new locale.
