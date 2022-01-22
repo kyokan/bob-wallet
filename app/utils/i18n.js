@@ -17,6 +17,8 @@ export default translations;
 export const languageDropdownItems = [
   { label: 'English (US)', value: 'en-US' },
   // { label: '中文', value: 'zh' },
+  { label: 'Español (ES)', value: 'es-ES' },
+  { label: 'Català (CAT)', value: 'ca' },
   { label: 'Custom JSON', value: 'custom' },
 ];
 
