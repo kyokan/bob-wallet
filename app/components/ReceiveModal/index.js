@@ -6,6 +6,7 @@ import copy from 'copy-to-clipboard';
 import './receive.scss';
 import CopyButton from '../CopyButton';
 import { clientStub as aClientStub } from '../../background/analytics/client';
+import {I18nContext} from "../../utils/i18n";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -16,6 +17,8 @@ export default class ReceiveModal extends Component {
   static propTypes = {
     address: PropTypes.string.isRequired,
   };
+
+  static contextType = I18nContext;
 
   state = {
     isShowingAddress: false,
@@ -34,12 +37,13 @@ export default class ReceiveModal extends Component {
 
   renderContent() {
     const {isShowingAddress, hasCopied} = this.state;
+    const {t} = this.context;
     const {address} = this.props;
 
     return isShowingAddress ? (
       <div className="receive__content">
         <div className="receive__header">
-          <div className="receive__title">Your Address:</div>
+          <div className="receive__title">{t('receiveModalYourAddressLabel')}</div>
         </div>
         <div className="receive__address-display">
           <div className="receive__address">{address}</div>
@@ -48,35 +52,30 @@ export default class ReceiveModal extends Component {
         <div className="receive__qr-code">
           <QRCode value={address} />
         </div>
-        {/* <div className="receive__disclaimer">Your Address:</div> */}
         <div className="receive__disclaimer">
-          This QR code can be scanned by the person who is sending you HNS
-          coins.
+          {t('receiveModalQRDisclaimer')}
         </div>
       </div>
     ) : (
       <div className="receive__content">
         <div className="receive__warning-icon" />
         <div className="receive__warning-title">
-          Only receive HNS from this address
+          {t('receiveModalWarning')}
         </div>
         <div className="receive__warning-subtitle">
-          Sending coins other than HNS will result in permanent loss. There is
-          no way to recover those funds.
+          {t('receiveModalWarning2')}
         </div>
         <button
           className="receive__show-address-btn"
           onClick={() => this.setState({isShowingAddress: true})}
         >
-          Show address
+          {t('receiveModalShowAddress')}
         </button>
       </div>
     );
   }
 
   render() {
-    const {onClose} = this.props;
-
     return <div className="receive__container">{this.renderContent()}</div>;
   }
 }

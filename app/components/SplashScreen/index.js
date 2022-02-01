@@ -4,27 +4,38 @@ import BobLogo from '../../assets/images/bob-logo-circle.svg';
 import Spinner from '../../assets/images/brick-loader.svg';
 import dbClient from "../../utils/dbClient";
 import Alert from "../Alert";
+import {withRouter} from "react-router-dom";
+import {connect} from "react-redux";
+import {I18nContext} from "../../utils/i18n";
 
-export default class SplashScreen extends Component {
+
+class SplashScreen extends Component {
   static propTypes = {
     error: Proptype.string,
+    network: Proptype.string,
+    spv: Proptype.bool,
   };
 
   static defaultProps = {
     error: '',
   };
 
+  static contextType = I18nContext;
+
   state = {
-    hasMigrated240: false,
+    hasMigrated300: false,
   };
 
   async componentWillMount() {
-    const hasMigrated240 = await dbClient.get('hsd-2.4.0-migrate');
-    this.setState({ hasMigrated240 });
+    const {network, spv} = this.props;
+    const migrateFlag = `${network}-hsd-3.0.0-migrate${spv ? '-spv' : ''}`;
+    const hasMigrated300 = await dbClient.get(migrateFlag);
+    this.setState({ hasMigrated300 });
   }
 
   render() {
     const {error} = this.props;
+    const {t} = this.context;
 
     return (
       <div style={wrapperStyle}>
@@ -37,11 +48,16 @@ export default class SplashScreen extends Component {
             : (
               <React.Fragment>
                 <div style={spinnerStyle} />
-                <div style={textStyles}>Loading node...</div>
+                <div style={textStyles}>{t('splashLoading')}</div>
                 {
-                  !this.state.hasMigrated240 && (
+                  !this.state.hasMigrated300 && (
                     <Alert type="warning" style={alertStyle}>
-                      Migration in progress. This will take several minutes. PLEASE DO NOT CLOSE BOB!
+                      <div>
+                        {t('splashMigrate3001')}
+                      </div>
+                      <div>
+                        {t('splashMigrate3002')}
+                      </div>
                     </Alert>
                   )
                 }
@@ -52,6 +68,15 @@ export default class SplashScreen extends Component {
     );
   }
 }
+
+export default withRouter(
+  connect(
+    (state) => ({
+      network: state.node.network,
+      spv: state.node.spv,
+    }),
+  )(SplashScreen)
+);
 
 const wrapperStyle = {
   display: 'flex',

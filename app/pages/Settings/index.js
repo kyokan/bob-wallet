@@ -17,8 +17,6 @@ import { clientStub as aClientStub } from '../../background/analytics/client';
 const pkg = require('../../../package.json');
 import c from "classnames";
 import {Redirect} from "react-router";
-import MiniModal from "../../components/Modal/MiniModal";
-import copy from "copy-to-clipboard";
 import {setCustomRPCStatus} from "../../ducks/node";
 import CustomRPCConfigModal from "./CustomRPCConfigModal";
 import {fetchWalletAPIKey} from "../../ducks/walletActions";
@@ -37,6 +35,9 @@ import {clientStub} from "../../background/node/client";
 import APIKeyModal from "./APIKeyModal";
 import {clientStub as cClientStub} from "../../background/connections/client";
 import {ConnectionTypes} from "../../background/connections/service";
+import Dropdown from "../../components/Dropdown";
+import {I18nContext, langs, languageDropdownItems} from "../../utils/i18n";
+import {setLocale, setCustomLocale} from "../../ducks/app";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 const shakedex = sClientStub(() => require('electron').ipcRenderer);
@@ -46,8 +47,10 @@ const connClient = cClientStub(() => require('electron').ipcRenderer);
 @withRouter
 @connect(
   (state) => ({
+    locale: state.app.locale,
     network: state.wallet.network,
     apiKey: state.node.apiKey,
+    spv: state.node.spv,
     noDns: state.node.noDns,
     walletApiKey: state.wallet.apiKey,
     walletSync: state.wallet.walletSync,
@@ -71,13 +74,17 @@ const connClient = cClientStub(() => require('electron').ipcRenderer);
     showError: (message) => dispatch(showError(message)),
     showSuccess: (message) => dispatch(showSuccess(message)),
     fetchWallet: () => dispatch(walletActions.fetchWallet()),
+    setLocale: (locale) => dispatch(setLocale(locale)),
+    setCustomLocale: (locale) => dispatch(setCustomLocale(locale)),
   }),
 )
 export default class Settings extends Component {
   static propTypes = {
     network: PropTypes.string.isRequired,
     apiKey: PropTypes.string.isRequired,
+    locale: PropTypes.string.isRequired,
     noDns: PropTypes.bool.isRequired,
+    spv: PropTypes.bool.isRequired,
     wid: PropTypes.string.isRequired,
     changeDepth: PropTypes.number.isRequired,
     receiveDepth: PropTypes.number.isRequired,
@@ -92,10 +99,14 @@ export default class Settings extends Component {
     setNoDns: PropTypes.func.isRequired,
     showError: PropTypes.func.isRequired,
     showSuccess: PropTypes.func.isRequired,
+    setLocale: PropTypes.func.isRequired,
+    setCustomLocale: PropTypes.func.isRequired,
     setCustomRPCStatus: PropTypes.func.isRequired,
     transactions: PropTypes.object.isRequired,
     fetchWallet: PropTypes.func.isRequired,
   };
+
+  static contextType = I18nContext;
 
   constructor(props) {
     super(props);
@@ -145,7 +156,7 @@ export default class Settings extends Component {
       });
 
       await walletClient.backup(savePath[0]);
-      this.props.showSuccess(`WalletDB backup successfully`);
+      this.props.showSuccess(this.context.t('wdbBackupSuccess'));
     } catch (e) {
       this.props.showError(e.message);
     }
@@ -172,6 +183,29 @@ export default class Settings extends Component {
     });
   };
 
+  onSetLocale = async (locale) => {
+    if (locale === 'custom') {
+      const {
+        filePaths: [filepath]
+      } = await dialog.showOpenDialog({
+        properties: ['openFile'],
+        filters: {
+          extensions: ['json'],
+        },
+      });
+
+      try {
+        const buf = await fs.promises.readFile(filepath);
+        const customLocale = JSON.parse(buf);
+        return this.props.setCustomLocale(customLocale);
+      } catch (e) {
+        return this.props.showError(e.message);
+      }
+    } else {
+      return this.props.setLocale(locale);
+    }
+  };
+
   onRestoreExchangeListing = async () => {
     const {
       filePaths: [filepath]
@@ -194,7 +228,7 @@ export default class Settings extends Component {
         await shakedex.restoreOneFill(fill)
       }
 
-      await this.props.showSuccess(`Restored ${listings.length + fills.length} auctions.`);
+      await this.props.showSuccess(this.context.t('restoreAuctionsSuccess', listings.length + fills.length));
     } catch (e) {
       this.props.showError(e.message);
     }
@@ -202,6 +236,7 @@ export default class Settings extends Component {
 
   renderNav() {
     const { history, location } = this.props;
+    const {t} = this.context;
 
     return (
       <div className="settings__nav">
@@ -211,7 +246,7 @@ export default class Settings extends Component {
           })}
           onClick={() => history.push("/settings/general")}
         >
-          General
+          {t('settingGeneral')}
         </div>
         <div
           className={c("settings__nav__item", {
@@ -219,7 +254,7 @@ export default class Settings extends Component {
           })}
           onClick={() => history.push("/settings/wallet")}
         >
-          Wallet
+          {t('settingWallet')}
         </div>
         <div
           className={c("settings__nav__item", {
@@ -227,7 +262,7 @@ export default class Settings extends Component {
           })}
           onClick={() => history.push("/settings/connection")}
         >
-          Network & Connection
+          {t('settingNetAndConn')}
         </div>
         <div
           className={c("settings__nav__item", {
@@ -235,7 +270,7 @@ export default class Settings extends Component {
           })}
           onClick={() => history.push("/settings/exchange")}
         >
-          Exchange
+          {t('settingExchange')}
         </div>
       </div>
     );
@@ -289,70 +324,72 @@ export default class Settings extends Component {
       walletSync,
     } = this.props;
 
+    const {t} = this.context;
+
     return (
       <>
         {this.renderSection(
-          'Lock Wallet',
-          'Log out and lock wallet',
-          'Logout',
+          t('settingLockWalletTitle'),
+          t('settingLockWalletDesc'),
+          t('settingLockWalletCTA'),
           lockWallet,
         )}
         {this.renderSection(
-          'Rescan Wallet',
+          t('settingRescanTitle'),
           <div>
-            <div>{`${transactions.size} transactions found in walletdb`}</div>
+            <div>{t('settingRescanDesc', transactions.size)}</div>
           </div>,
-          'Rescan',
+          t('settingRescanCTA'),
           () => walletClient.rescan(0),
           null,
           walletSync,
         )}
         {this.renderSection(
-          'Backup WalletDB',
+          t('settingBackupWDBTitle'),
           <div>
-            <div>{`Back up wallet database and files to a directory.`}</div>
+            <div>{t('settingBackupWDBDesc')}</div>
           </div>,
-          'Backup WalletDB',
+          t('settingBackupWDBTitle'),
           this.onBackupWDB,
         )}
         {this.renderSection(
-          'Deep Clean and Rescan Wallet',
+          t('settingDeepcleanTitle'),
           <div>
-            <div>For more information on deep clean, please see <Anchor href="https://github.com/handshake-org/hsd/blob/master/CHANGELOG.md#wallet-api-changes-1">here</Anchor></div>
+            <div>{t('settingDeepcleanDesc')} - <Anchor href="https://github.com/handshake-org/hsd/blob/master/CHANGELOG.md#wallet-api-changes-1">{t('learnMore')}</Anchor></div>
           </div>,
-          'Deep Clean + Rescan',
+          t('deepcleanTitle'),
           () => history.push('/settings/wallet/deep-clean-and-rescan'),
         )}
         {this.renderSection(
-          'API Key',
+          t('apiKey'),
           <span>
             API key for <Anchor href="https://hsd-dev.org/api-docs/#get-wallet-info">hsw-cli</Anchor> and <Anchor href="https://hsd-dev.org/api-docs/#selectwallet">hsw-rpc</Anchor>. Make sure you select the wallet id "{wid}".
           </span>,
-          'View API Key',
+          t('settingAPIKeyCTA'),
           () => history.push('/settings/wallet/view-api-key'),
         )}
         {this.renderSection(
-          'Delete unconfirmed transactions',
-          'This will only remove pending tx from the wallet',
-          'Zap',
+          t('settingZapTitle'),
+          t('settingZapDesc'),
+          t('settingZapCTA'),
           () => history.push('/settings/wallet/zap-txs'),
         )}
         {this.renderSection(
-          'Reveal recovery seed phrase',
-          'This will display my unencrypted seed phrase',
-          'Reveal',
+          t('settingRevealSeedTitle'),
+          t('settingRevealSeedDesc'),
+          t('settingRevealSeedCTA'),
           () => history.push('/settings/wallet/reveal-seed'),
         )}
         {this.renderSection(
-          'Create new wallet',
-          'This will allow you to create a new wallet',
-          'Create New',
+          t('settingCreateWalletTitle'),
+          t('settingCreateWalletDesc'),
+          t('settingCreateWalletCTA'),
           () => history.push('/funding-options'),
         )}
         {this.renderSection(
-          'Remove wallet',
-          `Remove "${wid}" from Bob`,
-          'Remove Wallet',
+          t('settingRemoveWalletTitle'),
+          t('settingRemoveWalletDesc', wid),
+          t('settingRemoveWalletCTA'),
           () => history.push('/settings/wallet/remove-wallet'),
         )}
       </>
@@ -361,18 +398,19 @@ export default class Settings extends Component {
 
   renderExchange() {
     const { history } = this.props;
+    const {t} = this.context;
     return (
       <>
         {this.renderSection(
-          'Backup listing',
-          'Download backup of all your listings and fulfillments',
-          'Download',
+          t('settingBackupListingTitle'),
+          t('settingBackupListingDesc'),
+          t('download'),
           () => history.push('/settings/exchange/backup'),
         )}
         {this.renderSection(
-          'Restore listing',
-          'Restore your listing from backup',
-          'Restore',
+          t('settingRestoreListingTitle'),
+          t('settingRestoreListingDesc'),
+          t('settingRestoreListingCTA'),
           this.onRestoreExchangeListing,
         )}
       </>
@@ -390,15 +428,15 @@ export default class Settings extends Component {
     const {
       isRunning,
       history,
-      stopNode,
-      startNode,
+      spv,
       noDns,
       setNoDns,
       isChangingNodeStatus,
       isTestingCustomRPC,
       isCustomRPCConnected,
-      network
+      locale,
     } = this.props;
+    const {t} = this.context;
 
     return (
       <div className="settings__content">
@@ -406,82 +444,107 @@ export default class Settings extends Component {
           <Route path="/settings/general">
             <>
               {this.renderSection(
-                'Download log',
-                'Download log for debugging',
-                'Download',
+                t('settingGeneralTitle'),
+                t('settingGeneralDesc'),
+                t('download'),
                 this.onDownload,
               )}
               {this.renderSection(
-                'Blockchain Explorer',
-                'Transactions and names will be opened on this explorer',
+                t('settingExplorerTitle'),
+                t('settingExplorerDesc'),
                 null,
                 null,
                 <ExplorerPicker />,
                 false,
               )}
               {this.renderSection(
-                'Idle Timeout',
+                t('settingIdleTitle'),
                 <span>
-                  Automatically lock the wallet after a set period of inactivity
+                  {t('settingIdleDescription')}
                 </span>,
-                'Change',
+                t('update'),
                 () => history.push('/settings/general/max-idle'),
+              )}
+              {this.renderSection(
+                t('settingLanguageTitle'),
+                t('settingLanguageDesc'),
+                null,
+                null,
+                <Dropdown
+                  className="locale-dropdown"
+                  items={languageDropdownItems}
+                  onChange={this.onSetLocale}
+                  currentIndex={languageDropdownItems.findIndex(item => item.value === locale)}
+                />,
+                false,
               )}
             </>
           </Route>
           <Route path="/settings/connection">
             <>
               {this.renderSection(
-                'Internal HSD node',
+                t('settingNodeTitle'),
                 !isCustomRPCConnected && isRunning
-                  ? <><span className="node-status--active" /><span>Node is running</span></>
-                  : <><span className="node-status--inactive" /><span>Node is not running</span></>,
-                'Start node',
+                  ? <><span className="node-status--active" /><span>{t('settingNodeRunning')}</span></>
+                  : <><span className="node-status--inactive" /><span>{t('settingNodeNotRunning')}</span></>,
+                t('settingNodeCTA'),
                 this.startNode,
                 <button
                   className="settings__view-api-btn"
                   disabled={!isRunning || isChangingNodeStatus || isTestingCustomRPC || isCustomRPCConnected}
                   onClick={() => history.push('/settings/connection/view-api-key')}
                 >
-                  View API Key
+                  {t('settingAPIKeyCTA')}
                 </button>,
                 isChangingNodeStatus || isTestingCustomRPC || !isCustomRPCConnected && isRunning,
                 true
               )}
               {this.renderSection(
-                'Remote HSD node',
+                t('settingSPVNodeTitle'),
+                t('settingSPVNodeDesc'),
+                spv ? t('disable') : t('enable'),
+                async () => {
+                  await nodeClient.setSpvMode(!spv);
+                  await this.startNode();
+                },
+                null,
+                isChangingNodeStatus || isTestingCustomRPC,
+                true
+              )}
+              {this.renderSection(
+                t('settingRemoteTitle'),
                 isCustomRPCConnected && isRunning
-                  ? <><span className="node-status--active" /><span>Custom RPC Connected</span></>
-                  : <><span className="node-status--inactive" />Connect to a remote HSD node via HTTP</>,
-                'Configure',
+                  ? <><span className="node-status--active" /><span>{t('settingRemoteConnected')}</span></>
+                  : <><span className="node-status--inactive" />{t('settingRemoteConnectedHTTP')}</>,
+                t('settingRemoteCTA'),
                 () => history.push("/settings/connection/configure"),
                 null,
                 isCustomRPCConnected || isTestingCustomRPC || isChangingNodeStatus,
                 true
               )}
               {this.renderSection(
-                'DNS Servers',
+                t('settingDNSTitle'),
                 !isRunning || noDns
-                  ? <><span className="node-status--inactive" /><span>DNS servers are not running</span></>
-                  : <><span className="node-status--active" /><span>DNS servers are running</span></>,
-                noDns ? 'Enable' : 'Disable',
+                  ? <><span className="node-status--inactive" /><span>{t('settingDNSNotRunning')}</span></>
+                  : <><span className="node-status--active" /><span>{t('settingDNSRunning')}</span></>,
+                noDns ? t('enable') : t('disable'),
                 () => {setNoDns(!noDns)},
                 null,
                 isChangingNodeStatus || isTestingCustomRPC || isCustomRPCConnected,
               )}
               {this.renderSection(
-                'HSD Home Directory',
+                t('settingHSDDirTitle'),
                 <div>
-                  <div><small>User Directory: {this.state.userDir}</small></div>
-                  <div><small>HSD Directory: {this.state.directory}</small></div>
+                  <div><small>{t('userDirectory')}: {this.state.userDir}</small></div>
+                  <div><small>{t('hsdDirectory')}: {this.state.directory}</small></div>
                 </div>,
-                'Change Directory',
+                t('settingHSDDirCTA'),
                 () => history.push("/settings/connection/changeDirectory"),
                 null,
               )}
               {this.renderSection(
-                'Network type',
-                'Switch network type',
+                t('settingNetTitle'),
+                t('settingNetDesc'),
                 null,
                 null,
                 <NetworkPicker />,

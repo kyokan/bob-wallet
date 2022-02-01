@@ -5,6 +5,7 @@ import * as logger from '../../utils/logClient';
 import './ledger-modal.scss';
 import DefaultConnectLedgerSteps from '../ConnectLedgerStep/defaultSteps';
 import ConnectLedgerStep from '../ConnectLedgerStep';
+import {I18nContext} from "../../utils/i18n";
 
 const ipc = require('electron').ipcRenderer;
 
@@ -15,6 +16,8 @@ const ipc = require('electron').ipcRenderer;
   }),
 )
 export class LedgerModal extends Component {
+  static contextType = I18nContext;
+
   constructor(props) {
     super(props);
 
@@ -67,14 +70,15 @@ export class LedgerModal extends Component {
   };
 
   handleError(err) {
+    const {t} = this.context;
     logger.error('failed to connect to ledger', {err});
 
     // Totally confusing
     if (err === 'Device was not selected.')
-      err = 'Could not connect to device.';
+      err = t('ledgerModalNoConnError');
 
     this.setState({
-      errorMessage: `Error confirming on Ledger: ${err}`,
+      errorMessage: t('ledgerModalGenericError', err),
       isLoading: false,
     });
   }
@@ -89,8 +93,10 @@ export class LedgerModal extends Component {
   };
 
   render() {
+    const {t} = this.context;
+
     if (!this.state.isVisible) {
-      return null;
+      return <></>;
     }
 
     return (
@@ -101,7 +107,7 @@ export class LedgerModal extends Component {
           <div className="ledger-modal__last-step">
             <ConnectLedgerStep
               stepNumber={4}
-              stepDescription="Confirm the transaction info on your ledger device."
+              stepDescription={t('ledgerModalConfirmText')}
               stepCompleted={false}
             />
           </div>
@@ -110,14 +116,14 @@ export class LedgerModal extends Component {
               className="ledger-modal__connect" onClick={this.onClickConnect}
               disabled={this.state.isLoading}
             >
-              {this.state.isLoading ? 'Connecting...' : 'Connect'}
+              {this.state.isLoading ? t('obLedgerConnecting') : t('obLedgerConnectLedger')}
             </button>
             <button
               className="ledger-modal__cancel"
               onClick={this.cancelLedger}
               disabled={this.state.isLoading}
             >
-              Cancel
+              {t('cancel')}
             </button>
           </div>
         </div>

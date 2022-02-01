@@ -10,6 +10,7 @@ import ellipsify from '../../../utils/ellipsify';
 import { formatName } from '../../../utils/nameHelpers';
 import Tooltipable from '../../Tooltipable';
 import { shell } from 'electron';
+import {I18nContext} from "../../../utils/i18n";
 
 const RECEIVE = 'RECEIVE';
 const SEND = 'SEND';
@@ -38,6 +39,8 @@ class Transaction extends Component {
     transaction: PropTypes.object.isRequired,
   };
 
+  static contextType = I18nContext;
+
   // conditional styling
 
   iconStyling = tx =>
@@ -61,20 +64,22 @@ class Transaction extends Component {
           || tx.type === REVEAL
           || tx.type === REDEEM
           || tx.type === REGISTER
-          || (tx.type === FINALIZE && tx.value > 0))
+          || (tx.type === FINALIZE && tx.value > 0)
+          || (tx.type === TRANSFER && tx.value > 0))
         && !tx.pending,
       'transaction__number--neutral':
         (tx.type === UPDATE
           || tx.type === CLAIM
           || tx.type === RENEW
           || tx.type === OPEN
-          || tx.type === TRANSFER
-          || (tx.type === FINALIZE && tx.value === 0))
+          || (tx.type === FINALIZE && tx.value === 0)
+          || (tx.type === TRANSFER && tx.value === 0))
         && !tx.pending,
       'transaction__number--negative':
         (tx.type === SEND
           || tx.type === BID
-          || (tx.type === FINALIZE && tx.value < 0))
+          || (tx.type === FINALIZE && tx.value < 0)
+          || (tx.type === TRANSFER && tx.value < 0))
         && !tx.pending,
     });
 
@@ -93,57 +98,58 @@ class Transaction extends Component {
   };
 
   renderDescription = tx => {
+    const {t} = this.context;
     let description = '';
     let content = '';
 
     if (tx.type === SEND) {
-      description = 'Sent Funds';
+      description = t('txDescSend');
       content = ellipsify(tx.meta.to, 12);
     } else if (tx.type === RECEIVE) {
-      description = 'Received Funds';
+      description = t('txDescReceive');
       content = ellipsify(tx.meta.from, 12);
     } else if (tx.type === CLAIM) {
-      description = 'Claimed Reserved Name';
+      description = t('txDescClaim');
       content = this.formatDomain(tx.meta.domain);
     } else if (tx.type === OPEN) {
-      description = 'Opened Auction';
+      description = t('txDescOpen');
       content = this.formatDomain(tx.meta.domain);
     } else if (tx.type === BID) {
-      description = 'Placed Bid';
+      description = t('txDescBid');
       content = this.formatDomain(tx.meta.domain);
     } else if (tx.type === REVEAL) {
-      description = 'Revealed Bid';
+      description = t('txDescReveal');
       content = this.formatDomain(tx.meta.domain);
     } else if (tx.type === UPDATE) {
-      description = 'Updated Record';
+      description = t('txDescUpdate');
       content = this.formatDomain(tx.meta.domain);
     } else if (tx.type === REGISTER) {
-      description = 'Registered Name';
+      description = t('txDescRegister');
       content = this.formatDomain(tx.meta.domain);
     } else if (tx.type === RENEW) {
-      description = 'Renewed Domain';
+      description = t('txDescRenew');
       content = this.formatDomain(tx.meta.domain);
     } else if (tx.type === REDEEM) {
-      description = 'Redeemed Bid';
+      description = t('txDescRedeem');
       content = this.formatDomain(tx.meta.domain);
     } else if (tx.type === COINBASE) {
-      description = 'Mining Reward';
+      description = t('txDescCoinbase');
     } else if (tx.type === TRANSFER) {
-      description = 'Transferred Domain';
+      description = t('txDescTransfer');
       content = this.formatDomain(tx.meta.domain);
     } else if (tx.type === REVOKE) {
-      description = 'Revoked Domain';
+      description = t('txDescRevoke');
       content = this.formatDomain(tx.meta.domain);
     } else if (tx.type === 'FINALIZE') {
-      description = 'Finalized Domain';
+      description = t('txDescFinalize');
       if (tx.value > 0) description = 'Received Payment for Domain';
       if (tx.value < 0) description = 'Finalized With Payment';
       content = this.formatDomain(tx.meta.domain);
     } else {
-      description = 'Unknown Transaction';
+      description = t('txDescUnknown');
     }
 
-    description += tx.meta.multiple ? ' (multiple)' : '';
+    description += tx.meta.multiple ? ` (${t('txDescMultiple')})` : '';
 
     return (
       <div className="transaction__tx-description">
@@ -161,11 +167,16 @@ class Transaction extends Component {
         {tx.pending ? <em>(pending)</em> : null}
         {' '}
         {
-          tx.type === RECEIVE || tx.type === COINBASE || tx.type === REDEEM || tx.type === REVEAL || tx.type === REGISTER ? '+'
-            : tx.type === UPDATE || tx.type === RENEW || tx.type === OPEN || tx.type === FINALIZE || tx.type === CLAIM ? ''
-            : '-'
+          [RECEIVE, COINBASE, REDEEM, REVEAL, REGISTER].includes(tx.type)
+            ? '+'
+            : [UPDATE,  RENEW,  OPEN,  FINALIZE,  CLAIM].includes(tx.type)
+              ? ''
+              : [SEND, BID].includes(tx.type)
+                ? '-'
+                : ''
         }
         { (tx.type === FINALIZE && tx.value > 0) ? '+': '' }
+        { (tx.type === TRANSFER && tx.value > 0) ? '+': '' }
         {displayBalance(tx.value)} HNS
       </div>
     </div>
@@ -193,7 +204,7 @@ class Transaction extends Component {
           {formatName(domain)}
         </div>
       )
-      : '(unknown)';
+      : `(${this.context.t('unknown')})`;
   }
 
   onClickTitle = () => {

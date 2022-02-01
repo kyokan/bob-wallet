@@ -149,8 +149,8 @@ class EditableRecord extends Component {
     const {className = ''} = this.props;
     return (
       <TableRow className={className}>
-        <TableItem>{DROPDOWN_TYPES[this.state.currentTypeIndex].label}</TableItem>
-        <TableItem>{this.state.value}</TableItem>
+        <TableItem className="record__type">{DROPDOWN_TYPES[this.state.currentTypeIndex].label}</TableItem>
+        <TableItem className="record__value">{this.state.value}</TableItem>
         <TableItem>
           <div className="records-table__actions">
             {

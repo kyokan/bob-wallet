@@ -5,8 +5,11 @@ import { connect } from 'react-redux';
 import './exchange.scss';
 import { placeExchangeBid } from '../../ducks/exchange.js';
 import Alert from "../../components/Alert";
+import {I18nContext} from "../../utils/i18n";
 
 export class PlaceBidModal extends Component {
+  static contextType = I18nContext;
+
   componentDidUpdate(prevProps) {
     if (prevProps.isPlacingBid && !this.props.isPlacingBid && !this.props.isPlacingBidError) {
       this.props.onClose();
@@ -15,9 +18,10 @@ export class PlaceBidModal extends Component {
 
   render() {
     const {auction, bid, onClose} = this.props;
+    const {t} = this.context;
 
     return (
-      <MiniModal title="Place Bid" onClose={() => {
+      <MiniModal title={t('placeBid')} onClose={() => {
         if (this.props.isPlacingBid) {
           return;
         }
@@ -28,19 +32,19 @@ export class PlaceBidModal extends Component {
             <Alert
               className="place-bid-modal__alert"
               type="error"
-              message="An error occurred while fulfilling the auction. Please try again."
+              message={t('shakedexPlaceBidError')}
             />
           )}
           <p>
-            Please confirm your auction details below. Note that <strong>fulfilling an auction is irreversible</strong>.
+            {t('shakedexPlaceBidWarning')}
           </p>
           <table className="place-bid-modal__table">
             <tr>
-              <td><strong>Name:</strong></td>
+              <td><strong>{`${t('domain')}:`}</strong></td>
               <td>{auction.name}</td>
             </tr>
             <tr>
-              <td><strong>Price:</strong></td>
+              <td><strong>{`${t('price')}:`}</strong></td>
               <td>{displayBalance(bid.price, true)}</td>
             </tr>
           </table>
@@ -51,7 +55,7 @@ export class PlaceBidModal extends Component {
               onClick={onClose}
               disabled={this.props.isPlacingBid}
             >
-              Cancel
+              {t('cancel')}
             </button>
 
             <button
@@ -59,7 +63,7 @@ export class PlaceBidModal extends Component {
               onClick={() => this.props.placeExchangeBid(auction, bid)}
               disabled={this.props.isPlacingBid}
             >
-              {this.props.isPlacingBid ? 'Loading...' : 'Fulfill Auction'}
+              {this.props.isPlacingBid ? t('loading') : t('fulfillAuction')}
             </button>
           </div>
         </div>

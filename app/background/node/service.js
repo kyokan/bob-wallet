@@ -10,7 +10,13 @@ import { NodeClient } from 'hs-client';
 import { BigNumber } from 'bignumber.js';
 import { ConnectionTypes, getConnection, getCustomRPC } from '../connections/service';
 import FullNode from 'hsd/lib/node/fullnode';
+import SPVNode from 'hsd/lib/node/spvnode';
 import plugin from 'hsd/lib/wallet/plugin';
+import Address from 'hsd/lib/primitives/address';
+const blake2b = require('bcrypto/lib/blake2b');
+const secp256k1 = require('bcrypto/lib/secp256k1');
+const {safeEqual} = require('bcrypto/lib/safe');
+import pkg from 'hsd/lib/pkg';
 import { prefixHash } from '../../db/names';
 import { get, put } from '../db/service';
 import {dispatchToMainWindow} from "../../mainWindow";
@@ -20,6 +26,9 @@ import {
   START,
   SET_FEE_INFO,
   SET_NODE_INFO,
+  SET_SPV_MODE,
+  START_NODE_STATUS_CHANGE,
+  END_NODE_STATUS_CHANGE,
 } from "../../ducks/nodeReducer";
 
 const Network = require('hsd/lib/protocol/network');
@@ -29,6 +38,7 @@ const DEFAULT_BLOCK_TIME = 10 * 60 * 1000;
 const HSD_PREFIX_DIR_KEY = 'hsdPrefixDir';
 const NODE_API_KEY = 'nodeApiKey';
 const NODE_NO_DNS = 'nodeNoDns';
+const SPV_MODE = 'nodeSpvMode';
 
 export class NodeService extends EventEmitter {
   constructor() {
@@ -51,10 +61,19 @@ export class NodeService extends EventEmitter {
     const noDns = await get(NODE_NO_DNS);
     if (noDns !== null) {
       return noDns === '1';
-    };
+    }
 
     await put(NODE_NO_DNS, '1');
     return true;
+  }
+
+  async getSpvMode() {
+    const spv = await get(SPV_MODE);
+    if (spv !== null) {
+      return spv === '1';
+    }
+
+    return false;
   }
 
   async getDir() {
@@ -82,6 +101,14 @@ export class NodeService extends EventEmitter {
     dispatchToMainWindow({
       type: SET_NODE_API,
       payload: apiKey,
+    });
+  }
+
+  async setSpvMode(spv) {
+    await put(SPV_MODE, !!spv ? '1' : '');
+    dispatchToMainWindow({
+      type: SET_SPV_MODE,
+      payload: spv === '1',
     });
   }
 
@@ -168,8 +195,11 @@ export class NodeService extends EventEmitter {
     console.log(`Starting node on ${this.networkName} network.`);
 
     const dir = await this.getDir();
+    const spv = await this.getSpvMode();
 
-    this.hsd = new FullNode({
+    const Node = spv ? SPVNode : FullNode;
+
+    this.hsd = new Node({
       config: true,
       argv: true,
       env: true,
@@ -188,6 +218,9 @@ export class NodeService extends EventEmitter {
       cors: true,
       noDns: this.noDns,
       listen: this.networkName === 'regtest', // improves remote rpc dev/testing
+      chainMigrate: 2,
+      walletMigrate: 1,
+      maxOutbound: 4,
     });
 
     this.hsd.use(plugin);
@@ -198,8 +231,10 @@ export class NodeService extends EventEmitter {
     await this.hsd.connect();
     await this.hsd.startSync();
 
-    if (!(await get('hsd-2.4.0-migrate'))) {
-      await put('hsd-2.4.0-migrate', true);
+    const migrateFlag = `${this.networkName}-hsd-3.0.0-migrate${spv ? '-spv' : ''}`;
+
+    if (!(await get(migrateFlag))) {
+      await put(migrateFlag, true);
     }
 
     this.hsd.on('connect', async () => this.refreshNodeInfo());
@@ -273,20 +308,17 @@ export class NodeService extends EventEmitter {
       apiKey,
     } = rpc;
 
-    const portString = port ? `:${port}` : '';
-    const pathString = (!pathname || pathname === '/') ? '' : pathname;
-    const protoString = protocol || 'http';
-
-    const url = `${protoString}://${host}${portString}${pathString}`;
-
     // Not really used after this point,
     // but overwrite the local getAPIKey() just in case.
     this.apiKey = apiKey;
 
     return new NodeClient({
-      network: this.network,
       apiKey,
-      url,
+      ssl: protocol === 'https',
+      host,
+      port: parseInt(port, 10),
+      path: pathname,
+      timeout: 30000,
     });
   }
 
@@ -305,9 +337,16 @@ export class NodeService extends EventEmitter {
   }
 
   async reset() {
-    await this.stop();
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    await this.start(this.networkName);
+    dispatchToMainWindow({ type: START_NODE_STATUS_CHANGE });
+    try {
+      await this.stop();
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      await this.start(this.networkName);
+      dispatchToMainWindow({ type: END_NODE_STATUS_CHANGE });
+    } catch (e) {
+      dispatchToMainWindow({ type: END_NODE_STATUS_CHANGE });
+      throw e;
+    }
   }
 
   async refreshNodeInfo() {
@@ -316,21 +355,26 @@ export class NodeService extends EventEmitter {
 
     try {
       const info = await this.getInfo();
-      const fees = await this.getFees();
 
       dispatchToMainWindow({
         type: SET_NODE_INFO,
         payload: info.chain,
       });
 
-      dispatchToMainWindow({
-        type: SET_FEE_INFO,
-        payload: fees,
-      });
+
+      if (info.chain.progress > 0.99) {
+        const fees = await this.getFees();
+
+        if (fees) {
+          dispatchToMainWindow({
+            type: SET_FEE_INFO,
+            payload: fees,
+          });
+        }
+      }
 
       this.height = info.chain.height;
     } catch (e) {
-      ;
     }
   };
 
@@ -344,35 +388,49 @@ export class NodeService extends EventEmitter {
   }
 
   async getTXByAddresses(addresses) {
+    if (await this.getSpvMode()) {
+      const json = await hapiPost('/tx/address', {
+        addresses,
+        startBlock: 0,
+        endBlock: this.height,
+      });
+      return json.txs;
+    }
     await this._ensureStarted();
     return this.client.getTXByAddresses(addresses);
   }
 
   async getNameInfo(name) {
-    return this._execRPC('getnameinfo', [name]);
+    return this._execRPC('getnameinfo', [name], true);
   }
 
   async getNameByHash(hash) {
     const cached = await get(prefixHash(hash));
     if (cached) return cached;
-    const name = await this._execRPC('getnamebyhash', [hash]);
+    const name = await this._execRPC('getnamebyhash', [hash], true);
     put(prefixHash(hash), name);
     return name;
   }
 
   async getAuctionInfo(name) {
-    return this._execRPC('getauctioninfo', [name]);
+    return this._execRPC('getauctioninfo', [name], true);
   }
 
   async getBlock(height) {
+    if (await this.getSpvMode()) {
+      return hapiGet(`/block/${block}`);
+    }
     return this.client.getBlock(height);
   }
 
   async getBlockByHeight(height, verbose, details) {
-    return this._execRPC('getblockbyheight', [height, verbose ? 1 : 0, details ? 1 : 0]);
+    return this._execRPC('getblockbyheight', [height, verbose ? 1 : 0, details ? 1 : 0], true);
   }
 
   async getTx(hash) {
+    if (await this.getSpvMode()) {
+      return hapiGet(`/tx/${hash}`);
+    }
     this._ensureStarted();
     return this.client.getTX(hash);
   }
@@ -387,9 +445,9 @@ export class NodeService extends EventEmitter {
 
   async getFees() {
     await this._ensureStarted();
-    const slowRes = await this.client.execute('estimatesmartfee', [5]);
-    const standardRes = await this.client.execute('estimatesmartfee', [2]);
-    const fastRes = await this.client.execute('estimatesmartfee', [1]);
+    const slowRes = await this._execRPC('estimatesmartfee', [5], true);
+    const standardRes = await this._execRPC('estimatesmartfee', [2], true);
+    const fastRes = await this._execRPC('estimatesmartfee', [1], true);
     const slow = BigNumber.max(new BigNumber(slowRes.fee), MIN_FEE).toFixed(6);
     const standard = BigNumber.max(new BigNumber(standardRes.fee), MIN_FEE * 5).toFixed(6);
     const fast = BigNumber.max(new BigNumber(fastRes.fee), MIN_FEE * 10).toFixed(6);
@@ -416,7 +474,7 @@ export class NodeService extends EventEmitter {
     let count = 0;
     let sum = 0;
     for (let i = startHeight; i <= height; i++) {
-      const block = await this.client.execute('getblockbyheight', [i, true, false]);
+      const block = await this._execRPC('getblockbyheight', [i, true, false], true);
       if (previous === 0) {
         previous = block.time;
         continue;
@@ -431,10 +489,30 @@ export class NodeService extends EventEmitter {
   }
 
   async getCoin(hash, index) {
+    if (await this.getSpvMode()) {
+      return hapiGet(`/coin/${hash}/${index}`);
+    }
     return this.client.getCoin(hash, index);
   }
 
   async verifyMessageWithName(name, signature, message) {
+    if (await this.getSpvMode()) {
+      const result = await this.getNameInfo(name);
+      const owner = result?.info?.owner;
+
+      if (!owner) {
+        throw new Error('Cannot find the name owner.');
+      }
+
+      const coin = await this.getCoin(owner.hash, owner.index);
+
+      if (!coin) {
+        throw new Error('Cannot find the owner\'s address.');
+      }
+
+      return this._execRPC('verifymessage', [coin.address, signature, message]);
+    }
+
     return this._execRPC('verifymessagewithname', [name, signature, message]);
   }
 
@@ -468,7 +546,24 @@ export class NodeService extends EventEmitter {
       throw new Error('No client.');
   }
 
-  async _execRPC(method, args) {
+  async _execHostedRPC(method, args) {
+    const json = await hapiPost('', {
+      method,
+      params: args,
+    });
+
+    if (!json) {
+      throw new Error('No body for JSON-RPC response.');
+    }
+
+    return json.result;
+  }
+
+  async _execRPC(method, args, useHostedRPCOnSpv) {
+    if (useHostedRPCOnSpv && await this.getSpvMode()) {
+      return this._execHostedRPC(method, args);
+    }
+
     await this._ensureStarted();
     return this.client.execute(method, args);
   }
@@ -501,6 +596,7 @@ const methods = {
   reset: () => service.reset(),
   getAPIKey: () => service.getAPIKey(),
   getNoDns: () => service.getNoDns(),
+  getSpvMode: () => service.getSpvMode(),
   getInfo: () => service.getInfo(),
   getNameInfo: (name) => service.getNameInfo(name),
   getNameByHash: (hash) => service.getNameByHash(hash),
@@ -519,6 +615,7 @@ const methods = {
   setNodeDir: data => service.setNodeDir(data),
   setAPIKey: data => service.setAPIKey(data),
   setNoDns: data => service.setNoDns(data),
+  setSpvMode: data => service.setSpvMode(data),
   getDir: () => service.getDir(),
   getHNSPrice: () => service.getHNSPrice(),
   testCustomRPCClient: (networkType) => service.testCustomRPCClient(networkType),
@@ -529,4 +626,55 @@ const methods = {
 export async function start(server) {
   await service.configurePaths();
   server.withService(sName, methods);
+}
+
+async function hapiGet(path = '') {
+  const res = await fetch(`https://api.handshakeapi.com/hsd${path}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  });
+  const json = await res.json();
+
+  if (!json)
+    throw new Error('Bad response (no body).');
+
+  if (json.error && res.statusCode >= 400) {
+    const {error} = json;
+    const err = new Error(error.message);
+    err.type = String(error.type);
+    err.code = error.code;
+    throw err;
+  }
+
+  if (res.status !== 200)
+    throw new Error(`Status code: ${res.status}.`);
+
+  return json;
+}
+
+async function hapiPost(path = '', body) {
+  const res = await fetch(`https://api.handshakeapi.com/hsd${path}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body)
+  });
+
+  const json = await res.json();
+
+  if (!json)
+    throw new Error('No body for JSON-RPC response.');
+
+  if (json.error) {
+    const {message, code} = json.error;
+    throw new Error(message);
+  }
+
+  if (res.status !== 200)
+    throw new Error(`Status code: ${res.status}.`);
+
+  return json;
 }

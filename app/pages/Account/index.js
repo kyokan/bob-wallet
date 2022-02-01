@@ -15,6 +15,8 @@ import { showError, showSuccess } from "../../ducks/notifications";
 import * as nameActions from "../../ducks/names";
 import * as nodeActions from "../../ducks/node";
 import { fetchTransactions } from "../../ducks/walletActions";
+import throttle from "lodash.throttle";
+import {I18nContext} from "../../utils/i18n";
 
 const analytics = aClientStub(() => require("electron").ipcRenderer);
 
@@ -23,6 +25,7 @@ const analytics = aClientStub(() => require("electron").ipcRenderer);
   (state) => ({
     spendableBalance: state.wallet.balance.spendable,
     height: state.node.chain.height,
+    progress: state.node.chain.progress,
     isFetching: state.wallet.isFetching,
     network: state.wallet.network,
     hnsPrice: state.node.hnsPrice,
@@ -44,6 +47,7 @@ export default class Account extends Component {
   static propTypes = {
     spendableBalance: PropTypes.number.isRequired,
     height: PropTypes.number.isRequired,
+    progress: PropTypes.number.isRequired,
     isFetching: PropTypes.bool.isRequired,
     network: PropTypes.string.isRequired,
     updateHNSPrice: PropTypes.func.isRequired,
@@ -55,6 +59,8 @@ export default class Account extends Component {
     renewMany: PropTypes.func.isRequired,
     history: PropTypes.object.isRequired,
   };
+
+  static contextType = I18nContext;
 
   state = {
     isLoadingStats: true,
@@ -72,6 +78,11 @@ export default class Account extends Component {
       registerable: { HNS: null, num: null },
     },
   };
+
+  constructor(props) {
+    super(props);
+    this.updateStatsAndBalance = throttle(this.updateStatsAndBalance, 15000, { trailing: true });
+  }
 
   componentDidMount() {
     analytics.screenView("Account");
@@ -149,6 +160,7 @@ export default class Account extends Component {
 
   renderBalance() {
     const { lockedBalance, isLoadingStats } = this.state;
+    const {t} = this.context;
     const spendableBalance = {
       HNS: this.props.spendableBalance,
       converted: (
@@ -173,7 +185,7 @@ export default class Account extends Component {
       <div className="account__header">
         {/* Spendable Balance */}
         <div className="account__header__section">
-          <span className="label">SPENDABLE</span>
+          <span className="label">{t('spendable')}</span>
           <p className="amount">
             {displayBalance(spendableBalance.HNS || 0, true, 2)}
           </p>
@@ -185,13 +197,14 @@ export default class Account extends Component {
         {/* Locked Balance - In bids */}
         {lockedBalance.bidding.HNS > 0 ? (
           <div className="account__header__section">
-            <span className="label">LOCKED</span>
+            <span className="label">{t('locked')}</span>
             <p className="amount">
               {displayBalance(lockedBalance.bidding.HNS, true, 2)}
             </p>
             <span className="subtext">
-              In bids ({lockedBalance.bidding.num}{" "}
-              {pluralize(lockedBalance.bidding.num, "bid")})
+              {`${t('inBids')} (${lockedBalance.bidding.num}`}
+              {" "}
+              {pluralize(lockedBalance.bidding.num, t('bid'))})
             </span>
           </div>
         ) : (
@@ -203,13 +216,14 @@ export default class Account extends Component {
         {/* Locked Balance - In Reveal */}
         {lockedBalance.revealable.HNS > 0 ? (
           <div className="account__header__section">
-            <span className="label">LOCKED</span>
+            <span className="label">{t('locked')}</span>
             <p className="amount">
               {displayBalance(lockedBalance.revealable.HNS, true, 2)}
             </p>
             <span className="subtext">
-              In reveal ({lockedBalance.revealable.num}{" "}
-              {pluralize(lockedBalance.revealable.num, "bid")})
+              {`${t('inReveals')} (${lockedBalance.revealable.num}`}
+              {" "}
+              {pluralize(lockedBalance.revealable.num, t('bid'))})
             </span>
           </div>
         ) : (
@@ -221,13 +235,14 @@ export default class Account extends Component {
         {/* Locked Balance - Finished */}
         {lockedBalance.finished.HNS > 0 ? (
           <div className="account__header__section">
-            <span className="label">LOCKED</span>
+            <span className="label">{t('locked')}</span>
             <p className="amount">
               {displayBalance(lockedBalance.finished.HNS, true, 2)}
             </p>
             <span className="subtext">
-              In finished auctions ({lockedBalance.finished.num}{" "}
-              {pluralize(lockedBalance.finished.num, "bid")})
+              {`${t('inFinishedAuctions')} (${lockedBalance.finished.num}`}
+              {" "}
+              {pluralize(lockedBalance.finished.num, t('bid'))})
             </span>
           </div>
         ) : (
@@ -237,16 +252,16 @@ export default class Account extends Component {
         {/* No Locked HNS (or still loading) */}
         {noLockedHNS ? (
           <div className="account__header__section">
-            <span className="label">LOCKED</span>
+            <span className="label">{t('locked')}</span>
             <p
               className={c("amount", {
                 account__transactions__loading: isLoadingStats,
               })}
             >
-              {isLoadingStats ? "Loading balance..." : displayBalance(0, true)}
+              {isLoadingStats ? t('loadingBalance') : displayBalance(0, true)}
             </p>
             <span className="subtext">
-              {isLoadingStats ? "" : "No locked HNS"}
+              {isLoadingStats ? "" : t('noLockedHNS')}
             </span>
           </div>
         ) : (
@@ -257,6 +272,12 @@ export default class Account extends Component {
   }
 
   renderCards() {
+    const {t} = this.context;
+    // Hide cards until (almost) synced
+    if (this.props.progress < 0.9999) {
+      return;
+    }
+
     const network = this.props.network;
     const {
       revealable,
@@ -275,17 +296,13 @@ export default class Account extends Component {
             color="red"
             text={
               <Fragment>
-                <strong>Reveal</strong> {revealable.num}{" "}
-                {pluralize(revealable.num, "bid")}
+                <strong>{t('reveal')}</strong> {revealable.num}{" "}
+                {pluralize(revealable.num, t('bid'))}
               </Fragment>
             }
             subtext={
               <Fragment>
-                within{" "}
-                <strong>
-                  {blocksDeltaToTimeDelta(revealable.block, network, true)}
-                </strong>{" "}
-                for the bids to count
+                {t('revealCardWarning', blocksDeltaToTimeDelta(revealable.block, network, true))}
               </Fragment>
             }
             buttonAction={() => this.onCardButtonClick("reveal")}
@@ -300,17 +317,13 @@ export default class Account extends Component {
             color="red"
             text={
               <Fragment>
-                <strong>Renew</strong> {renewable.domains.length}{" "}
-                {pluralize(renewable.domains.length, "domain")}
+                <strong>{t('renew')}</strong> {renewable.domains.length}{" "}
+                {t('domains')}
               </Fragment>
             }
             subtext={
               <Fragment>
-                in{" "}
-                <strong>
-                  {blocksDeltaToTimeDelta(renewable.block, network, true)}
-                </strong>{" "}
-                or lose the {pluralize(renewable.domains.length, "domain")}
+                {t('renewCardWarning', blocksDeltaToTimeDelta(renewable.block, network, true))}
               </Fragment>
             }
             buttonAction={() =>
@@ -327,14 +340,13 @@ export default class Account extends Component {
             color="yellow"
             text={
               <Fragment>
-                <strong>Redeem</strong> {redeemable.num}{" "}
-                {pluralize(redeemable.num, "bid")}
+                <strong>{t('redeem')}</strong> {redeemable.num}{" "}
+                {t('bids')}
               </Fragment>
             }
             subtext={
               <Fragment>
-                from lost auctions to get back{" "}
-                <strong>{Math.round(redeemable.HNS / 1e6)} HNS</strong>
+                {t('redeemCardWarning', Math.round(redeemable.HNS / 1e6))}
               </Fragment>
             }
             buttonAction={() => this.onCardButtonClick("redeem")}
@@ -349,14 +361,13 @@ export default class Account extends Component {
             color="yellow"
             text={
               <Fragment>
-                <strong>Register</strong> {registerable.num}{" "}
-                {pluralize(registerable.num, "domain")}
+                <strong>{t('register')}</strong> {registerable.num}{" "}
+                {t('domains')}
               </Fragment>
             }
             subtext={
               <Fragment>
-                that you’ve won and get back{" "}
-                <strong>{Math.round(registerable.HNS / 1e6)} HNS</strong>
+                {t('registerCardWarning', Math.round(registerable.HNS / 1e6))}
               </Fragment>
             }
             buttonAction={() => this.onCardButtonClick("register")}
@@ -371,14 +382,13 @@ export default class Account extends Component {
             color="green"
             text={
               <Fragment>
-                <strong>Finalize</strong> {finalizable.domains.length}{" "}
-                {pluralize(finalizable.domains.length, "domain")}
+                <strong>{t('finalize')}</strong> {finalizable.domains.length}{" "}
+                {t('domains')}
               </Fragment>
             }
             subtext={
               <Fragment>
-                to complete your{" "}
-                {pluralize(finalizable.domains.length, "transfer")}
+                {t('transferCardWarning')}
               </Fragment>
             }
             buttonAction={() =>
@@ -395,16 +405,13 @@ export default class Account extends Component {
             color="green"
             text={
               <Fragment>
-                <strong>Transferring</strong> {transferring.domains.length}{" "}
-                {pluralize(transferring.domains.length, "domain")}
+                <strong>{t('transferring')}</strong> {transferring.domains.length}{" "}
+                {t('domains')}
               </Fragment>
             }
             subtext={
               <Fragment>
-                ready to finalize in{" "}
-                <strong>
-                  {blocksDeltaToTimeDelta(transferring.block, network)}
-                </strong>
+                {t('finalizeCardWarning', blocksDeltaToTimeDelta(transferring.block, network))}
               </Fragment>
             }
           />
@@ -461,8 +468,8 @@ function pluralize(value, word, ending = "s") {
 
 function blocksDeltaToTimeDelta(blocks, network, hideMinsIfLarge = false) {
   const hours = (blocks * networks[network].pow.targetSpacing) / 3600;
-  if (hideMinsIfLarge === true && hours > 48) {
-    return `${(hours / 24) >>> 0} days`;
-  }
+  // if (hideMinsIfLarge === true && hours > 48) {
+  //   return `${(hours / 24) >>> 0} days`;
+  // }
   return hoursToNow(hours);
 }

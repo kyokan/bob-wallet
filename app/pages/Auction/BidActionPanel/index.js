@@ -13,6 +13,7 @@ import '../domains.scss';
 import Sold from './Sold';
 import Reserved from './Reserved';
 import { clientStub as aClientStub } from '../../../background/analytics/client';
+import {I18nContext} from "../../../utils/i18n";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -30,6 +31,8 @@ class BidActionPanel extends Component {
     unwatchDomain: PropTypes.func.isRequired,
   };
 
+  static contextType = I18nContext;
+
   state = {
     isLoading: false,
     event: {},
@@ -44,6 +47,7 @@ class BidActionPanel extends Component {
     const {match, network} = this.props;
     const {params: {name}} = match;
     const isWatching = this.props.watchList.includes(this.props.match.params.name);
+    const {t} = this.context;
 
     return (
       <React.Fragment>
@@ -67,7 +71,7 @@ class BidActionPanel extends Component {
               }
             }} />
           <div className="domains__watch__text">
-            {isWatching ? 'Added to Watchlist' : 'Add to Watchlist'}
+            {isWatching ? t('addedWatchlist') : t('addWatchlist')}
           </div>
         </div>
       </React.Fragment>

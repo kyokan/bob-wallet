@@ -27,7 +27,7 @@
   &__content {
     @extend %col-nowrap;
     height: 100%;
-    justify-content: space-between;
+    justify-content: flex-start;
     padding: 0 2rem 0 1.5rem;
     flex: 1 1 auto;
     overflow-y: auto;

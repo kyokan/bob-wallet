@@ -13,6 +13,7 @@ import * as logger from '../../../utils/logClient';
 import * as nameActions from '../../../ducks/names';
 import { showError, showSuccess } from '../../../ducks/notifications';
 import { clientStub as aClientStub } from '../../../background/analytics/client';
+import {I18nContext} from "../../../utils/i18n";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -29,13 +30,15 @@ class Reveal extends Component {
     totalMasks: PropTypes.number.isRequired,
   };
 
+  static contextType = I18nContext;
+
   getTimeRemaining = () => {
     const {info} = this.props.domain || {};
     const {stats} = info || {};
     const {revealPeriodEnd, hoursUntilClose} = stats || {};
 
     if (!revealPeriodEnd) {
-      return 'Revealing now!';
+      return this.context.t('revealingNow');
     }
 
     if (hoursUntilClose < 24) {
@@ -55,12 +58,11 @@ class Reveal extends Component {
 
     try {
       await sendReveal();
-      this.props.showSuccess('Successfully revealed bid!');
+      this.props.showSuccess(this.context.t('revealSuccess'));
       analytics.track('revealed bid');
     } catch (e) {
-      console.error(e);
       logger.error(`Error received from Reveal - sendReveal]\n\n${e.message}\n${e.stack}\n`);
-      this.props.showError(`Failed to reveal bid: ${e.message}`);
+      this.props.showError(this.context.t('revealSuccess', e.message));
     }
   };
 
@@ -68,21 +70,22 @@ class Reveal extends Component {
     const {domain, hasRevealableBid} = this.props;
     const {bids = [], info} = domain || {};
     const highest = Math.max(bids.map(bid => bid.value));
+    const {t} = this.context;
 
     return (
       <AuctionPanel>
-        <AuctionPanelHeader title="Auction Details">
-          <AuctionPanelHeaderRow label="Reveal Ends:">
+        <AuctionPanelHeader title={t('auctionDetailTitle')}>
+          <AuctionPanelHeaderRow label={t('revealEnds') + ':'}>
             <div className="domains__bid-now__info__time-remaining">
               <div>
                 {this.getTimeRemaining()}
               </div>
             </div>
           </AuctionPanelHeaderRow>
-          <AuctionPanelHeaderRow label="Total Bids:">
+          <AuctionPanelHeaderRow label={t('totalBids') + ':'}>
             {bids.length}
           </AuctionPanelHeaderRow>
-          <AuctionPanelHeaderRow label="Highest Lockup:">
+          <AuctionPanelHeaderRow label={t('highestLockup') + ':'}>
             {displayBalance(highest, true)}
           </AuctionPanelHeaderRow>
         </AuctionPanelHeader>
@@ -93,7 +96,7 @@ class Reveal extends Component {
               : (
                 <div className="domains__bid-now__action">
                   <button className="domains__bid-now__action__cta" disabled>
-                    No Bids to Reveal
+                    {t('noBidsToReveal')}
                   </button>
                 </div>
               )
@@ -109,14 +112,16 @@ class Reveal extends Component {
       totalMasks,
     } = this.props;
 
+    const {t} = this.context;
+
     return (
       <div className="domains__bid-now__action--placing-bid">
-        <div className="domains__bid-now__title">Your Bids</div>
+        <div className="domains__bid-now__title">{t('yourBids')}</div>
         <div className="domains__bid-now__content">
-          <AuctionPanelHeaderRow label="Total Bids:">
+          <AuctionPanelHeaderRow label={t('totalBids') + ':'}>
             {totalBids < 0 ? '?' : displayBalance(totalBids, true)}
           </AuctionPanelHeaderRow>
-          <AuctionPanelHeaderRow label="Total Lockups:">
+          <AuctionPanelHeaderRow label={t('totalLockups') + ':'}>
             {displayBalance(totalMasks, true)}
           </AuctionPanelHeaderRow>
           {this.renderWarning()}
@@ -133,20 +138,21 @@ class Reveal extends Component {
       hasPendingReveal,
       needsRepair,
     } = this.props;
+    const {t} = this.context;
 
-    let text = 'Reveal Your Bids';
+    let text = t('revealYourBids');
     let cname = 'domains__bid-now__action__cta'
 
     if (hasRevealed) {
-      text = 'Bid Successfully Revealed';
+      text = t('bidSuccessfullyRevealed');
     }
 
     if (hasPendingReveal) {
-      text = 'Reveal Pending...';
+      text = t('revealPending');
     }
 
     if (needsRepair) {
-      text = 'Repair Unknown Bids';
+      text = t('repairUnknownBids');
       cname = 'domains__bid-now__action__warning';
     }
 
@@ -171,11 +177,7 @@ class Reveal extends Component {
 
     return (
       <div className="domains__bid-now__info__warning">
-        You will lose {displayBalance(totalMasks, true)} if you don't reveal before{' '}
-        {this.props.domain.info.stats.revealPeriodEnd ?
-          <Blocktime height={this.props.domain.info.stats.revealPeriodEnd} format="ll" />
-          : 'the Reveal Period ends!'
-        }
+        {this.context.t('revealWarning', displayBalance(totalMasks, true))}
       </div>
     );
   }

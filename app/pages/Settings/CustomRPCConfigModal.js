@@ -14,6 +14,7 @@ import NetworkPicker from "../NetworkPicker";
 const Network = require('hsd/lib/protocol/network');
 import './custom-rpc.scss';
 import Dropdown from "../../components/Dropdown";
+import {I18nContext} from "../../utils/i18n";
 
 const connClient = cClientStub(() => require('electron').ipcRenderer);
 const nodeClient = nClientStub(() => require('electron').ipcRenderer);
@@ -36,11 +37,12 @@ export default class CustomRPCConfigModal extends Component {
     fetchWallet: PropTypes.func.isRequired,
   };
 
+  static contextType = I18nContext;
+
   state = {
     protocol: 'http',
     host: '',
     pathname: '',
-    networkType: 'main',
     port: '',
     apiKey: '',
     errorMessage: '',
@@ -55,12 +57,13 @@ export default class CustomRPCConfigModal extends Component {
   async fetchCustomRPC() {
     const conn = await connClient.getCustomRPC();
 
+    const {rpcPort} = Network.get(this.props.walletNetwork);
+
     this.setState({
-      networkType: conn.networkType || 'main',
       protocol: conn.protocol || 'http',
       apiKey: conn.apiKey,
-      port: conn.port,
-      host: conn.host,
+      port: conn.port || rpcPort,
+      host: conn.host || '127.0.0.1',
       pathname: conn.pathname,
     });
   }
@@ -72,15 +75,7 @@ export default class CustomRPCConfigModal extends Component {
      return;
     }
 
-    if (!this.state.confirming && this.isDangerousURL()) {
-      this.setState({
-        confirming: true,
-      });
-      return;
-    }
-
     const {
-      networkType,
       apiKey,
       host,
       port,
@@ -187,26 +182,30 @@ export default class CustomRPCConfigModal extends Component {
     const {
       host,
       pathname,
-      networkType,
       apiKey,
       port,
       protocol,
-      errorMessage,
     } = this.state;
+    const {t} = this.context;
+
+    let {errorMessage} = this.state;
+    if (!errorMessage && this.isDangerousURL())
+      errorMessage = t('customRPCNoHTTP');
+
 
     return (
       <MiniModal
         closeRoute="/settings/connection"
-        title="Configure Custom RPC"
+        title={t('customRPCTitle')}
         centered
       >
         <div className="settings__input-row">
-          <div className="settings__input-title">Protocol</div>
+          <div className="settings__input-title">{t('protocol')}</div>
           <Dropdown
             className="network-picker custom-rpc__network-picker"
             items={[
               { label: 'http', value: 'http' },
-              // { label: 'https', value: 'https' },
+              { label: 'https', value: 'https' },
             ]}
             currentIndex={['http', 'https'].indexOf(protocol)}
             onChange={(value) => this.setState({
@@ -217,12 +216,11 @@ export default class CustomRPCConfigModal extends Component {
         </div>
 
         <div className="settings__input-row">
-          <div className="settings__input-title">Host</div>
+          <div className="settings__input-title">{t('host')}</div>
           <input
             type="text"
             className="settings__input"
             value={host}
-            placeholder={`127.0.0.1`}
             onChange={e => this.setState({
               host: e.target.value,
               errorMessage: '',
@@ -231,12 +229,11 @@ export default class CustomRPCConfigModal extends Component {
         </div>
 
         <div className="settings__input-row">
-          <div className="settings__input-title">Path</div>
+          <div className="settings__input-title">{t('path')}</div>
           <input
             type="text"
             className="settings__input"
             value={pathname}
-            placeholder={`/`}
             onChange={e => this.setState({
               pathname: e.target.value,
               errorMessage: '',
@@ -245,24 +242,11 @@ export default class CustomRPCConfigModal extends Component {
         </div>
 
         <div className="settings__input-row">
-          <div className="settings__input-title">Network Type</div>
-          <NetworkPicker
-            className="custom-rpc__network-picker"
-            onNetworkChange={(net) => this.setState({
-              networkType: net,
-              port:  Network.get(net).rpcPort,
-              errorMessage: '',
-            })}
-          />
-        </div>
-
-        <div className="settings__input-row">
-          <div className="settings__input-title">Port</div>
+          <div className="settings__input-title">{t('port')}</div>
           <input
             type="text"
             className="settings__input"
             value={port}
-            placeholder={`12037`}
             onChange={e => this.setState({
               port: e.target.value,
               errorMessage: '',
@@ -271,8 +255,9 @@ export default class CustomRPCConfigModal extends Component {
         </div>
 
         <div className="settings__input-row">
-          <div className="settings__input-title">API Key</div>
+          <div className="settings__input-title">{t('apiKey')}</div>
           <input
+            spellCheck={false}
             type="text"
             className="settings__input"
             value={apiKey}
@@ -282,14 +267,6 @@ export default class CustomRPCConfigModal extends Component {
             })}
           />
         </div>
-        {
-          !errorMessage && this.state.confirming && (
-            <div className="rpc-modal-warning">
-              Remote connection over HTTP is not recommended. Are you sure you want to continue?
-            </div>
-          )
-        }
-
         {
           errorMessage && (
             <div className="rpc-modal-warning">
@@ -302,16 +279,14 @@ export default class CustomRPCConfigModal extends Component {
             className="settings__secondary-btn"
             onClick={() => this.props.history.push('/settings/connection')}
           >
-            Cancel
+            {t('cancel')}
           </button>
           <button
-            className={c('settings__btn', {
-              'settings__btn--confirm': this.state.confirming,
-            })}
+            className={"settings__btn settings__btn--confirm"}
             onClick={this.saveCustomRPC}
             disabled={errorMessage}
           >
-            {this.state.confirming ? 'Confirm' : 'Save'}
+            {t('update')}
           </button>
         </div>
       </MiniModal>

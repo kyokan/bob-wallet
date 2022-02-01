@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import cn from 'classnames';
 import './collapsible.scss';
+import {I18nContext} from "../../utils/i18n";
 
 export default class Collapsible extends Component {
   static propTypes = {
@@ -15,6 +16,8 @@ export default class Collapsible extends Component {
     className: '',
     defaultCollapsed: false,
   };
+
+  static contextType = I18nContext;
 
   constructor(props) {
     super(props);
@@ -41,7 +44,7 @@ export default class Collapsible extends Component {
         <div className="collapsible__header">
           <div className="collapsible__header__title">
             {title}
-            {!!pillContent && 
+            {!!pillContent &&
               <div className="collapsible__header__pill">
                 {pillContent}
               </div>
@@ -51,7 +54,7 @@ export default class Collapsible extends Component {
             className="collapsible__header__toggle"
             onClick={this.toggle}
           >
-            { isCollapsed ? 'Show': 'Hide' }
+            { isCollapsed ? this.context.t('show') : this.context.t('hide') }
           </div>
         </div>
         { this.renderContent() }
@@ -63,7 +66,7 @@ export default class Collapsible extends Component {
     return (
       <div className={cn('collapsible__content', {
         'collapsible__content--hidden': this.state.isCollapsed
-      })} >  
+      })} >
         { this.props.children }
       </div>
     )

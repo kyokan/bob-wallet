@@ -9,6 +9,7 @@ import walletClient from "../../utils/walletClient";
 import {getPassphrase} from "../../ducks/walletActions";
 import {showError} from "../../ducks/notifications";
 import CopyButton from "../../components/CopyButton";
+import {I18nContext} from "../../utils/i18n";
 
 @connect(
   (state) => ({
@@ -29,6 +30,8 @@ class SignMessage extends Component {
     getMyNames: PropTypes.func.isRequired,
     getPassphrase: PropTypes.func.isRequired,
   };
+
+  static contextType = I18nContext;
 
   state = {
     nameIdx: 0,
@@ -63,12 +66,13 @@ class SignMessage extends Component {
 
   render() {
     const {names, isFetchingNames} = this.props;
+    const {t} = this.context;
 
     return (
       <div className="sign-message">
         <div className="sign-message__top">
           <div className="sign-message__top-label">
-            Select Name to Sign:
+            {t('signMessageTitle')}
           </div>
           {
             isFetchingNames
@@ -92,13 +96,13 @@ class SignMessage extends Component {
             onClick={this.onSign}
             disabled={!this.state.rawMessage}
           >
-            Sign Message
+            {t('signMessageCTA')}
           </button>
         </div>
         <div className="sign-message__content">
           <div className="sign-message__content__textarea">
             <div className="sign-message__content__textarea__title">
-              Message
+              {t('signMessageTextareaLabel')}
             </div>
             <textarea
               className="sign-message__content__textarea__message"
@@ -111,7 +115,7 @@ class SignMessage extends Component {
           </div>
           <div className="sign-message__content__textarea">
             <div className="sign-message__content__textarea__title">
-              <span>Signature</span>
+              <span>{t('signMessageSigLabel')}</span>
               <CopyButton content={this.state.signature} />
             </div>
             <textarea

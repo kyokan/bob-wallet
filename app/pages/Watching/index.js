@@ -17,6 +17,7 @@ import Dropdown from "../../components/Dropdown";
 import {getPageIndices} from "../../utils/pageable";
 import {verifyName} from "../../utils/nameChecker";
 import dbClient from "../../utils/dbClient";
+import {I18nContext} from "../../utils/i18n";
 const {dialog} = require('electron').remote;
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
@@ -38,6 +39,8 @@ class Watching extends Component {
     addName: PropTypes.func.isRequired,
     removeName: PropTypes.func.isRequired,
   };
+
+  static contextType = I18nContext;
 
   state = {
     name: '',
@@ -162,13 +165,14 @@ class Watching extends Component {
       isConfirmingReset,
       isImporting,
     } = this.state;
+    const {t} = this.context;
 
     if (isConfirmingReset) {
-      return 'Unless previously exported, this will permanently delete your watchlist.';
+      return t('watchlistConfirmWarning');
     }
 
     if (isImporting) {
-      return <span className="watching__loader">Importing watchlist...</span>;
+      return <span className="watching__loader">{t('watchlistImportingText')}</span>;
     }
 
     return '';
@@ -180,11 +184,14 @@ class Watching extends Component {
       isImporting,
       query,
     } = this.state;
+    const {t} = this.context;
+
     return (
       <div className="watching">
         <div className="watching__actions">
           <BidSearchInput
             className="watching__search"
+            placeholder={t('watchlistPlaceholder')}
             onChange={this.handleOnChange}
             value={query}
           />
@@ -198,7 +205,7 @@ class Watching extends Component {
                 onClick={this.onImport}
                 disabled={isImporting}
               >
-                Import
+                {t('import')}
               </button>
             )
           }
@@ -209,7 +216,7 @@ class Watching extends Component {
                 onClick={this.onDownload}
                 disabled={isImporting}
               >
-                Export
+                {t('export')}
               </button>
             )
           }
@@ -219,7 +226,7 @@ class Watching extends Component {
                 className="watching__cancel"
                 onClick={() => this.setState({ isConfirmingReset: false })}
               >
-                Cancel
+                {t('cancel')}
               </button>
             )
           }
@@ -230,7 +237,7 @@ class Watching extends Component {
             onClick={this.onReset}
             disabled={isImporting}
           >
-            {isConfirmingReset ? 'Confirm Reset' : 'Reset'}
+            {isConfirmingReset ? t('confirmReset') : t('reset')}
           </button>
         </div>
         <Table className="watching-table">
@@ -244,6 +251,7 @@ class Watching extends Component {
   }
 
   renderCreationContent() {
+    const {t} = this.context;
     return this.state.isAddingName
       ? (
         <div className="watching-table__create-row__form">
@@ -269,7 +277,7 @@ class Watching extends Component {
               className="watching-table__create-row__form__cta"
               onClick={this.onAdd}
             >
-              Accept
+              {t('accept')}
             </button>
             <div
               className="watching-table__create-row__form__remove"
@@ -283,7 +291,7 @@ class Watching extends Component {
           className="watching-table__create-row__cta"
           onClick={() => this.setState({isAddingName: true})}
         >
-          Add To Watchlist
+          {t('addWatchlist')}
         </button>
       );
   }
@@ -297,13 +305,14 @@ class Watching extends Component {
   }
 
   renderHeaders() {
+    const {t} = this.context;
     return (
       <HeaderRow>
         <HeaderItem>
-          <div>Status</div>
+          <div>{t('status')}</div>
         </HeaderItem>
-        <HeaderItem>TLD</HeaderItem>
-        <HeaderItem>Time Left</HeaderItem>
+        <HeaderItem>{t('domain')}</HeaderItem>
+        <HeaderItem>{t('timeLeft')}</HeaderItem>
         <HeaderItem />
       </HeaderRow>
     );
@@ -312,12 +321,13 @@ class Watching extends Component {
   renderGoTo() {
     const { currentPageIndex, itemsPerPage } = this.state;
     const { names } = this.props;
+    const {t} = this.context;
     const totalPages = Math.ceil(names.length / itemsPerPage);
 
     return (
       <div className="domain-manager__page-control__dropdowns">
         <div className="domain-manager__go-to">
-          <div className="domain-manager__go-to__text">Items per Page:</div>
+          <div className="domain-manager__go-to__text">{t('itemsPerPage')}:</div>
           <Dropdown
             className="domain-manager__go-to__dropdown transactions__items-per__dropdown"
             items={ITEM_PER_DROPDOWN}
@@ -334,7 +344,7 @@ class Watching extends Component {
           />
         </div>
         <div className="domain-manager__go-to">
-          <div className="domain-manager__go-to__text">Page</div>
+          <div className="domain-manager__go-to__text">{t('page')}</div>
           <Dropdown
             className="domain-manager__go-to__dropdown"
             items={Array(totalPages).fill(0).map((_, i) => ({ label: `${i + 1}` }))}
@@ -467,10 +477,13 @@ export default withRouter(
   )(Watching),
 );
 
-function EmptyResult() {
-  return (
-    <TableRow className="watching-table__empty-row">
-      No results found
-    </TableRow>
-  );
+class EmptyResult extends Component {
+  static contextType = I18nContext;
+  render() {
+    return (
+      <TableRow className="watching-table__empty-row">
+        {this.context.t('watchlistEmptyText')}
+      </TableRow>
+    );
+  }
 }

@@ -162,7 +162,6 @@ export class Records extends Component {
     const resource = this.state.updatedResource;
     const oldResource = this.props.resource;
 
-
     if (this.props.editable) {
       return resource.records.map((record, i) => {
         const oldrecord = oldResource && oldResource.records[i];
@@ -185,6 +184,7 @@ export class Records extends Component {
         return (
           <Record
             key={`${this.props.name}-${record.type}-${i}`}
+            className="domain-detail-records"
             name={this.props.name}
             record={record}
           />

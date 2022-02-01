@@ -15,6 +15,7 @@ import '../ImportSeedWarning/importwarning.scss';
 import walletClient from '../../../utils/walletClient';
 import OptInAnalytics from '../OptInAnalytics';
 import { clientStub as aClientStub } from '../../../background/analytics/client';
+import {I18nContext} from "../../../utils/i18n";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -33,6 +34,8 @@ class CreateNewAccount extends Component {
     network: PropTypes.string.isRequired,
     loc: PropTypes.string,
   };
+
+  static contextType = I18nContext;
 
   state = {
     currentStep: TERMS_OF_USE,
@@ -137,10 +140,10 @@ class CreateNewAccount extends Component {
                 false, // isLedger
                 null   // xpub (Ledger only)
               );
-              const masterHDKey = await walletClient.getMasterHDKey();
+              const phrase = await walletClient.revealSeed(this.state.passphrase);
               this.setState({
                 currentStep: COPY_SEEDPHRASE,
-                seedphrase: masterHDKey.mnemonic.phrase,
+                seedphrase: phrase,
                 isLoading: false,
               });
             }}

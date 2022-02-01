@@ -12,6 +12,7 @@ import * as logger from '../../utils/logClient';
 import { clientStub as aClientStub } from '../../background/analytics/client';
 import walletClient from '../../utils/walletClient';
 import { shell } from 'electron';
+import {I18nContext} from "../../utils/i18n";
 
 const Sentry = require('@sentry/electron');
 
@@ -50,6 +51,8 @@ class SendModal extends Component {
     explorer: PropTypes.object.isRequired,
   };
 
+  static contextType = I18nContext;
+
   constructor(props) {
     super(props);
 
@@ -76,7 +79,7 @@ class SendModal extends Component {
   updateToAddress = e => {
     this.setState({to: e.target.value, errorMessage: ''});
     if (e.target.value.length > 2 && !isValidAddress(e.target.value, this.props.network)) {
-      this.setState({errorMessage: 'Invalid Address Prefix'});
+      this.setState({errorMessage: this.context.t('invalidAddressPrefix')});
     }
   };
 
@@ -114,7 +117,7 @@ class SendModal extends Component {
     } catch (err) {
       logger.error('failed to send transaction', {err});
       this.setState({
-        errorMessage: `Something went wrong: ${err ? err.message : 'Unknown Error'}`,
+        errorMessage: `${this.context.t('genericError')}: ${err ? err.message : 'Unknown Error'}`,
         isSending: false,
       });
     }
@@ -129,7 +132,7 @@ class SendModal extends Component {
       maxBal = await walletClient.estimateMaxSend(fee);
     } catch (e) {
       this.setState({
-        errorMessage: `Something went wrong: ${e.message}`,
+        errorMessage: `${this.context.t('genericError')}: ${e?.message}`,
       });
       return;
     }
@@ -186,28 +189,29 @@ class SendModal extends Component {
 
   renderSend() {
     const {selectedGasOption, amount, to} = this.state;
+    const {t} = this.context;
     const {isValid} = this.validate();
 
     return (
       <div className="send__container">
         <div className="send__content">
           <div className="send__header">
-            <div className="send__title">Send Funds</div>
+            <div className="send__title">{t('sendTitle')}</div>
           </div>
           <Alert type="error" message={this.state.errorMessage} />
           <div className="send__to">
-            <div className="send__label">Sending to</div>
+            <div className="send__label">{t('sendToLabel')}</div>
             <div className="send__input" key="send-input">
               <input
                 type="text"
-                placeholder="Recipient address"
+                placeholder={t('recipientAddress')}
                 onChange={this.updateToAddress}
                 value={to}
               />
             </div>
           </div>
           <div className="send__amount">
-            <div className="send__label">Amount</div>
+            <div className="send__label">{t('amount')}</div>
             <div className="send__amount-input" key="send-amount">
               <input
                 type="number"
@@ -220,18 +224,17 @@ class SendModal extends Component {
                 className="send__amount-input__max-btn"
                 onClick={this.sendMax}
               >
-                Send Max
+                {t('sendMaxLabel')}
               </div>
               <div className="send__amount-input__unit">HNS</div>
             </div>
             <div className="send__input-disclaimer">
-              {`Available to send (including fee): ${displayBalance(this.props.spendableBalance)}`}
+              {t('sendAvailableText', displayBalance(this.props.spendableBalance))}
             </div>
           </div>
           <div className="send__network-fee">
             <div className="send__label">
-              <span>Network Fee Rate</span>
-              <div className="send__info-icon">ⓘ</div>
+              <span>{t('sendFeeLabel')}</span>
             </div>
             <div className="send__network-fee__form">
               <div className="send__network-fee__select">
@@ -256,9 +259,6 @@ class SendModal extends Component {
                 />
               </div>
             </div>
-            <div className="send__input-disclaimer">
-              {`Est. delivery: ${GAS_TO_ESTIMATES[selectedGasOption]}`}
-            </div>
           </div>
         </div>
         <div className="send__actions">
@@ -268,7 +268,7 @@ class SendModal extends Component {
             onClick={this.onClickContinue}
             disabled={!isValid}
           >
-            Continue
+            {t('next')}
           </button>
         </div>
         <div className="send__progress-bar">
@@ -291,23 +291,25 @@ class SendModal extends Component {
       txSize,
     } = this.state;
 
+    const {t} = this.context;
+
     return (
       <div className="send__container">
         <div className="send__content">
           <div className="send__header">
-            <div className="send__title">Confirm Transaction</div>
+            <div className="send__title">{t('sendConfirmTitle')}</div>
           </div>
           <Alert type="error" message={this.state.errorMessage} />
           <div className="send__confirm__to">
-            <div className="send__confirm__label">Sending to</div>
+            <div className="send__confirm__label">{t('sendToLabel')}</div>
             <div className="send__confirm__address">{to}</div>
           </div>
           <div className="send__confirm__from">
-            <div className="send__confirm__label">Sending from</div>
-            <div className="send__confirm__time-text">Default account</div>
+            <div className="send__confirm__label">{t('sendFromLabel')}</div>
+            <div className="send__confirm__time-text">{t('sendDefaultAccountLabel')}</div>
           </div>
           <div className="send__confirm__time">
-            <div className="send__confirm__label">Transaction time</div>
+            <div className="send__confirm__label">{t('sendTxTimeLabel')}</div>
             <div className="send__confirm__time-text">
               {this.renderConfirmTime()}
             </div>
@@ -315,29 +317,29 @@ class SendModal extends Component {
           <div className="send__confirm__summary">
             <div className="send__confirm__summary-amount">
               <div className="send__confirm__summary-label">
-                Amount to send:
+                {t('sendAmountLabel')}
               </div>
-              <div className="send__confirm__summary-value">{`${this.addDecimalsToInteger(
-                amount,
-              )} HNS`}</div>
+              <div className="send__confirm__summary-value">
+                {`${this.addDecimalsToInteger(amount)} HNS`}
+              </div>
             </div>
             <div className="send__confirm__summary-fee">
-              <div className="send__confirm__summary-label">Network Fee Rate:</div>
+              <div className="send__confirm__summary-label">{t('sendFeeLabel')}:</div>
               <div className="send__confirm__summary-value">{gasFee} HNS/kB</div>
             </div>
             <div className="send__confirm__summary-fee">
-              <div className="send__confirm__summary-label">Estimated TX Size:</div>
+              <div className="send__confirm__summary-label">{t('sendTxSizeLabel')}</div>
               <div className="send__confirm__summary-value">{txSize} kB</div>
             </div>
             <div className="send__confirm__summary-fee">
-              <div className="send__confirm__summary-label">Estimated Fee:</div>
+              <div className="send__confirm__summary-label">{t('sendEstimatedFeeLabel')}</div>
               <div className="send__confirm__summary-value">{feeAmount}</div>
             </div>
             <div className="send__confirm__summary-total">
-              <div className="send__confirm__summary-label">Total:</div>
-              <div className="send__confirm__summary-value">{`${bn(amount)
-                .plus(feeAmount)
-                .toFixed(6)} HNS`}</div>
+              <div className="send__confirm__summary-label">{t('sendTotalLabel')}</div>
+              <div className="send__confirm__summary-value">
+                {`${bn(amount).plus(feeAmount).toFixed(6)} HNS`}
+              </div>
             </div>
           </div>
         </div>
@@ -347,7 +349,7 @@ class SendModal extends Component {
             onClick={() => this.setState({isConfirming: false})}
             disabled={isSending}
           >
-            Cancel
+            {t('cancel')}
           </button>
           <button
             key="confirm"
@@ -355,7 +357,7 @@ class SendModal extends Component {
             onClick={this.send}
             disabled={isSending}
           >
-            {isSending ? <div className="send__confirm__spinner" /> : 'Confirm'}
+            {isSending ? <div className="send__confirm__spinner" /> : t('submit')}
           </button>
         </div>
         <div className="send__progress-bar">
@@ -370,20 +372,21 @@ class SendModal extends Component {
 
   renderTransactionSent() {
     const {amount} = this.state;
+    const {t} = this.context;
     return (
       <div className="send__container">
         <div className="send__sent__wrapper">
           <div className="send__sent__confirm-icon" />
-          <div className="send__sent__headline">Transaction Sent</div>
+          <div className="send__sent__headline">{t('sendTxSentTitle')}</div>
           <div className="send__sent__description">
-            {`You just sent ${this.addDecimalsToInteger(
-              amount,
-            )} HNS to an external Handshake address.`}
+            {t('sendTxSentDesc', this.addDecimalsToInteger(amount))}
           </div>
           <div className="send__sent__details send__sent__details-first" onClick={this.viewOnExplorer}>
-            View on Explorer
+            {t('viewOnExplorer')}
           </div>
-          <div className="send__sent__details" onClick={() => this.resetState()}>Create New Transaction</div>
+          <div className="send__sent__details" onClick={() => this.resetState()}>
+            {t('createNewTransaction')}
+          </div>
         </div>
       </div>
     );
@@ -408,14 +411,7 @@ class SendModal extends Component {
   };
 
   renderConfirmTime() {
-    const {selectedGasOption, gasFee} = this.state;
-    if (gasFee === this.props.fees[selectedGasOption.toLowerCase()]) {
-      return `${selectedGasOption} - this may take up to ${
-        GAS_TO_ESTIMATES[selectedGasOption]
-      }`;
-    }
-
-    return 'You entered a custom gas fee, so we don\'t have an estimate.';
+    return this.context.t('sendTxConfirmTime');
   }
 }
 

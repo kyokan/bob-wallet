@@ -1,12 +1,10 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import c from 'classnames';
-import { connect } from 'react-redux';
-// import * as auctions.js from '../../../ducks/extension';
 import WizardHeader from '../../../components/WizardHeader';
 import Checkbox from "../../../components/Checkbox";
 import TERMS_HTML from "./tos";
 import "./terms.scss";
+import {I18nContext} from "../../../utils/i18n";
 
 export default class Terms extends Component {
   static propTypes = {
@@ -15,6 +13,8 @@ export default class Terms extends Component {
     currentStep: PropTypes.number.isRequired,
     totalSteps: PropTypes.number.isRequired,
   };
+
+  static contextType = I18nContext;
 
   state = {
     hasAccepted: false
@@ -25,14 +25,15 @@ export default class Terms extends Component {
   render() {
     const { onAccept, currentStep, totalSteps, onBack } = this.props;
     const { hasAccepted } = this.state;
+    const {t} = this.context;
 
     return (
       <div className="terms">
         <WizardHeader currentStep={currentStep} totalSteps={totalSteps} onBack={onBack}/>
         <div className="terms__content">
-          <div className="terms__header_text">Terms of Use</div>
+          <div className="terms__header_text">{t('obTermsHeader')}</div>
           <div className="terms_subheader">
-            Please review and agree to the Bob Wallet's terms of use.
+            {t('obTermsBody')}
           </div>
           <div
             className="terms__html-box"
@@ -48,7 +49,7 @@ export default class Terms extends Component {
               />
             </span>
             <span className="import_checkbox_text">
-              I accept the terms of use.
+              {t('obTermsAck')}
             </span>
           </div>
           <button
@@ -56,7 +57,7 @@ export default class Terms extends Component {
             onClick={onAccept}
             disabled={!hasAccepted}
           >
-            Next
+            {t('next')}
           </button>
         </div>
       </div>

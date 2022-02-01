@@ -155,15 +155,30 @@ class WalletService {
       payload: this.walletApiKey,
     });
 
+    // This is an unfortunate work-around for the fact that
+    // WalletNode doesn't accept a `nodePath` option to
+    // pass to NodeClient which gets passed to bcurl/client.
+    const nodeURL =
+      this.conn.pathname
+      ?
+        this.conn.protocol + '://' +
+        'username_is_ignored:' + this.conn.apiKey + '@' +
+        this.conn.host + ':' + this.conn.port + this.conn.pathname
+      :
+        null;
+
+    const prefix = await nodeService.getDir();
+
     this.node = new WalletNode({
       network: this.networkName,
       nodeHost: this.conn.host,
-      nodePort: this.conn.port || undefined,
+      nodePort: parseInt(this.conn.port, 10),
       nodeApiKey: this.conn.apiKey,
+      nodeSSL: this.conn.protocol === 'https',
+      nodeURL,
       apiKey: this.walletApiKey,
       memory: false,
-      prefix: HSD_DATA_DIR,
-      migrate: 0,
+      prefix: prefix,
       logFile: true,
       logConsole: false,
       logLevel: 'debug',
@@ -764,9 +779,6 @@ class WalletService {
 
   // price is in WHOLE HNS!
   finalizeWithPayment = async (name, fundingAddr, nameReceiveAddr, price) => {
-    if (price > 2000) {
-      throw new Error('Refusing to create a transfer for more than 2000 HNS.');
-    }
 
     const {wdb} = this.node;
     const wallet = await wdb.get(this.name);

@@ -7,6 +7,7 @@ import SyncStatus from "../../components/SyncStatus";
 import * as nodeActions from "../../ducks/node";
 import { ConnectionTypes } from "../../background/connections/service";
 import { clientStub as cClientStub } from "../../background/connections/client";
+import {I18nContext} from "../../utils/i18n";
 const connClient = cClientStub(() => require("electron").ipcRenderer);
 
 @withRouter
@@ -23,6 +24,8 @@ export default class AppHeader extends Component {
     isRunning: PropTypes.bool.isRequired,
     isMainMenu: PropTypes.bool.isRequired,
   };
+
+  static contextType = I18nContext;
 
   state = {
     isLoading: true,

@@ -6,10 +6,13 @@ import { clientStub as sClientStub } from '../../background/shakedex/client.js';
 import { getPassphrase } from '../../ducks/walletActions.js';
 import Hash from "../../components/Hash";
 import {shell} from "electron";
+import {I18nContext} from "../../utils/i18n";
 
 const shakedex = sClientStub(() => require('electron').ipcRenderer);
 
 export class ConfirmFeeModal extends Component {
+  static contextType = I18nContext;
+
   constructor(props) {
     super(props);
 
@@ -37,6 +40,7 @@ export class ConfirmFeeModal extends Component {
 
   render() {
     const {onClose, feeInfo, explorer} = this.props;
+    const {t} = this.context;
 
     const address = (
       <b onClick={() => shell.openExternal(explorer.address.replace('%s', feeInfo.address))}>
@@ -45,15 +49,14 @@ export class ConfirmFeeModal extends Component {
     );
 
     return (
-      <MiniModal title="Confirm Fee" onClose={onClose}>
+      <MiniModal title={t('confirmFee')} onClose={onClose}>
         <p>
-          The auction provider charges a fee of <b>{feeInfo.rate / 100}%</b>. The fee will be sent to {address}. Do you still want to post
-          your auctions?
+          {`${t('shakedexFee1', `${feeInfo.rate / 100}%`)} ${t('shakedexFee2', address)}`}
         </p>
 
         <p>
-          <strong>Note:</strong> Your auction presigns will be regenerated prior to upload. However,
-          the presigns stored locally will remain without a fee.
+          <strong>${t('note')}:</strong>
+          {t('shakedexNote')}
         </p>
 
         <div className="place-bid-modal__buttons">
@@ -62,7 +65,7 @@ export class ConfirmFeeModal extends Component {
             onClick={onClose}
             disabled={this.props.isListing}
           >
-            Cancel
+            {t('cancel')}
           </button>
 
           <button
@@ -70,7 +73,7 @@ export class ConfirmFeeModal extends Component {
             onClick={this.uploadListing}
             disabled={this.props.isListing}
           >
-            {this.props.isListing ? 'Loading...' : 'Submit'}
+            {this.props.isListing ? t('loading') : t('submit')}
           </button>
         </div>
       </MiniModal>

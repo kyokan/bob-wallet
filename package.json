@@ -2,7 +2,7 @@
   "name": "bob-wallet",
   "productName": "Bob",
   "author": "Kyokan Group, Inc.",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "A Handshake wallet and auction manager.",
   "scripts": {
     "build": "./scripts/package.sh",
@@ -20,7 +20,8 @@
     "postinstall": "electron-builder install-app-deps",
     "clean": "./scripts/clean.sh",
     "pretest": "webpack --config ./configs/webpack.config.test.babel.js",
-    "test": "tape -r jsdom-global/register ./test-dist/test.js"
+    "test": "tape -r jsdom-global/register ./test-dist/test.js",
+    "add-locale": "node scripts/add-locale.js"
   },
   "main": "./dist/main.js",
   "build": {
@@ -144,6 +145,7 @@
     "bcurl": "^0.1.9",
     "bdb": "^1.2.2",
     "bignumber.js": "8.0.1",
+    "bns": "~0.15.0",
     "classnames": "2.2.6",
     "copy-to-clipboard": "3.0.8",
     "deep-equal": "2.0.1",
@@ -152,8 +154,8 @@
     "electron-updater": "4.1.2",
     "history": "4.7.2",
     "hs-airdrop": "^0.10.0",
-    "hs-client": "https://github.com/handshake-org/hs-client.git",
-    "hsd": "https://github.com/handshake-org/hsd/tarball/5cfc1ad",
+    "hs-client": "=0.0.10",
+    "hsd": "=3.0.1",
     "hsd-ledger": "https://github.com/handshake-org/hsd-ledger#s-x-compat-hid",
     "isomorphic-fetch": "^2.2.1",
     "jsonschema": "^1.4.0",
@@ -175,7 +177,7 @@
     "rimraf": "2.6.2",
     "semver": "^7.3.5",
     "sha3": "2.0.0",
-    "shakedex": "0.0.15",
+    "shakedex": "https://github.com/chikeichan/shakedex#patch-3",
     "source-map-support": "0.5.9",
     "tcp-port-used": "1.0.1",
     "uuid": "3.3.3",

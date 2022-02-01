@@ -4,6 +4,7 @@ import MiniModal from '../../components/Modal/MiniModal';
 import './interstitial-warning-modal.scss';
 import PropTypes from 'prop-types';
 import Checkbox from '../../components/Checkbox';
+import {I18nContext} from "../../utils/i18n";
 
 @withRouter
 export default class InterstitialWarningModal extends Component {
@@ -15,6 +16,8 @@ export default class InterstitialWarningModal extends Component {
   static defaultProps = {
     nextAction: () => Promise.resolve(),
   };
+
+  static contextType = I18nContext;
 
   constructor(props) {
     super(props);
@@ -54,14 +57,15 @@ export default class InterstitialWarningModal extends Component {
   };
 
   render() {
+    const {t} = this.context;
+
     return (
       <MiniModal
         closeRoute="/settings/wallet"
-        title="Are you sure you want to do this?"
+        title={t('removeWalletTitle')}
       >
         <div className="interstitial-warning-modal__instructions">
-          You are about to remove your current wallet from Bob. Be sure you have your current recovery seed phrase saved
-          somewhere safe before proceeding.
+          {t('removeWalletInstruction')}
         </div>
         <div className="interstitial-warning-modal__checkbox">
           <Checkbox
@@ -70,7 +74,7 @@ export default class InterstitialWarningModal extends Component {
             checked={this.state.acceptances[0]}
           />
           <div className="interstitial-warning-modal__checkbox-label">
-            I have my recovery seed phrase backed up.
+            {t('removeWalletAck1')}
           </div>
         </div>
         <div className="interstitial-warning-modal__checkbox">
@@ -80,7 +84,7 @@ export default class InterstitialWarningModal extends Component {
             checked={this.state.acceptances[1]}
           />
           <div className="interstitial-warning-modal__checkbox-label">
-            I will need my recovery seed phrase to log in again.
+            {t('removeWalletAck2')}
           </div>
         </div>
         <div className="interstitial-warning-modal__checkbox">
@@ -90,7 +94,7 @@ export default class InterstitialWarningModal extends Component {
             checked={this.state.acceptances[2]}
           />
           <div className="interstitial-warning-modal__checkbox-label">
-            There will be no way to recover my seed.
+            {t('removeWalletAck3')}
           </div>
         </div>
         <div className="interstitial-warning-modal__checkbox">
@@ -100,7 +104,7 @@ export default class InterstitialWarningModal extends Component {
             checked={this.state.acceptances[3]}
           />
           <div className="interstitial-warning-modal__checkbox-label">
-            I will need to re-import nonces for all of my active bids.
+            {t('removeWalletAck4')}
           </div>
         </div>
         <div className="interstitial-warning-modal__buttons">
@@ -108,14 +112,14 @@ export default class InterstitialWarningModal extends Component {
             className="interstitial-warning-modal__cancel-button"
             onClick={this.onClickCancel}
           >
-            Cancel, keep wallet
+            {t('removeWalletCancel')}
           </button>
           <button
             className="interstitial-warning-modal__submit-button"
             disabled={this.checkDisabled()}
             onClick={this.onClickSubmit}
           >
-            Yes, remove wallet
+            {t('removeWalletCTA')}
           </button>
         </div>
       </MiniModal>

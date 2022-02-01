@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import c from "classnames";
 import { connect } from "react-redux";
 import "./sync-status.scss";
+import {I18nContext} from "../../utils/i18n";
 
 @withRouter
 @connect((state) => {
@@ -41,6 +42,8 @@ class SyncStatus extends Component {
     walletHeight: PropTypes.number.isRequired,
     chainHeight: PropTypes.number.isRequired,
   };
+
+  static contextType = I18nContext;
 
   render() {
     const {
@@ -88,28 +91,33 @@ class SyncStatus extends Component {
       chainHeight,
     } = this.props;
 
+    const {t} = this.context;
+
     if (isSynchronizing) {
-      return 'Synchronizing' +
-             `${isCustomRPCConnected ? ' from RPC' : ''}... ` +
-             `${progress ? "(" + (progress * 100).toFixed(2) + "%)" : ""}`;
+      const progressText = progress ? "(" + (progress * 100).toFixed(2) + "%)" : "";
+      return isCustomRPCConnected
+        ? `${t('synchronizingFromRPC')}... ${progressText}`
+        : `${t('synchronizing')}... ${progressText}`;
     }
 
     if (walletSync) {
-      return 'Rescanning' +
-             `${isCustomRPCConnected ? ' from RPC' : ''}... ` +
-             `(${Math.floor((walletHeight * 100) / chainHeight)}%)`;
+      const percentText = Math.floor((walletHeight * 100) / chainHeight);
+      return isCustomRPCConnected
+        ? `${t('rescanningFromRPC')}... (${percentText}%)`
+        : `${t('rescanning')}... (${percentText}%)`;
     }
 
     if (isSynchronized) {
-      return 'Synchronized' +
-             `${isCustomRPCConnected ? ' from RPC' : ''}`;
+      return isCustomRPCConnected
+        ? t('synchronizedFromRPC')
+        : t('synchronized');
     }
 
     if (isChangingNodeStatus || isTestingCustomRPC) {
-      return "Please wait...";
+      return t('pleaseWait');
     }
 
-    return "No connection";
+    return t('noConnection');
   }
 }
 
