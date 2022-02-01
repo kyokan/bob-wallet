@@ -1050,6 +1050,8 @@ class WalletService {
       type: SYNC_WALLET_PROGRESS,
       payload: entry.height,
     });
+
+    this.lastKnownChainHeight = entry.height;
   };
 
   /**
@@ -1061,6 +1063,8 @@ class WalletService {
    */
 
   onRescanBlock = async (entry) => {
+    this.lastKnownChainHeight = entry.height;
+
     if (entry.height === nodeService.height) {
       dispatchToMainWindow({type: STOP_SYNC_WALLET});
       dispatchToMainWindow({
