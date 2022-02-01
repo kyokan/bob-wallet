@@ -21,6 +21,7 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
 class OpenBid extends Component {
   static propTypes = {
     domain: PropTypes.object.isRequired,
+    isPending: PropTypes.bool.isRequired,
     sendOpen: PropTypes.func.isRequired,
     showError: PropTypes.func.isRequired,
     showSuccess: PropTypes.func.isRequired,
@@ -81,23 +82,31 @@ class OpenBid extends Component {
   }
 
   renderBottom() {
-    const {domain, currentBlock} = this.props;
+    const {domain, currentBlock, isPending} = this.props;
     const {t} = this.context;
-    const {start} = domain || {};
+    const {start, info} = domain || {};
+    const {openPeriodEnd} = info?.stats || {}
     const startBlock = start.start;
 
     if (isOpening(domain)) {
       return (
         <div className="domains__bid-now__action--placing-bid">
           <div className="domains__bid-now__content domains__bid-now__opening-text">
-            {t('openingText')}
+            {isPending ?
+              t('openingText')
+              :
+              <>
+                {t('openingTextWaitForBidding')}
+                <Blocktime height={openPeriodEnd} format="ll" fromNow={true} />
+              </>
+            }
           </div>
           <div className="domains__bid-now__action">
             <button
               className="domains__bid-now__action__cta"
               disabled
             >
-              {t('startingAuction')}
+              {isPending ? t('startingAuction') : t('openingNow')}
             </button>
           </div>
         </div>
@@ -137,9 +146,10 @@ class OpenBid extends Component {
 }
 
 export default connect(
-  (state) => ({
+  (state, {domain}) => ({
     currentBlock: state.node.chain.height,
     network: state.wallet.network,
+    isPending: domain.pendingOperation === 'OPEN',
   }),
   (dispatch, {name}) => ({
     sendOpen: () => dispatch(nameActions.sendOpen(name)),
