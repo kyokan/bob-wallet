@@ -69,7 +69,7 @@ class Reveal extends Component {
   render() {
     const {domain, hasRevealableBid} = this.props;
     const {bids = [], info} = domain || {};
-    const highest = Math.max(bids.map(bid => bid.value));
+    const highest = Math.max(...bids.map(bid => bid.value));
     const {t} = this.context;
 
     return (
