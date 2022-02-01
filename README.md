@@ -12,11 +12,42 @@ Most users should use the prebuilt binaries in this repo's [releases](https://gi
 
 ![Screen Shot 2020-02-22 at 11 08 18 AM](https://user-images.githubusercontent.com/8230144/75097836-06f48480-5564-11ea-85db-64251184e7bf.png)
 
-Note: this screenshot is unlikely to age well but the filetypes are highlighted so you know what to install. It says 0.2.6 here but you should always look for the latest version.
+Note: this screenshot is unlikely to age well but the filetypes are highlighted so you know what to install. It says 0.2.6 here but you should always look for the [latest](https://github.com/kyokan/bob-wallet/releases/latest) version.
 
 * OSX: .dmg
 * Windows: .msi
 * Linux: .AppImage
+
+### macOS
+
+For macOS users, Bob is also available through the [Homebrew](https://github.com/homebrew/brew) package manager:
+
+#### Install
+
+```bash
+brew install kyokan-bob
+```
+
+> **Note**: If a new version of Bob was recently released, try running `brew livecheck kyokan-bob` to check if Homebrew is aware of it yet. If the command indicates that its version is older than the latest release, you can automatically open a PR to update the cask for everyone with the following command:
+> `brew bump-cask-pr --version <VERSION> kyokan-bob`
+
+#### Uninstall
+By default, uninstalling with Brew *does not* remove any of the chain or wallet data sync'd by the built-in HSD node:
+
+```bash
+brew uninstall kyokan-bob
+```
+
+#### Hard Uninstall
+However, if you do want to completely uninstall Bob *and* delete all stored data, use the `--zap` flag:
+
+```bash
+brew uninstall --zap kyokan-bob
+```
+
+> Always ***backup your private keys*** before running this command!
+
+If you reinstall Bob again after `--zap`ing it, your keys/wallets will need to be re-imported, re-scanned, and, if running as local full node, Bob will also need to resync the entire blockchain again. A "fresh" reinstall like this may sometimes be necessary when upgrading from certain versions of Bob _(see version-specific release notes for details)_.
 
 ## Features
 
@@ -77,7 +108,7 @@ Build the app package:
 
 ```bash
 npm run package-linux
-``` 
+```
 
 The output app will be created in the `/release` folder. Open `Bob-x.x.x.AppImage` to start the wallet.
 
