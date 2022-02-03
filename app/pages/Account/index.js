@@ -134,6 +134,7 @@ export default class Account extends Component {
   };
 
   render() {
+    const {t} = this.context;
     const { isFetching } = this.props;
 
     return (
@@ -145,7 +146,7 @@ export default class Account extends Component {
         {/* Transactions */}
         <div className="account__transactions">
           <div className="account__panel-title">
-            Transaction History
+            {t('transactionHistory')}
             {isFetching && (
               <div className="account__transactions__loading">
                 Loading transactions...
