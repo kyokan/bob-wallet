@@ -52,11 +52,13 @@ const settingClient = sClientStub(() => require('electron').ipcRenderer);
 )
 class App extends Component {
   static propTypes = {
+    wallets: PropTypes.array.isRequired,
     error: PropTypes.string.isRequired,
     isLocked: PropTypes.bool.isRequired,
     initialized: PropTypes.bool.isRequired,
     startNode: PropTypes.func.isRequired,
     watchActivity: PropTypes.func.isRequired,
+    setExplorer: PropTypes.func.isRequired,
     fetchLocale: PropTypes.func.isRequired,
     isChangingNetworks: PropTypes.bool.isRequired,
   };

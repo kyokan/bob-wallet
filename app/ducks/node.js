@@ -2,6 +2,7 @@ import { clientStub } from '../background/node/client';
 import { clientStub as settingClientStub } from '../background/setting/client';
 import { clientStub as walletClientStub } from '../background/wallet/client';
 import { getNetwork, setNetwork } from '../db/system';
+import { getWatching } from "./watching";
 
 import {
   END_NETWORK_CHANGE,
@@ -80,6 +81,8 @@ export const start = (network) => async (dispatch) => {
       type: SET_SPV_MODE,
       payload: spv,
     });
+
+    dispatch(getWatching(network));
 
   } catch (error) {
     console.error('node start error', error);
