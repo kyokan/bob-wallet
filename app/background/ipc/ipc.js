@@ -1,4 +1,8 @@
-const Sentry = require('@sentry/electron');
+const Sentry = (
+  process.type === 'renderer'
+  ? require('@sentry/electron/renderer')
+  : require('@sentry/electron/main')
+);
 
 export const SIGIL = '@@RPC@@';
 

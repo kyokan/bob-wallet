@@ -14,21 +14,11 @@ import walletClient from '../../utils/walletClient';
 import { shell } from 'electron';
 import {I18nContext} from "../../utils/i18n";
 
-const Sentry = require('@sentry/electron');
-
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
 const SLOW = 'Slow';
 const STANDARD = 'Standard';
 const FAST = 'Fast';
-const SIMNET = 'simnet';
-// const MAINNET = 'main';
-
-const GAS_TO_ESTIMATES = {
-  [SLOW]: '20-30 mins',
-  [STANDARD]: '10-15 mins',
-  [FAST]: 'less than 5 mins',
-};
 
 @connect(
   state => ({

@@ -31,7 +31,11 @@ import { clientStub as aClientStub } from '../../background/analytics/client';
 import NameClaimModal from "../../components/NameClaimModal";
 import {I18nContext} from "../../utils/i18n";
 
-const Sentry = require('@sentry/electron');
+const Sentry = (
+  process.type === 'renderer'
+  ? require('@sentry/electron/renderer')
+  : require('@sentry/electron/main')
+);
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 

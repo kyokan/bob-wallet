@@ -12,7 +12,7 @@ import showMainWindow, {dispatchToMainWindow, sendDeeplinkToMainWindow} from './
 import path from 'path';
 import {encrypt} from "./utils/encrypt";
 
-const Sentry = require('@sentry/electron');
+const Sentry = require('@sentry/electron/main');
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');

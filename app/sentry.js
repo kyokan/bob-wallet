@@ -1,4 +1,9 @@
-const Sentry = require('@sentry/electron');
+const Sentry = (
+  process.type === 'renderer'
+  ? require('@sentry/electron/renderer')
+  : require('@sentry/electron/main')
+);
+
 const electron = require('electron');
 const pkg = require('../package.json');
 

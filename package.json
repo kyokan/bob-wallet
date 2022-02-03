@@ -139,7 +139,7 @@
   "dependencies": {
     "@electron/remote": "^2.0.1",
     "@fortawesome/fontawesome-free": "5.5.0",
-    "@sentry/electron": "0.17.4",
+    "@sentry/electron": "^3.0.0-beta.4",
     "bcrypto": "^5.4.0",
     "bcurl": "^0.1.9",
     "bdb": "^1.2.2",

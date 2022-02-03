@@ -26,6 +26,10 @@ export default {
     filename: 'renderer.js'
   },
 
+  optimization: {
+    sideEffects: false,
+  },
+
   module: {
     rules: [
       {
