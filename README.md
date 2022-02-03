@@ -67,7 +67,7 @@ The output app will be created in the `/release/mac` folder. Open `Bob.app` to s
 #### Linux
 
 ```bash
-apt-get install libusb-dev libudev-dev
+apt-get install libusb-1.0-0-dev libudev-dev
 git clone https://github.com/kyokan/bob-wallet
 cd bob-wallet
 npm install
@@ -77,7 +77,7 @@ Build the app package:
 
 ```bash
 npm run package-linux
-``` 
+```
 
 The output app will be created in the `/release` folder. Open `Bob-x.x.x.AppImage` to start the wallet.
 

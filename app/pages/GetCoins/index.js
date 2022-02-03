@@ -128,8 +128,9 @@ class GetCoins extends Component {
             </div>
             <div className="get-coins__illustration__col">
               <div className="get-coins__illustration__image-two" />
-              <div className="get-coins__illustration__title">4,662.598321 <span
-                className="get-coins__illustration__subtitle">HNS</span></div>
+              <div className="get-coins__illustration__title">4,246.994314{' '}
+                <span className="get-coins__illustration__subtitle">HNS</span>
+              </div>
               <div className="get-coins__illustration__description">{t('getCoinRecipient2')}</div>
             </div>
             <div className="get-coins__illustration__col">
@@ -173,14 +174,14 @@ class GetCoins extends Component {
           <div className="get-coins__panel">
             <div className="get-coins__panel__offer">
               <div>{t('getCoinGHDev')}</div>
-              <div>+ 4,662.598321 HNS</div>
+              <div>+ 4,246.994314 HNS</div>
               <div>{t('getCoinGHDevReq1')}</div>
               <div>{t('getCoinGHDevReq2')}</div>
               <button onClick={this.openGitHubModal}>{t('redeem')}</button>
             </div>
             <div className="get-coins__panel__offer">
               <div>{t('getCoinWoT')}</div>
-              <div>+ 4,662.598321 HNS</div>
+              <div>+ 4,246.994314 HNS</div>
               <div>{t('getCoinWoTReq1')}</div>
               <div>{t('getCoinWoTReq2')}</div>
               <button onClick={this.openPGPModal}>{t('redeem')}</button>
