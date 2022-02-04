@@ -8,14 +8,16 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
-        node-version: [11.x]
+        node-version: ['14', '16']
 
     steps:
       - uses: actions/checkout@v2
@@ -24,6 +26,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: sudo apt update && sudo apt install libudev-dev libusb-1.0-0-dev -y
-      - run: npm i
+      - run: rm package-lock.json; npm i --legacy-peer-deps
       - run: npm run build --if-present
       - run: npm test
