@@ -293,12 +293,17 @@ class App extends Component {
   }
 }
 
+const OPEN_ROUTES = [
+  '/settings/connection',
+  '/settings/connection/configure',
+]
+
 const ProtectedRoute = (props) => {
   if (!props.wallets.length) {
     return <Redirect to="/funding-options" />;
   }
 
-  if (props.isLocked) {
+  if (props.isLocked && !OPEN_ROUTES.includes(props.location.pathname)) {
     return <Redirect to="/login" />;
   }
 
