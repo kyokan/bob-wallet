@@ -167,6 +167,7 @@
     "punycode": "^2.1.1",
     "qrcode.react": "0.8.0",
     "react": "16.6.3",
+    "react-16-node-hanging-test-fix": "^1.0.0",
     "react-dom": "16.6.3",
     "react-hot-loader": "4.3.12",
     "react-redux": "5.1.1",
