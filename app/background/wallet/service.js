@@ -1470,7 +1470,9 @@ function createPayloadForSetWallets(wallets, addName = null) {
 
   // Remove unencrypted wids from state.wallet.wallets,
   // but not objects from state.wallet.walletsDetails
-  wids = wids.filter(wid => walletsDetails[wid].encrypted);
+  wids = wids.filter(
+    (wid) => walletsDetails[wid].encrypted || walletsDetails[wid].watchOnly
+  );
 
   if (addName !== null) {
     wids = uniq([...wids, addName]);

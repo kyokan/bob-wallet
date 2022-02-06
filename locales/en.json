@@ -246,6 +246,7 @@
   "obMainReturnToLogin": "Return to login",
   "obMainTitle": "Hi, I am Bob.",
   "obSetNameAlreadyExistError": "\"%s\" already exists",
+  "obSetNameUnencryptedExistError": "\"%s\" already exists, but is not encrypted yet. Continue to encrypt and add the wallet.",
   "obSetNameBody": "The name can only contain alphanumeric lowercase characters.",
   "obSetNameCannotUseError": "cannot use \"%s\" as name",
   "obSetNameHeader": "Name this wallet",
