@@ -4,7 +4,6 @@ import { VALID_NETWORKS } from '../../constants/networks';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
-import tcpPortUsed from 'tcp-port-used';
 import EventEmitter from 'events';
 import { NodeClient } from 'hs-client';
 import { BigNumber } from 'bignumber.js';
@@ -133,7 +132,19 @@ export class NodeService extends EventEmitter {
 
     switch (conn.type) {
       case ConnectionTypes.P2P:
-        await this.startNode();
+        try {
+          await this.startNode();
+        } catch (error) {
+          if (error.code === 'EADDRINUSE') {
+            throw new Error(`
+              Could not bind to ${error.address}:${error.port}.
+              Please make sure no other hsd or Bob Wallet instance is running.
+              Quit Bob, and try again.`);
+          } else {
+            throw error;
+          }
+          return;
+        }
         await this.setHSDLocalClient();
         dispatchToMainWindow({
           type: SET_CUSTOM_RPC_STATUS,
@@ -188,12 +199,6 @@ export class NodeService extends EventEmitter {
       await this.refreshNodeInfo();
       this.emit('start local');
       return;
-    }
-
-    const portsFree = await checkHSDPortsFree(this.network);
-
-    if (!portsFree) {
-      throw new Error('hsd ports in use. Please make sure no other hsd instance is running, quit Bob, and try again.');
     }
 
     console.log(`Starting node on ${this.networkName} network.`);
@@ -574,24 +579,6 @@ export class NodeService extends EventEmitter {
     await this._ensureStarted();
     return this.client.execute(method, args);
   }
-}
-
-async function checkHSDPortsFree(network) {
-  const ports = [
-    network.port,
-    network.rpcPort,
-    // network.walletPort,
-    network.nsPort,
-  ];
-
-  for (const port of ports) {
-    const inUse = await tcpPortUsed.check(port);
-    if (inUse) {
-      return false;
-    }
-  }
-
-  return true;
 }
 
 export const service = new NodeService();
