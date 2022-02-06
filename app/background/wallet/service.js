@@ -57,7 +57,9 @@ class WalletService {
     nodeService.on('start remote', this._useWalletNode);
     nodeService.on('start local', this._usePlugin);
     nodeService.on('stopped', this._onNodeStop);
+    nodeService.on('refreshNodeInfo', this._onRefreshNodeInfo);
     this.nodeService = nodeService;
+    this.nodeHeight = 0;
     this.lastProgressUpdate = 0;
     this.lastKnownChainHeight = 0;
     this.conn = {type: null};
@@ -236,6 +238,23 @@ class WalletService {
     this.didSelectWallet = false;
     this.conn = {type: null};
   };
+
+  // Called when node emits refreshNodeInfo
+  // Required to get node height once node is connected
+  _onRefreshNodeInfo = async (nodeInfo) => {
+    this.nodeHeight = nodeInfo.chain.height;
+
+    // If wallet is synced up with node,
+    // stop wallet sync (similar to onRescanBlock)
+    if (this.lastKnownChainHeight === this.nodeHeight) {
+      dispatchToMainWindow({type: STOP_SYNC_WALLET});
+      dispatchToMainWindow({
+        type: SYNC_WALLET_PROGRESS,
+        payload: this.nodeHeight,
+      });
+      await this.refreshWalletInfo();
+    }
+  }
 
   isReady = async () => {
     let attempts = 0;
@@ -1050,6 +1069,8 @@ class WalletService {
       type: SYNC_WALLET_PROGRESS,
       payload: entry.height,
     });
+
+    this.lastKnownChainHeight = entry.height;
   };
 
   /**
@@ -1061,7 +1082,9 @@ class WalletService {
    */
 
   onRescanBlock = async (entry) => {
-    if (entry.height === nodeService.height) {
+    this.lastKnownChainHeight = entry.height;
+
+    if (entry.height === this.nodeHeight) {
       dispatchToMainWindow({type: STOP_SYNC_WALLET});
       dispatchToMainWindow({
         type: SYNC_WALLET_PROGRESS,
