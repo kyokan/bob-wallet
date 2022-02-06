@@ -9,6 +9,7 @@ import SyncStatus from '../SyncStatus';
 import { Logo } from '../Logo';
 import './topbar.scss';
 import { displayBalance } from '../../utils/balances';
+import { I18nContext } from "../../utils/i18n";
 import * as walletActions from '../../ducks/walletActions';
 
 @withRouter
@@ -49,6 +50,8 @@ class Topbar extends Component {
     spendableBalance: PropTypes.number,
     walletWatchOnly: PropTypes.bool.isRequired,
   };
+
+  static contextType = I18nContext;
 
   state = {
     inputValue: '',
@@ -116,6 +119,8 @@ class Topbar extends Component {
   }
 
   renderSettingIcon() {
+    const {t} = this.context;
+
     const { unconfirmedBalance, spendableBalance, walletId } = this.props;
     const { isShowingSettingMenu } = this.state;
     const walletName = this.props.walletWatchOnly
@@ -134,9 +139,9 @@ class Topbar extends Component {
             ? (
               <div className="setting-menu">
                 <div className="setting-menu__balance-container">
-                  {this.renderSettingGroup('Wallet ID', walletName)}
-                  {this.renderSettingGroup('Total Balance', `HNS ${displayBalance(unconfirmedBalance)}`)}
-                  {this.renderSettingGroup('Spendable Balance', `HNS ${displayBalance(spendableBalance)}`)}
+                  {this.renderSettingGroup(t('walletID'), walletName)}
+                  {this.renderSettingGroup(t('balanceTotal'), `HNS ${displayBalance(unconfirmedBalance)}`)}
+                  {this.renderSettingGroup(t('balanceSpendable'), `HNS ${displayBalance(spendableBalance)}`)}
                 </div>
                 <div className="setting-menu__items">
                   <div
@@ -147,7 +152,7 @@ class Topbar extends Component {
                       this.setState({ isShowingSettingMenu: false });
                     }}
                   >
-                    Settings
+                    {t('headingSettings')}
                   </div>
                   <div
                     className="setting-menu__items__item"
@@ -157,7 +162,7 @@ class Topbar extends Component {
                       this.setState({ isShowingSettingMenu: false });
                     }}
                   >
-                    Logout
+                    {t('logout')}
                   </div>
                 </div>
               </div>

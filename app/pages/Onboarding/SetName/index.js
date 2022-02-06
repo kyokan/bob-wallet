@@ -61,7 +61,7 @@ export default class CreatePassword extends Component {
 
   isValidName = () => {
     const {errorMessage, name} = this.state;
-    return !errorMessage && name.match(/^[a-z0-9]+$/);
+    return !errorMessage && name.match(/^[a-z0-9]+$/) && name !== 'primary';
   };
 
   onChange = (name) => async (e) => {
@@ -71,7 +71,9 @@ export default class CreatePassword extends Component {
 
     let errorMessage = '';
 
-    if (wallets.includes(inputValue)) {
+    if (inputValue === 'primary') {
+      errorMessage = t('obSetNameCannotUseError', inputValue);
+    } else if (wallets.includes(inputValue)) {
       errorMessage = t('obSetNameAlreadyExistError', inputValue);
     }
 

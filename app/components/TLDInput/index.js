@@ -6,6 +6,7 @@ import c from 'classnames';
 import * as nameActions from '../../ducks/names';
 import { verifyName } from '../../utils/nameChecker';
 import { decodePunycode } from '../../utils/nameHelpers';
+import { I18nContext } from "../../utils/i18n";
 import './TLDInput.scss';
 
 @withRouter
@@ -25,6 +26,8 @@ class TLDInput extends Component {
     }).isRequired,
     getNameInfo: PropTypes.func.isRequired
   };
+
+  static contextType = I18nContext;
 
   state = {
     inputValue: '',
@@ -56,6 +59,8 @@ class TLDInput extends Component {
   };
 
   render() {
+    const {t} = this.context;
+
     const { showError } = this.state;
     const { minimalErrorDisplay, greyTheme } = this.props;
     return (
@@ -75,7 +80,7 @@ class TLDInput extends Component {
             value={this.state.inputValue}
             onChange={this.handleInputValueChange}
             onKeyDown={e => e.key === 'Enter' && this.handleSearchClick()}
-            placeholder="Search a top-level domain"
+            placeholder={t('searchInputPlaceholder')}
             autoFocus
           />
           <div

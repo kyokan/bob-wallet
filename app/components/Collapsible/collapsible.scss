@@ -38,7 +38,6 @@
     // padding: 1rem;
     position: relative;
     max-height: 35rem;
-    overflow-y: auto;
     height: auto;
     transition: 0.5s ease-out;
 
@@ -47,6 +46,10 @@
       max-height: 0;
       overflow: hidden;
       transition: 0.5s ease-out;
+    }
+
+    &--overflowY {
+      overflow-y: auto;
     }
   }
 }

@@ -154,7 +154,7 @@ class MyDomain extends Component {
         <Collapsible className="my-domain__info-panel" title={t('domainDetails')} defaultCollapsed>
           <DomainDetails name={name} />
         </Collapsible>
-        <Collapsible className="my-domain__info-panel" title={t('records')}>
+        <Collapsible className="my-domain__info-panel" title={t('records')} overflowY={false}>
           <Records
             name={name}
             transferring={!!domain.info && domain.info.transfer !== 0}

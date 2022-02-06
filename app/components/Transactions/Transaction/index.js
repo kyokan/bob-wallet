@@ -32,7 +32,6 @@ const FINALIZE = 'FINALIZE';
     explorer: state.node.explorer
   })
 )
-
 class Transaction extends Component {
   static propTypes = {
     explorer: PropTypes.object.isRequired,

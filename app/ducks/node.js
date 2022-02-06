@@ -2,6 +2,8 @@ import { clientStub } from '../background/node/client';
 import { clientStub as settingClientStub } from '../background/setting/client';
 import { clientStub as walletClientStub } from '../background/wallet/client';
 import { getNetwork, setNetwork } from '../db/system';
+import { getWatching } from "./watching";
+import { throttle } from '../utils/throttle';
 
 import {
   END_NETWORK_CHANGE,
@@ -81,6 +83,8 @@ export const start = (network) => async (dispatch) => {
       payload: spv,
     });
 
+    dispatch(getWatching(network));
+
   } catch (error) {
     console.error('node start error', error);
     dispatch({ type: STOP });
@@ -121,7 +125,7 @@ export const setExplorer = (explorer) => async (dispatch) => {
   })
 };
 
-export const updateHNSPrice = () => async (dispatch) => {
+const _updateHNSPrice = throttle(async (dispatch) => {
   const value = await nodeClient.getHNSPrice();
   dispatch({
     type: UPDATE_HNS_PRICE,
@@ -130,6 +134,10 @@ export const updateHNSPrice = () => async (dispatch) => {
       currency: 'USD',
     },
   })
+}, 120*1000); // 120 seconds
+
+export const updateHNSPrice = () => async (dispatch) => {
+  _updateHNSPrice(dispatch);
 };
 
 export const setNoDns = (noDns) => async (dispatch) => {

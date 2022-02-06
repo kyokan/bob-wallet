@@ -23,6 +23,9 @@ export default class AppHeader extends Component {
   static propTypes = {
     isRunning: PropTypes.bool.isRequired,
     isMainMenu: PropTypes.bool.isRequired,
+    history: PropTypes.shape({
+      push: PropTypes.func.isRequired
+    }).isRequired,
   };
 
   static contextType = I18nContext;
@@ -59,6 +62,16 @@ export default class AppHeader extends Component {
         <div className="app__network-picker-wrapper">
           <SyncStatus />
           {isMainMenu ? this.renderNetworkPicker() : this.renderReturnToMenu()}
+
+          {/* Settings link */}
+          <div
+            className="topbar__icon topbar__icon--settings"
+            style={{'marginLeft': '1rem'}}
+            onClick={e => {
+              e.stopPropagation();
+              this.props.history.push('/settings/connection');
+            }}
+          />
         </div>
       </div>
     );
