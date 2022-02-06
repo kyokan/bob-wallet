@@ -37,14 +37,14 @@ export default class CreatePassword extends Component {
     const {t} = this.context;
 
     if (this.isValidName()) {
-      const allWallets = await walletClient.listWallets(true);
+      const allWallets = await walletClient.listWallets();
       const {wallets} = this.props;
       const {name} = this.state;
       let errorMessage = '';
 
       if (wallets.includes(name)) {
         errorMessage = t('obSetNameAlreadyExistError', name);
-      } else if (allWallets.includes(name)) {
+      } else if (allWallets.find(w => w.wid === name)) {
         errorMessage = t('obSetNameCannotUseError', name);
       }
 

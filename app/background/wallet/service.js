@@ -74,7 +74,7 @@ class WalletService {
         type: SET_WALLET_NETWORK,
         payload: this.networkName,
       });
-      const wallets = await this.listWallets(false, true);
+      const wallets = await this.listWallets();
       dispatchToMainWindow({
         type: SET_WALLETS,
         payload: createPayloadForSetWallets(wallets),
@@ -113,7 +113,7 @@ class WalletService {
       timeout: 10000,
     });
 
-    const wallets = await this.listWallets(false, true);
+    const wallets = await this.listWallets();
     dispatchToMainWindow({
       type: SET_WALLETS,
       payload: createPayloadForSetWallets(wallets),
@@ -133,7 +133,7 @@ class WalletService {
         type: SET_API_KEY,
         payload: this.walletApiKey,
       });
-      const wallets = await this.listWallets(false, true);
+      const wallets = await this.listWallets();
       dispatchToMainWindow({
         type: SET_WALLETS,
         payload: createPayloadForSetWallets(wallets),
@@ -219,7 +219,7 @@ class WalletService {
       timeout: 10000,
     });
 
-    const wallets = await this.listWallets(false, true);
+    const wallets = await this.listWallets();
     dispatchToMainWindow({
       type: SET_WALLETS,
       payload: createPayloadForSetWallets(wallets),
@@ -351,7 +351,7 @@ class WalletService {
     await this.node.wdb.remove(wid);
     this.setWallet(this.name === wid ? null : this.name);
 
-    const wallets = await this.listWallets(false, true);
+    const wallets = await this.listWallets();
 
     dispatchToMainWindow({
       type: SET_WALLETS,
@@ -380,7 +380,7 @@ class WalletService {
       });
     }
 
-    const wallets = await this.listWallets(false, true);
+    const wallets = await this.listWallets();
     dispatchToMainWindow({
       type: SET_WALLETS,
       payload: createPayloadForSetWallets(wallets, name),
@@ -419,7 +419,7 @@ class WalletService {
     };
 
     const res = await this.node.wdb.create({id: name, ...options});
-    const wallets = await this.listWallets(false, true);
+    const wallets = await this.listWallets();
 
     dispatchToMainWindow({
       type: SET_WALLETS,
@@ -965,10 +965,10 @@ class WalletService {
   };
 
   /**
-   * List Wallet IDs (exclude unencrypted wallets)
-   * @return {Promise<[string]>}
+   * List Wallets
+   * @return {Promise<[object]>}
    */
-  listWallets = async (includeUnencrypted = false, returnObjects = false) => {
+  listWallets = async () => {
     const wdb = this.node.wdb;
     const wallets = await wdb.getWallets();
     const ret = [];
@@ -976,13 +976,7 @@ class WalletService {
     for (const wid of wallets) {
       const info = await wdb.get(wid);
       const {master: {encrypted}, watchOnly} = info;
-      if (includeUnencrypted === true || encrypted || watchOnly) {
-        if (returnObjects) {
-          ret.push({ wid, encrypted, watchOnly });
-        } else {
-          ret.push(wid);
-        }
-      }
+      ret.push({ wid, encrypted, watchOnly });
     }
 
     return ret;
