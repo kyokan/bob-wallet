@@ -389,6 +389,20 @@ class WalletService {
     return res.getJSON();
   };
 
+  encryptWallet = async (name, passphrase) => {
+    this.setWallet(name);
+
+    const res = await this._executeRPC('encryptwallet', [passphrase]);
+
+    const wallets = await this.listWallets();
+    dispatchToMainWindow({
+      type: SET_WALLETS,
+      payload: createPayloadForSetWallets(wallets, name),
+    });
+
+    return res;
+  };
+
   backup = async (path) => {
     if (!path) throw new Error('Path is required.');
     return this.node.wdb.backup(path);
@@ -1447,16 +1461,24 @@ function enforce(value, msg) {
 
 function createPayloadForSetWallets(wallets, addName = null) {
   let wids = wallets.map((wallet) => wallet.wid);
+
+  // array of objects to an object with wid as key
+  const walletsDetails = wallets.reduce((obj, wallet) => {
+    obj[wallet.wid] = wallet;
+    return obj;
+  }, {});
+
+  // Remove unencrypted wids from state.wallet.wallets,
+  // but not objects from state.wallet.walletsDetails
+  wids = wids.filter(wid => walletsDetails[wid].encrypted);
+
   if (addName !== null) {
     wids = uniq([...wids, addName]);
   }
 
   return {
     wallets: wids,
-    walletsDetails: wallets.reduce((obj, wallet) => {
-      obj[wallet.wid] = wallet;
-      return obj;
-    }, {}), // array of objects to a single object with wid as key
+    walletsDetails,
   };
 }
 
@@ -1498,6 +1520,7 @@ const methods = {
   estimateMaxSend: service.estimateMaxSend,
   removeWalletById: service.removeWalletById,
   updateAccountDepth: service.updateAccountDepth,
+  encryptWallet: service.encryptWallet,
   backup: service.backup,
   rescan: service.rescan,
   deepClean: service.deepClean,

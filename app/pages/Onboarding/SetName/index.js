@@ -37,15 +37,12 @@ export default class CreatePassword extends Component {
     const {t} = this.context;
 
     if (this.isValidName()) {
-      const allWallets = await walletClient.listWallets();
       const {wallets} = this.props;
       const {name} = this.state;
       let errorMessage = '';
 
       if (wallets.includes(name)) {
         errorMessage = t('obSetNameAlreadyExistError', name);
-      } else if (allWallets.find(w => w.wid === name)) {
-        errorMessage = t('obSetNameCannotUseError', name);
       }
 
       if (errorMessage) {
@@ -61,7 +58,7 @@ export default class CreatePassword extends Component {
 
   isValidName = () => {
     const {errorMessage, name} = this.state;
-    return !errorMessage && name.match(/^[a-z0-9]+$/) && name !== 'primary';
+    return !errorMessage && name.match(/^[a-z0-9]+$/);
   };
 
   onChange = (name) => async (e) => {
@@ -71,9 +68,7 @@ export default class CreatePassword extends Component {
 
     let errorMessage = '';
 
-    if (inputValue === 'primary') {
-      errorMessage = t('obSetNameCannotUseError', inputValue);
-    } else if (wallets.includes(inputValue)) {
+    if (wallets.includes(inputValue)) {
       errorMessage = t('obSetNameAlreadyExistError', inputValue);
     }
 
