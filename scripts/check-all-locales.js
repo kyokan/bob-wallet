@@ -35,7 +35,7 @@ const PRIMARY_LOCALE_NAME = process.argv[2] || 'en';
     // Strings in this locale, but not in primary
     console.log(`\nStrings not needed in ${localeFilename} (to be removed):`);
     console.log(localeKeys.filter(k => !primaryLocale[k]).map(k => `  ${k}`).join('\n'));
-
-    console.log('\nDone!');
   }
+  
+  console.log('\nDone!');
 })();
