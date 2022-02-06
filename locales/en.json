@@ -302,6 +302,7 @@
   "removeWalletCTA": "Yes, remove wallet",
   "removeWalletCancel": "Cancel, keep wallet",
   "removeWalletInstruction": "You are about to remove your current wallet from Bob. Be sure you have your current recovery seed phrase saved somewhere safe before proceeding.",
+  "removeWalletNoPrimary": "Primary wallet cannot be removed.",
   "removeWalletTitle": "Are you sure you want to do this?",
   "renew": "Renew",
   "renewBy": "Renew By",
