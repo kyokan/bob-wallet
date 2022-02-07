@@ -73,10 +73,9 @@ npm run add-locale zh
 - When merging in a new locale json, be sure to update the dropdown list in `app/util/i18n.js` with the new locale.
 - When new keys are added to `en.json`, make sure to run `npm run add-locale` to extend new keys to existing locale json.
 
-## Contributors to translate
+## Languages
 
-- Catalan version (ca.json): By Faltrum.
-- Spanish version (es-ES.json): By Faltrum.
-
-
-
+| Language | Filename | Contributors |
+| --- | --- | --- |
+| Catalan | ca.json | Faltrum (@faltrum) |
+| Spanish | es-ES.json | Faltrum (@faltrum) |
