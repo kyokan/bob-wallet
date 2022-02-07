@@ -113,7 +113,6 @@
   "finalizeWithPayment": "Finalize With Payment",
   "finalizeWithPaymentInstruction": "Send the hex string below to your counterparty.",
   "finalizeWithPaymentWarning1": "To require payment to finalize this transfer, verify the recipient's name transfer address and enter the agreed price in HNS below.",
-  "finalizeWithPaymentWarning2": "As a precaution, transfers are limited to 2000 HNS until this feature has been sufficiently tested.",
   "finalizing": "Finalizing",
   "forgotPassword": "Forgot your password?",
   "fulfillAuction": "Fulfill Auction",
