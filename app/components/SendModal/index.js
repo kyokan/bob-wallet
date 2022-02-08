@@ -13,6 +13,7 @@ import { clientStub as aClientStub } from '../../background/analytics/client';
 import walletClient from '../../utils/walletClient';
 import { shell } from 'electron';
 import {I18nContext} from "../../utils/i18n";
+import fetchAddress, { setServers } from 'well-known-wallets-dane'
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -54,6 +55,8 @@ class SendModal extends Component {
       transactionHash: '',
       isSending: false,
       to: '',
+      wellKnownInput: false,
+      wellKnownTo: '',
       amount: '',
       errorMessage: '',
       addressError: false,
@@ -66,12 +69,40 @@ class SendModal extends Component {
     analytics.screenView('Send');
   }
 
-  updateToAddress = e => {
-    this.setState({to: e.target.value, errorMessage: ''});
-    if (e.target.value.length > 2 && !isValidAddress(e.target.value, this.props.network)) {
-      this.setState({errorMessage: this.context.t('invalidAddressPrefix')});
+  updateToAddress = async e => {
+    let input = e.target.value
+
+    if (this.state.wellKnownInput) {
+      try {
+        const to = await fetchAddress(input)
+        this.setState({ to, wellKnownTo: input, errorMessage: '' })
+      } catch (e) {
+        this.setState({ to: '', wellKnownTo: input, errorMessage: this.context.t('noWellKnownAddressFound') })
+      }
+    } else if (input[0] === '@') {
+      input = input.slice(1)
+      this.setState({ to: '', wellKnownTo: input, wellKnownInput: true, errorMessage: '' })
+      if (input) {
+        const to = await fetchAddress(input)
+        this.setState({ to, wellKnownTo: input, wellKnownInput: true, errorMessage: '' })
+      }
+    } else {
+      this.setState({ to: input, errorMessage: '' });
+    }
+
+    const address = this.state.to
+    if (address.length > 2 && !isValidAddress(address, this.props.network)) {
+      this.setState({ errorMessage: this.context.t('invalidAddressPrefix') });
     }
   };
+
+  updateWellKnown = e => {
+    if (this.state.wellKnownInput) {
+      if (e.key === 'Escape' || (e.key === 'Backspace' && this.state.wellKnownTo.length === 0)) {
+        this.setState({ wellKnownInput: false, wellKnownTo: '', to: '', errorMessage: '' })
+      }
+    }
+  }
 
   updateAmount = e => this.setState({amount: e.target.value, errorMessage: ''});
 
@@ -178,7 +209,7 @@ class SendModal extends Component {
   }
 
   renderSend() {
-    const {selectedGasOption, amount, to} = this.state;
+    const {selectedGasOption, amount, to, wellKnownInput, wellKnownTo} = this.state;
     const {t} = this.context;
     const {isValid} = this.validate();
 
@@ -192,13 +223,16 @@ class SendModal extends Component {
           <div className="send__to">
             <div className="send__label">{t('sendToLabel')}</div>
             <div className="send__input" key="send-input">
+              {wellKnownInput && <span className="send__input-prefix">@</span>}
               <input
                 type="text"
-                placeholder={t('recipientAddress')}
+                placeholder={wellKnownInput ? t('recipientWellKnownAddress') : t('recipientAddress')}
                 onChange={this.updateToAddress}
-                value={to}
+                onKeyDown={this.updateWellKnown}
+                value={wellKnownInput ? wellKnownTo : to}
               />
             </div>
+            {wellKnownInput && <div className="send__wellknown-to">{to}</div>}
           </div>
           <div className="send__amount">
             <div className="send__label">{t('amount')}</div>
