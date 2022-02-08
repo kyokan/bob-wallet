@@ -21,7 +21,8 @@
     "clean": "./scripts/clean.sh",
     "pretest": "webpack --config ./configs/webpack.config.test.babel.js",
     "test": "tape -r jsdom-global/register ./test-dist/test.js",
-    "add-locale": "node scripts/add-locale.js"
+    "add-locale": "node scripts/add-locale.js",
+    "check-all-locales": "node scripts/check-all-locales.js"
   },
   "main": "./dist/main.js",
   "build": {
