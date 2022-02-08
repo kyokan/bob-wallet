@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import c from 'classnames';
 import * as nameActions from '../../ducks/names';
-import { verifyName } from '../../utils/nameChecker';
+import { verifyName } from 'hsd/lib/covenants/rules';
 import { decodePunycode } from '../../utils/nameHelpers';
 import { I18nContext } from "../../utils/i18n";
 import './TLDInput.scss';

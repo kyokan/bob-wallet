@@ -1,5 +1,5 @@
 import { SET_PENDING_TRANSACTIONS } from './walletReducer';
-import { hashName } from '../utils/nameChecker';
+import { hashName } from 'hsd/lib/covenants/rules';
 
 const ALLOWED_COVENANTS = new Set([
   'OPEN',
