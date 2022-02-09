@@ -48,20 +48,40 @@ Due to Ledger USB integration, additional dependencies are required:
 
 #### OSX
 
+If you are running OSX on an arm64 processor (aka "Apple Silicon" or "M1") it
+is highly recommended to upgrade to Node.js v16
+[which has arm64 support.](https://nodejs.org/en/blog/release/v16.0.0/#toolchain-and-compiler-upgrades)
+
+Building for OSX requires one extra "optional" dependency (dmg-license)
+[that can not currently be installed on Windows/Linux systems](https://github.com/electron-userland/electron-builder/issues/6520):
+
 ```bash
 brew install libusb
 git clone https://github.com/kyokan/bob-wallet
 cd bob-wallet
 npm install
+npm install dmg-license
 ```
 
-Build the app package:
+Build the app package *for the native architecture of your Mac*:
 
 ```bash
-npm run package
+npm run package-mac
 ```
 
-The output app will be created in the `/release/mac` folder. Open `Bob.app` to start the wallet.
+If you are running OSX on an arm64 but want to build the executable for x86 (Intel)
+Macs, you can do so but you must first downgrade to Node.js v14 or re-install Node.js v16
+for x86 instead of arm64. Building for a non-native architecture will seriously impair
+the performance of the application, so this option is only recommended for multi-platform
+distribution by maintainers with M1 Macs. As an extra complication, this process must
+be run in an environment where `libunbound` is available as an x86 package.
+
+```bash
+npm run package-mac-intel
+``` 
+
+The output app will be created in the `/release/mac` or `/release/mac-arm64` folder.
+Open `Bob.app` to start the wallet.
 
 
 #### Linux
