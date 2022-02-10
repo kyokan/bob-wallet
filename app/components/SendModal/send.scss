@@ -65,11 +65,6 @@
     }
   }
 
-  &__wellknown-to {
-    padding: 0.5em 0.9em 0;
-    color: $azure-blue;
-  }
-
   &__amount-input {
     @extend %box-input;
     @extend %row-nowrap;
@@ -392,6 +387,41 @@
     }
   }
 
+  // HIP-2
+
+  &__input-hip2-success {
+    // color: $electric-violet;
+  }
+
+  &__prefix {
+    display: inline-block;
+    width: 1rem;
+    img {
+      width: 0.9rem;
+      vertical-align: sub;
+      margin-left: -0.1rem;
+      filter: grayscale(1);
+    }
+  }
+
+  &__to {
+    .alert{
+      border: none !important;
+      margin: 0 0 -1.25rem 0.1rem !important;
+      padding-left: 0.75rem;
+      font-size: 0.8rem;
+    }
+  }
+
+  &__confirm__secure {
+    // color: $electric-violet;
+    margin-right: 0.5rem;
+    img {
+      width: 1rem;
+      vertical-align: top;
+      filter: grayscale(1);
+    }
+  }
 }
 
 @keyframes spin {

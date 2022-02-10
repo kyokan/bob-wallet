@@ -13,7 +13,15 @@ import { clientStub as aClientStub } from '../../background/analytics/client';
 import walletClient from '../../utils/walletClient';
 import { shell } from 'electron';
 import {I18nContext} from "../../utils/i18n";
-import fetchAddress, { setServers } from 'well-known-wallets-dane'
+import LockSVG from '../../assets/images/lock.svg';
+import hip2 from "../../utils/hip2Client";
+
+const networkPorts = {
+  'main': 5350,
+  'testnet': 15350,
+  'regtest': 25350,
+  'simnet': 35350
+}
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -27,6 +35,7 @@ const FAST = 'Fast';
     fees: state.node.fees,
     spendableBalance: state.wallet.balance.spendable,
     network: state.wallet.network,
+    noDns: state.node.noDns,
     explorer: state.node.explorer,
   }),
   dispatch => ({
@@ -55,14 +64,17 @@ class SendModal extends Component {
       transactionHash: '',
       isSending: false,
       to: '',
-      wellKnownInput: false,
-      wellKnownTo: '',
+      hip2Input: false,
+      hip2To: '',
+      hip2Error: '',
       amount: '',
       errorMessage: '',
       addressError: false,
       feeAmount: 0,
       txSize: 0,
     };
+    console.log(`HIP-2 Resolver: 127.0.0.1:${networkPorts[props.network]}`)
+    hip2.setServers([`127.0.0.1:${networkPorts[props.network]}`])
   }
 
   componentDidMount() {
@@ -70,24 +82,31 @@ class SendModal extends Component {
   }
 
   updateToAddress = async e => {
+    const dnsEnabled = !this.props.noDns
     let input = e.target.value
 
-    if (this.state.wellKnownInput) {
-      try {
-        const to = await fetchAddress(input)
-        this.setState({ to, wellKnownTo: input, errorMessage: '' })
-      } catch (e) {
-        this.setState({ to: '', wellKnownTo: input, errorMessage: this.context.t('noWellKnownAddressFound') })
-      }
-    } else if (input[0] === '@') {
+    if (dnsEnabled && !this.state.hip2Input && input[0] === '@') {
+      this.setState({ hip2Input: true, to: '', errorMessage: '', hip2Error: '' })
       input = input.slice(1)
-      this.setState({ to: '', wellKnownTo: input, wellKnownInput: true, errorMessage: '' })
+    }
+
+    if (this.state.hip2Input) {
+      // clear `to` address on new input
+      this.setState({ to: '', hip2To: input })
       if (input) {
-        const to = await fetchAddress(input)
-        this.setState({ to, wellKnownTo: input, wellKnownInput: true, errorMessage: '' })
+        hip2.fetchAddress(input, 'HNS').then(to => {
+          // only set `to` address if matches the current input
+          if (this.state.hip2Input && this.state.hip2To === input) {
+            this.setState({ to, errorMessage: '', hip2Error: '' })
+          }
+        }).catch(err => {
+          if (this.state.hip2Input && this.state.hip2To === input) {
+            this.setState({ to: '', errorMessage: '', hip2Error: this.context.t('noHip2AddressFound') })
+          }
+        })
       }
     } else {
-      this.setState({ to: input, errorMessage: '' });
+      this.setState({ to: input, errorMessage: '', hip2Error: '' });
     }
 
     const address = this.state.to
@@ -96,10 +115,10 @@ class SendModal extends Component {
     }
   };
 
-  updateWellKnown = e => {
-    if (this.state.wellKnownInput) {
-      if (e.key === 'Escape' || (e.key === 'Backspace' && this.state.wellKnownTo.length === 0)) {
-        this.setState({ wellKnownInput: false, wellKnownTo: '', to: '', errorMessage: '' })
+  updateHip2 = e => {
+    if (this.state.hip2Input) {
+      if (e.key === 'Escape' || (e.key === 'Backspace' && this.state.hip2To.length === 0)) {
+        this.setState({ hip2Input: false, hip2To: '', hip2Error: '', to: '', errorMessage: '' })
       }
     }
   }
@@ -209,7 +228,7 @@ class SendModal extends Component {
   }
 
   renderSend() {
-    const {selectedGasOption, amount, to, wellKnownInput, wellKnownTo} = this.state;
+    const {selectedGasOption, amount, to, hip2Input, hip2To, hip2Error} = this.state;
     const {t} = this.context;
     const {isValid} = this.validate();
 
@@ -223,16 +242,25 @@ class SendModal extends Component {
           <div className="send__to">
             <div className="send__label">{t('sendToLabel')}</div>
             <div className="send__input" key="send-input">
-              {wellKnownInput && <span className="send__input-prefix">@</span>}
+              {hip2Input && <span className="send__prefix">{to ? (
+                <img src={LockSVG} />
+              ) : '@'}</span>}
               <input
                 type="text"
-                placeholder={wellKnownInput ? t('recipientWellKnownAddress') : t('recipientAddress')}
+                className={hip2Input && (to ? 'send__input-hip2-success' : 'send__input-hip2')}
+                placeholder={hip2Input ? t('recipientHip2Address') : t('recipientAddress')}
                 onChange={this.updateToAddress}
-                onKeyDown={this.updateWellKnown}
-                value={wellKnownInput ? wellKnownTo : to}
+                onKeyDown={this.updateHip2}
+                spellcheck="false"
+                value={hip2Input ? hip2To : to}
               />
             </div>
-            {wellKnownInput && <div className="send__wellknown-to">{to}</div>}
+            { hip2Input && (
+              <React.Fragment>
+                <Alert type="error" message={hip2Error} />
+                <Alert type="success" message={to && `↪ ${to}`} />
+              </React.Fragment>
+            ) }
           </div>
           <div className="send__amount">
             <div className="send__label">{t('amount')}</div>
@@ -313,6 +341,8 @@ class SendModal extends Component {
       isSending,
       feeAmount,
       txSize,
+      hip2Input,
+      hip2To
     } = this.state;
 
     const {t} = this.context;
@@ -326,7 +356,14 @@ class SendModal extends Component {
           <Alert type="error" message={this.state.errorMessage} />
           <div className="send__confirm__to">
             <div className="send__confirm__label">{t('sendToLabel')}</div>
-            <div className="send__confirm__address">{to}</div>
+            <div className="send__confirm__address">
+              {(hip2Input && to) ? (
+                <span>
+                  <span className="send__confirm__secure"><img src={LockSVG} /> {hip2To}</span> 
+                  ({to})
+                </span>
+              ) : to}
+            </div>
           </div>
           <div className="send__confirm__from">
             <div className="send__confirm__label">{t('sendFromLabel')}</div>
