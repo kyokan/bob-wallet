@@ -143,7 +143,6 @@ export class NodeService extends EventEmitter {
           } else {
             throw error;
           }
-          return;
         }
         await this.setHSDLocalClient();
         dispatchToMainWindow({
