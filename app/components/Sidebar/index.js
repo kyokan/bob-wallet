@@ -18,6 +18,7 @@ const nodeClient = clientStub(() => require('electron').ipcRenderer);
     chainHeight: state.node.chain.height,
     tip: state.node.chain.tip,
     newBlockStatus: state.node.newBlockStatus,
+    spv: state.node.spv,
     walletId: state.wallet.wid,
     walletWatchOnly: state.wallet.watchOnly,
     walletSync: state.wallet.walletSync,
@@ -41,6 +42,7 @@ class Sidebar extends Component {
     walletId: PropTypes.string.isRequired,
     tip: PropTypes.string.isRequired,
     newBlockStatus: PropTypes.string.isRequired,
+    spv: PropTypes.bool.isRequired,
     walletWatchOnly: PropTypes.bool.isRequired,
     walletSync: PropTypes.bool.isRequired,
     walletHeight: PropTypes.number.isRequired,
@@ -169,7 +171,11 @@ class Sidebar extends Component {
   }
 
   renderGenerateBlockButton(numblocks) {
-    const { network, address } = this.props;
+    const { network, address, spv } = this.props;
+    if (spv) {
+      return;
+    }
+
     if ([NETWORKS.SIMNET, NETWORKS.REGTEST].includes(network)) {
       return (
         <button
