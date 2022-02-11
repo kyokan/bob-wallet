@@ -81,21 +81,31 @@ class SendModal extends Component {
     analytics.screenView('Send');
   }
 
+  openLinkHandler (e) {
+    e.preventDefault()
+    shell.openExternal(e.target.href)
+  }
+
   updateToAddress = async e => {
     const dnsEnabled = !this.props.noDns
     let input = e.target.value
+    let justEnabled = false
 
     if (dnsEnabled && !this.state.hip2Input && input[0] === '@') {
-      this.setState({ hip2Input: true, to: '', errorMessage: '', hip2Error: '' })
+      justEnabled = true
       input = input.slice(1)
+      this.setState({ hip2Input: true, hip2To: input, to: '', errorMessage: '', hip2Error: '' })
     }
 
-    if (this.state.hip2Input) {
-      // clear `to` address on new input
-      this.setState({ to: '', hip2To: input })
+    if (this.state.hip2Input || justEnabled) {
+      if (!justEnabled) {
+        // prevent latency attacks: clear `to` address on new input
+        this.setState({ hip2To: input, to: '', })
+      }
+
       if (input) {
         hip2.fetchAddress(input, 'HNS').then(to => {
-          // only set `to` address if matches the current input
+          // prevent latency attacks: only set `to` address if matches the current input
           if (this.state.hip2Input && this.state.hip2To === input) {
             this.setState({ to, errorMessage: '', hip2Error: '' })
           }
@@ -247,11 +257,11 @@ class SendModal extends Component {
               ) : '@'}</span>}
               <input
                 type="text"
-                className={hip2Input && (to ? 'send__input-hip2-success' : 'send__input-hip2')}
+                className={hip2Input ? (to ? 'send__input-hip2-success' : 'send__input-hip2') : null}
                 placeholder={hip2Input ? t('recipientHip2Address') : t('recipientAddress')}
                 onChange={this.updateToAddress}
                 onKeyDown={this.updateHip2}
-                spellcheck="false"
+                spellCheck="false"
                 value={hip2Input ? hip2To : to}
               />
             </div>
@@ -359,7 +369,7 @@ class SendModal extends Component {
             <div className="send__confirm__address">
               {(hip2Input && to) ? (
                 <span>
-                  <span className="send__confirm__secure"><img src={LockSVG} /> {hip2To}</span> 
+                  <span className="send__confirm__secure"><img src={LockSVG} /> <a href={`https://${hip2To}`} onClick={this.openLinkHandler}>{hip2To}</a></span>
                   ({to})
                 </span>
               ) : to}

@@ -1,4 +1,4 @@
-const { fetchAddress, setServers } = require('well-known-wallets-dane')
+const { fetchAddress, setServers } = require('hip2-dane')
 
 const sName = 'Hip2'
 const methods = {

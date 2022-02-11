@@ -146,6 +146,7 @@
     "copy-to-clipboard": "3.3.1",
     "deep-equal": "2.0.1",
     "electron-debug": "3.2.0",
+    "hip2-dane": "^0.2.0",
     "history": "4.7.2",
     "hs-airdrop": "^0.10.0",
     "hs-client": "=0.0.10",
@@ -175,7 +176,6 @@
     "source-map-support": "0.5.21",
     "tcp-port-used": "1.0.1",
     "uuid": "3.3.3",
-    "well-known-wallets-dane": "^0.1.0",
     "winston": "3.1.0"
   }
 }
