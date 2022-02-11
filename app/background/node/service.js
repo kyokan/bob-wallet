@@ -110,10 +110,10 @@ export class NodeService extends EventEmitter {
   }
 
   async setSpvMode(spv) {
-    await put(SPV_MODE, !!spv ? '1' : '');
+    await put(SPV_MODE, !!spv ? '1' : '0');
     dispatchToMainWindow({
       type: SET_SPV_MODE,
-      payload: spv === '1',
+      payload: spv === true,
     });
   }
 
