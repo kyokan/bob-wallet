@@ -355,12 +355,12 @@ export class NodeService extends EventEmitter {
 
     try {
       const info = await this.getInfo();
+      this.emit('refreshNodeInfo', info);
 
       dispatchToMainWindow({
         type: SET_NODE_INFO,
         payload: info.chain,
       });
-
 
       if (info.chain.progress > 0.99) {
         const fees = await this.getFees();

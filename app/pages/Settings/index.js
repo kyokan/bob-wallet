@@ -27,7 +27,7 @@ import DeepCleanAndRescanModal from "./DeepCleanAndRescanModal";
 import {showError, showSuccess} from "../../ducks/notifications";
 import BackupListingModal from "./BackupListingModal";
 import fs from "fs";
-const {dialog} = require('electron').remote;
+const {dialog} = require('@electron/remote');
 import {clientStub as sClientStub} from "../../background/shakedex/client";
 import ChangeDirectoryModal from "./ChangeDirectoryModal";
 import dbClient from "../../utils/dbClient";
@@ -363,7 +363,7 @@ export default class Settings extends Component {
         {this.renderSection(
           t('apiKey'),
           <span>
-            API key for <Anchor href="https://hsd-dev.org/api-docs/#get-wallet-info">hsw-cli</Anchor> and <Anchor href="https://hsd-dev.org/api-docs/#selectwallet">hsw-rpc</Anchor>. Make sure you select the wallet id "{wid}".
+            {t('settingAPIKeyDesc', wid)} (<Anchor href="https://hsd-dev.org/api-docs/#get-wallet-info">hsw-cli</Anchor>, <Anchor href="https://hsd-dev.org/api-docs/#selectwallet">hsw-rpc</Anchor>)
           </span>,
           t('settingAPIKeyCTA'),
           () => history.push('/settings/wallet/view-api-key'),

@@ -44,6 +44,8 @@ const analytics = aClientStub(() => require("electron").ipcRenderer);
   })
 )
 export default class Account extends Component {
+  _isMounted = false;
+
   static propTypes = {
     spendableBalance: PropTypes.number.isRequired,
     height: PropTypes.number.isRequired,
@@ -85,6 +87,7 @@ export default class Account extends Component {
   }
 
   componentDidMount() {
+    this._isMounted = true;
     analytics.screenView("Account");
     this.props.fetchWallet();
     this.updateStatsAndBalance();
@@ -96,6 +99,10 @@ export default class Account extends Component {
     }
   }
 
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
+
   async updateStatsAndBalance() {
     // Update HNS price for conversion
     this.props.updateHNSPrice();
@@ -103,10 +110,12 @@ export default class Account extends Component {
     // Stats for balance and cards
     try {
       const stats = await walletClient.getStats();
-      this.setState({
-        isLoadingStats: false,
-        ...stats,
-      });
+      if (this._isMounted) {
+        this.setState({
+          isLoadingStats: false,
+          ...stats,
+        });
+      }
     } catch (error) {
       console.error(error);
       this.setState({ isLoadingStats: false });
@@ -134,6 +143,7 @@ export default class Account extends Component {
   };
 
   render() {
+    const {t} = this.context;
     const { isFetching } = this.props;
 
     return (
@@ -145,7 +155,7 @@ export default class Account extends Component {
         {/* Transactions */}
         <div className="account__transactions">
           <div className="account__panel-title">
-            Transaction History
+            {t('transactionHistory')}
             {isFetching && (
               <div className="account__transactions__loading">
                 Loading transactions...

@@ -1,4 +1,4 @@
-const Sentry = require('@sentry/electron');
+const Sentry = require('@sentry/browser');
 
 export const SIGIL = '@@RPC@@';
 

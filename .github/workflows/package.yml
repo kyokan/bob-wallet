@@ -4,28 +4,45 @@ on: workflow_dispatch
 
 jobs:
   package:
-    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-18.04]
+
+        # OS-specific commands/variables
+        include:
+          - os: ubuntu-18.04
+            cmd_package: npm run package-linux
+            out_filename: Bob-linux
+          - os: windows-latest
+            cmd_package: npm run package-win
+            out_filename: Bob-windows
+
+    runs-on: ${{matrix.os}}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js 16.x
         uses: actions/setup-node@v1
         with:
-          node-version: 14.x
+          node-version: 16.x
 
-      - name: Install dependencies
+      - name: Install dependencies (linux only)
+        if: matrix.os == 'ubuntu-18.04'
         run: sudo apt update && sudo apt install libudev-dev libusb-1.0-0-dev -y
 
-      - name: npm install
-        run: npm i
+      - name: Install npm packages
+        run: npm i --legacy-peer-deps
 
-      - name: Generate AppImage
-        run: npm run package-linux
+      - name: Generate Executable
+        run: ${{ matrix.cmd_package }}
 
       - name: Store artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: AppImage
-          path: release/*.AppImage
+          name: ${{ matrix.out_filename }}
+          path: |
+            release/*.AppImage
+            release/*.msi

@@ -2,9 +2,10 @@
 mkdir -p ./dist
 cp app/app.html dist
 CSP_POLICY="default-src 'self'; style-src 'self' 'sha256-GhG3bE0iJoXJDtzwjDYe4ewzpUCrcbsJVwiqGhTOAVg=' https:\/\/fonts.googleapis.com; font-src https:\/\/fonts.gstatic.com; img-src * data:; connect-src http:\/\/localhost:13037 http:\/\/localhost:13039 http:\/\/localhost:14037 http:\/\/localhost:14039 http:\/\/localhost:15037 http:\/\/localhost:15039 http:\/\/localhost:12037 http:\/\/localhost:12039 https:\/\/*.sentry.io https:\/\/*.mixpanel.com;"
-sed -i "s/{{cspValue}}/${CSP_POLICY}/g" dist/app.html
+sed -i.tmp "s/{{cspValue}}/${CSP_POLICY}/g" dist/app.html
+rm dist/app.html.tmp
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )/../"
-NODE_ENV=production $DIR/node_modules/.bin/webpack --config ./configs/webpack.config.renderer.prod.babel.js --colors
+NODE_ENV=production $DIR/node_modules/.bin/webpack --config ./configs/webpack.config.renderer.prod.babel.js
 $DIR/node_modules/.bin/babel $DIR/app/main.js -o ./dist/main.js
 $DIR/node_modules/.bin/babel $DIR/app/menu.js -o ./dist/menu.js
 $DIR/node_modules/.bin/babel $DIR/app/sentry.js -o ./dist/sentry.js

@@ -26,14 +26,14 @@ export default class VickreyProcess extends Component {
           <li>{t('vickreyProcessItem7')}</li>
           <li>{t('vickreyProcessItem8')}</li>
         </ul>
-        <p>
+        <div>
           <div
             className="link"
             onClick={() => shell.openExternal('https://handshake.org/files/handshake.txt')}
           >
             {t('vickreyProcessFooter')}
           </div>
-        </p>
+        </div>
       </div>
     );
   }

@@ -99,12 +99,6 @@ export class FinalizeWithPaymentModal extends Component {
           {t('finalizeWithPaymentWarning1')}
         </p>
 
-        <p>
-          <strong>
-            {t('finalizeWithPaymentWarning2')}
-          </strong>
-        </p>
-
         <div className="send__to">
           <div className="send__input">
             <input

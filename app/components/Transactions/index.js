@@ -5,8 +5,7 @@ import c from 'classnames';
 
 import Transaction from './Transaction';
 import './index.scss';
-// Dummy transactions state until we have ducks
-import { fetchTransactions, fetchPendingTransactions } from '../../ducks/walletActions';
+import { fetchTransactions } from '../../ducks/walletActions';
 import Dropdown from '../Dropdown';
 import BidSearchInput from '../BidSearchInput';
 import Fuse from '../../vendor/fuse';
@@ -35,15 +34,16 @@ const TX_VIEW_ITEMS_PER_PAGE_KEY = 'main-tx-items-per-page';
 @connect(
   (state) => ({
     transactions: state.wallet.transactions,
+    height: state.node.chain.height,
   }),
   (dispatch) => ({
     fetchTransactions: () => dispatch(fetchTransactions()),
-    fetchPendingTransactions: () => dispatch(fetchPendingTransactions()),
   })
 )
 export default class Transactions extends Component {
   static propTypes = {
     transactions: PropTypes.instanceOf(Map).isRequired,
+    height: PropTypes.number.isRequired,
   };
 
   static contextType = I18nContext;
@@ -58,7 +58,14 @@ export default class Transactions extends Component {
 
   async componentDidMount() {
     await this.props.fetchTransactions();
-    await this.props.fetchPendingTransactions();
+  }
+
+  async componentDidUpdate(prevProps, prevState) {
+
+    // Refresh transactions on new blocks
+    if (this.props.height !== prevProps.height) {
+      this.refreshTransactions();
+    }
   }
 
   componentWillReceiveProps(nextProps) {
@@ -66,6 +73,8 @@ export default class Transactions extends Component {
       this.fuse = null;
     }
   }
+
+  refreshTransactions = debounce(() => this.props.fetchTransactions(), 5000)
 
   state = {
     currentPageIndex: 0,
@@ -120,7 +129,7 @@ export default class Transactions extends Component {
       const tx = transactions[i];
       if (tx) {
         result.push(
-          <div className="transaction__container" key={tx.id}>
+          <div className="transaction__container" key={tx.id+tx.pending}>
             <Transaction transaction={tx} />
           </div>
         );
@@ -270,4 +279,12 @@ function getPageIndices(transactions, itemsPerPage, currentPageIndex) {
     answer.push(pageIndex);
   });
   return answer;
+}
+
+function debounce(func, timeout = 300){
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => { func.apply(this, args); }, timeout);
+  };
 }

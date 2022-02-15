@@ -1,4 +1,5 @@
 import walletClient from '../utils/walletClient';
+import * as networks from "hsd/lib/protocol/networks";
 
 const FETCH_MY_NAMES_START = 'app/myDomains/fetchMyNamesStart';
 const FETCH_MY_NAMES_STOP = 'app/myDomains/fetchMyNamesStop';
@@ -22,6 +23,12 @@ export const getMyNames = () => async (dispatch, getState) => {
     myDomains: {
       isFetching,
     },
+    node: {
+      network,
+      chain: {
+        height: currentHeight,
+      }
+    },
   } = getState();
 
   if (isFetching) return;
@@ -33,9 +40,17 @@ export const getMyNames = () => async (dispatch, getState) => {
     let ret = {};
     let len = 0;
 
+    const {treeInterval, biddingPeriod, revealPeriod} = networks[network].names
+    const auctionPeriod = treeInterval + 1 + biddingPeriod + revealPeriod
+
     for (let i = 0; i < result.length; i++) {
       const domain = result[i];
-      const {owner, name} = domain;
+      const {owner, name, height} = domain;
+
+      // Reveal period hasn't ended, final owner not yet known
+      if ((height + auctionPeriod) > currentHeight ) {
+        continue;
+      }
 
       const coin = await walletClient.getCoin(owner.hash, owner.index);
       if (coin) {

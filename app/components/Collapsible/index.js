@@ -10,11 +10,13 @@ export default class Collapsible extends Component {
     className: PropTypes.string,
     defaultCollapsed: PropTypes.bool,
     children: PropTypes.node.isRequired,
+    overflowY: PropTypes.bool,
   };
 
   static defaultProps = {
     className: '',
     defaultCollapsed: false,
+    overflowY: true,
   };
 
   static contextType = I18nContext;
@@ -65,7 +67,8 @@ export default class Collapsible extends Component {
   renderContent() {
     return (
       <div className={cn('collapsible__content', {
-        'collapsible__content--hidden': this.state.isCollapsed
+        'collapsible__content--hidden': this.state.isCollapsed,
+        'collapsible__content--overflowY': this.props.overflowY,
       })} >
         { this.props.children }
       </div>

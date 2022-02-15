@@ -11,6 +11,7 @@ import { withRouter } from 'react-router';
 import walletClient from "../../utils/walletClient";
 import {I18nContext} from "../../utils/i18n";
 
+@withRouter
 @connect(
   (state) => ({
     wallets: state.wallet.wallets,
@@ -21,7 +22,6 @@ import {I18nContext} from "../../utils/i18n";
     fetchWallet: () => dispatch(walletActions.fetchWallet()),
   }),
 )
-@withRouter
 export default class AccountLogin extends Component {
   static propTypes = {
     unlockWallet: PropTypes.func.isRequired,
