@@ -2,6 +2,8 @@
  * Build config for electron renderer process
  */
 
+const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
+
 import path from 'path';
 import webpack from 'webpack';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
@@ -9,6 +11,8 @@ import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 
 export default {
   devtool: 'source-map',
+
+  stats: 'errors-only',
 
   mode: 'production',
 
@@ -20,6 +24,10 @@ export default {
     path: path.join(__dirname, '..', 'dist'),
     publicPath: './',
     filename: 'renderer.js'
+  },
+
+  optimization: {
+    sideEffects: false,
   },
 
   module: {
@@ -47,7 +55,8 @@ export default {
           {
             loader: 'css-loader',
             options: {
-              sourceMap: true
+              sourceMap: true,
+              modules: false,
             }
           }
         ]
@@ -111,60 +120,14 @@ export default {
           }
         ]
       },
-      // WOFF Font
       {
-        test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
-        use: {
-          loader: 'url-loader',
-          options: {
-            limit: 10000,
-            mimetype: 'application/font-woff'
-          }
-        }
+        test: /\.(png|svg|jpg|jpeg|gif|ico|webp)$/i,
+        type: 'asset/resource',
       },
-      // WOFF2 Font
       {
-        test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
-        use: {
-          loader: 'url-loader',
-          options: {
-            limit: 10000,
-            mimetype: 'application/font-woff'
-          }
-        }
+        test: /\.(woff|woff2|eot|ttf|otf)$/i,
+        type: 'asset/resource',
       },
-      // TTF Font
-      {
-        test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-        use: {
-          loader: 'url-loader',
-          options: {
-            limit: 10000,
-            mimetype: 'application/octet-stream'
-          }
-        }
-      },
-      // EOT Font
-      {
-        test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-        use: 'file-loader'
-      },
-      // SVG Font
-      {
-        test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-        use: {
-          loader: 'url-loader',
-          options: {
-            limit: 10000,
-            mimetype: 'image/svg+xml'
-          }
-        }
-      },
-      // Common Image Formats
-      {
-        test: /\.(?:ico|gif|png|jpg|jpeg|webp)$/,
-        use: 'url-loader'
-      }
     ]
   },
 
@@ -179,7 +142,9 @@ export default {
      * development checks
      */
     new webpack.EnvironmentPlugin({
-      NODE_ENV: 'production'
+      NODE_ENV: 'production',
+      ELECTRON_OVERRIDE_DIST_PATH:
+        path.join(__dirname, '..', '..', 'node_modules', 'electron', 'path.txt')
     }),
 
     new MiniCssExtractPlugin({
@@ -190,6 +155,8 @@ export default {
       analyzerMode:
         process.env.OPEN_ANALYZER === 'true' ? 'server' : 'disabled',
       openAnalyzer: process.env.OPEN_ANALYZER === 'true'
-    })
+    }),
+
+    new NodePolyfillPlugin({excludeAliases: ['process']}),
   ]
 };

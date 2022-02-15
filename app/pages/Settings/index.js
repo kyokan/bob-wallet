@@ -27,7 +27,7 @@ import DeepCleanAndRescanModal from "./DeepCleanAndRescanModal";
 import {showError, showSuccess} from "../../ducks/notifications";
 import BackupListingModal from "./BackupListingModal";
 import fs from "fs";
-const {dialog} = require('electron').remote;
+const {dialog} = require('@electron/remote');
 import {clientStub as sClientStub} from "../../background/shakedex/client";
 import ChangeDirectoryModal from "./ChangeDirectoryModal";
 import dbClient from "../../utils/dbClient";

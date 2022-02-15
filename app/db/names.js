@@ -1,5 +1,5 @@
 import { clientStub } from '../background/db/client';
-import { hashName } from '../utils/nameChecker';
+import { hashName } from 'hsd/lib/covenants/rules';
 const dbClient = clientStub(() => require('electron').ipcRenderer);
 
 

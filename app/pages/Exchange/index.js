@@ -3,7 +3,7 @@ import fs from "fs";
 import { connect } from 'react-redux';
 import moment from 'moment';
 import classNames from 'classnames';
-const {dialog} = require('electron').remote;
+const {dialog} = require('@electron/remote');
 import { shell } from 'electron';
 import { clientStub as aClientStub } from '../../background/analytics/client.js';
 import { clientStub as sClientStub } from '../../background/shakedex/client.js';

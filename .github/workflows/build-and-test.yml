@@ -8,22 +8,49 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
+  workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
+  build-and-test:
     strategy:
+      fail-fast: false
       matrix:
-        node-version: [11.x]
+        os: [windows-latest, ubuntu-latest]
+        node-version: ['14', '16']
+
+        # OS-specific commands/variables
+        include:
+          - os: ubuntu-latest
+            cmd_del: rm
+            cmd_build: npm run build
+          - os: windows-latest
+            cmd_del: del
+            cmd_build: node .\scripts\package.js
+
+    runs-on: ${{matrix.os}}
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: sudo apt update && sudo apt install libudev-dev libusb-1.0-0-dev -y
-      - run: npm i
-      - run: npm run build --if-present
-      - run: npm test
+
+      - name: Install dependencies (linux only)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt update && sudo apt install libudev-dev libusb-1.0-0-dev -y
+
+      - name: Remove lock file (old node.js only)
+        if: matrix.node-version == '14'
+        run: ${{ matrix.cmd_del }} package-lock.json
+
+      - name: Install npm packages
+        run: npm i --legacy-peer-deps
+
+      - name: Build
+        run: ${{ matrix.cmd_build }}
+
+      - name: Test
+        run: npm test
