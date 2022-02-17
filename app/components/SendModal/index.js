@@ -26,6 +26,7 @@ const FAST = 'Fast';
 
 @connect(
   state => ({
+    isSynchronized: state.node.isRunning && (state.node.chain || {}).progress === 1,
     address: state.wallet.address,
     fees: state.node.fees,
     spendableBalance: state.wallet.balance.spendable,
@@ -63,6 +64,7 @@ class SendModal extends Component {
       hip2To: '',
       hip2Error: '',
       hip2Loading: false,
+      hip2Disabled: false,
       amount: '',
       errorMessage: '',
       addressError: false,
@@ -73,7 +75,7 @@ class SendModal extends Component {
     hip2.setServers([`127.0.0.1:${networks[props.network].rsPort}`]);
   }
 
-  componentDidMount() {
+  componentDidMount () {
     analytics.screenView('Send');
   }
 
@@ -83,17 +85,19 @@ class SendModal extends Component {
   }
 
   updateToAddress = async e => {
-    const hip2Enabled = !this.props.noDns
+    const hip2Enabled = !this.props.noDns && this.props.isSynchronized // && !this.state.simulateSynchronizing
     let input = e.target.value
     let justEnabled = false
 
     if (hip2Enabled && !this.state.hip2Input && input[0] === '@') {
       justEnabled = true
+
+      // handle alias copy/pastes
       input = input.slice(1)
       this.setState({ hip2Input: true, hip2To: input, to: '', errorMessage: '', hip2Error: '', hip2Loading: false })
     }
 
-    if (this.state.hip2Input || justEnabled) {
+    if (hip2Enabled && (this.state.hip2Input || justEnabled)) {
       if (!justEnabled) {
         // prevent latency attacks: clear `to` address on new input
         this.setState({ hip2To: input, hip2Error: '', to: '' })
@@ -114,7 +118,6 @@ class SendModal extends Component {
             }
           }).catch(err => {
             if (this.state.hip2Input && this.state.hip2To === input) {
-              console.log('hip2Error', err.code, err.code === -1, err.code === '-1')
               const hip2Error = err.code === -1 ? this.context.t('hip2InvalidTLSA') : this.context.t('noHip2AddressFound')
               this.setState({ to: '', errorMessage: '', hip2Error, hip2Loading: false })
             }
@@ -133,10 +136,32 @@ class SendModal extends Component {
 
   updateHip2 = e => {
     if (this.state.hip2Input) {
-      if (e.key === 'Escape' || (e.key === 'Backspace' && this.state.hip2To.length === 0)) {
-        this.setState({ hip2Input: false, hip2To: '', hip2Error: '', to: '', errorMessage: '', hip2Loading: false })
+      if (e.key === 'Backspace' && this.state.hip2To.length === 0) {
+        this.resetInput()
       }
     }
+  }
+
+  resetInput = () => {
+    this.setState({ hip2Input: false, hip2To: '', hip2Error: '', to: '', errorMessage: '', hip2Loading: false })
+  }
+
+  handleEscape = e => {
+    if (this.state.hip2Input && e.key === 'Escape') {
+      this.resetInput()
+    }
+
+    // if (e.metaKey && e.key === 's') {
+    //   this.setState({ simulateSynchronizing: !this.state.simulateSynchronizing }) // toggle sync simulation
+    // }
+  }
+
+  componentWillMount = () => {
+    document.addEventListener('keydown', this.handleEscape)
+  }
+
+  componentWillUnmount = () => {
+    document.removeEventListener('keydown', this.handleEscape)
   }
 
   updateAmount = e => this.setState({amount: e.target.value, errorMessage: ''});
@@ -247,7 +272,20 @@ class SendModal extends Component {
     const {selectedGasOption, amount, to, hip2Input, hip2To, hip2Error, hip2Loading} = this.state;
     const {t} = this.context;
     const {isValid} = this.validate();
-    const hip2Enabled = !this.props.noDns;
+
+    const hip2Enabled = !this.props.noDns && this.props.isSynchronized // && !this.state.simulateSynchronizing
+    const hip2Disabled = !hip2Enabled && hip2Input; // waiting for node to synchronize
+    const hip2DisabledWarning = hip2Disabled ? t('hip2DisabledWarning') : '';
+
+    // clear hip2 lookup address and error
+    if (hip2Disabled && (this.state.to || this.state.hip2Error)) {
+      this.setState({ to: '', hip2Error: '', hip2Disabled: true })
+
+    // lookup again once synchronized
+    } else if (hip2Enabled && this.state.hip2Disabled) {
+      this.setState({ hip2Disabled: false })
+      this.updateToAddress({ target: { value: this.state.hip2To } })
+    }
 
     return (
       <div className="send__container">
@@ -256,6 +294,7 @@ class SendModal extends Component {
             <div className="send__title">{t('sendTitle')}</div>
           </div>
           <Alert type="error" message={this.state.errorMessage} />
+          <Alert type="warning" message={hip2DisabledWarning} />
           <div className="send__to">
             <div className="send__label">{t('sendToLabel')}</div>
             <div className="send__input" key="send-input">
@@ -269,10 +308,20 @@ class SendModal extends Component {
               <input
                 type="text"
                 className={hip2Input ? (to ? 'send__input-hip2-success' : 'send__input-hip2') : null}
-                placeholder={hip2Input ? t('recipientHip2Address') : (hip2Enabled ? t('recipientAddressHip2Enabled') : t('recipientAddress'))}
+                placeholder={hip2Input ? 
+                  t('recipientHip2Address') : 
+                  (hip2Enabled ? 
+                    t('recipientAddressHip2Enabled') : 
+                    (!this.props.noDns ? 
+                      t('recipientAddressHip2Syncing') :
+                      t('recipientAddress')
+                    )
+                  )
+                }
                 onChange={this.updateToAddress}
                 onKeyDown={this.updateHip2}
                 spellCheck="false"
+                disabled={hip2Disabled}
                 value={hip2Input ? hip2To : to}
               />
             </div>
