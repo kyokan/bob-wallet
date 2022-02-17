@@ -7,7 +7,8 @@ export default class Alert extends Component {
     type: PropTypes.oneOf([
       'error',
       'warning',
-      'success'
+      'success',
+      'info'
     ]).isRequired,
     message: PropTypes.string,
     children: PropTypes.node,

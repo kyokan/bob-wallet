@@ -392,9 +392,9 @@
     display: inline-block;
     width: 1rem;
     img {
-      width: 0.9rem;
+      width: 1.2rem;
       vertical-align: sub;
-      margin-left: -0.1rem;
+      margin-left: -0.3rem;
       filter: grayscale(1);
     }
   }
@@ -402,7 +402,7 @@
   &__to {
     .alert{
       border: none !important;
-      margin: 0 0 -1.25rem 0.1rem !important;
+      margin: 0 0 -1.25rem 0 !important;
       padding-left: 0.75rem;
       font-size: 0.8rem;
     }

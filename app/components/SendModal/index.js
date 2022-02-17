@@ -14,14 +14,9 @@ import walletClient from '../../utils/walletClient';
 import { shell } from 'electron';
 import {I18nContext} from "../../utils/i18n";
 import LockSVG from '../../assets/images/lock.svg';
+import RingsSVG from '../../assets/images/rings.svg';
 import hip2 from "../../utils/hip2Client";
-
-const networkPorts = {
-  'main': 5350,
-  'testnet': 15350,
-  'regtest': 25350,
-  'simnet': 35350
-}
+import * as networks from "hsd/lib/protocol/networks";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -67,14 +62,15 @@ class SendModal extends Component {
       hip2Input: false,
       hip2To: '',
       hip2Error: '',
+      hip2Loading: false,
       amount: '',
       errorMessage: '',
       addressError: false,
       feeAmount: 0,
       txSize: 0,
     };
-    console.log(`HIP-2 Resolver: 127.0.0.1:${networkPorts[props.network]}`)
-    hip2.setServers([`127.0.0.1:${networkPorts[props.network]}`])
+
+    hip2.setServers([`127.0.0.1:${networks[props.network].rsPort}`]);
   }
 
   componentDidMount() {
@@ -87,36 +83,46 @@ class SendModal extends Component {
   }
 
   updateToAddress = async e => {
-    const dnsEnabled = !this.props.noDns
+    const hip2Enabled = !this.props.noDns
     let input = e.target.value
     let justEnabled = false
 
-    if (dnsEnabled && !this.state.hip2Input && input[0] === '@') {
+    if (hip2Enabled && !this.state.hip2Input && input[0] === '@') {
       justEnabled = true
       input = input.slice(1)
-      this.setState({ hip2Input: true, hip2To: input, to: '', errorMessage: '', hip2Error: '' })
+      this.setState({ hip2Input: true, hip2To: input, to: '', errorMessage: '', hip2Error: '', hip2Loading: false })
     }
 
     if (this.state.hip2Input || justEnabled) {
       if (!justEnabled) {
         // prevent latency attacks: clear `to` address on new input
-        this.setState({ hip2To: input, to: '', })
+        this.setState({ hip2To: input, hip2Error: '', to: '' })
       }
 
       if (input) {
-        hip2.fetchAddress(input, 'HNS').then(to => {
-          // prevent latency attacks: only set `to` address if matches the current input
-          if (this.state.hip2Input && this.state.hip2To === input) {
-            this.setState({ to, errorMessage: '', hip2Error: '' })
-          }
-        }).catch(err => {
-          if (this.state.hip2Input && this.state.hip2To === input) {
-            this.setState({ to: '', errorMessage: '', hip2Error: this.context.t('noHip2AddressFound') })
-          }
-        })
+        this.setState({ hip2Loading: true })
+
+        // delay lookup by 120ms 
+        setTimeout(() => {
+          // abort lookup if input has changed
+          if (!(this.state.hip2Input && this.state.hip2To === input)) return
+
+          hip2.fetchAddress(input, 'HNS').then(to => {
+            // prevent latency attacks: only set `to` address if matches the current input
+            if (this.state.hip2Input && this.state.hip2To === input) {
+              this.setState({ to, errorMessage: '', hip2Error: '', hip2Loading: false })
+            }
+          }).catch(err => {
+            if (this.state.hip2Input && this.state.hip2To === input) {
+              console.log('hip2Error', err.code, err.code === -1, err.code === '-1')
+              const hip2Error = err.code === -1 ? this.context.t('hip2InvalidTLSA') : this.context.t('noHip2AddressFound')
+              this.setState({ to: '', errorMessage: '', hip2Error, hip2Loading: false })
+            }
+          })
+        }, 120)
       }
     } else {
-      this.setState({ to: input, errorMessage: '', hip2Error: '' });
+      this.setState({ to: input, errorMessage: '', hip2Error: '', hip2Loading: false });
     }
 
     const address = this.state.to
@@ -128,7 +134,7 @@ class SendModal extends Component {
   updateHip2 = e => {
     if (this.state.hip2Input) {
       if (e.key === 'Escape' || (e.key === 'Backspace' && this.state.hip2To.length === 0)) {
-        this.setState({ hip2Input: false, hip2To: '', hip2Error: '', to: '', errorMessage: '' })
+        this.setState({ hip2Input: false, hip2To: '', hip2Error: '', to: '', errorMessage: '', hip2Loading: false })
       }
     }
   }
@@ -238,9 +244,10 @@ class SendModal extends Component {
   }
 
   renderSend() {
-    const {selectedGasOption, amount, to, hip2Input, hip2To, hip2Error} = this.state;
+    const {selectedGasOption, amount, to, hip2Input, hip2To, hip2Error, hip2Loading} = this.state;
     const {t} = this.context;
     const {isValid} = this.validate();
+    const hip2Enabled = !this.props.noDns;
 
     return (
       <div className="send__container">
@@ -252,13 +259,17 @@ class SendModal extends Component {
           <div className="send__to">
             <div className="send__label">{t('sendToLabel')}</div>
             <div className="send__input" key="send-input">
-              {hip2Input && <span className="send__prefix">{to ? (
+              {hip2Input && 
+              <span className="send__prefix">{to ? (
                 <img src={LockSVG} />
-              ) : '@'}</span>}
+              ) : ( hip2Loading ? 
+                <img className="send__hip2-loading" src={RingsSVG} /> 
+                : '@')}
+              </span>}
               <input
                 type="text"
                 className={hip2Input ? (to ? 'send__input-hip2-success' : 'send__input-hip2') : null}
-                placeholder={hip2Input ? t('recipientHip2Address') : t('recipientAddress')}
+                placeholder={hip2Input ? t('recipientHip2Address') : (hip2Enabled ? t('recipientAddressHip2Enabled') : t('recipientAddress'))}
                 onChange={this.updateToAddress}
                 onKeyDown={this.updateHip2}
                 spellCheck="false"
@@ -268,7 +279,7 @@ class SendModal extends Component {
             { hip2Input && (
               <React.Fragment>
                 <Alert type="error" message={hip2Error} />
-                <Alert type="success" message={to && `↪ ${to}`} />
+                <Alert type="info" message={to && `↪ ${to}`} />
               </React.Fragment>
             ) }
           </div>

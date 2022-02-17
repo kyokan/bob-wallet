@@ -6,11 +6,6 @@
   margin-bottom: 1rem;
   font-size: 0.9rem;
 
-  &--success {
-    border: 1px solid $azure-blue;
-    color: $azure-blue;
-  }
-
   &--error {
     border: 1px solid $orange-red;
     color: $orange-red;
@@ -19,5 +14,15 @@
   &--warning {
     border: 1px solid $manatee-gray;
     color: $manatee-gray;
+  }
+
+  &--success {
+    border: 1px solid $success-green;
+    color: $success-green;
+  }
+
+  &--info {
+    border: 1px solid $azure-blue;
+    color: $azure-blue;
   }
 }
