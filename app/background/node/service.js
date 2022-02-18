@@ -37,7 +37,7 @@ const MIN_FEE = new BigNumber(0.01);
 const DEFAULT_BLOCK_TIME = 10 * 60 * 1000;
 const HSD_PREFIX_DIR_KEY = 'hsdPrefixDir';
 const NODE_API_KEY = 'nodeApiKey';
-const NODE_NO_DNS = 'nodeNoDns';
+const NODE_NO_DNS = 'nodeNoDns1';
 const SPV_MODE = 'nodeSpvMode';
 
 export class NodeService extends EventEmitter {
