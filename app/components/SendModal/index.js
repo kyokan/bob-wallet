@@ -30,7 +30,6 @@ const FAST = 'Fast';
     fees: state.node.fees,
     spendableBalance: state.wallet.balance.spendable,
     network: state.wallet.network,
-    node: state.node,
     hip2Port: state.hip2.port,
     noDns: state.node.noDns,
     explorer: state.node.explorer,

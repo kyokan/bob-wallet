@@ -45,6 +45,8 @@ export default class Hip2Picker extends Component {
     if (port) {
       hip2.setPort(port)
       this.setState({ port, invalid: false })
+    } else {
+      this.setState({ port: this.props.port, invalid: false })
     }
   }
 

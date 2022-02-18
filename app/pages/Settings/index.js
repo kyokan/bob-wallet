@@ -540,6 +540,14 @@ export default class Settings extends Component {
                 isChangingNodeStatus || isTestingCustomRPC || isCustomRPCConnected,
               )}
               {this.renderSection(
+                t('settingHip2Title'),
+                t('settingHip2Desc'),
+                null,
+                null,
+                <Hip2Picker placeholder={t('settingHip2Placeholder')} />,
+                null
+              )}
+              {this.renderSection(
                 t('settingHSDDirTitle'),
                 <div>
                   <div><small>{t('userDirectory')}: {this.state.userDir}</small></div>
@@ -556,14 +564,6 @@ export default class Settings extends Component {
                 null,
                 <NetworkPicker />,
                 isTestingCustomRPC || isChangingNodeStatus,
-              )}
-              {this.renderSection(
-                t('settingHip2Title'),
-                t('settingHip2Desc'),
-                null,
-                null,
-                <Hip2Picker placeholder={t('settingHip2Placeholder')} />,
-                null
               )}
             </>
           </Route>
