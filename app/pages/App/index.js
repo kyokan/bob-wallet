@@ -26,6 +26,7 @@ import './app.scss';
 import AccountLogin from '../AcountLogin';
 import PassphraseModal from '../AcountLogin/PassphraseModal';
 import * as node from '../../ducks/node';
+import * as hip2 from "../../ducks/hip2";
 import SplashScreen from "../../components/SplashScreen";
 import IdleModal from '../../components/IdleModal';
 import {LedgerModal} from "../../components/LedgerModal";
@@ -47,6 +48,7 @@ const settingClient = sClientStub(() => require('electron').ipcRenderer);
     wallets: state.wallet.wallets,
   }),
   (dispatch) => ({
+    initHip2: () => dispatch(hip2.init()),
     setExplorer: (explorer) => dispatch(nodeActions.setExplorer(explorer)),
     fetchLocale: () => dispatch(fetchLocale()),
   }),
@@ -59,6 +61,7 @@ class App extends Component {
     initialized: PropTypes.bool.isRequired,
     startNode: PropTypes.func.isRequired,
     watchActivity: PropTypes.func.isRequired,
+    initHip2: PropTypes.func.isRequired,
     setExplorer: PropTypes.func.isRequired,
     fetchLocale: PropTypes.func.isRequired,
     isChangingNetworks: PropTypes.bool.isRequired,
@@ -76,6 +79,7 @@ class App extends Component {
     this.setState({isLoading: true});
     this.props.fetchLocale();
     await this.props.startNode();
+    await this.props.initHip2();
     this.props.watchActivity();
 
     const {type} = await connClient.getConnection();

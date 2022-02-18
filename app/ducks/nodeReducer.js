@@ -14,6 +14,8 @@ export const START_RPC_TEST = 'node/START_RPC_TEST';
 export const END_RPC_TEST = 'node/END_RPC_TEST';
 export const SET_EXPLORER = 'node/SET_EXPLORER';
 export const UPDATE_HNS_PRICE = 'node/UPDATE_HNS_PRICE';
+export const SET_RS_PORT = 'node/SET_RS_PORT';
+export const SET_NS_PORT = 'node/SET_NO_DNS';
 export const SET_NO_DNS = 'node/SET_NO_DNS';
 export const SET_SPV_MODE = 'node/SET_SPV_MODE';
 
@@ -27,6 +29,8 @@ export function getInitialState() {
     isChangingNetworks: false,
     network: 'main',
     apiKey: null,
+    rsPort: 9892,
+    nsPort: 9891,
     noDns: false,
     spv: false,
     fees: {
@@ -67,6 +71,8 @@ export default function nodeReducer(state = getInitialState(), action = {}) {
         isRunning: true,
         network: action.payload.network,
         apiKey: action.payload.apiKey,
+        rsPort: action.payload.rsPort,
+        nsPort: action.payload.nsPort,
         noDns: action.payload.noDns,
       };
     case STOP:
@@ -121,6 +127,16 @@ export default function nodeReducer(state = getInitialState(), action = {}) {
       return {
         ...state,
         hnsPrice: action.payload,
+      };
+    case SET_RS_PORT:
+      return {
+        ...state,
+        rsPort: action.payload,
+      };
+    case SET_NS_PORT:
+      return {
+        ...state,
+        nsPort: action.payload,
       };
     case SET_NO_DNS:
       return {

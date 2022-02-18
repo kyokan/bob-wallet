@@ -16,7 +16,6 @@ import {I18nContext} from "../../utils/i18n";
 import LockSVG from '../../assets/images/lock.svg';
 import RingsSVG from '../../assets/images/rings.svg';
 import hip2 from "../../utils/hip2Client";
-import * as networks from "hsd/lib/protocol/networks";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -31,6 +30,8 @@ const FAST = 'Fast';
     fees: state.node.fees,
     spendableBalance: state.wallet.balance.spendable,
     network: state.wallet.network,
+    node: state.node,
+    hip2Port: state.hip2.port,
     noDns: state.node.noDns,
     explorer: state.node.explorer,
   }),
@@ -72,7 +73,8 @@ class SendModal extends Component {
       txSize: 0,
     };
 
-    hip2.setServers([`127.0.0.1:${networks[props.network].rsPort}`]);
+    console.log(`hip2: using 127.0.0.1:${props.hip2Port}`);
+    hip2.setServers([`127.0.0.1:${props.hip2Port}`]);
   }
 
   componentDidMount () {
