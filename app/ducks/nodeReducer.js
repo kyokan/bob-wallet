@@ -27,7 +27,7 @@ export function getInitialState() {
     isChangingNetworks: false,
     network: 'main',
     apiKey: null,
-    noDns: true,
+    noDns: false,
     spv: false,
     fees: {
       slow: 0,

@@ -284,7 +284,7 @@
   "receiveModalYourAddressLabel": "Your Address:",
   "recipientAddress": "Recipient address",
   "recipientAddressHip2Enabled": "Recipient address or @ for alias",
-  "recipientAddressHip2Syncing": "Recipient address or @ for alias when synchronized",
+  "recipientAddressHip2Syncing": "Recipient address or wait until sync'd to send to alias",
   "recipientHip2Address": "Recipient alias",
   "records": "Records",
   "redeem": "Redeem",

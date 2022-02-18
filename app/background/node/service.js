@@ -63,8 +63,7 @@ export class NodeService extends EventEmitter {
       return noDns === '1';
     }
 
-    await put(NODE_NO_DNS, '1');
-    return true;
+    return false;
   }
 
   async getSpvMode() {

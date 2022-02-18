@@ -307,7 +307,6 @@ class SendModal extends Component {
               </span>}
               <input
                 type="text"
-                className={hip2Input ? (to ? 'send__input-hip2-success' : 'send__input-hip2') : null}
                 placeholder={hip2Input ? 
                   t('recipientHip2Address') : 
                   (hip2Enabled ? 
