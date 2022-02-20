@@ -165,7 +165,7 @@ export default class MenuBuilder {
         {
           label: 'Report an Issue',
           click() {
-            shell.openExternal('https://forum.kyokan.io/c/bob/support/5');
+            shell.openExternal('https://github.com/kyokan/bob-wallet/issues/new');
           }
         }
       ]
@@ -246,7 +246,7 @@ export default class MenuBuilder {
           {
             label: 'Report an Issue',
             click() {
-              shell.openExternal('https://forum.kyokan.io/c/bob/support/5');
+              shell.openExternal('https://github.com/kyokan/bob-wallet/issues/new');
             }
           }
         ]
