@@ -80,7 +80,7 @@ export default class Notification extends Component {
         <div
           className="notification__issue-wrapper__action"
           onClick={() => {
-            require("electron").shell.openExternal("https://forum.kyokan.io/c/bob/support/5");
+            require("electron").shell.openExternal("https://github.com/kyokan/bob-wallet/issues/new");
           }}
         >
           Create Bug Report
