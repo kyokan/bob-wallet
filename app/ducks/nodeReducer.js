@@ -71,8 +71,6 @@ export default function nodeReducer(state = getInitialState(), action = {}) {
         isRunning: true,
         network: action.payload.network,
         apiKey: action.payload.apiKey,
-        rsPort: action.payload.rsPort,
-        nsPort: action.payload.nsPort,
         noDns: action.payload.noDns,
       };
     case STOP:
@@ -127,16 +125,6 @@ export default function nodeReducer(state = getInitialState(), action = {}) {
       return {
         ...state,
         hnsPrice: action.payload,
-      };
-    case SET_RS_PORT:
-      return {
-        ...state,
-        rsPort: action.payload,
-      };
-    case SET_NS_PORT:
-      return {
-        ...state,
-        nsPort: action.payload,
       };
     case SET_NO_DNS:
       return {

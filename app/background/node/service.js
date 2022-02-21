@@ -37,8 +37,6 @@ const MIN_FEE = new BigNumber(0.01);
 const DEFAULT_BLOCK_TIME = 10 * 60 * 1000;
 const HSD_PREFIX_DIR_KEY = 'hsdPrefixDir';
 const NODE_API_KEY = 'nodeApiKey';
-const NODE_RS_PORT = 'nodeRsPort';
-const NODE_NS_PORT = 'nodeNsPort';
 const NODE_NO_DNS = 'nodeNoDns1';
 const SPV_MODE = 'nodeSpvMode';
 
@@ -57,24 +55,6 @@ export class NodeService extends EventEmitter {
     const newKey = crypto.randomBytes(20).toString('hex');
     await put(NODE_API_KEY, newKey);
     return newKey;
-  }
-
-  async getRsPort() {
-    const rsPort = await get(NODE_RS_PORT);
-    if (rsPort !== null) {
-      return rsPort;
-    }
-
-    return 9892;
-  }
-
-  async getNsPort() {
-    const nsPort = await get(NODE_NS_PORT);
-    if (nsPort !== null) {
-      return nsPort;
-    }
-
-    return 9891;
   }
 
   async getNoDns() {
@@ -131,14 +111,6 @@ export class NodeService extends EventEmitter {
     });
   }
 
-  async setRsPort(rsPort) {
-    await put(NODE_RS_PORT, rsPort);
-  }
-
-  async setNsPort(nsPort) {
-    await put(NODE_NS_PORT, nsPort);
-  }
-
   async setNoDns(noDns) {
     await put(NODE_NO_DNS, noDns === true ? '1' : '0');
   }
@@ -167,8 +139,6 @@ export class NodeService extends EventEmitter {
           payload: {
             network: this.networkName,
             apiKey: this.apiKey,
-            rsPort: this.rsPort,
-            nsPort: this.nsPort,
             noDns: this.noDns,
           },
         });
@@ -203,8 +173,6 @@ export class NodeService extends EventEmitter {
     this.networkName = networkName;
     this.network = network;
     this.apiKey = await this.getAPIKey();
-    this.rsPort = await this.getRsPort();
-    this.nsPort = await this.getNsPort();
     this.noDns = await this.getNoDns();
   }
 
@@ -247,8 +215,8 @@ export class NodeService extends EventEmitter {
       apiKey: this.apiKey,
       walletApiKey: this.apiKey,
       cors: true,
-      rsPort: this.rsPort,
-      nsPort: this.nsPort,
+      rsPort: 9892,
+      nsPort: 9891,
       noDns: this.noDns,
       listen: this.networkName === 'regtest', // improves remote rpc dev/testing
       chainMigrate: 2,
@@ -628,8 +596,6 @@ const methods = {
   stop: () => service.stop(),
   reset: () => service.reset(),
   getAPIKey: () => service.getAPIKey(),
-  getRsPort: () => service.getRsPort(),
-  getNsPort: () => service.getNsPort(),
   getNoDns: () => service.getNoDns(),
   getSpvMode: () => service.getSpvMode(),
   getInfo: () => service.getInfo(),
@@ -649,8 +615,6 @@ const methods = {
   getCoin: (hash, index) => service.getCoin(hash, index),
   setNodeDir: data => service.setNodeDir(data),
   setAPIKey: data => service.setAPIKey(data),
-  setRsPort: data => service.setRsPort(data),
-  setNsPort: data => service.setNsPort(data),
   setNoDns: data => service.setNoDns(data),
   setSpvMode: data => service.setSpvMode(data),
   getDir: () => service.getDir(),

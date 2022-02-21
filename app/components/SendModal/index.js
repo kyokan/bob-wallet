@@ -72,7 +72,6 @@ class SendModal extends Component {
       txSize: 0,
     };
 
-    console.log(`hip2: using 127.0.0.1:${props.hip2Port}`);
     hip2.setServers([`127.0.0.1:${props.hip2Port}`]);
   }
 

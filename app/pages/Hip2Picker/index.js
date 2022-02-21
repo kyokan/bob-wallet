@@ -18,7 +18,6 @@ export default class Hip2Picker extends Component {
 
   constructor (props) {
     super(props);
-    console.log(props.port)
     this.state = { port: props.port, invalid: false };
   }
 

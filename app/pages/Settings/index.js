@@ -533,7 +533,7 @@ export default class Settings extends Component {
                 t('settingDNSTitle'),
                 !isRunning || noDns
                   ? <><span className="node-status--inactive" /><span>{t('settingDNSNotRunning')}</span></>
-                  : <><span className="node-status--active" /><span>{t('settingDNSRunning')} 127.0.0.1:{nsPort} 127.0.0.1:{rsPort}</span></>,
+                  : <><span className="node-status--active" /><span>{t('settingDNSRunning', nsPort.toString(), rsPort.toString())}</span></>,
                 noDns ? t('enable') : t('disable'),
                 () => {setNoDns(!noDns)},
                 null,
@@ -541,7 +541,7 @@ export default class Settings extends Component {
               )}
               {this.renderSection(
                 t('settingHip2Title'),
-                t('settingHip2Desc'),
+                t('settingHip2Desc', rsPort.toString()),
                 null,
                 null,
                 <Hip2Picker placeholder={t('settingHip2Placeholder')} />,

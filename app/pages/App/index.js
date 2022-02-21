@@ -26,7 +26,6 @@ import './app.scss';
 import AccountLogin from '../AcountLogin';
 import PassphraseModal from '../AcountLogin/PassphraseModal';
 import * as node from '../../ducks/node';
-import * as hip2 from "../../ducks/hip2";
 import SplashScreen from "../../components/SplashScreen";
 import IdleModal from '../../components/IdleModal';
 import {LedgerModal} from "../../components/LedgerModal";
@@ -38,7 +37,7 @@ import AppHeader from "../AppHeader";
 import Exchange from '../Exchange';
 import SignMessage from "../SignMessage";
 import VerifyMessage from "../VerifyMessage";
-import {fetchLocale} from "../../ducks/app";
+import {fetchLocale, initHip2} from "../../ducks/app";
 import {I18nContext} from "../../utils/i18n";
 const connClient = cClientStub(() => require('electron').ipcRenderer);
 const settingClient = sClientStub(() => require('electron').ipcRenderer);
@@ -48,7 +47,7 @@ const settingClient = sClientStub(() => require('electron').ipcRenderer);
     wallets: state.wallet.wallets,
   }),
   (dispatch) => ({
-    initHip2: () => dispatch(hip2.init()),
+    initHip2: () => dispatch(initHip2()),
     setExplorer: (explorer) => dispatch(nodeActions.setExplorer(explorer)),
     fetchLocale: () => dispatch(fetchLocale()),
   }),
