@@ -9,6 +9,12 @@
     box-sizing: border-box;
   }
 
+  &__warning {
+    @extend %h4;
+    margin: 0.2rem 0;
+    color: $orange-red;
+  }
+
   &__textarea {
     @extend %col-nowrap;
     @extend %box-input;
