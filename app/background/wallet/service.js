@@ -741,7 +741,7 @@ class WalletService {
   signMessageWithName = (name, message) => this._ledgerDisabled(
     'method is not supported on ledger yet',
     () => {
-      return this._executeRPC('signmessagewithname', [name, message]);
+      return this._executeRPC('signmessagewithname', [name, message], this.lock);
     }
   );
 
