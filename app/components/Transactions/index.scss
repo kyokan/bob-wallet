@@ -4,23 +4,39 @@
   display: flex;
   border-bottom: 1px solid $athens-gray;
   padding: 1rem 3rem;
-  align-items: center;
 
   &__tld-link {
+    display: inline;
+    position: relative;
+    margin-right: 6px;
     cursor: pointer;
-    border-bottom: 1px dashed lighten($manatee-gray, 25);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 
+    &::after {
+      content : '';
+      position : absolute;
+      width : 100%;
+      bottom: 0;
+      left: 0;
+      border-bottom: 1px dashed lighten($manatee-gray, 25);
+
+      &:hover {
+        border-bottom: 1px dashed lighten($manatee-gray, 30);
+      }
+
+      &:active {
+        border-bottom: 1px dashed lighten($manatee-gray, 20);
+      }
+    }
+
     &:hover {
       color: lighten($manatee-gray, 10);
-      border-bottom: 1px dashed lighten($manatee-gray, 30);
     }
 
     &:active {
       color: darken($manatee-gray, 10);
-      border-bottom: 1px dashed lighten($manatee-gray, 20);
     }
   }
 
@@ -73,6 +89,7 @@
 
   &__title {
     @extend %h4;
+    height: max-content;
     color: $black;
     font-weight: 500;
     margin-bottom: 0.1rem;
@@ -85,9 +102,37 @@
   }
 
   &__party {
+    width: 100%;
     margin-left: 1rem;
     color: $manatee-gray;
     overflow: hidden;
+
+    &__container {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-right: 4px;
+
+      &--expanded {
+        width: 100%;
+        flex-grow: 1;
+        margin-bottom: 6px;
+      }
+    }
+
+    &__btn {
+      display: inline-block;
+      flex-shrink: 0;
+      // color: #494949;
+      color: darken($grey, 50);
+      font-size: 14px;
+      cursor: pointer;
+      text-transform: lowercase;
+
+      &:hover {
+        color: darken($grey, 30);
+      }
+    }
   }
 
   &__subtitle {
