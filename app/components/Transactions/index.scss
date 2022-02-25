@@ -292,6 +292,7 @@
 
   &__go-to {
     @extend %row-nowrap;
+    margin-right: 1rem;
     align-items: center;
     font-size: .65rem;
 
@@ -341,6 +342,26 @@
 
     &__total {
       margin-left: .5rem;
+    }
+  }
+
+  &__export {
+    @extend %row-nowrap;
+    align-items: center;
+    font-size: .65rem;
+
+    & > button {
+      @extend %row-nowrap;
+      @extend %btn-secondary;
+
+      flex: 0 0 auto;
+      align-items: center;
+      padding: .25rem .5rem;
+      margin-right: .5rem;
+
+      // &__link {
+      //   font-size: .8rem;
+      // }
     }
   }
 }
