@@ -73,9 +73,6 @@ export default class BidHistory extends Component {
               if (bid.bid != null) {
                 bidValue = displayBalance(bid.bid, true);
               }
-              if (bid.height === -1) {
-                bidValue = 'not mined yet';
-              }
               return (
                 <tr key={idx}>
                   <td>{bid.date}</td>

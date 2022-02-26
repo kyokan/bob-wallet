@@ -533,6 +533,11 @@ class WalletService {
     return {bids, filter};
   };
 
+  getBlind = async (blind) => {
+    const wallet = await this.node.wdb.get(this.name);
+    return wallet.getBlind(Buffer.from(blind, 'hex'));
+  };
+
   getMasterHDKey = () => this._ledgerDisabled(
     'cannot get HD key for watch-only wallet',
     () => this.client.getMaster(this.name),
@@ -1615,6 +1620,7 @@ const methods = {
   getTransactionHistory: service.getTransactionHistory,
   getPendingTransactions: service.getPendingTransactions,
   getBids: service.getBids,
+  getBlind: service.getBlind,
   getMasterHDKey: service.getMasterHDKey,
   hasAddress: service.hasAddress,
   setPassphrase: service.setPassphrase,

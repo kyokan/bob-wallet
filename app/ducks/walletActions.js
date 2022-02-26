@@ -282,11 +282,16 @@ export const fetchTransactions = () => async (dispatch, getState) => {
 };
 
 export const fetchPendingTransactions = () => async (dispatch, getState) => {
-  if (!getState().wallet.initialized) {
+  const state = getState();
+
+  if (!state.wallet.initialized) {
     return;
   }
 
-  const payload = await walletClient.getPendingTransactions();
+  const pendingTxs = await walletClient.getPendingTransactions();
+  const payload = await processPendingTransactions(state.names, pendingTxs);
+
+  // SET_PENDING_TRANSACTIONS takes payload to replace `state.names`
   dispatch({
     type: SET_PENDING_TRANSACTIONS,
     payload: payload || [],
@@ -606,4 +611,106 @@ async function nameByHash(net, covenant) {
   }
 
   return name;
+}
+
+// For processPendingTransactions
+const ALLOWED_COVENANTS = new Set([
+  'OPEN',
+  'BID',
+  'REVEAL',
+  'UPDATE',
+  'REGISTER',
+  'RENEW',
+  'REDEEM',
+  'TRANSFER',
+  'FINALIZE',
+]);
+
+/**
+ * Process Pending Transactions
+ * Parse covenant values as needed and add `pendingOperation[Meta]` to state.names
+ * @param {Object} names state.names
+ * @param {TX[]} pendingTxs result of walletClient.getPendingTransactions()
+ * @returns {Object} state.names
+ */
+async function processPendingTransactions(names, pendingTxs) {
+  const pendingOperationsByHash = {};
+  const pendingOpMetasByHash = {};
+  const pendingOutputByHash = {};
+
+  for (const {tx} of pendingTxs) {
+    for (const output of tx.outputs) {
+      if (ALLOWED_COVENANTS.has(output.covenant.action)) {
+        const hash = output.covenant.items[0];
+
+        // Store multiple bids
+        if (output.covenant.action === 'BID') {
+          pendingOperationsByHash[hash] = output.covenant.action;
+          pendingOpMetasByHash[hash] = [...(pendingOpMetasByHash[hash] || []), output.covenant];
+          pendingOutputByHash[hash] = [...(pendingOutputByHash[hash] || []), output];
+        } else {
+          pendingOperationsByHash[hash] = output.covenant.action;
+          pendingOpMetasByHash[hash] = output.covenant;
+          pendingOutputByHash[hash] = output;
+        }
+
+        break;
+      }
+    }
+  }
+
+  const oldNames = Object.keys(names);
+  const newNames = {};
+  for (const name of oldNames) {
+    const data = names[name];
+    const hash = data.hash;
+    const pendingOp = pendingOperationsByHash[hash];
+    const pendingCovenant = pendingOpMetasByHash[hash];
+    const pendingOutput = pendingOutputByHash[hash];
+    const pendingOperationMeta = {};
+
+    if (pendingOp === 'UPDATE' || pendingOp === 'REGISTER') {
+      pendingOperationMeta.data = pendingCovenant.items[2];
+    }
+
+    if (pendingOp === 'REVEAL') {
+      pendingOperationMeta.output = pendingOutput;
+    }
+
+    if (pendingOp === 'BID') {
+      const promises = pendingOutput.map(async output => {
+        const blind = output.covenant.items[3];
+        const bv = await walletClient.getBlind(blind);
+
+        return {
+          value: output.value,
+          height: -1,
+          from: output.address,
+          date: null,
+          bid: {
+            value: bv?.value || null,
+            prevout: null,
+            own: true,
+            namehash: hash,
+            name: name,
+            lockup: output.value,
+            blind: blind,
+          },
+        }
+      });
+
+      pendingOperationMeta.bids = await Promise.all(promises);
+    }
+
+    newNames[name] = {
+      ...data,
+      pendingOperation: pendingOp || null,
+      pendingOperationMeta: pendingOperationMeta,
+    };
+  }
+
+  return {
+    ...names,
+    ...newNames,
+  };
 }
