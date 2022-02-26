@@ -41,9 +41,18 @@ function reducePendingTransactions(state, action) {
   for (const {tx} of action.payload) {
     for (const output of tx.outputs) {
       if (ALLOWED_COVENANTS.has(output.covenant.action)) {
-        pendingOperationsByHash[output.covenant.items[0]] = output.covenant.action;
-        pendingOpMetasByHash[output.covenant.items[0]] = output.covenant;
-        pendingOutputByHash[output.covenant.items[0]] = output;
+        const hash = output.covenant.items[0];
+
+        // Store multiple bids
+        if (output.covenant.action === 'BID') {
+          pendingOperationsByHash[hash] = output.covenant.action;
+          pendingOpMetasByHash[hash] = [...(pendingOpMetasByHash[hash] || []), output.covenant];
+          pendingOutputByHash[hash] = [...(pendingOutputByHash[hash] || []), output];
+        } else {
+          pendingOperationsByHash[hash] = output.covenant.action;
+          pendingOpMetasByHash[hash] = output.covenant;
+          pendingOutputByHash[hash] = output;
+        }
         break;
       }
     }
@@ -65,6 +74,24 @@ function reducePendingTransactions(state, action) {
 
     if (pendingOp === 'REVEAL') {
       pendingOperationMeta.output = pendingOutput;
+    }
+
+    if (pendingOp === 'BID') {
+      pendingOperationMeta.bids = pendingOutput.map(output => ({
+        value: output.value,
+        height: -1,
+        from: output.address,
+        date: null,
+        bid: {
+          value: null, // true bid
+          prevout: null,
+          own: true,
+          namehash: hash,
+          name: name,
+          lockup: output.value,
+          blind: output.covenant.items[3],
+        },
+      }));
     }
 
     newNames[name] = {

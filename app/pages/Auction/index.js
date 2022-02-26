@@ -46,7 +46,7 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
     return {
       domain: state.names[name],
       chain: state.node.chain,
-      explorer: state.node.explorer
+      explorer: state.node.explorer,
     };
   },
   dispatch => ({
@@ -205,10 +205,17 @@ export default class Auction extends Component {
   }
 
   maybeRenderCollapsibles() {
+    const {t} = this.context;
     const domain = this.props.domain || {};
-    const bids = domain.bids || domain.reveals || [];
-    const pillContent = bids.length === 1 ? `${bids.length} bid` : `${bids.length} bids`;
-    const t = this.context.t;
+    const {bids, reveals, pendingOperation, pendingOperationMeta} = domain;
+
+    const bidsIncludingPending =
+      (pendingOperation === 'BID') ?
+        [...pendingOperationMeta.bids, ...bids]
+        : bids;
+
+    const bidsOrReveals = domain.bids || domain.reveals || [];
+    const pillContent = bidsOrReveals.length === 1 ? `${bidsOrReveals.length} bid` : `${bidsOrReveals.length} bids`;
 
     if (isAvailable(domain) || isOpening(domain) || isBidding(domain) || isReveal(domain) || isClosed(domain)) {
       return (
@@ -216,14 +223,9 @@ export default class Auction extends Component {
 
           <Collapsible className="domains__content__info-panel" title="Bids" pillContent={pillContent}>
             {
-              this.props.domain
-                ? (
-                  <BidHistory
-                    bids={this.props.domain.bids}
-                    reveals={this.props.domain.reveals}
-                  />
-                )
-              : t('loading')
+              this.props.domain ?
+                <BidHistory bids={bidsIncludingPending} reveals={reveals} />
+                : t('loading')
             }
           </Collapsible>
 

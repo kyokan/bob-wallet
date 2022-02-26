@@ -97,6 +97,7 @@ class BidNow extends Component {
       logger.error(`Error received from BidNow - sendBid]\n\n${e.message}\n${e.stack}\n`);
       this.props.showError(`Failed to place bid: ${e.message}`);
     } finally {
+      await this.props.fetchPendingTransactions();
       await this.props.getNameInfo(domain.name);
     }
   };
@@ -145,7 +146,12 @@ class BidNow extends Component {
               bidAmount={bidAmount}
               maskAmount={Number(bidAmount) + Number(disguiseAmount)}
               revealStartBlock={bidPeriodEnd}
-              onClose={() => this.setState({showSuccessModal: false})}
+              onClose={() => this.setState({
+                showSuccessModal: false,
+                hasAccepted: false,
+                bidAmount: '',
+                disguiseAmount: '',
+              })}
             />
           )
         }
@@ -288,6 +294,9 @@ class BidNow extends Component {
 
   renderOwnBidAction() {
     const {t} = this.context;
+    const {pendingOperation} = this.props.domain;
+    const pendingBidExists = pendingOperation === 'BID';
+
     return (
       <AuctionPanelFooter>
         {this.renderOwnHighestBid()}
@@ -295,9 +304,8 @@ class BidNow extends Component {
           <button
             className="domains__bid-now__action__cta"
             onClick={() => this.setState({isPlacingBid: true})}
-            disabled={this.isBidPending()}
           >
-            {this.isBidPending() ? t('bidPending') : t('placeBid')}
+            {pendingBidExists ? t('placeAnotherBid') : t('placeBid')}
           </button>
         </div>
       </AuctionPanelFooter>
@@ -376,11 +384,6 @@ class BidNow extends Component {
     );
   }
 
-  isBidPending() {
-    const {successfullyBid} = this.state;
-    return successfullyBid || this.props.isPending;
-  }
-
   renderBidNow() {
     const {isReviewing} = this.state;
     return isReviewing ? this.renderReviewing() : this.renderBiddingView();
@@ -420,6 +423,7 @@ export default connect(
     sendBid: (amount, lockup, height) => dispatch(nameActions.sendBid(name, toBaseUnits(amount), toBaseUnits(lockup), height)),
     showError: (message) => dispatch(showError(message)),
     showSuccess: (message) => dispatch(showSuccess(message)),
+    fetchPendingTransactions: () => dispatch(walletActions.fetchPendingTransactions()),
     waitForWalletSync: () => dispatch(walletActions.waitForWalletSync()),
     startWalletSync: () => dispatch(walletActions.startWalletSync()),
     stopWalletSync: () => dispatch(walletActions.stopWalletSync()),
