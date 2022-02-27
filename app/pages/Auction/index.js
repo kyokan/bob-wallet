@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import cn from 'classnames';
 import moment from 'moment';
+import throttle from 'lodash.throttle';
 
 import * as names from '../../ducks/names';
 import * as walletActions from '../../ducks/walletActions';
@@ -105,6 +106,17 @@ export default class Auction extends Component {
   componentDidMount() {
     analytics.screenView('Auction');
   }
+
+  async componentDidUpdate(prevProps, prevState) {
+    if (this.props.chain.height !== prevProps.chain.height) {
+      this.refreshInfo();
+    }
+  }
+
+  refreshInfo = throttle(async () => {
+    await this.props.getNameInfo(this.getDomain());
+    await this.props.fetchPendingTransactions();
+  }, 10*1000, {leading: true}) // 10 seconds
 
   getDomain = () => this.props.match.params.name;
 

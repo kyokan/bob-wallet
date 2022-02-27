@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import c from 'classnames';
 import createAMPMTimeStamp from '../../utils/timeConverter';
 import { displayBalance } from '../../utils/balances';
 import ellipsify from '../../utils/ellipsify';
@@ -74,13 +75,18 @@ export default class BidHistory extends Component {
                 bidValue = displayBalance(bid.bid, true);
               }
               return (
-                <tr key={idx}>
+                <tr
+                  key={idx}
+                  className={c({
+                    "bid-history__table__tr--pending": bid.height === -1,
+                  })}
+                >
                   <td>{bid.date}</td>
-                  <td>{bid.own ? t('you') : ellipsify(fromAddress, 10)}</td>
+                  <td>{bid.own ? t("you") : ellipsify(fromAddress, 10)}</td>
                   <td>{bidValue}</td>
                   <td>{displayBalance(bid.mask, true)}</td>
                 </tr>
-              )
+              );
             })}
           </tbody>
         </table>
