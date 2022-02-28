@@ -213,7 +213,7 @@ class Sidebar extends Component {
               className="sidebar__footer__update-notif"
               onClick={() => shell.openExternal(updateAvailable.url)}
             >
-              Update Available ({updateAvailable.version})
+              {t('updateAvailable')} ({updateAvailable.version})
             </button>
           </div>
         ) : null}
