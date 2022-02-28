@@ -1,4 +1,4 @@
-@import '../../variables';
+@import '../../variables.scss';
 
 .sidebar {
   @extend %col-nowrap;
@@ -79,7 +79,7 @@
 
   &__footer {
     @extend %col-nowrap;
-    padding-bottom: 1rem;
+    padding: 0.3rem 0rem;
     position: relative;
     flex: 0 0 auto;
     border-top: 1px solid rgba($black, 0.1);
@@ -114,6 +114,13 @@
         border: 1px solid #a0a0a0;
         color: #333;
       }
+    }
+
+    &__update-notif {
+      @extend %h5;
+      @extend %btn-secondary;
+      padding: 0.5rem;
+      text-align: center;
     }
   }
 

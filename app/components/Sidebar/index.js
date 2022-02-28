@@ -1,3 +1,4 @@
+import { shell } from 'electron';
 import React, { Component } from 'react';
 import { withRouter, NavLink } from 'react-router-dom';
 import PropTypes from 'prop-types';
@@ -22,6 +23,7 @@ const nodeClient = clientStub(() => require('electron').ipcRenderer);
     walletSync: state.wallet.walletSync,
     walletHeight: state.wallet.walletHeight,
     address: state.wallet.address,
+    updateAvailable: state.app.updateAvailable,
   }),
   dispatch => ({
 
@@ -44,6 +46,7 @@ class Sidebar extends Component {
     walletHeight: PropTypes.number.isRequired,
     network: PropTypes.string.isRequired,
     address: PropTypes.string.isRequired,
+    updateAvailable: PropTypes.object,
   };
 
   static contextType = I18nContext;
@@ -199,13 +202,27 @@ class Sidebar extends Component {
       newBlockStatus,
       chainHeight,
       tip,
+      updateAvailable,
     } = this.props;
 
     return (
       <div className="sidebar__footer">
-        <div className="sidebar__footer__row">
-          <div className="sidebar__footer__title">{newBlockStatus}</div>
-        </div>
+        {updateAvailable ? (
+          <div className="sidebar__footer__row">
+            <button
+              className="sidebar__footer__update-notif"
+              onClick={() => shell.openExternal(updateAvailable.url)}
+            >
+              Update Available ({updateAvailable.version})
+            </button>
+          </div>
+        ) : null}
+        {newBlockStatus ? (
+          <div className="sidebar__footer__row">
+            <div className="sidebar__footer__title">{newBlockStatus}</div>
+          </div>)
+          : null
+        }
         <div className="sidebar__footer__row">
           <div className="sidebar__footer__title">{t('currentHeight')}</div>
           <div className="sidebar__footer__text">
