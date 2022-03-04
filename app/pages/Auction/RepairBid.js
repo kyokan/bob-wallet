@@ -25,33 +25,6 @@ export class RepairBid extends Component {
     };
   };
 
-  renderRepairableBid() {
-    const {t} = this.context;
-    return (
-      <div
-        className="bid-history__repair-bid"
-        onClick={() => this.setState({isEditing: true})}
-      >
-        {`⚠️ ${t('unknownBid')}`}
-      </div>
-    );
-  }
-
-  renderInput() {
-    return (
-      <input
-        className={this.state.isCorrect ? 'bid-history__correct' : ''}
-        placeholder="0.00"
-        value={this.state.value}
-        onChange={(e) => {
-            this.processValue(e.target.value);
-          }
-        }
-        disabled={this.state.isCorrect}
-      />
-    );
-  }
-
   processValue = async (val) => {
     const value = val.match(/[0-9]*\.?[0-9]{0,6}/g)[0];
     this.setState({value: value});
@@ -92,6 +65,33 @@ export class RepairBid extends Component {
     return this.state.isEditing
     ? this.renderInput()
     : this.renderRepairableBid();
+  }
+
+  renderInput() {
+    return (
+      <input
+        className={this.state.isCorrect ? 'bid-history__correct' : ''}
+        placeholder="0.00"
+        value={this.state.value}
+        onChange={(e) => {
+            this.processValue(e.target.value);
+          }
+        }
+        disabled={this.state.isCorrect}
+      />
+    );
+  }
+
+  renderRepairableBid() {
+    const {t} = this.context;
+    return (
+      <div
+        className="bid-history__repair-bid"
+        onClick={() => this.setState({isEditing: true})}
+      >
+        {`⚠️ ${t('unknownBid')}`}
+      </div>
+    );
   }
 }
 
