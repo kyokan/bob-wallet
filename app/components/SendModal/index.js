@@ -25,7 +25,7 @@ const FAST = 'Fast';
 
 @connect(
   state => ({
-    isSynchronized: state.node.isRunning && (state.node.chain || {}).progress === 1,
+    isSynchronized: state.node.isRunning && (state.node.chain || {}).progress >= 0.99,
     address: state.wallet.address,
     fees: state.node.fees,
     spendableBalance: state.wallet.balance.spendable,
