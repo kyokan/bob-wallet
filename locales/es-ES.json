@@ -170,7 +170,7 @@
   "inBids": "En pujas",
   "inFinishedAuctions": "En subastas acabadas",
   "inReveals": "En revelación",
-  "invalidAddressPrefix": "El prefijo de dirección no es válido",
+  "invalidAddress": "El prefijo de dirección no es válido",
   "itemsPerPage": "Elementos por página",
   "learnMore": "Aprende más",
   "ledgerModalConfirmText": "Confirma la información de la transacción en tu dispositivo Ledger.",

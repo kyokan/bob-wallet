@@ -5,8 +5,8 @@ const { fetchAddress, setServers } = require('hip2-dane');
 
 const hip2Opts = {
   token: 'HNS',
-  maxLength: 43,
-  validate: key => !!key && key.slice(0,3) === 'hs1' && key.length === 42
+  maxLength: 90,
+  validate: key => !!key && key.slice(0,2) === 'hs' && key.length <= 90,
 }
 
 const HIP2_PORT = 'hip2/port';

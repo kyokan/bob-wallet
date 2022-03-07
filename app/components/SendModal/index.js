@@ -89,57 +89,56 @@ class SendModal extends Component {
     let input = e.target.value
     let justEnabled = false
 
-    if (hip2Enabled && !this.state.hip2Input && input[0] === '@') {
-      justEnabled = true
+    if (hip2Enabled) {
+      if (!this.state.hip2Input && input[0] === '@') {
+        justEnabled = true
 
-      // handle alias copy/pastes
-      input = input.slice(1)
-      this.setState({ hip2Input: true, hip2To: input, to: '', errorMessage: '', hip2Error: '', hip2Loading: false })
-    }
+        // handle alias copy/pastes
+        input = input.slice(1)
+        this.setState({ hip2Input: true, hip2To: input, to: '', errorMessage: '', hip2Error: '', hip2Loading: false })
+      }
 
-    if (hip2Enabled && (this.state.hip2Input || justEnabled)) {
-      if (!justEnabled) {
+      if (this.state.hip2Input || justEnabled) {
         // prevent latency attacks: clear `to` address on new input
         this.setState({ hip2To: input, hip2Error: '', to: '' })
-      }
 
-      if (input) {
-        this.setState({ hip2Loading: true })
+        if (input) {
+          this.setState({ hip2Loading: true })
 
-        // delay lookup by 120ms 
-        setTimeout(() => {
-          // abort lookup if input has changed
-          if (!(this.state.hip2Input && this.state.hip2To === input)) return
+          // delay lookup by 120ms 
+          setTimeout(() => {
+            // abort lookup if input has changed
+            if (!(this.state.hip2Input && this.state.hip2To === input)) return
 
-          hip2.fetchAddress(input).then(to => {
-            // prevent latency attacks: only set `to` address if matches the current input
-            if (this.state.hip2Input && this.state.hip2To === input) {
-              this.setState({ to, errorMessage: '', hip2Error: '', hip2Loading: false })
-            }
-          }).catch(err => {
-            if (this.state.hip2Input && this.state.hip2To === input) {
-              let hip2Error
-              if (err.code === 'EINVALID') {
-                hip2Error = this.context.t('hip2InvalidAddress')
-              } else if (err.code === 'ELARGE') {
-                hip2Error = this.context.t('hip2InvalidAddress')
-              } else if (err.code === -1) {
-                hip2Error = this.context.t('hip2InvalidTLSA')
-              } else {
-                hip2Error = this.context.t('hip2AddressNotFound')
+            hip2.fetchAddress(input).then(to => {
+              // prevent latency attacks: only set `to` address if matches the current input
+              if (this.state.hip2Input && this.state.hip2To === input) {
+                this.setState({ to, errorMessage: '', hip2Error: '', hip2Loading: false })
               }
-              this.setState({ to: '', errorMessage: '', hip2Error, hip2Loading: false })
-            }
-          })
-        }, 120)
+            }).catch(err => {
+              if (this.state.hip2Input && this.state.hip2To === input) {
+                let hip2Error
+                if (err.code === 'EINVALID') {
+                  hip2Error = this.context.t('hip2InvalidAddress')
+                } else if (err.code === 'ELARGE') {
+                  hip2Error = this.context.t('hip2InvalidAddress')
+                } else if (err.code === -1) {
+                  hip2Error = this.context.t('hip2InvalidTLSA')
+                } else {
+                  hip2Error = this.context.t('hip2AddressNotFound')
+                }
+                this.setState({ to: '', errorMessage: '', hip2Error, hip2Loading: false })
+              }
+            })
+          }, 120)
+        }
+      } else {
+        this.setState({ to: input, errorMessage: '', hip2Error: '', hip2Loading: false });
       }
-    } else {
-      this.setState({ to: input, errorMessage: '', hip2Error: '', hip2Loading: false });
     }
 
-    const address = this.state.to
-    if (address.length > 2 && !isValidAddress(address, this.props.network)) {
-      this.setState({ errorMessage: this.context.t('invalidAddressPrefix') });
+    if (!justEnabled && !this.state.hip2Input && input.length > 2 && !isValidAddress(input, this.props.network)) {
+      this.setState({ errorMessage: this.context.t('invalidAddress') });
     }
   };
 

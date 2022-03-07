@@ -170,7 +170,7 @@
   "inBids": "XXXXX",
   "inFinishedAuctions": "XXXXX",
   "inReveals": "XXXXX",
-  "invalidAddressPrefix": "XXXXX",
+  "invalidAddress": "XXXXX",
   "itemsPerPage": "XXXXX",
   "learnMore": "XXXXX",
   "ledgerModalConfirmText": "XXXXX",
