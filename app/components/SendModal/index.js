@@ -111,14 +111,23 @@ class SendModal extends Component {
           // abort lookup if input has changed
           if (!(this.state.hip2Input && this.state.hip2To === input)) return
 
-          hip2.fetchAddress(input, 'HNS').then(to => {
+          hip2.fetchAddress(input).then(to => {
             // prevent latency attacks: only set `to` address if matches the current input
             if (this.state.hip2Input && this.state.hip2To === input) {
               this.setState({ to, errorMessage: '', hip2Error: '', hip2Loading: false })
             }
           }).catch(err => {
             if (this.state.hip2Input && this.state.hip2To === input) {
-              const hip2Error = err.code === -1 ? this.context.t('hip2InvalidTLSA') : this.context.t('noHip2AddressFound')
+              let hip2Error
+              if (err.code === 'EINVALID') {
+                hip2Error = this.context.t('hip2InvalidAddress')
+              } else if (err.code === 'ELARGE') {
+                hip2Error = this.context.t('hip2InvalidAddress')
+              } else if (err.code === -1) {
+                hip2Error = this.context.t('hip2InvalidTLSA')
+              } else {
+                hip2Error = this.context.t('hip2AddressNotFound')
+              }
               this.setState({ to: '', errorMessage: '', hip2Error, hip2Loading: false })
             }
           })

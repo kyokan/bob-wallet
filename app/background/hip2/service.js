@@ -3,6 +3,12 @@ import { get, put } from '../db/service';
 import { dispatchToMainWindow } from "../../mainWindow";
 const { fetchAddress, setServers } = require('hip2-dane');
 
+const hip2Opts = {
+  token: 'HNS',
+  maxLength: 43,
+  validate: key => !!key && key.slice(0,3) === 'hs1' && key.length === 42
+}
+
 const HIP2_PORT = 'hip2/port';
 
 async function getPort () {
@@ -26,7 +32,7 @@ const sName = 'Hip2'
 const methods = {
   getPort,
   setPort,
-  fetchAddress,
+  fetchAddress: address => fetchAddress(address, hip2Opts),
   setServers,
 };
 
