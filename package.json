@@ -97,9 +97,12 @@
     "type": "git",
     "url": "git+https://github.com/kyokan/bob-electron.git"
   },
+  "bugs": {
+    "url": "https://github.com/kyokan/bob-wallet/issues/new?template=bug_report.md"
+  },
   "license": "MIT",
   "keywords": [],
-  "homepage": "https://github.com/kyokan/bob-electron#readme",
+  "homepage": "https://bobwallet.io/",
   "devDependencies": {
     "@babel/cli": "^7.16.8",
     "@babel/core": "^7.16.7",

@@ -165,7 +165,7 @@ export default class MenuBuilder {
         {
           label: 'Report an Issue',
           click() {
-            shell.openExternal('https://forum.kyokan.io/c/bob/support/5');
+            shell.openExternal(pkg.bugs.url);
           }
         }
       ]
@@ -240,13 +240,13 @@ export default class MenuBuilder {
           {
             label: "About Bob",
             click: () => {
-              shell.openExternal("https://github.com/kyokan/bob-electron")
+              shell.openExternal(pkg.homepage)
             }
           },
           {
             label: 'Report an Issue',
             click() {
-              shell.openExternal('https://forum.kyokan.io/c/bob/support/5');
+              shell.openExternal(pkg.bugs.url);
             }
           }
         ]
