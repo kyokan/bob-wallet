@@ -1,13 +1,8 @@
 import { SET_HIP2_PORT } from "../../ducks/hip2Reducer";
 import { get, put } from '../db/service';
 import { dispatchToMainWindow } from "../../mainWindow";
+import { service } from "../node/service"
 const { fetchAddress, setServers } = require('hip2-dane');
-
-const hip2Opts = {
-  token: 'HNS',
-  maxLength: 90,
-  validate: key => !!key && key.slice(0,2) === 'hs' && key.length <= 90,
-}
 
 const HIP2_PORT = 'hip2/port';
 
@@ -29,13 +24,29 @@ async function setPort (port) {
 }
 
 const sName = 'Hip2'
-const methods = {
-  getPort,
-  setPort,
-  fetchAddress: address => fetchAddress(address, hip2Opts),
-  setServers,
+
+const networkPrefix = {
+  simnet: 'ss',
+  testnet: 'ts',
+  main: 'hs',
+  regtest: 'rs',
 };
 
 export async function start (server) {
+  const methods = {
+    getPort,
+    setPort,
+    fetchAddress: async address => await fetchAddress(address, {
+      token: 'HNS',
+      maxLength: 90,
+      validate: key => {
+        return key.length
+          && key.slice(0,2) === networkPrefix[service.network.type]
+          && key.length >= 9
+          && key.length <= 90 
+      }
+    }),
+    setServers,
+  };
   server.withService(sName, methods)
 };

@@ -122,6 +122,8 @@ class SendModal extends Component {
                   hip2Error = this.context.t('hip2InvalidAddress')
                 } else if (err.code === 'ELARGE') {
                   hip2Error = this.context.t('hip2InvalidAddress')
+                } else if (err.code === 'ECOLLISION') {
+                  hip2Error = this.context.t('hip2InvalidAlias')
                 } else if (err.code === -1) {
                   hip2Error = this.context.t('hip2InvalidTLSA')
                 } else {
@@ -135,6 +137,8 @@ class SendModal extends Component {
       } else {
         this.setState({ to: input, errorMessage: '', hip2Error: '', hip2Loading: false });
       }
+    } else {
+      this.setState({ to: input, errorMessage: '', hip2Error: '', hip2Loading: false });
     }
 
     if (!justEnabled && !this.state.hip2Input && input.length > 2 && !isValidAddress(input, this.props.network)) {
