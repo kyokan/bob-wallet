@@ -87,6 +87,7 @@ export class RepairBid extends Component {
    * Attempt to repair bid from input
    */
   testBidValue = async () => {
+    const {t} = this.context;
     const {bidValue} = this.state;
     if (!this.isValueValid(bidValue)) return;
 
@@ -94,7 +95,7 @@ export class RepairBid extends Component {
       // Found value, close modal
       this.setState({isEditing: false});
     } else {
-      this.setState({errorMessage: 'Bid value incorrect.'});
+      this.setState({errorMessage: t('bidValueIncorrect')});
     }
   }
 
@@ -181,10 +182,12 @@ export class RepairBid extends Component {
   }
 
   render() {
+    const {t} = this.context;
+
     if (this.state.isEditing) {
       return (
         <>
-          <span>Repairing...</span>
+          <span>{t('repairing')}</span>
           {this.renderModal()}
         </>
       );
@@ -217,15 +220,14 @@ export class RepairBid extends Component {
         <div className="repair-bid__container">
           <div className="repair-bid__header">
             <div
-              className="repair-bid__title">Repair bid</div>
+              className="repair-bid__title">{t('repairBid')}</div>
             <div className="repair-bid__close-btn" onClick={() => this.setState({isEditing: false})}>
               ✕
             </div>
           </div>
           <div className="repair-bid__content">
             <p className="repair-bid__description">
-              True bid values are secret until they are revealed on-chain and cannot be restored with just a seed phrase.
-              To repair it, enter the bid value below.
+              {t('repairBidDescription')}
             </p>
 
             {/* Single bid value test */}
@@ -268,7 +270,7 @@ export class RepairBid extends Component {
             onClick={this.testBidValue}
             disabled={!this.isValueValid(bidValue)}
           >
-            Repair
+            {t('repair')}
           </button>
         </section>
 
@@ -291,14 +293,14 @@ export class RepairBid extends Component {
 
     if (findNonceProgress.isFinding) {
       bruteForceAlertType = 'info';
-      bruteForceAlertMessage = `Finding (${findNonceProgress.progress.toFixed(2)}% completed)... ${findNonceProgress.bidValue / 1e6} HNS`;
+      bruteForceAlertMessage = t('repairBidBruteForceAlertIsFinding', findNonceProgress.progress.toFixed(2)) + ` ${findNonceProgress.bidValue / 1e6} HNS`;
     } else {
       if (findNonceProgress.found) {
         bruteForceAlertType = 'success';
-        bruteForceAlertMessage = `Found bid value: ${findNonceProgress.bidValue / 1e6} HNS`;
+        bruteForceAlertMessage = t('repairBidBruteForceAlertFound') + `: ${findNonceProgress.bidValue / 1e6} HNS`;
       } else {
         bruteForceAlertType = 'error';
-        bruteForceAlertMessage = 'Could not find bid value. Try expanding the range or increasing precision.';
+        bruteForceAlertMessage = t('repairBidBruteForceAlertNotFound');
       }
     }
 
@@ -310,8 +312,8 @@ export class RepairBid extends Component {
 
     return (
       <section className="repair-bid__brute-force">
-        <p>Don't remember the amount? Fill in what you know below.</p>
-        <span>Bid value range:</span>
+        <p>{t('repairBidBruteForceDesc')}</p>
+        <span>{t('bidValueRange')}:</span>
         <div>
           <div className="repair-bid__amount">
             <input
@@ -344,7 +346,7 @@ export class RepairBid extends Component {
           </div>
         </div>
         <div>
-          <span>Max decimal places:</span>
+          <span>{t('maxDecimalPlaces')}:</span>
           <div className="repair-bid__amount precision">
             <input
               type="number"
