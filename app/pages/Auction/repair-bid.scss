@@ -1,0 +1,129 @@
+@import "../../variables.scss";
+
+.repair-bid {
+  max-width: 38rem;
+  position: relative;
+  padding: 1.5rem 0;
+  box-sizing: border-box;
+
+  &__container {
+    @extend %col-nowrap;
+  }
+
+  &__close-btn {
+    position: absolute;
+    top: 1.25rem;
+    right: 2rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 1.2rem;
+  }
+
+  &__header {
+    @extend %col-nowrap;
+
+    margin-bottom: 1rem;
+  }
+
+  &__content {
+    padding: 0 1.875rem 1rem;
+
+    section {
+      margin: 1rem 0;
+    }
+
+    hr {
+      margin: 2rem 0;
+    }
+  }
+
+  &__title {
+    font-weight: 600;
+    font-size: 1.25rem;
+    text-align: center;
+  }
+
+  &__description {
+    font-size: 0.9rem;
+  }
+
+  &__bid-test {
+    @extend %row-nowrap;
+    align-items: baseline;
+
+    & > *+* {
+      margin-left: 10px;
+    }
+  }
+
+  &__brute-force {
+
+    & span {
+      font-size: 0.9rem;
+    }
+
+    & > div {
+      @extend %row-nowrap;
+      align-items: baseline;
+      margin-top: 1rem;
+
+      & > *+* {
+        margin-left: 10px;
+      }
+    }
+  }
+
+  &__estimate-text {
+    color: $manatee-gray;
+    font-size: 0.85rem;
+    line-height: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  &__amount {
+    @extend %box-input;
+    @extend %row-nowrap;
+
+    align-items: center;
+    width: fit-content;
+    box-sizing: border-box;
+    padding: 0 0.75rem;
+    height: 2.5rem;
+
+    input {
+      width: 7rem;
+      font-size: 0.85rem;
+    }
+
+    &.precision > input {
+      width: 8px;
+    }
+
+    &__max-btn {
+      font-size: 0.7rem;
+      padding: 0.25rem 0.75rem;
+      background-color: rgba($azure-blue, 0.15);
+      color: $azure-blue;
+      font-weight: 700;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 200ms ease-in-out;
+      margin-right: 0.5rem;
+
+      &:focus,
+      &:hover {
+        background-color: rgba($azure-blue, 0.13);
+      }
+
+      &:active {
+        background-color: rgba($azure-blue, 0.17);
+      }
+    }
+
+    &__unit {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+  }
+}

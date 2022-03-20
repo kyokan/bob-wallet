@@ -15,6 +15,7 @@ export const SET_API_KEY = 'app/wallet/setApiKey';
 export const SET_FETCHING = 'app/wallet/setFetching';
 export const SET_WALLETS = 'app/wallet/setWallets';
 export const SET_WALLET_NETWORK = 'app/wallet/setNetwork';
+export const SET_FIND_NONCE_PROGRESS = 'app/wallet/setFindNonceProgress';
 
 export function getInitialState() {
   return {
@@ -42,6 +43,13 @@ export function getInitialState() {
     getPassphrase: {get: false},
     wallets: [],
     walletsDetails: {},
+    findNonceProgress: {
+      expectedBlind: '',
+      progress: -1,
+      isFinding: false,
+      found: false,
+      bidValue: null,
+    },
   };
 }
 
@@ -151,6 +159,11 @@ export default function walletReducer(state = getInitialState(), {type, payload}
         ...state,
         wallets: payload.wallets,
         walletsDetails: payload.walletsDetails,
+      };
+    case SET_FIND_NONCE_PROGRESS:
+      return {
+        ...state,
+        findNonceProgress: payload,
       };
     default:
       return state;

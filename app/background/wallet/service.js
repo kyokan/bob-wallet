@@ -17,6 +17,7 @@ import {
   STOP_SYNC_WALLET,
   SYNC_WALLET_PROGRESS,
   SET_WALLET_NETWORK,
+  SET_FIND_NONCE_PROGRESS,
 } from '../../ducks/walletReducer';
 import {STOP, SET_CUSTOM_RPC_STATUS} from '../../ducks/nodeReducer';
 import createRegisterAll from "./create-register-all";
@@ -31,11 +32,12 @@ const WalletNode = require('hsd/lib/wallet/node');
 const TX = require('hsd/lib/primitives/tx');
 const {Output, MTX, Address, Coin} = require('hsd/lib/primitives');
 const Script = require('hsd/lib/script/script');
-const {hashName, types} = require('hsd/lib/covenants/rules');
 const MasterKey = require('hsd/lib/wallet/masterkey');
 const Mnemonic = require('hsd/lib/hd/mnemonic');
 const Covenant = require('hsd/lib/primitives/covenant');
 const common = require('hsd/lib/wallet/common');
+const {Rules} = require('hsd/lib/covenants');
+const {hashName, types} = Rules;
 const ipc = require('electron').ipcMain;
 
 const randomAddrs = {
@@ -63,6 +65,7 @@ class WalletService {
     this.lastProgressUpdate = 0;
     this.lastKnownChainHeight = 0;
     this.conn = {type: null};
+    this.findNonceStop = false;
   }
 
   // Wallet as a plugin to the hsd full node is the default configuration
@@ -1058,6 +1061,102 @@ class WalletService {
     await b.write();
   };
 
+  findNonce = async (options) => {
+    const {name, address, expectedBlind, rangeStart, rangeEnd, precision} = options;
+
+    await this._ensureClient();
+
+    const nameHash = hashName(name);
+    const from = Address.fromString(address, this.network)
+    const wallet = await this.node.wdb.get(this.name);
+
+    this.findNonceStop = false;
+    dispatchToMainWindow({
+      type: SET_FIND_NONCE_PROGRESS,
+      payload: {
+        expectedBlind: expectedBlind,
+        progress: 0,
+        isFinding: true,
+        found: false,
+        bidValue: rangeStart,
+      },
+    });
+
+    const maxAttempts = (rangeEnd - rangeStart) / 10**(6-precision) + 1;
+    let counter = 0;
+
+    for (let value = rangeStart; value <= rangeEnd; value += 10**(6-precision)) {
+
+      // Stop on cancel
+      if (this.findNonceStop) {
+        this.findNonceStop = false;
+        return null;
+      };
+
+      if (counter % 10000 === 0) {
+        const progress = (counter/maxAttempts)*100;
+        dispatchToMainWindow({
+          type: SET_FIND_NONCE_PROGRESS,
+          payload: {
+            expectedBlind: expectedBlind,
+            progress: progress,
+            isFinding: true,
+            found: false,
+            bidValue: value,
+          },
+        });
+      }
+
+      counter++;
+
+      const nonce = await wallet.generateNonce(nameHash, from, value);
+      const blind = Rules.blind(value, nonce).toString('hex');
+
+      if (blind === expectedBlind) {
+        const progress = (counter/maxAttempts)*100;
+        dispatchToMainWindow({
+          type: SET_FIND_NONCE_PROGRESS,
+          payload: {
+            expectedBlind: expectedBlind,
+            progress: progress,
+            isFinding: false,
+            found: true,
+            bidValue: value,
+          },
+        });
+        return value;
+      }
+    }
+
+    // Could not find value
+    dispatchToMainWindow({
+      type: SET_FIND_NONCE_PROGRESS,
+      payload: {
+        expectedBlind: expectedBlind,
+        progress: 100,
+        isFinding: false,
+        found: false,
+        bidValue: null,
+      },
+    });
+    return null;
+  }
+
+  findNonceCancel = async () => {
+    this.findNonceStop = true;
+
+    dispatchToMainWindow({
+      type: SET_FIND_NONCE_PROGRESS,
+      payload: {
+        expectedBlind: '',
+        progress: -1,
+        isFinding: false,
+        found: false,
+        bidValue: null,
+      },
+    });
+  }
+
   refreshWalletInfo = async () => {
     if (!this.name) return;
 
@@ -1524,6 +1623,8 @@ const methods = {
   estimateMaxSend: service.estimateMaxSend,
   removeWalletById: service.removeWalletById,
   updateAccountDepth: service.updateAccountDepth,
+  findNonce: service.findNonce,
+  findNonceCancel: service.findNonceCancel,
   encryptWallet: service.encryptWallet,
   backup: service.backup,
   rescan: service.rescan,
