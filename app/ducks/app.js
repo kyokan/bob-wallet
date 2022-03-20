@@ -1,4 +1,6 @@
 import settingsClient from "../utils/settingsClient";
+import hip2Client from '../utils/hip2Client';
+import { SET_HIP2_PORT } from "./hip2Reducer";
 
 const SET_DEEPLINK = 'app/setDeeplink';
 const SET_LOCALE = 'app/setLocale';
@@ -11,6 +13,13 @@ const initialState = {
   locale: '',
   customLocale: null,
 };
+
+export const initHip2 = () => async (dispatch) => {
+  dispatch({
+    type: SET_HIP2_PORT,
+    payload: await hip2Client.getPort()
+  })
+}
 
 export const fetchLocale = () => async dispatch => {
   const locale = await settingsClient.getLocale();

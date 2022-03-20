@@ -3,6 +3,7 @@ import { connectRouter } from 'connected-react-router';
 import names from './namesReducer';
 import wallet from './walletReducer';
 import node, { START_NETWORK_CHANGE } from './nodeReducer';
+import hip2 from './hip2Reducer';
 import myDomains from './myDomains';
 import notifications from './notifications';
 import bids from './bids';
@@ -18,6 +19,7 @@ export default function createRootReducer(history) {
     names,
     wallet,
     node,
+    hip2,
     myDomains,
     notifications,
     bids,

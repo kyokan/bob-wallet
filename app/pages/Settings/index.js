@@ -12,6 +12,7 @@ import * as logger from '../../utils/logClient';
 import * as walletActions from '../../ducks/walletActions';
 import * as nodeActions from '../../ducks/node';
 import NetworkPicker from '../NetworkPicker';
+import Hip2Picker from '../Hip2Picker';
 import ExplorerPicker from '../ExplorerPicker';
 import { clientStub as aClientStub } from '../../background/analytics/client';
 const pkg = require('../../../package.json');
@@ -51,6 +52,8 @@ const connClient = cClientStub(() => require('electron').ipcRenderer);
     network: state.wallet.network,
     apiKey: state.node.apiKey,
     spv: state.node.spv,
+    rsPort: state.node.rsPort,
+    nsPort: state.node.nsPort,
     noDns: state.node.noDns,
     walletApiKey: state.wallet.apiKey,
     walletSync: state.wallet.walletSync,
@@ -83,6 +86,8 @@ export default class Settings extends Component {
     network: PropTypes.string.isRequired,
     apiKey: PropTypes.string.isRequired,
     locale: PropTypes.string.isRequired,
+    rsPort: PropTypes.number.isRequired,
+    nsPort: PropTypes.number.isRequired,
     noDns: PropTypes.bool.isRequired,
     spv: PropTypes.bool.isRequired,
     wid: PropTypes.string.isRequired,
@@ -429,6 +434,8 @@ export default class Settings extends Component {
       isRunning,
       history,
       spv,
+      rsPort,
+      nsPort,
       noDns,
       setNoDns,
       isChangingNodeStatus,
@@ -526,11 +533,19 @@ export default class Settings extends Component {
                 t('settingDNSTitle'),
                 !isRunning || noDns
                   ? <><span className="node-status--inactive" /><span>{t('settingDNSNotRunning')}</span></>
-                  : <><span className="node-status--active" /><span>{t('settingDNSRunning')}</span></>,
+                  : <><span className="node-status--active" /><span>{t('settingDNSRunning', nsPort.toString(), rsPort.toString())}</span></>,
                 noDns ? t('enable') : t('disable'),
                 () => {setNoDns(!noDns)},
                 null,
                 isChangingNodeStatus || isTestingCustomRPC || isCustomRPCConnected,
+              )}
+              {this.renderSection(
+                t('settingHip2Title'),
+                t('settingHip2Desc', rsPort.toString()),
+                null,
+                null,
+                <Hip2Picker placeholder={t('settingHip2Placeholder')} />,
+                null
               )}
               {this.renderSection(
                 t('settingHSDDirTitle'),
