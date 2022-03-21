@@ -12,11 +12,6 @@ import { ConnectionTypes, getConnection, getCustomRPC } from '../connections/ser
 import FullNode from 'hsd/lib/node/fullnode';
 import SPVNode from 'hsd/lib/node/spvnode';
 import plugin from 'hsd/lib/wallet/plugin';
-import Address from 'hsd/lib/primitives/address';
-const blake2b = require('bcrypto/lib/blake2b');
-const secp256k1 = require('bcrypto/lib/secp256k1');
-const {safeEqual} = require('bcrypto/lib/safe');
-import pkg from 'hsd/lib/pkg';
 import { prefixHash } from '../../db/names';
 import { get, put } from '../db/service';
 import {dispatchToMainWindow} from "../../mainWindow";
@@ -36,6 +31,7 @@ const Network = require('hsd/lib/protocol/network');
 const MIN_FEE = new BigNumber(0.01);
 const DEFAULT_BLOCK_TIME = 10 * 60 * 1000;
 const HSD_PREFIX_DIR_KEY = 'hsdPrefixDir';
+const WALLET_API_KEY = 'walletApiKey';
 const NODE_API_KEY = 'nodeApiKey';
 const NODE_NO_DNS = 'nodeNoDns1';
 const SPV_MODE = 'nodeSpvMode';
@@ -55,6 +51,15 @@ export class NodeService extends EventEmitter {
     const newKey = crypto.randomBytes(20).toString('hex');
     await put(NODE_API_KEY, newKey);
     return newKey;
+  }
+
+  async getWalletAPIKey(nodeApiKey) {
+    const apiKey = await get(WALLET_API_KEY);
+    if (apiKey) return apiKey;
+
+    // Fallback to node's api key
+    await put(WALLET_API_KEY, nodeApiKey);
+    return nodeApiKey;
   }
 
   async getNoDns() {
@@ -195,6 +200,7 @@ export class NodeService extends EventEmitter {
 
     const dir = await this.getDir();
     const spv = await this.getSpvMode();
+    const walletApiKey = await this.getWalletAPIKey(this.apiKey);
 
     const Node = spv ? SPVNode : FullNode;
 
@@ -213,7 +219,7 @@ export class NodeService extends EventEmitter {
       indexAddress: true,
       indexTX: true,
       apiKey: this.apiKey,
-      walletApiKey: this.apiKey,
+      walletApiKey: walletApiKey,
       cors: true,
       rsPort: 9892,
       nsPort: 9891,
@@ -228,7 +234,7 @@ export class NodeService extends EventEmitter {
 
     await this.hsd.ensure();
     await this.hsd.open();
-    this.emit('start local', this.hsd.get('walletdb'), this.apiKey);
+    this.emit('start local', this.hsd.get('walletdb'), walletApiKey);
     await this.hsd.connect();
     await this.hsd.startSync();
 
