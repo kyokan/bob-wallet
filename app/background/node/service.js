@@ -36,6 +36,7 @@ const WALLET_API_KEY = 'walletApiKey';
 const NODE_API_KEY = 'nodeApiKey';
 const NODE_NO_DNS = 'nodeNoDns1';
 const SPV_MODE = 'nodeSpvMode';
+const HANDSHAKE_API_BASE_URL = 'https://api.handshakeapi.com/hsd';
 
 export class NodeService extends EventEmitter {
   constructor() {
@@ -640,7 +641,7 @@ export async function start(server) {
 }
 
 async function hapiGet(path = '') {
-  const res = await fetch(`https://api.handshakeapi.com/hsd${path}`, {
+  const res = await fetch(HANDSHAKE_API_BASE_URL + path, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -666,7 +667,7 @@ async function hapiGet(path = '') {
 }
 
 async function hapiPost(path = '', body) {
-  const res = await fetch(`https://api.handshakeapi.com/hsd${path}`, {
+  const res = await fetch(HANDSHAKE_API_BASE_URL + path, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
