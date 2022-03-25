@@ -440,10 +440,6 @@ export class NodeService extends EventEmitter {
     return name;
   }
 
-  async getAuctionInfo(name) {
-    return this._execRPC('getauctioninfo', [name], true);
-  }
-
   async getBlock(height) {
     if (await this.getSpvMode()) {
       return hapiGet(`/block/${block}`);
@@ -616,7 +612,6 @@ const methods = {
   getInfo: () => service.getInfo(),
   getNameInfo: (name) => service.getNameInfo(name),
   getNameByHash: (hash) => service.getNameByHash(hash),
-  getAuctionInfo: (name) => service.getAuctionInfo(name),
   getBlock: (height) => service.getBlock(height),
   generateToAddress: (numblocks, address) => service.generateToAddress(numblocks, address),
   getTXByAddresses: (addresses) => service.getTXByAddresses(addresses),
