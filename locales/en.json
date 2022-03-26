@@ -215,6 +215,7 @@
   "noFillsFound": "No fills found.",
   "noListingFound": "No listings found.",
   "noLockedHNS": "No locked HNS",
+  "notSupportInSPV": "Not currently supported in SPV mode.",
   "notSupportWithLedger": "Not currently supported with Ledger wallet.",
   "note": "Note",
   "now": "Now",

@@ -46,6 +46,7 @@ const shakedex = sClientStub(() => require('electron').ipcRenderer);
 
 class Exchange extends Component {
   static propTypes = {
+    spv: PropTypes.bool.isRequired,
     deeplinkParams: PropTypes.object.isRequired,
     clearDeeplinkParams: PropTypes.func.isRequired,
   };
@@ -318,6 +319,10 @@ class Exchange extends Component {
 
   render() {
     const { t } = this.context;
+    if (this.props.spv) {
+      return t('notSupportInSPV');
+    }
+
     if (this.props.walletWatchOnly) {
       return t('notSupportWithLedger');
     }
@@ -734,6 +739,7 @@ export default connect(
     finalizingName: state.exchange.finalizingName,
     deeplinkParams: state.app.deeplinkParams,
     walletWatchOnly: state.wallet.watchOnly,
+    spv: state.node.spv,
   }),
   (dispatch) => ({
     setAuctionPage: (page) => dispatch(setAuctionPage(page)),
