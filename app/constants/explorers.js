@@ -29,4 +29,10 @@ export const EXPLORERS = [
     name: 'https://hnsxplorer.com/name/%s',
     address: 'https://hnsxplorer.com/address/%s',
   },
+  {
+    label: 'Niami',
+    tx: 'https://niami.io/tx/%s',
+    name: 'https://niami.io/name/%s',
+    address: 'https://niami.io/address/%s',
+  },
 ]
