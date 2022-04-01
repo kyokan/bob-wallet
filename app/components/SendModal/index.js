@@ -33,6 +33,7 @@ const FAST = 'Fast';
     hip2Port: state.hip2.port,
     noDns: state.node.noDns,
     explorer: state.node.explorer,
+    walletType: state.wallet.type,
   }),
   dispatch => ({
     send: (to, amount, fee) => dispatch(walletActions.send(to, amount, fee)),
@@ -45,6 +46,7 @@ class SendModal extends Component {
     spendableBalance: PropTypes.number.isRequired,
     network: PropTypes.string.isRequired,
     explorer: PropTypes.object.isRequired,
+    walletType: PropTypes.string.isRequired,
   };
 
   static contextType = I18nContext;
@@ -189,7 +191,7 @@ class SendModal extends Component {
   }
 
   send = async () => {
-    const {to, amount, isSending, gasFee} = this.state;
+    const {to, amount, isSending, gasFee, selectedGasOption} = this.state;
     if (isSending) {
       return;
     }
@@ -202,7 +204,8 @@ class SendModal extends Component {
         isConfirming: false,
         transactionSent: true,
         errorMessage: '',
-        transactionHash: res.hash
+        transactionHash: res.hash,
+        transactionHex: res.hex,
       });
       analytics.track('sent coins', {
         selectedGasOption,
@@ -512,6 +515,28 @@ class SendModal extends Component {
     );
   }
 
+  renderMultisigTxGenerated() {
+    const {amount} = this.state;
+    const {t} = this.context;
+    return (
+      <div className="send__container">
+        <div className="send__sent__wrapper">
+          <div className="send__sent__confirm-icon" />
+          <div className="send__sent__headline">{t('sendMultisigTxSentTitle')}</div>
+          <div className="send__sent__description">
+            {t('sendMultisigTxSentDesc', this.addDecimalsToInteger(amount))}
+          </div>
+          <div style={{wordWrap: 'break-word', width: '100%', marginTop: '10px'}}>
+            {this.state.transactionHex}
+          </div>
+          <div className="send__sent__details" onClick={() => this.resetState()}>
+            {t('createNewTransaction')}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   renderTransactionSent() {
     const {amount} = this.state;
     const {t} = this.context;
@@ -536,7 +561,12 @@ class SendModal extends Component {
 
   renderContent() {
     if (this.state.transactionSent) {
-      return this.renderTransactionSent();
+      if (this.props.walletType == 'multisig') {
+        return this.renderMultisigTxGenerated();
+      }
+      else {
+        return this.renderTransactionSent();
+      }
     }
     if (this.state.isConfirming) {
       return this.renderConfirm();

@@ -11,6 +11,7 @@ export const START_SYNC_WALLET = 'app/wallet/startSyncWallet';
 export const STOP_SYNC_WALLET = 'app/wallet/stopSyncWallet';
 export const SYNC_WALLET_PROGRESS = 'app/wallet/syncWalletProgress';
 export const GET_PASSPHRASE = 'app/wallet/getPassphrase';
+export const CONFIRM_MULTISIG = 'app/wallet/confirmMultisig';
 export const SET_API_KEY = 'app/wallet/setApiKey';
 export const SET_FETCHING = 'app/wallet/setFetching';
 export const SET_WALLETS = 'app/wallet/setWallets';
@@ -32,6 +33,7 @@ export function getInitialState() {
       lockedConfirmed: 0,
       lockedUnconfirmed: 0,
     },
+    type: '',
     changeDepth: 0,
     receiveDepth: 0,
     transactions: new Map(),
@@ -40,6 +42,7 @@ export function getInitialState() {
     walletSync: false,
     walletHeight: 0,
     getPassphrase: {get: false},
+    confirmMultisig: {get: false},
     wallets: [],
     walletsDetails: {},
   };
@@ -55,7 +58,7 @@ export default function walletReducer(state = getInitialState(), {type, payload}
           : new Map(),
         wid: payload.wid,
         watchOnly: payload.watchOnly,
-        address: payload.address,
+        address: payload.address == null ? '' : payload.address,
         type: payload.type,
         balance: {
           ...state.balance,
@@ -140,6 +143,11 @@ export default function walletReducer(state = getInitialState(), {type, payload}
       return {
         ...state,
         getPassphrase: payload,
+      };
+    case CONFIRM_MULTISIG:
+      return {
+        ...state,
+        confirmMultisig: payload,
       };
     case SET_FETCHING:
       return {

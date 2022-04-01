@@ -44,6 +44,8 @@ class ImportSeedFlow extends Component {
     passphrase: '',
     mnemonic: '',
     isLoading: false,
+    multisigM: null,
+    multisigN: null
   };
 
   render() {
@@ -75,8 +77,8 @@ class ImportSeedFlow extends Component {
             onBack={() => this.setState({
               currentStep: WARNING_STEP,
             })}
-            onNext={(name) => {
-              this.setState({currentStep: CREATE_PASSWORD, name});
+            onNext={(name, multisigM, multisigN) => {
+              this.setState({currentStep: CREATE_PASSWORD, name, multisigM, multisigN});
             }}
             onCancel={() => this.props.history.push('/funding-options')}
           />
@@ -119,7 +121,7 @@ class ImportSeedFlow extends Component {
             onBack={() => this.goTo(ENTRY_STEP)}
             onNext={async (optInState) => {
               await analytics.setOptIn(optInState);
-              await this.finishFlow(this.state.mnemonic);
+              await this.finishFlow(this.state.mnemonic, this.state.multisigM, this.state.multisigN);
             }}
             onCancel={() => this.props.history.push('/funding-options')}
             isLoading={this.state.isLoading}
@@ -134,10 +136,10 @@ class ImportSeedFlow extends Component {
     });
   }
 
-  finishFlow = async mnemonic => {
+  finishFlow = async (mnemonic, multisigM, multisigN) => {
     this.setState({isLoading: true});
     try {
-      await walletClient.importSeed(this.state.name, this.state.passphrase, mnemonic);
+      await walletClient.importSeed(this.state.name, this.state.passphrase, mnemonic, multisigM, multisigN);
       walletClient.rescan(0);
       await this.props.completeInitialization(this.state.name, this.state.passphrase);
       await this.props.fetchWallet();

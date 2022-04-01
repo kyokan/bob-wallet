@@ -43,6 +43,8 @@ class CreateNewAccount extends Component {
     seedphrase: '',
     passphrase: '',
     isLoading: false,
+    multisigM: null,
+    multisigN: null,
   };
 
   render() {
@@ -64,8 +66,8 @@ class CreateNewAccount extends Component {
             currentStep={1}
             totalSteps={totalSteps}
             onBack={() => this.setState({currentStep: TERMS_OF_USE})}
-            onNext={(name) => {
-              this.setState({currentStep: CREATE_PASSWORD, name});
+            onNext={(name, multisigM, multisigN) => {
+              this.setState({currentStep: CREATE_PASSWORD, name, multisigM, multisigN});
             }}
             onCancel={() => this.props.history.push('/funding-options')}
           />
@@ -138,7 +140,9 @@ class CreateNewAccount extends Component {
                 this.state.name,
                 this.state.passphrase,
                 false, // isLedger
-                null   // xpub (Ledger only)
+                null,   // xpub (Ledger only)
+                this.state.multisigM,
+                this.state.multisigN,
               );
               const phrase = await walletClient.revealSeed(this.state.passphrase);
               this.setState({

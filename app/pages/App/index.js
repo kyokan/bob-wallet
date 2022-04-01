@@ -39,6 +39,8 @@ import SignMessage from "../SignMessage";
 import VerifyMessage from "../VerifyMessage";
 import {fetchLocale, initHip2} from "../../ducks/app";
 import {I18nContext} from "../../utils/i18n";
+import Multisig from '../Multisig';
+import ConfirmMultisigModal from '../Multisig/ConfirmMultisigModal';
 const connClient = cClientStub(() => require('electron').ipcRenderer);
 const settingClient = sClientStub(() => require('electron').ipcRenderer);
 
@@ -128,6 +130,7 @@ class App extends Component {
         {/*<WalletSync />*/}
         <IdleModal />
         <PassphraseModal />
+        <ConfirmMultisigModal />
         {this.renderContent()}
       </div>
     );
@@ -194,6 +197,12 @@ class App extends Component {
             wallets={this.props.wallets}
             path="/verify_message"
             render={this.routeRenderer(t('headingVerifyMessage'), VerifyMessage)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/multisig"
+            render={this.routeRenderer(t('headingMultisig'), Multisig)}
           />
           <ProtectedRoute
             isLocked={this.props.isLocked}

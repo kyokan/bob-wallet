@@ -1,0 +1,74 @@
+@import "../../variables.scss";
+
+.multisig {
+  cursor: default;
+  &__top {
+    @extend %row-nowrap;
+    align-items: center;
+    margin-bottom: 1rem;
+
+    &__name-input {
+      @extend %box-input;
+      font-size: .8125rem;
+      width: 12rem;
+      margin-left: .5rem;
+      border: none;
+    }
+
+    &__button {
+      @extend %btn-primary;
+    }
+  }
+
+  &__top-label {
+    font-size: .875rem;
+  }
+
+  &__content {
+
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 1rem;
+
+    &__textarea {
+      @extend %col-nowrap;
+      box-sizing: border-box;
+      border: 1px solid $grey;;
+      height: 24rem;
+
+      &__title {
+        @extend %row-nowrap;
+        align-items: center;
+        font-size: .8125rem;
+        padding: .5rem;
+        font-weight: 500;
+        border-bottom: 1px solid $grey;
+        background-color: rgba($grey, .5);
+
+        > span {
+          flex: 1 1 auto;
+        }
+      }
+
+      textarea {
+        padding: .5rem;
+        font-family: "Courier New", monospace;
+        border: none;
+        outline: none;
+        resize: none;
+        height: 100%;
+
+        &:disabled {
+        }
+      }
+
+      &__message {
+
+      }
+
+      &__signature {
+
+      }
+    }
+  }
+}

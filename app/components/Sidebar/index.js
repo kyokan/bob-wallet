@@ -22,6 +22,7 @@ const nodeClient = clientStub(() => require('electron').ipcRenderer);
     walletSync: state.wallet.walletSync,
     walletHeight: state.wallet.walletHeight,
     address: state.wallet.address,
+    walletType: state.wallet.type,
   }),
   dispatch => ({
 
@@ -171,6 +172,13 @@ class Sidebar extends Component {
           >
             {t('headingVerifyMessage')}
           </NavLink>
+          {this.props.walletType == 'multisig' ? <NavLink
+            className="sidebar__action"
+            to="/multisig"
+            activeClassName="sidebar__action--selected"
+          >
+            {t('headingMultisig')}
+          </NavLink> : ''}
         </div>
       </>
     );

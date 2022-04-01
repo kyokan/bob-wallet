@@ -19,10 +19,12 @@ import {
   SET_API_KEY,
   SET_FETCHING,
   SET_WALLETS,
+  CONFIRM_MULTISIG,
 } from './walletReducer';
 import { NEW_BLOCK_STATUS } from './nodeReducer';
 import {setNames} from "./myDomains";
 import {setFilter, setYourBids} from "./bids";
+import { toBaseUnits } from '../utils/balances';
 
 let idleInterval;
 
@@ -36,6 +38,7 @@ export const setWallet = opts => {
     apiKey = '',
     changeDepth,
     receiveDepth,
+    type
   } = opts;
 
   return {
@@ -49,6 +52,7 @@ export const setWallet = opts => {
       apiKey,
       changeDepth,
       receiveDepth,
+      type
     },
   };
 };
@@ -101,6 +105,7 @@ export const fetchWallet = () => async (dispatch, getState) => {
     balance: accountInfo.balance,
     changeDepth: accountInfo.changeDepth,
     receiveDepth: accountInfo.receiveDepth,
+    type: accountInfo.type,
   }));
 };
 
@@ -151,6 +156,10 @@ export const lockWallet = () => async (dispatch) => {
   });
 };
 
+export const signMessage = (tx) => async (dispatch) => {
+    return (await new Promise((resolve, reject) => dispatch(confirmMultisig(tx, resolve, reject))));
+};
+
 export const reset = () => async (dispatch, getState) => {
   const network = getState().wallet.network;
   await walletClient.reset();
@@ -159,12 +168,39 @@ export const reset = () => async (dispatch, getState) => {
 };
 
 export const send = (to, amount, fee) => async (dispatch) => {
-  await new Promise((resolve, reject) => {
+  const passphrase = await new Promise((resolve, reject) => {
     dispatch(getPassphrase(resolve, reject));
   });
-  const res = await walletClient.send(to, amount, fee);
-  await dispatch(fetchWallet());
-  return res;
+
+  const accountInfo = await walletClient.getAccountInfo();
+  if (!accountInfo) {
+    throw new Error('Could not load wallet.');
+  }
+
+  if(accountInfo.type == 'multisig') {
+    const res = await walletClient.createTX({
+      account: 'default',
+      passphrase: passphrase,
+      outputs: [
+        {
+          address: to,
+          value: Number(toBaseUnits(amount))
+        }
+      ],
+      subtractFee: false,
+      rate: Number(toBaseUnits(fee)),
+      sign: true
+    });
+
+    const signedMessage = await walletClient.signMessage(res, passphrase);
+    await dispatch(fetchWallet());
+    return signedMessage;
+  }
+  else {
+    const res = await walletClient.send(to, amount, fee);
+    await dispatch(fetchWallet());
+    return res;
+  }
 };
 
 export const startWalletSync = () => async (dispatch) => {
@@ -308,6 +344,23 @@ export const setMaxIdle = (maxIdle) => async (dispatch) => {
     payload: maxIdle,
   })
 };
+
+export const confirmMultisig = (tx, resolve, reject) => async (dispatch, getState) => {
+  if (getState().wallet.watchOnly === true) {
+    resolve();
+    return;
+  }
+
+  dispatch({
+    type: CONFIRM_MULTISIG,
+    payload: {get: true, tx, resolve, reject},
+  })
+};
+
+export const closeConfirmMultisig = () => ({
+  type: CONFIRM_MULTISIG,
+  payload: {get: false},
+});
 
 export const getPassphrase = (resolve, reject) => async (dispatch, getState) => {
   if (getState().wallet.watchOnly === true) {

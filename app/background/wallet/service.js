@@ -304,6 +304,14 @@ class WalletService {
     return wallet.hasPath(new Address(address, this.network));
   };
 
+  addSharedKey = async (xpubKey) => {
+    if (!this.name) return false;
+    const wallet = await this.node.wdb.get(this.name);
+    if (!wallet) return null;
+
+    await wallet.addSharedKey('default', xpubKey);
+  };
+
   getWalletInfo = async () => {
     await this._ensureClient();
     return this.client.getInfo(this.name);
@@ -325,6 +333,11 @@ class WalletService {
   getCoin = async (hash, index) => {
     const wallet = await this.node.wdb.get(this.name);
     return wallet.getCoin(Buffer.from(hash, 'hex'), index);
+  };
+  
+  createTX = async (options) => {
+    const wallet = await this.node.wdb.get(this.name);
+    return wallet.createTX(options);
   };
 
   getTX = async (hash) => {
@@ -359,11 +372,15 @@ class WalletService {
     });
   };
 
-  createNewWallet = async (name, passphrase, isLedger, xPub) => {
+  createNewWallet = async (name, passphrase, isLedger, xPub, multisigM, multisigN) => {
     this.setWallet(name);
 
     let res;
     if (isLedger) {
+      if(multisigM != null || multisigN != null) {
+        throw new Error('multisig not supported yet on ledger');
+      }
+
       res = await this.node.wdb.create({
         id: name,
         passphrase,
@@ -377,6 +394,8 @@ class WalletService {
         passphrase,
         watchOnly: false,
         mnemonic: mnemonic.getPhrase().trim(),
+        m: multisigM,
+        n: multisigN,
       });
     }
 
@@ -408,7 +427,7 @@ class WalletService {
     return this.node.wdb.deepClean();
   };
 
-  importSeed = async (name, passphrase, mnemonic) => {
+  importSeed = async (name, passphrase, mnemonic, multisigM, multisigN) => {
     this.setWallet(name);
 
     const options = {
@@ -416,6 +435,8 @@ class WalletService {
       // hsd generates different keys for
       // menmonics with trailing whitespace
       mnemonic: mnemonic.trim(),
+      m: multisigM,
+      n: multisigN
     };
 
     const res = await this.node.wdb.create({id: name, ...options});
@@ -737,6 +758,17 @@ class WalletService {
       return res;
     },
   );
+
+  signMessage = async (txJSON, passphrase) => {
+    if (!this.name) return false;
+    const wallet = await this.node.wdb.get(this.name);
+    if (!wallet) return null;
+    const tx = MTX.fromJSON(txJSON);
+    tx.view = await wallet.getCoinView(tx);
+    await wallet.sign(tx, passphrase);
+
+    return tx.getJSON(this.network);
+  };
 
   signMessageWithName = (name, message) => this._ledgerDisabled(
     'method is not supported on ledger yet',
@@ -1477,17 +1509,21 @@ service.getMasterHDKey.suppressLogging = true;
 service.setPassphrase.suppressLogging = true;
 service.revealSeed.suppressLogging = true;
 service.unlock.suppressLogging = true;
+service.signMessage.suppressLogging = true;
+service.createTX.suppressLogging = true;
 
 const sName = 'Wallet';
 const methods = {
   // stub the start method in case we need it later
   start: async () => null,
+  addSharedKey: service.addSharedKey,
   getWalletInfo: service.getWalletInfo,
   getAccountInfo: service.getAccountInfo,
   getAPIKey: service.getAPIKey,
   setAPIKey: service.setAPIKey,
   getCoin: service.getCoin,
   getTX: service.getTX,
+  createTX: service.createTX,
   getNames: service.getNames,
   createNewWallet: service.createNewWallet,
   importSeed: service.importSeed,
@@ -1525,6 +1561,7 @@ const methods = {
   finalizeTransfer: service.finalizeTransfer,
   finalizeWithPayment: service.finalizeWithPayment,
   claimPaidTransfer: service.claimPaidTransfer,
+  signMessage: service.signMessage,
   signMessageWithName: service.signMessageWithName,
   revokeName: service.revokeName,
   send: service.send,

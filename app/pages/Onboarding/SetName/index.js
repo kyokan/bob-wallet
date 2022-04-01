@@ -13,7 +13,7 @@ import {I18nContext} from "../../../utils/i18n";
     wallets: state.wallet.wallets,
   })
 )
-export default class CreatePassword extends Component {
+export default class SetName extends Component {
   static propTypes = {
     currentStep: PropTypes.number.isRequired,
     totalSteps: PropTypes.number.isRequired,
@@ -30,6 +30,9 @@ export default class CreatePassword extends Component {
     this.state = {
       name: '',
       errorMessage: '',
+      multisigWallet: false,
+      multisigM: '',
+      multisigN: ''
     };
   }
 
@@ -48,6 +51,27 @@ export default class CreatePassword extends Component {
         errorMessage = t('obSetNameCannotUseError', name);
       }
 
+      var m = null;
+      var n = null;
+
+      if (this.state.multisigWallet) {
+        try {
+          if(!(/[0-9]+/.test(this.state.multisigM)) || !(/[0-9]+/.test(this.state.multisigN))) {
+            throw 'invalid format for m/n';
+          }
+
+          m = parseInt(this.state.multisigM);
+          n = parseInt(this.state.multisigN);
+
+          if(m <= 1 || n <= 0 || m >= n) {
+            errorMessage = t('obSetNameMultiSigMNError');
+          }
+        }
+        catch(e) {
+          errorMessage = t('obSetNameMultiSigWrongFormat');
+        }
+      }
+
       if (errorMessage) {
         this.setState({
           errorMessage,
@@ -55,7 +79,7 @@ export default class CreatePassword extends Component {
         return;
       }
 
-      this.props.onNext(name);
+      this.props.onNext(name, m, n);
     }
   };
 
@@ -98,6 +122,9 @@ export default class CreatePassword extends Component {
         />
         <div className="create-password__content">
           <Submittable onSubmit={this.onSubmit}>
+            <div className="create-password__error">
+              {errorMessage}
+            </div>
             <div className="create-password__header_text">
               {t('obSetNameHeader')}
             </div>
@@ -117,8 +144,37 @@ export default class CreatePassword extends Component {
                 autoFocus
               />
             </div>
-            <div className="create-password__error">
-              {errorMessage}
+            <div>
+              <input
+                checked={this.state.multisigWallet}
+                onChange={(e) => this.setState({'multisigWallet': e.target.checked, multisigM: '', multisigN: ''})}
+                type="checkbox"/>
+                <span>{t('obCreateMultisigOption')}</span>
+              {this.state.multisigWallet ?
+                <div>
+                  <br/>
+                  <span>M: </span>
+                  <div
+                    className={c('create-password__input', {
+                      'create-password__input--error': errorMessage,
+                    })}>
+                    <input type="text" placeholder={t('obSetNameMultisigM')}
+                      value={this.state.multisigM}
+                      onChange={this.onChange('multisigM')}
+                      />
+                  </div>
+                  <span>N: </span>
+                  <div
+                    className={c('create-password__input', {
+                      'create-password__input--error': errorMessage,
+                    })}>
+                    <input type="text" placeholder={t('obSetNameMultisigN')}
+                      value={this.state.multisigN}
+                      onChange={this.onChange('multisigN')}
+                      />
+                  </div>
+                </div>
+              : ''}
             </div>
           </Submittable>
         </div>
