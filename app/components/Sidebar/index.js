@@ -26,6 +26,7 @@ const nodeClient = clientStub(() => require('electron').ipcRenderer);
     rescanHeight: state.wallet.rescanHeight,
     address: state.wallet.address,
     updateAvailable: state.app.updateAvailable,
+    accountInfo: state.wallet.accountInfo,
   }),
   dispatch => ({
 
@@ -51,6 +52,7 @@ class Sidebar extends Component {
     network: PropTypes.string.isRequired,
     address: PropTypes.string.isRequired,
     updateAvailable: PropTypes.object,
+    accountInfo: PropTypes.object.isRequired,
   };
 
   static contextType = I18nContext;
@@ -71,14 +73,46 @@ class Sidebar extends Component {
 
   renderNav() {
     const {t} = this.context;
-    const title = this.props.walletWatchOnly
-      ? `Ledger Wallet (${this.props.walletId})`
-      : `Wallet (${this.props.walletId})`;
+    const {watchOnly, type, initialized} = this.props.accountInfo;
+
+    let title = 'Wallet';
+    if (watchOnly)
+      title = 'Ledger Wallet';
+    else if (type === 'multisig')
+      title = 'Multisig Wallet';
+    title += ` (${this.props.walletId})`;
+
+    if (!initialized) {
+      return(
+        <React.Fragment>
+          <div className="sidebar__section">{title}</div>
+          <div className="sidebar__actions">
+            <NavLink
+              className="sidebar__action"
+              to="/multisig"
+              activeClassName="sidebar__action--selected"
+            >
+              ⚠️ Multisig
+            </NavLink>
+          </div>
+      </React.Fragment>
+      );
+    }
 
     return (
       <React.Fragment>
         <div className="sidebar__section">{title}</div>
         <div className="sidebar__actions">
+          {
+            type === 'multisig' &&
+            <NavLink
+              className="sidebar__action"
+              to="/multisig"
+              activeClassName="sidebar__action--selected"
+            >
+              Multisig
+            </NavLink> 
+          }
           <NavLink
             to="/account"
             className={isActive => `sidebar__action ${isActive ? "sidebar__action--selected" : ''}`}

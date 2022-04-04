@@ -191,7 +191,7 @@ export class NodeService extends EventEmitter {
 
     this.networkName = networkName;
     this.network = network;
-    this.apiKey = await this.getAPIKey();
+    this.apiKey = null;// await this.getAPIKey();
     this.noDns = await this.getNoDns();
     this.spv = await this.getSpvMode();
   }

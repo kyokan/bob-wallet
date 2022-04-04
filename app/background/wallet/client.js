@@ -66,4 +66,5 @@ export const clientStub = ipcRendererInjector => makeClient(ipcRendererInjector,
   'isReady',
   'createClaim',
   'sendClaim',
+  'addSharedKey'
 ]);

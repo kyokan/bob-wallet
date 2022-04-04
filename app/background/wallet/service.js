@@ -93,7 +93,7 @@ class WalletService {
     this.node = plugin;
     this.network = plugin.network;
     this.networkName = this.network.type;
-    this.walletApiKey = apiKey;
+    this.walletApiKey = null;//apiKey;
 
     dispatchToMainWindow({
       type: SET_WALLET_NETWORK,
@@ -342,7 +342,14 @@ class WalletService {
     });
   };
 
-  createNewWallet = async (name, passphrase, isLedger, xPub) => {
+  createNewWallet = async (
+    name,
+    passphrase,
+    isLedger,
+    xPub,
+    m,
+    n
+  ) => {
     this.setWallet(name);
 
     let res;
@@ -360,6 +367,8 @@ class WalletService {
         passphrase,
         watchOnly: false,
         mnemonic: mnemonic.getPhrase().trim(),
+        m,
+        n
       });
     }
 
@@ -798,6 +807,10 @@ class WalletService {
       () => this.client.unlock(this.name, passphrase),
       false
     );
+  };
+
+  addSharedKey = async (account, xpub) => {
+    return this.client.addSharedKey(this.name, account, xpub);
   };
 
   isLocked = () => this._ledgerProxy(
@@ -1687,6 +1700,7 @@ const methods = {
   isReady: service.isReady,
   createClaim: service.createClaim,
   sendClaim: service.sendClaim,
+  addSharedKey: service.addSharedKey,
 };
 
 export async function start(server) {

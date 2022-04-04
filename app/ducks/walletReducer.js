@@ -82,6 +82,7 @@ export default function walletReducer(state = getInitialState(), {type, payload}
         receiveDepth: payload.receiveDepth,
         accountKey: payload.accountKey,
         initialized: typeof payload.initialized === 'undefined' ? state.initialized : payload.initialized,
+        accountInfo: payload.accountInfo,
       };
     case SET_BALANCE:
       return {

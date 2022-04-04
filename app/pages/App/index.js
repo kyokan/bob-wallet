@@ -38,6 +38,7 @@ import Exchange from '../Exchange';
 import SignMessage from "../SignMessage";
 import VerifyMessage from "../VerifyMessage";
 import {fetchLocale, initHip2, checkForUpdates} from "../../ducks/app";
+import Multisig from "../Multisig";
 import {I18nContext} from "../../utils/i18n";
 const connClient = cClientStub(() => require('electron').ipcRenderer);
 const settingClient = sClientStub(() => require('electron').ipcRenderer);
@@ -250,6 +251,12 @@ class App extends Component {
             wallets={this.props.wallets}
             path="/exchange"
             render={this.routeRenderer(t('headingExchange'), Exchange, true)}
+          />
+          <ProtectedRoute
+            isLocked={this.props.isLocked}
+            wallets={this.props.wallets}
+            path="/multisig"
+            render={this.routeRenderer('Multisig', Multisig, true)}
           />
           <Redirect to="/login" />
         </Switch>
