@@ -35,6 +35,7 @@ export const setWallet = opts => {
     changeDepth,
     receiveDepth,
     accountKey,
+    accountInfo = {},
   } = opts;
 
   return {
@@ -49,6 +50,7 @@ export const setWallet = opts => {
       changeDepth,
       receiveDepth,
       accountKey,
+      accountInfo
     },
   };
 };
@@ -102,6 +104,7 @@ export const fetchWallet = () => async (dispatch, getState) => {
     changeDepth: accountInfo.changeDepth,
     receiveDepth: accountInfo.receiveDepth,
     accountKey: accountInfo.accountKey,
+    accountInfo, // TODO: remove all the above crap and just pass account object
   }));
 };
 

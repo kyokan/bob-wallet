@@ -9,6 +9,7 @@ import BackUpSeedWarning from '../BackUpSeedWarning/index';
 import CopySeed from '../../CopySeed/index';
 import ConfirmSeed from '../ConfirmSeed/index';
 import SetName from '../SetName/index';
+import CreateMultisig from '../CreateMultisig/index';
 import * as walletActions from '../../../ducks/walletActions';
 import '../ImportSeedEnterMnemonic/importenter.scss';
 import '../ImportSeedWarning/importwarning.scss';
@@ -27,6 +28,7 @@ const BACK_UP_SEED_WARNING = 4;
 const COPY_SEEDPHRASE = 5;
 const CONFIRM_SEEDPHRASE = 6;
 const LEDGER_CONNECT = 7;
+const MULTISIG = 8;
 
 class CreateNewAccount extends Component {
   static propTypes = {
@@ -40,6 +42,7 @@ class CreateNewAccount extends Component {
 
   state = {
     currentStep: TERMS_OF_USE,
+    stepNumber: 1,
     name: '',
     seedphrase: '',
     passphrase: '',
@@ -47,26 +50,46 @@ class CreateNewAccount extends Component {
   };
 
   render() {
-    const totalSteps = this.props.match.params.loc === 'ledger' ? 4 : 6;
+    // null, 'ledger', 'multisig'
+    const variation = this.props.match.params.loc;
+
+    let totalSteps = 6;
+    switch (variation) {
+      case 'ledger':
+        totalSteps = 4;
+        break;
+      case 'multisig':
+        break;
+    }
 
     switch (this.state.currentStep) {
       case TERMS_OF_USE:
         return (
           <Terms
-            currentStep={0}
+            currentStep={this.state.stepNumber}
             totalSteps={totalSteps}
-            onAccept={() => this.setState({currentStep: SET_NAME})}
+            onAccept={() => this.setState({
+              currentStep: SET_NAME,
+              stepNumber: this.state.stepNumber + 1
+            })}
             onBack={() => this.props.history.push('/funding-options')}
           />
         );
       case SET_NAME:
         return (
           <SetName
-            currentStep={1}
+            currentStep={this.state.stepNumber}
             totalSteps={totalSteps}
-            onBack={() => this.setState({currentStep: TERMS_OF_USE})}
+            onBack={() => this.setState({
+              currentStep: TERMS_OF_USE,
+              stepNumber: this.state.stepNumber - 1
+            })}
             onNext={(name) => {
-              this.setState({currentStep: CREATE_PASSWORD, name});
+              this.setState({
+                currentStep: CREATE_PASSWORD,
+                name,
+                stepNumber: this.state.stepNumber + 1
+            });
             }}
             onCancel={() => this.props.history.push('/funding-options')}
           />
@@ -74,24 +97,36 @@ class CreateNewAccount extends Component {
       case CREATE_PASSWORD:
         return (
           <CreatePassword
-            currentStep={2}
+            currentStep={this.state.stepNumber}
             totalSteps={totalSteps}
             onBack={() =>
               this.setState({
                 currentStep: SET_NAME,
+                stepNumber: this.state.stepNumber - 1
               })
             }
             onNext={async (passphrase) => {
               const optInState = await analytics.getOptIn();
-              let currentStep =
-                this.props.match.params.loc === 'ledger'
-                  ? LEDGER_CONNECT
-                  : BACK_UP_SEED_WARNING;
+
+              let currentStep = BACK_UP_SEED_WARNING;
+              switch (variation) {
+                case 'ledger':
+                  currentStep = LEDGER_CONNECT;
+                  break;
+                case 'multisig':
+                  currentStep = MULTISIG;
+                  break;
+              }
+
               if (optInState === 'NOT_CHOSEN') {
                 currentStep = OPT_IN_ANALYTICS;
               }
 
-              this.setState({currentStep, passphrase});
+              this.setState({
+                currentStep,
+                passphrase,
+                stepNumber: this.state.stepNumber + 1
+              });
             }}
             onCancel={() => this.props.history.push('/funding-options')}
           />
@@ -99,18 +134,44 @@ class CreateNewAccount extends Component {
       case OPT_IN_ANALYTICS:
         return (
           <OptInAnalytics
-            currentStep={3}
+            currentStep={this.state.stepNumber}
             totalSteps={totalSteps}
-            onBack={() => this.setState({currentStep: CREATE_PASSWORD})}
+            onBack={() => this.setState({
+              currentStep: CREATE_PASSWORD,
+              stepNumber: this.state.stepNumber - 1
+            })}
             onNext={async (optInState) => {
               await analytics.setOptIn(optInState);
+
+              let currentStep = BACK_UP_SEED_WARNING;
+              switch (variation) {
+                case 'ledger':
+                  currentStep = LEDGER_CONNECT;
+                  break;
+                case 'multisig':
+                  currentStep = MULTISIG;
+                  break;
+              }
+
               this.setState({
-                currentStep:
-                  this.props.match.params.loc === 'ledger'
-                    ? LEDGER_CONNECT
-                    : BACK_UP_SEED_WARNING,
+                currentStep,
+                stepNumber: this.state.stepNumber + 1
               });
             }}
+            onCancel={() => this.props.history.push('/funding-options')}
+          />
+        );
+      case MULTISIG:
+        return(
+          <CreateMultisig
+            walletName={this.state.name}
+            passphrase={this.state.passphrase}
+            onBack={() =>
+              this.setState({
+                currentStep: CREATE_PASSWORD,
+                stepNumber: this.state.stepNumber - 1
+              })
+            }
             onCancel={() => this.props.history.push('/funding-options')}
           />
         );
@@ -120,7 +181,10 @@ class CreateNewAccount extends Component {
             walletName={this.state.name}
             passphrase={this.state.passphrase}
             onBack={() =>
-              this.setState({ currentStep: CREATE_PASSWORD })
+              this.setState({
+                currentStep: CREATE_PASSWORD,
+                stepNumber: this.state.stepNumber - 1
+              })
             }
             onCancel={() => this.props.history.push('/funding-options')}
           />
@@ -128,10 +192,13 @@ class CreateNewAccount extends Component {
       case BACK_UP_SEED_WARNING:
         return (
           <BackUpSeedWarning
-            currentStep={4}
+            currentStep={this.state.stepNumber}
             totalSteps={totalSteps}
             onBack={() =>
-              this.setState({ currentStep: CREATE_PASSWORD })
+              this.setState({
+                currentStep: CREATE_PASSWORD,
+                stepNumber: this.state.stepNumber - 1
+              })
             }
             onNext={async () => {
               this.setState({ isLoading: true });
@@ -145,14 +212,18 @@ class CreateNewAccount extends Component {
                   this.state.name,
                   this.state.passphrase,
                   false, // isLedger
-                  null   // xpub (Ledger only)
+                  null,  // xpub (Ledger only)
+                  1,     // m
+                  1      // n
                 );
               }
               const {phrase} = await walletClient.revealSeed(this.state.passphrase);
+
               this.setState({
                 currentStep: COPY_SEEDPHRASE,
                 seedphrase: phrase,
                 isLoading: false,
+                stepNumber: this.state.stepNumber + 1
               });
             }}
             onCancel={() => this.props.history.push('/funding-options')}
@@ -162,21 +233,30 @@ class CreateNewAccount extends Component {
       case COPY_SEEDPHRASE:
         return (
           <CopySeed
-            currentStep={5}
+            currentStep={this.state.stepNumber}
             totalSteps={totalSteps}
             seedphrase={this.state.seedphrase}
-            onBack={() => this.setState({ currentStep: BACK_UP_SEED_WARNING })}
-            onNext={() => this.setState({ currentStep: CONFIRM_SEEDPHRASE })}
+            onBack={() => this.setState({
+              currentStep: BACK_UP_SEED_WARNING,
+              stepNumber: this.state.stepNumber - 1
+            })}
+            onNext={() => this.setState({
+              currentStep: CONFIRM_SEEDPHRASE,
+              stepNumber: this.state.stepNumber + 1
+            })}
             onCancel={() => this.props.history.push('/funding-options')}
           />
         );
       case CONFIRM_SEEDPHRASE:
         return (
           <ConfirmSeed
-            currentStep={6}
+            currentStep={this.state.stepNumber}
             totalSteps={totalSteps}
             seedphrase={this.state.seedphrase}
-            onBack={() => this.setState({ currentStep: COPY_SEEDPHRASE })}
+            onBack={() => this.setState({
+              currentStep: COPY_SEEDPHRASE,
+              stepNumber: this.state.stepNumber - 1
+            })}
             onNext={async () => {
               await this.props.completeInitialization(
                 this.state.name,

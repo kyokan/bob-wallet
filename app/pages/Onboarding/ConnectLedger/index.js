@@ -82,7 +82,14 @@ class ConnectLedger extends React.Component {
     // set a small timeout to clearly show that this is
     // a two-phase process.
     setTimeout(async () => {
-      await walletClient.createNewWallet(this.props.walletName, this.props.passphrase, true, xpub);
+      await walletClient.createNewWallet(
+        this.props.walletName,
+        this.props.passphrase,
+        true, // is Ledger
+        xpub,
+        1,    // m
+        1     // n
+      );
       await this.props.completeInitialization(this.props.walletName, this.props.passphrase);
       this.props.history.push('/account');
     }, 2000);

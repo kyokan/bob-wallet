@@ -26,6 +26,7 @@ import * as walletActions from '../../ducks/walletActions';
       spendableBalance: state.wallet.balance.spendable,
       walletId: state.wallet.wid,
       walletWatchOnly: state.wallet.watchOnly,
+      accountInfo: state.wallet.accountInfo,
     };
   },
   dispatch => ({
@@ -47,6 +48,7 @@ class Topbar extends Component {
     lockWallet: PropTypes.func.isRequired,
     spendableBalance: PropTypes.number,
     walletWatchOnly: PropTypes.bool.isRequired,
+    accountInfo: PropTypes.object.isRequired,
   };
 
   static contextType = I18nContext;
@@ -121,9 +123,12 @@ class Topbar extends Component {
 
     const { spendableBalance, walletId } = this.props;
     const { isShowingSettingMenu } = this.state;
-    const walletName = this.props.walletWatchOnly
-      ? `${walletId} (Ledger)`
-      : walletId;
+    const {watchOnly, type} = this.props.accountInfo;
+    let walletName = walletId;
+    if (watchOnly)
+      walletName += ' (Ledger)';
+    else if (type === 'multisig')
+      walletName += ' (Multisig)';
 
     return (
       <div
