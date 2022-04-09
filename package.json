@@ -156,7 +156,7 @@
     "jsonschema": "^1.4.0",
     "lodash.throttle": "4.1.1",
     "mixpanel": "0.10.2",
-    "moment": "2.29.1",
+    "moment": "2.29.2",
     "node-polyfill-webpack-plugin": "^1.1.4",
     "prop-types": "15.8.1",
     "punycode": "^2.1.1",
