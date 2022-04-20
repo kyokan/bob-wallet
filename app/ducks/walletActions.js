@@ -348,6 +348,7 @@ async function parseInputsOutputs(net, tx) {
   // Look for covenants. A TX with multiple covenant types is not supported
   let covAction = null;
   let covValue = 0;
+  let covDomains = new Set();
   let covData = {};
   let count = 0;
   let totalValue = 0;
@@ -427,6 +428,10 @@ async function parseInputsOutputs(net, tx) {
     // May be called redundantly but should be handled by cache
     covData = await parseCovenant(net, covenant);
 
+    if (covData.meta?.domain) {
+      covDomains.add(covData.meta.domain);
+    }
+
     // Identify this TX as having multiple actions
     count++;
     covData.meta.multiple = count > 1;
@@ -438,6 +443,7 @@ async function parseInputsOutputs(net, tx) {
       ...covData,
       fee: tx.fee,
       value: covValue,
+      domains: Array.from(covDomains),
     };
   }
 

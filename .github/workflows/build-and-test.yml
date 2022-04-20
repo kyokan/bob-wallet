@@ -16,15 +16,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest]
-        node-version: ['14', '16']
+        node-version: ['16']
 
         # OS-specific commands/variables
         include:
           - os: ubuntu-latest
-            cmd_del: rm
             cmd_build: npm run build
           - os: windows-latest
-            cmd_del: del
             cmd_build: node .\scripts\package.js
 
     runs-on: ${{matrix.os}}
@@ -41,10 +39,6 @@ jobs:
       - name: Install dependencies (linux only)
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt update && sudo apt install libudev-dev libusb-1.0-0-dev -y
-
-      - name: Remove lock file (old node.js only)
-        if: matrix.node-version == '14'
-        run: ${{ matrix.cmd_del }} package-lock.json
 
       - name: Install npm packages
         run: npm i --legacy-peer-deps

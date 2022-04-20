@@ -17,12 +17,14 @@ export default class Blocktime extends Component {
     height: PropTypes.number.isRequired,
     className: PropTypes.string,
     fromNow: PropTypes.bool,
+    prefix: PropTypes.bool,
     format: PropTypes.string,
   };
 
   static defaultProps = {
     className: '',
     fromNow: false,
+    prefix: false,
     format: 'YYYY-MM-DD',
   };
 
@@ -41,8 +43,12 @@ export default class Blocktime extends Component {
 
     const delta = this.props.height - this.props.currentHeight;
     const end = moment().add(delta * AVERAGE_BLOCK_TIME);
+
     if (this.props.fromNow) {
-      return '~' + end.toNow(true);
+      return '~'
+        + (delta > 0) ?
+          end.fromNow(!this.props.prefix)
+          : end.toNow(!this.props.prefix);
     }
 
     return end.format(this.props.format);

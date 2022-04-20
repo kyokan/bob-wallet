@@ -23,7 +23,6 @@ import * as walletActions from '../../ducks/walletActions';
     return {
       isRunning,
       isCustomRPCConnected,
-      unconfirmedBalance: state.wallet.balance.unconfirmed,
       spendableBalance: state.wallet.balance.spendable,
       walletId: state.wallet.wid,
       walletWatchOnly: state.wallet.watchOnly,
@@ -46,7 +45,6 @@ class Topbar extends Component {
     walletId: PropTypes.string.isRequired,
     getNameInfo: PropTypes.func.isRequired,
     lockWallet: PropTypes.func.isRequired,
-    unconfirmedBalance: PropTypes.number,
     spendableBalance: PropTypes.number,
     walletWatchOnly: PropTypes.bool.isRequired,
   };
@@ -121,7 +119,7 @@ class Topbar extends Component {
   renderSettingIcon() {
     const {t} = this.context;
 
-    const { unconfirmedBalance, spendableBalance, walletId } = this.props;
+    const { spendableBalance, walletId } = this.props;
     const { isShowingSettingMenu } = this.state;
     const walletName = this.props.walletWatchOnly
       ? `${walletId} (Ledger)`
@@ -140,7 +138,6 @@ class Topbar extends Component {
               <div className="setting-menu">
                 <div className="setting-menu__balance-container">
                   {this.renderSettingGroup(t('walletID'), walletName)}
-                  {this.renderSettingGroup(t('balanceTotal'), `HNS ${displayBalance(unconfirmedBalance)}`)}
                   {this.renderSettingGroup(t('balanceSpendable'), `HNS ${displayBalance(spendableBalance)}`)}
                 </div>
                 <div className="setting-menu__items">

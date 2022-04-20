@@ -26,6 +26,7 @@
       font-size: 1.75rem;
       font-weight: 500;
       padding: 1.5rem 0;
+      overflow-wrap: break-word;
 
       &__explorer-open-icon {
         background-image: url("../../assets/images/open-new-window.svg");
