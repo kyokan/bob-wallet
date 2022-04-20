@@ -37,7 +37,7 @@ import AppHeader from "../AppHeader";
 import Exchange from '../Exchange';
 import SignMessage from "../SignMessage";
 import VerifyMessage from "../VerifyMessage";
-import {fetchLocale} from "../../ducks/app";
+import {fetchLocale, initHip2} from "../../ducks/app";
 import {I18nContext} from "../../utils/i18n";
 const connClient = cClientStub(() => require('electron').ipcRenderer);
 const settingClient = sClientStub(() => require('electron').ipcRenderer);
@@ -47,6 +47,7 @@ const settingClient = sClientStub(() => require('electron').ipcRenderer);
     wallets: state.wallet.wallets,
   }),
   (dispatch) => ({
+    initHip2: () => dispatch(initHip2()),
     setExplorer: (explorer) => dispatch(nodeActions.setExplorer(explorer)),
     fetchLocale: () => dispatch(fetchLocale()),
   }),
@@ -59,6 +60,7 @@ class App extends Component {
     initialized: PropTypes.bool.isRequired,
     startNode: PropTypes.func.isRequired,
     watchActivity: PropTypes.func.isRequired,
+    initHip2: PropTypes.func.isRequired,
     setExplorer: PropTypes.func.isRequired,
     fetchLocale: PropTypes.func.isRequired,
     isChangingNetworks: PropTypes.bool.isRequired,
@@ -76,6 +78,7 @@ class App extends Component {
     this.setState({isLoading: true});
     this.props.fetchLocale();
     await this.props.startNode();
+    await this.props.initHip2();
     this.props.watchActivity();
 
     const {type} = await connClient.getConnection();

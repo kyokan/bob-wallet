@@ -170,7 +170,7 @@
   "inBids": "En ofertes",
   "inFinishedAuctions": "En subhastes acabades",
   "inReveals": "En revelació",
-  "invalidAddressPrefix": "El prefix d'adreça no és vàlid",
+  "invalidAddress": "El prefix d'adreça no és vàlid",
   "itemsPerPage": "Elements per pàgina",
   "learnMore": "Aprèn més",
   "ledgerModalConfirmText": "Confirma la informació de la transacció al teu dispositiu Ledger.",
