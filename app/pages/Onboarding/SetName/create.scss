@@ -65,6 +65,16 @@
     }
   }
 
+  &__info {
+    color: $manatee-gray;
+    font-size: 0.75rem;
+    margin: -6px 0.375rem 12px 0.375rem;
+
+    &:empty {
+      margin: 0;
+    }
+  }
+
   &__footer {
     padding: 1.25rem 1.875rem 1rem 1.875rem;
 

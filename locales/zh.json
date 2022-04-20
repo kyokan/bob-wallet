@@ -155,7 +155,7 @@
   "inBids": "In bids",
   "inFinishedAuctions": "In finished auctions",
   "inReveals": "In reveal",
-  "invalidAddressPrefix": "Invalid Address Prefix",
+  "invalidAddress": "Invalid Address Prefix",
   "itemsPerPage": "Items per Page",
   "learnMore": "Learn more",
   "ledgerModalConfirmText": "Confirm the transaction info on your ledger device.",

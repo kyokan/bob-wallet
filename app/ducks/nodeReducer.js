@@ -14,6 +14,8 @@ export const START_RPC_TEST = 'node/START_RPC_TEST';
 export const END_RPC_TEST = 'node/END_RPC_TEST';
 export const SET_EXPLORER = 'node/SET_EXPLORER';
 export const UPDATE_HNS_PRICE = 'node/UPDATE_HNS_PRICE';
+export const SET_RS_PORT = 'node/SET_RS_PORT';
+export const SET_NS_PORT = 'node/SET_NS_PORT';
 export const SET_NO_DNS = 'node/SET_NO_DNS';
 export const SET_SPV_MODE = 'node/SET_SPV_MODE';
 
@@ -27,7 +29,9 @@ export function getInitialState() {
     isChangingNetworks: false,
     network: 'main',
     apiKey: null,
-    noDns: true,
+    rsPort: 9892,
+    nsPort: 9891,
+    noDns: false,
     spv: false,
     fees: {
       slow: 0,

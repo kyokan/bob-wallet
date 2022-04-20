@@ -123,6 +123,8 @@ export default class Account extends Component {
   }
 
   onCardButtonClick = async (action, args) => {
+    const {t} = this.context;
+
     const functionToExecute = {
       reveal: this.props.sendRevealAll,
       redeem: this.props.sendRedeemAll,
@@ -134,11 +136,13 @@ export default class Account extends Component {
     try {
       await functionToExecute(args);
       this.props.fetchTransactions();
-      this.props.showSuccess(
-        "Your request is submitted! Please wait about 15 minutes for it to complete."
-      );
+      this.props.showSuccess(t('genericRequestSuccess'));
     } catch (e) {
-      this.props.showError(e.message);
+      if (e.message === 'Could not resolve preferred inputs.') {
+        this.props.showError(t('pleaseWaitForPendingTxs'));
+      } else {
+        this.props.showError(e.message);
+      }
     }
   };
 

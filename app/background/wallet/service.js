@@ -74,7 +74,7 @@ class WalletService {
         type: SET_WALLET_NETWORK,
         payload: this.networkName,
       });
-      const wallets = await this.listWallets(false, true);
+      const wallets = await this.listWallets();
       dispatchToMainWindow({
         type: SET_WALLETS,
         payload: createPayloadForSetWallets(wallets),
@@ -113,7 +113,7 @@ class WalletService {
       timeout: 10000,
     });
 
-    const wallets = await this.listWallets(false, true);
+    const wallets = await this.listWallets();
     dispatchToMainWindow({
       type: SET_WALLETS,
       payload: createPayloadForSetWallets(wallets),
@@ -133,7 +133,7 @@ class WalletService {
         type: SET_API_KEY,
         payload: this.walletApiKey,
       });
-      const wallets = await this.listWallets(false, true);
+      const wallets = await this.listWallets();
       dispatchToMainWindow({
         type: SET_WALLETS,
         payload: createPayloadForSetWallets(wallets),
@@ -219,7 +219,7 @@ class WalletService {
       timeout: 10000,
     });
 
-    const wallets = await this.listWallets(false, true);
+    const wallets = await this.listWallets();
     dispatchToMainWindow({
       type: SET_WALLETS,
       payload: createPayloadForSetWallets(wallets),
@@ -351,7 +351,7 @@ class WalletService {
     await this.node.wdb.remove(wid);
     this.setWallet(this.name === wid ? null : this.name);
 
-    const wallets = await this.listWallets(false, true);
+    const wallets = await this.listWallets();
 
     dispatchToMainWindow({
       type: SET_WALLETS,
@@ -380,13 +380,27 @@ class WalletService {
       });
     }
 
-    const wallets = await this.listWallets(false, true);
+    const wallets = await this.listWallets();
     dispatchToMainWindow({
       type: SET_WALLETS,
       payload: createPayloadForSetWallets(wallets, name),
     });
 
     return res.getJSON();
+  };
+
+  encryptWallet = async (name, passphrase) => {
+    this.setWallet(name);
+
+    const res = await this._executeRPC('encryptwallet', [passphrase]);
+
+    const wallets = await this.listWallets();
+    dispatchToMainWindow({
+      type: SET_WALLETS,
+      payload: createPayloadForSetWallets(wallets, name),
+    });
+
+    return res;
   };
 
   backup = async (path) => {
@@ -419,7 +433,7 @@ class WalletService {
     };
 
     const res = await this.node.wdb.create({id: name, ...options});
-    const wallets = await this.listWallets(false, true);
+    const wallets = await this.listWallets();
 
     dispatchToMainWindow({
       type: SET_WALLETS,
@@ -741,7 +755,7 @@ class WalletService {
   signMessageWithName = (name, message) => this._ledgerDisabled(
     'method is not supported on ledger yet',
     () => {
-      return this._executeRPC('signmessagewithname', [name, message]);
+      return this._executeRPC('signmessagewithname', [name, message], this.lock);
     }
   );
 
@@ -965,10 +979,10 @@ class WalletService {
   };
 
   /**
-   * List Wallet IDs (exclude unencrypted wallets)
-   * @return {Promise<[string]>}
+   * List Wallets
+   * @return {Promise<[object]>}
    */
-  listWallets = async (includeUnencrypted = false, returnObjects = false) => {
+  listWallets = async () => {
     const wdb = this.node.wdb;
     const wallets = await wdb.getWallets();
     const ret = [];
@@ -976,13 +990,7 @@ class WalletService {
     for (const wid of wallets) {
       const info = await wdb.get(wid);
       const {master: {encrypted}, watchOnly} = info;
-      if (includeUnencrypted === true || encrypted || watchOnly) {
-        if (returnObjects) {
-          ret.push({ wid, encrypted, watchOnly });
-        } else {
-          ret.push(wid);
-        }
-      }
+      ret.push({ wid, encrypted, watchOnly });
     }
 
     return ret;
@@ -1453,16 +1461,26 @@ function enforce(value, msg) {
 
 function createPayloadForSetWallets(wallets, addName = null) {
   let wids = wallets.map((wallet) => wallet.wid);
+
+  // array of objects to an object with wid as key
+  const walletsDetails = wallets.reduce((obj, wallet) => {
+    obj[wallet.wid] = wallet;
+    return obj;
+  }, {});
+
+  // Remove unencrypted wids from state.wallet.wallets,
+  // but not objects from state.wallet.walletsDetails
+  wids = wids.filter(
+    (wid) => walletsDetails[wid].encrypted || walletsDetails[wid].watchOnly
+  );
+
   if (addName !== null) {
     wids = uniq([...wids, addName]);
   }
 
   return {
     wallets: wids,
-    walletsDetails: wallets.reduce((obj, wallet) => {
-      obj[wallet.wid] = wallet;
-      return obj;
-    }, {}), // array of objects to a single object with wid as key
+    walletsDetails,
   };
 }
 
@@ -1504,6 +1522,7 @@ const methods = {
   estimateMaxSend: service.estimateMaxSend,
   removeWalletById: service.removeWalletById,
   updateAccountDepth: service.updateAccountDepth,
+  encryptWallet: service.encryptWallet,
   backup: service.backup,
   rescan: service.rescan,
   deepClean: service.deepClean,

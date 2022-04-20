@@ -1,6 +1,12 @@
 @import '../../../variables';
 
 .confirm-seed {
+  &__warning {
+    @extend %h4;
+    margin: 0.2rem 0;
+    color: $orange-red;
+  }
+
   &__editable {
     display: flex;
     flex-flow: row wrap;

@@ -37,7 +37,7 @@ const MIN_FEE = new BigNumber(0.01);
 const DEFAULT_BLOCK_TIME = 10 * 60 * 1000;
 const HSD_PREFIX_DIR_KEY = 'hsdPrefixDir';
 const NODE_API_KEY = 'nodeApiKey';
-const NODE_NO_DNS = 'nodeNoDns';
+const NODE_NO_DNS = 'nodeNoDns1';
 const SPV_MODE = 'nodeSpvMode';
 
 export class NodeService extends EventEmitter {
@@ -63,8 +63,7 @@ export class NodeService extends EventEmitter {
       return noDns === '1';
     }
 
-    await put(NODE_NO_DNS, '1');
-    return true;
+    return false;
   }
 
   async getSpvMode() {
@@ -216,6 +215,8 @@ export class NodeService extends EventEmitter {
       apiKey: this.apiKey,
       walletApiKey: this.apiKey,
       cors: true,
+      rsPort: 9892,
+      nsPort: 9891,
       noDns: this.noDns,
       listen: this.networkName === 'regtest', // improves remote rpc dev/testing
       chainMigrate: 2,
