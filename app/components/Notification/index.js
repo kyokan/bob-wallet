@@ -80,7 +80,8 @@ export default class Notification extends Component {
         <div
           className="notification__issue-wrapper__action"
           onClick={() => {
-            require("electron").shell.openExternal("https://forum.kyokan.io/c/bob/support/5");
+            const pkg = require('../../../package.json');
+            require("electron").shell.openExternal(pkg.bugs.url);
           }}
         >
           Create Bug Report
