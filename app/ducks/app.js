@@ -28,7 +28,7 @@ export const checkForUpdates = () => async (dispatch) => {
       type: SET_UPDATE_AVAILABLE,
       payload: {
         version: latestRelease.tag_name,
-        url: latestRelease.html_url,
+        url: `https://github.com/kyokan/bob-wallet/releases/tag/${latestRelease.tag_name}`,
       },
     });
   }
