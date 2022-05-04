@@ -135,9 +135,10 @@ class BidNow extends Component {
     } = this.state;
 
     const {bids = [], info} = domain || {};
-    const {highest = 0, stats} = info || {};
+    const {stats} = info || {};
     const {bidPeriodEnd} = stats || {};
     const {t} = this.context;
+    const highest = Math.max(...bids.map(bid => bid.value));
 
     return (
       <AuctionPanel>
@@ -168,7 +169,7 @@ class BidNow extends Component {
             {bids.length}
           </AuctionPanelHeaderRow>
           <AuctionPanelHeaderRow label={t('highestLockup') + ':'}>
-            {highest}
+            {bids.length ? displayBalance(highest, true) : t('noBids')}
           </AuctionPanelHeaderRow>
           <div className="domains__bid-now__info__disclaimer">
             <Tooltipable
