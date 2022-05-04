@@ -350,7 +350,6 @@
   "sendTxTimeLabel": "Transaction time",
   "setReminder": "Set reminder",
   "settingAPIKeyCTA": "View API Key",
-  "settingAPIKeyWarning": "API Key will only take effect after you restart Bob.",
   "settingBackupListingDesc": "Download backup of all your listings and fulfillments",
   "settingBackupListingTitle": "Backup listing",
   "settingBackupWDBDesc": "Back up wallet database and files to a directory.",

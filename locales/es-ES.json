@@ -370,7 +370,6 @@
   "setReminder": "Establecer recordatorio",
   "settingAPIKeyCTA": "Muestra la clave de la API",
   "settingAPIKeyDesc": "Clave API para hs-client. Asegúrese de seleccionar la identificación de la wallet \"%s\".",
-  "settingAPIKeyWarning": "La clave de la API sólo se hará efectiva después de reiniciar Bob.",
   "settingBackupListingDesc": "Baja una copia de seguridad de todas tus fichas y cumplimientos",
   "settingBackupListingTitle": "Lista de copia de seguridad",
   "settingBackupWDBDesc": "Haz una copia de seguridad de la base de datos y de los archivos de la wallet a un directorio.",

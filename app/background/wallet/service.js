@@ -90,11 +90,13 @@ class WalletService {
     this.networkName = this.network.type;
     this.walletApiKey = apiKey;
 
-    await this.setAPIKey(apiKey);
-
     dispatchToMainWindow({
       type: SET_WALLET_NETWORK,
       payload: this.networkName,
+    });
+    dispatchToMainWindow({
+      type: SET_API_KEY,
+      payload: this.walletApiKey,
     });
 
     // TODO: This may not work because the plugin is open() already by now
