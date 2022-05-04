@@ -302,11 +302,15 @@ const OPEN_ROUTES = [
 ]
 
 const ProtectedRoute = (props) => {
+  if (OPEN_ROUTES.includes(props.location.pathname)) {
+    return <Route {...props} />;
+  }
+
   if (!props.wallets.length) {
     return <Redirect to="/funding-options" />;
   }
 
-  if (props.isLocked && !OPEN_ROUTES.includes(props.location.pathname)) {
+  if (props.isLocked) {
     return <Redirect to="/login" />;
   }
 

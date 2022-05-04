@@ -11,6 +11,7 @@ import {
   SET_FEE_INFO,
   SET_CUSTOM_RPC_STATUS,
   START_NETWORK_CHANGE,
+  START_ERROR,
   STOP,
   START_NODE_STATUS_CHANGE,
   START_RPC_TEST,
@@ -88,6 +89,7 @@ export const start = (network) => async (dispatch) => {
   } catch (error) {
     console.error('node start error', error);
     dispatch({ type: STOP });
+    dispatch({ type: START_ERROR, payload: error.message });
   } finally {
     dispatch({ type: END_NODE_STATUS_CHANGE });
   }
