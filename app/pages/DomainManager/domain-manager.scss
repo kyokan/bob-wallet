@@ -14,6 +14,11 @@
     }
   }
 
+  &__search {
+    margin: 1rem 0;
+    width: 10rem;
+  }
+
   &__domain {
     @extend %row-nowrap;
 
@@ -46,10 +51,6 @@
       font-weight: 500;
       margin-left: 1rem;
     }
-  }
-
-  &__export-btn {
-    margin-bottom: 2rem;
   }
 
   &__table {
@@ -97,6 +98,13 @@
           text-align: left;
           flex: 0 0 6rem;
         }
+      }
+
+      &__empty-row {
+        height: 1.8rem;
+        font-size: 0.8rem;
+        align-items: center;
+        justify-content: center;
       }
     }
   }
