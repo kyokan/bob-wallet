@@ -101,8 +101,8 @@ export const getNameInfo = name => async (dispatch) => {
   try {
     const auctionInfo = await walletClient.getAuctionInfo(name);
     walletHasName = true;
-    bids = await inflateBids(nodeClient, walletClient, auctionInfo.bids, info.height);
-    reveals = await inflateReveals(nodeClient, walletClient, auctionInfo.reveals, info.height);
+    bids = await inflateBids(auctionInfo.bids, info.height);
+    reveals = await inflateReveals(auctionInfo.reveals, info.height);
   } catch (e) {
     if (!e.message.match(/auction not found/i)) {
       throw e;
@@ -144,7 +144,7 @@ export const getNameInfo = name => async (dispatch) => {
   });
 };
 
-async function inflateBids(nClient, walletClient, bids) {
+async function inflateBids(bids, nameHeight) {
   if (!bids.length) {
     return [];
   }
@@ -155,6 +155,9 @@ async function inflateBids(nClient, walletClient, bids) {
     const res = await nodeClient.getTx(bid.prevout.hash);
 
     if (!res) continue;
+
+    // Ignore bids from previous auctions
+    if (res.height < nameHeight) continue;
 
     const tx = res;
     const out = tx.outputs[bid.prevout.index];
@@ -171,24 +174,27 @@ async function inflateBids(nClient, walletClient, bids) {
   return ret;
 }
 
-async function inflateReveals(nClient, walletClient, bids) {
-  if (!bids.length) {
+async function inflateReveals(reveals, nameHeight) {
+  if (!reveals.length) {
     return [];
   }
 
   const ret = [];
-  for (const bid of bids) {
+  for (const reveal of reveals) {
     // Must use node client to get non-own reveals
-    const res = await nodeClient.getTx(bid.prevout.hash);
+    const res = await nodeClient.getTx(reveal.prevout.hash);
 
     if (!res) continue;
 
+    // Ignore reveals from previous auctions
+    if (res.height < nameHeight) continue;
+
     const tx = res;
-    const out = tx.outputs[bid.prevout.index];
-    const coin = await walletClient.getCoin(bid.prevout.hash, bid.prevout.index);
+    const out = tx.outputs[reveal.prevout.index];
+    const coin = await walletClient.getCoin(reveal.prevout.hash, reveal.prevout.index);
 
     ret.push({
-      bid,
+      bid: reveal, // yes, it really is reveal
       from: out.address,
       date: tx.mtime * 1000,
       value: out.value,
