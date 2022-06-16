@@ -231,7 +231,7 @@ export class NodeService extends EventEmitter {
       nsPort: 9891,
       noDns: this.noDns,
       listen: this.networkName === 'regtest', // improves remote rpc dev/testing
-      chainMigrate: 2,
+      chainMigrate: 3,
       walletMigrate: 1,
       maxOutbound: 4,
     });
@@ -244,7 +244,7 @@ export class NodeService extends EventEmitter {
     await this.hsd.connect();
     await this.hsd.startSync();
 
-    const migrateFlag = `${this.networkName}-hsd-3.0.0-migrate${spv ? '-spv' : ''}`;
+    const migrateFlag = `${this.networkName}-hsd-4.0.0-migrate${spv ? '-spv' : ''}`;
 
     if (!(await get(migrateFlag))) {
       await put(migrateFlag, true);

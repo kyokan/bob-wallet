@@ -23,14 +23,19 @@ class SplashScreen extends Component {
   static contextType = I18nContext;
 
   state = {
-    hasMigrated300: false,
+    hasMigrated400: false,
   };
 
   async componentWillMount() {
+    // TODO: `network` is ALWAYS 'main' here. I think that is because
+    // this code runs before any of the background stuff has a chance
+    // to update state with user's actual configuration. This is only an
+    // issue for developers because we will see the splash screen for a moment
+    // on every boot in regtest until state.network is updated.
     const {network, spv} = this.props;
-    const migrateFlag = `${network}-hsd-3.0.0-migrate${spv ? '-spv' : ''}`;
-    const hasMigrated300 = await dbClient.get(migrateFlag);
-    this.setState({ hasMigrated300 });
+    const migrateFlag = `${network}-hsd-4.0.0-migrate${spv ? '-spv' : ''}`;
+    const hasMigrated400 = await dbClient.get(migrateFlag);
+    this.setState({ hasMigrated400 });
   }
 
   render() {
@@ -50,10 +55,16 @@ class SplashScreen extends Component {
                 <div style={spinnerStyle} />
                 <div style={textStyles}>{t('splashLoading')}</div>
                 {
-                  !this.state.hasMigrated300 && (
+                  !this.state.hasMigrated400 && (
                     <Alert type="warning" style={alertStyle}>
                       <div>
-                        {t('splashMigrate3001')}
+                        {
+                          // Technically the version is now 4.0.0 not 3.0.0
+                          // but the atual text in the message is version
+                          // agnostic ("migration in progress...")
+                          // so we can probably just leave this as is.
+                          t('splashMigrate3001')
+                        }
                       </div>
                       <div>
                         {t('splashMigrate3002')}
