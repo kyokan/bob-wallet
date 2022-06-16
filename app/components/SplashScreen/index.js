@@ -14,6 +14,7 @@ class SplashScreen extends Component {
     error: Proptype.string,
     network: Proptype.string,
     spv: Proptype.bool,
+    compactingTree: Proptype.bool,
   };
 
   static defaultProps = {
@@ -54,29 +55,47 @@ class SplashScreen extends Component {
               <React.Fragment>
                 <div style={spinnerStyle} />
                 <div style={textStyles}>{t('splashLoading')}</div>
-                {
-                  !this.state.hasMigrated400 && (
-                    <Alert type="warning" style={alertStyle}>
-                      <div>
-                        {
-                          // Technically the version is now 4.0.0 not 3.0.0
-                          // but the atual text in the message is version
-                          // agnostic ("migration in progress...")
-                          // so we can probably just leave this as is.
-                          t('splashMigrate3001')
-                        }
-                      </div>
-                      <div>
-                        {t('splashMigrate3002')}
-                      </div>
-                    </Alert>
-                  )
-                }
+                { this.renderAlert(t) }
               </React.Fragment>
             )
         }
       </div>
     );
+  }
+
+  renderAlert(t) {
+    // Tree compaction alert takes precedence
+    if (this.props.compactingTree) {
+      return (
+        <Alert type="warning" style={alertStyle}>
+          <div>
+            {t('compactingTree1')}
+          </div>
+          <div>
+            {t('compactingTree2')}
+          </div>
+        </Alert>
+      );
+    }
+
+    if (!this.state.hasMigrated400) {
+      return(
+        <Alert type="warning" style={alertStyle}>
+          <div>
+            {
+              // Technically the version is now 4.0.0 not 3.0.0
+              // but the atual text in the message is version
+              // agnostic ("migration in progress...")
+              // so we can probably just leave this as is.
+              t('splashMigrate3001')
+            }
+          </div>
+          <div>
+            {t('splashMigrate3002')}
+          </div>
+        </Alert>
+      )
+    }
   }
 }
 
@@ -85,6 +104,7 @@ export default withRouter(
     (state) => ({
       network: state.node.network,
       spv: state.node.spv,
+      compactingTree: state.node.compactingTree,
     }),
   )(SplashScreen)
 );

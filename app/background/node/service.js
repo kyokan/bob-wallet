@@ -23,6 +23,7 @@ import {
   SET_SPV_MODE,
   START_NODE_STATUS_CHANGE,
   END_NODE_STATUS_CHANGE,
+  COMPACTING_TREE,
 } from "../../ducks/nodeReducer";
 import pkg from '../../../package.json';
 
@@ -234,9 +235,23 @@ export class NodeService extends EventEmitter {
       chainMigrate: 3,
       walletMigrate: 1,
       maxOutbound: 4,
+      compactTreeOnInit: true,
     });
 
     this.hsd.use(plugin);
+
+    this.hsd.on('tree compact start', () => {
+      dispatchToMainWindow({
+        type: COMPACTING_TREE,
+        payload: true,
+      });
+    });
+    this.hsd.on('tree compact end', () => {
+      dispatchToMainWindow({
+        type: COMPACTING_TREE,
+        payload: false,
+      });
+    });
 
     await this.hsd.ensure();
     await this.hsd.open();

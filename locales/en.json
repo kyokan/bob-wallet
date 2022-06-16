@@ -72,6 +72,8 @@
   "closedAuctionTitle": "Domain is no longer available",
   "collapse": "Collapse",
   "comingSoon": "Coming Soon",
+  "compactingTree1": "Compacting Urkel Tree",
+  "compactingTree2": "Bob is deleting stale data to recover space on your disk. This will take several minutes. If Bob Wallet is closed during this process, it will start over on the next open. This process must be complete before proceeding to login screen.",
   "confirmFee": "Confirm Fee",
   "confirmReset": "Confirm Reset",
   "copy": "Copy",
