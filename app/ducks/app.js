@@ -1,3 +1,5 @@
+import semver from 'semver';
+const pkg = require('../../package.json');
 import settingsClient from "../utils/settingsClient";
 import hip2Client from '../utils/hip2Client';
 import { SET_HIP2_PORT } from "./hip2Reducer";
@@ -6,12 +8,30 @@ const SET_DEEPLINK = 'app/setDeeplink';
 const SET_LOCALE = 'app/setLocale';
 const SET_CUSTOM_LOCALE = 'app/setCustomLocale';
 const SET_DEEPLINK_PARAMS = 'app/setDeeplinkParams';
+const SET_UPDATE_AVAILABLE = 'app/setUpdateAvailable';
 
 const initialState = {
   deeplink: '',
   deeplinkParams: {},
   locale: '',
   customLocale: null,
+  updateAvailable: null,
+};
+
+export const checkForUpdates = () => async (dispatch) => {
+  const latestRelease = await settingsClient.getLatestRelease();
+  if (!latestRelease) return;
+
+  const canUpdate = semver.gt(latestRelease.tag_name.replace(/$v/i, ''), pkg.version);
+  if (canUpdate) {
+    dispatch({
+      type: SET_UPDATE_AVAILABLE,
+      payload: {
+        version: latestRelease.tag_name,
+        url: `https://github.com/kyokan/bob-wallet/releases/tag/${latestRelease.tag_name}`,
+      },
+    });
+  }
 };
 
 export const initHip2 = () => async (dispatch) => {
@@ -102,6 +122,11 @@ export default function appReducer(state = initialState, action) {
       return {
         ...state,
         customLocale: action.payload,
+      };
+    case SET_UPDATE_AVAILABLE:
+      return {
+        ...state,
+        updateAvailable: action.payload,
       };
     default:
       return state;
