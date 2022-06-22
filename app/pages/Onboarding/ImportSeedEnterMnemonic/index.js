@@ -10,7 +10,8 @@ export default class ImportSeedEnterMnemonic extends Component {
     super(props);
 
     this.state = {
-      mnemonic: ''
+      mnemonic: '',
+      pasted: false,
     };
   }
 
@@ -32,6 +33,7 @@ export default class ImportSeedEnterMnemonic extends Component {
 
   render() {
     const { currentStep, totalSteps, onBack, onNext } = this.props;
+    const { pasted } = this.state;
     const {t} = this.context;
     const importPlaceholder = t('obImportSeedPlaceholder');
 
@@ -49,12 +51,18 @@ export default class ImportSeedEnterMnemonic extends Component {
           <div className="import_warning_text">
             {t('obImportSeedWarning')}
           </div>
+          {pasted ? (
+            <div className="confirm-seed__warning">
+              {t('seedPasteWarning')}
+            </div>
+          ) : null}
           <div className="import-enter__textarea-container">
             <textarea
               className="import_enter_textarea"
               placeholder={importPlaceholder}
               value={this.state.mnemonic}
               onChange={this.onChangeMnemonic}
+              onPaste={() => this.setState({ pasted: true })}
               autoFocus
             />
           </div>

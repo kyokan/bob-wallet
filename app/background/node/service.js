@@ -4,7 +4,6 @@ import { VALID_NETWORKS } from '../../constants/networks';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
-import tcpPortUsed from 'tcp-port-used';
 import EventEmitter from 'events';
 import { NodeClient } from 'hs-client';
 import { BigNumber } from 'bignumber.js';
@@ -32,6 +31,7 @@ const Network = require('hsd/lib/protocol/network');
 const MIN_FEE = new BigNumber(0.01);
 const DEFAULT_BLOCK_TIME = 10 * 60 * 1000;
 const HSD_PREFIX_DIR_KEY = 'hsdPrefixDir';
+const WALLET_API_KEY = 'walletApiKey';
 const NODE_API_KEY = 'nodeApiKey';
 const NODE_NO_DNS = 'nodeNoDns1';
 const SPV_MODE = 'nodeSpvMode';
@@ -51,6 +51,15 @@ export class NodeService extends EventEmitter {
     const newKey = crypto.randomBytes(20).toString('hex');
     await put(NODE_API_KEY, newKey);
     return newKey;
+  }
+
+  async getWalletAPIKey(nodeApiKey) {
+    const apiKey = await get(WALLET_API_KEY);
+    if (apiKey) return apiKey;
+
+    // Fallback to node's api key
+    await put(WALLET_API_KEY, nodeApiKey);
+    return nodeApiKey;
   }
 
   async getNoDns() {
@@ -124,7 +133,18 @@ export class NodeService extends EventEmitter {
 
     switch (conn.type) {
       case ConnectionTypes.P2P:
-        await this.startNode();
+        try {
+          await this.startNode();
+        } catch (error) {
+          if (error.code === 'EADDRINUSE') {
+            throw new Error(`
+              Could not bind to ${error.address}:${error.port}.
+              Please make sure no other hsd or Bob Wallet instance is running.
+              Quit Bob, and try again.`);
+          } else {
+            throw error;
+          }
+        }
         await this.setHSDLocalClient();
         dispatchToMainWindow({
           type: SET_CUSTOM_RPC_STATUS,
@@ -181,16 +201,11 @@ export class NodeService extends EventEmitter {
       return;
     }
 
-    const portsFree = await checkHSDPortsFree(this.network);
-
-    if (!portsFree) {
-      throw new Error('hsd ports in use. Please make sure no other hsd instance is running, quit Bob, and try again.');
-    }
-
     console.log(`Starting node on ${this.networkName} network.`);
 
     const dir = await this.getDir();
     const spv = await this.getSpvMode();
+    const walletApiKey = await this.getWalletAPIKey(this.apiKey);
 
     const Node = spv ? SPVNode : FullNode;
 
@@ -210,7 +225,7 @@ export class NodeService extends EventEmitter {
       indexAddress: true,
       indexTX: true,
       apiKey: this.apiKey,
-      walletApiKey: this.apiKey,
+      walletApiKey: walletApiKey,
       cors: true,
       rsPort: 9892,
       nsPort: 9891,
@@ -225,7 +240,7 @@ export class NodeService extends EventEmitter {
 
     await this.hsd.ensure();
     await this.hsd.open();
-    this.emit('start local', this.hsd.get('walletdb'), this.apiKey);
+    this.emit('start local', this.hsd.get('walletdb'), walletApiKey);
     await this.hsd.connect();
     await this.hsd.startSync();
 
@@ -571,24 +586,6 @@ export class NodeService extends EventEmitter {
     await this._ensureStarted();
     return this.client.execute(method, args);
   }
-}
-
-async function checkHSDPortsFree(network) {
-  const ports = [
-    network.port,
-    network.rpcPort,
-    // network.walletPort,
-    network.nsPort,
-  ];
-
-  for (const port of ports) {
-    const inUse = await tcpPortUsed.check(port);
-    if (inUse) {
-      return false;
-    }
-  }
-
-  return true;
 }
 
 export const service = new NodeService();

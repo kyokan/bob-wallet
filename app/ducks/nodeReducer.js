@@ -84,7 +84,7 @@ export default function nodeReducer(state = getInitialState(), action = {}) {
         },
       };
     case START_ERROR:
-      return {...state, error: action.payload.error};
+      return {...state, error: action.payload};
     case SET_NODE_INFO:
       return {
         ...state,

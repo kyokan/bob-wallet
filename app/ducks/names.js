@@ -76,6 +76,7 @@ export const getNameInfo = name => async (dispatch) => {
   let bids = [];
   let reveals = [];
   let winner = null;
+  let lastTx = null;
   let isOwner = false;
   let walletHasName = false;
 
@@ -89,6 +90,7 @@ export const getNameInfo = name => async (dispatch) => {
         bids,
         reveals,
         winner,
+        lastTx,
         isOwner,
         walletHasName,
       },
@@ -114,12 +116,20 @@ export const getNameInfo = name => async (dispatch) => {
       const buyOutput = buyTx.outputs[info.owner.index];
       const coin = await walletClient.getCoin(info.owner.hash, info.owner.index);
       isOwner = !!coin;
-      if (coin && coin.covenant.action === 'TRANSFER') {
-        const {network} = await nodeClient.getInfo();
-        info.transferTo = Address.fromHash(
-          Buffer.from(coin.covenant.items[3], 'hex'),
-          Number(coin.covenant.items[2])
-        ).toString(network);
+
+      if (coin) {
+        lastTx = {
+          height: coin.height,
+          covenant: coin.covenant,
+        }
+
+        if (coin.covenant.action === 'TRANSFER') {
+          const {network} = await nodeClient.getInfo();
+          info.transferTo = Address.fromHash(
+            Buffer.from(coin.covenant.items[3], 'hex'),
+            Number(coin.covenant.items[2])
+          ).toString(network);
+        }
       }
 
       winner = {
@@ -130,7 +140,7 @@ export const getNameInfo = name => async (dispatch) => {
 
   dispatch({
     type: SET_NAME,
-    payload: {name, start, info, bids, reveals, winner, isOwner, walletHasName},
+    payload: {name, start, info, bids, reveals, winner, lastTx, isOwner, walletHasName},
   });
 };
 

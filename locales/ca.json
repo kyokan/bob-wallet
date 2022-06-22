@@ -370,7 +370,6 @@
   "setReminder": "Establir recordatori",
   "settingAPIKeyCTA": "Mostra la clau de l'API",
   "settingAPIKeyDesc": "Clau API per a hs-client. Assegurat de seleccionar l'identificador del wallet \"%s\".",
-  "settingAPIKeyWarning": "La clau de l'API només es farà efectiva després de reiniciar Bob.",
   "settingBackupListingDesc": "Baixa una còpia de seguretat de totes les teves fitxes i acompliments",
   "settingBackupListingTitle": "Llista de còpia de seguretat",
   "settingBackupWDBDesc": "Fes una còpia de seguretat de la base de dades i dels fitxers de la wallet a un directori.",

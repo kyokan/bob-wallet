@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import c from 'classnames';
+import fs from 'fs';
 
 import Transaction from './Transaction';
 import './index.scss';
@@ -10,7 +11,10 @@ import Dropdown from '../Dropdown';
 import BidSearchInput from '../BidSearchInput';
 import Fuse from '../../vendor/fuse';
 import dbClient from "../../utils/dbClient";
+import walletClient from "../../utils/walletClient";
 import {I18nContext} from "../../utils/i18n";
+
+const {dialog} = require('@electron/remote');
 
 const SORT_BY_TYPES = {
   DATE_DESCENDING: 'Date - Descending',
@@ -85,6 +89,34 @@ export default class Transactions extends Component {
 
   handleOnChange = e => this.setState({ query: e.target.value, currentPageIndex: 0 });
 
+  onExport = async () => {
+    const headers = ['time', 'txhash', 'fee', 'type', 'value', 'domains'];
+    let csvData = headers.join(',') + '\n';
+
+    for (const [_, tx] of this.props.transactions) {
+      const row = {
+        time: new Date(tx.date).toISOString(),
+        txhash: tx.id,
+        fee: tx.fee,
+        type: tx.type,
+        value: (isNegativeValue(tx.type) ? -tx.value : tx.value) / 1e6,
+        domains: tx.domains?.join(', ') || tx.meta.domain || '',
+      }
+      csvData += headers.map(key => `"${row[key]}"`).join(',') + '\n'
+    }
+
+    const savePath = dialog.showSaveDialogSync({
+      filters: [{name: 'spreadsheet', extensions: ['csv']}],
+    });
+    if (savePath) {
+      fs.writeFile(savePath, csvData, (err) => {
+        if (err) {
+          throw err;
+        }
+      });
+    }
+  }
+
   getTransactions() {
     const { sortBy, query } = this.state;
     let transactions = Array.from(this.props.transactions.values());
@@ -153,6 +185,14 @@ export default class Transactions extends Component {
               onChange={sortBy => this.setState({ sortBy })}
               currentIndex={this.state.sortBy}
             />
+          </div>
+          <div className="transactions__export">
+            <button
+              className="watching__download"
+              onClick={this.onExport}
+            >
+              {t('export')}
+            </button>
           </div>
         </div>
         {result}
@@ -287,4 +327,33 @@ function debounce(func, timeout = 300){
     clearTimeout(timer);
     timer = setTimeout(() => { func.apply(this, args); }, timeout);
   };
+}
+
+function isNegativeValue(type) {
+  switch (type) {
+    // Positive
+    case 'RECEIVE':
+    case 'COINBASE':
+    case 'REDEEM':
+    case 'REVEAL':
+    case 'REGISTER':
+      return false;
+
+    // Neutral
+    case 'UPDATE':
+    case 'RENEW':
+    case 'OPEN':
+    case 'FINALIZE':
+    case 'CLAIM':
+      return false;
+
+    // Negative
+    case 'SEND':
+    case 'BID':
+      return true;
+
+    // Should not reach here
+    default:
+      return false;
+  }
 }

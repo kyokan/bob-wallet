@@ -37,7 +37,7 @@ import AppHeader from "../AppHeader";
 import Exchange from '../Exchange';
 import SignMessage from "../SignMessage";
 import VerifyMessage from "../VerifyMessage";
-import {fetchLocale, initHip2} from "../../ducks/app";
+import {fetchLocale, initHip2, checkForUpdates} from "../../ducks/app";
 import {I18nContext} from "../../utils/i18n";
 const connClient = cClientStub(() => require('electron').ipcRenderer);
 const settingClient = sClientStub(() => require('electron').ipcRenderer);
@@ -49,6 +49,7 @@ const settingClient = sClientStub(() => require('electron').ipcRenderer);
   (dispatch) => ({
     initHip2: () => dispatch(initHip2()),
     setExplorer: (explorer) => dispatch(nodeActions.setExplorer(explorer)),
+    checkForUpdates: () => dispatch(checkForUpdates()),
     fetchLocale: () => dispatch(fetchLocale()),
   }),
 )
@@ -77,6 +78,7 @@ class App extends Component {
   async componentDidMount() {
     this.setState({isLoading: true});
     this.props.fetchLocale();
+    this.props.checkForUpdates();
     await this.props.startNode();
     await this.props.initHip2();
     this.props.watchActivity();
@@ -302,11 +304,15 @@ const OPEN_ROUTES = [
 ]
 
 const ProtectedRoute = (props) => {
+  if (OPEN_ROUTES.includes(props.location.pathname)) {
+    return <Route {...props} />;
+  }
+
   if (!props.wallets.length) {
     return <Redirect to="/funding-options" />;
   }
 
-  if (props.isLocked && !OPEN_ROUTES.includes(props.location.pathname)) {
+  if (props.isLocked) {
     return <Redirect to="/login" />;
   }
 

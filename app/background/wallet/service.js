@@ -17,6 +17,7 @@ import {
   STOP_SYNC_WALLET,
   SYNC_WALLET_PROGRESS,
   SET_WALLET_NETWORK,
+  SET_FIND_NONCE_PROGRESS,
 } from '../../ducks/walletReducer';
 import {STOP, SET_CUSTOM_RPC_STATUS} from '../../ducks/nodeReducer';
 import createRegisterAll from "./create-register-all";
@@ -31,11 +32,12 @@ const WalletNode = require('hsd/lib/wallet/node');
 const TX = require('hsd/lib/primitives/tx');
 const {Output, MTX, Address, Coin} = require('hsd/lib/primitives');
 const Script = require('hsd/lib/script/script');
-const {hashName, types} = require('hsd/lib/covenants/rules');
 const MasterKey = require('hsd/lib/wallet/masterkey');
 const Mnemonic = require('hsd/lib/hd/mnemonic');
 const Covenant = require('hsd/lib/primitives/covenant');
 const common = require('hsd/lib/wallet/common');
+const {Rules} = require('hsd/lib/covenants');
+const {hashName, types} = Rules;
 const ipc = require('electron').ipcMain;
 
 const randomAddrs = {
@@ -63,6 +65,7 @@ class WalletService {
     this.lastProgressUpdate = 0;
     this.lastKnownChainHeight = 0;
     this.conn = {type: null};
+    this.findNonceStop = false;
   }
 
   // Wallet as a plugin to the hsd full node is the default configuration
@@ -74,7 +77,7 @@ class WalletService {
         type: SET_WALLET_NETWORK,
         payload: this.networkName,
       });
-      const wallets = await this.listWallets(false, true);
+      const wallets = await this.listWallets();
       dispatchToMainWindow({
         type: SET_WALLETS,
         payload: createPayloadForSetWallets(wallets),
@@ -90,11 +93,13 @@ class WalletService {
     this.networkName = this.network.type;
     this.walletApiKey = apiKey;
 
-    await this.setAPIKey(apiKey);
-
     dispatchToMainWindow({
       type: SET_WALLET_NETWORK,
       payload: this.networkName,
+    });
+    dispatchToMainWindow({
+      type: SET_API_KEY,
+      payload: this.walletApiKey,
     });
 
     // TODO: This may not work because the plugin is open() already by now
@@ -113,7 +118,7 @@ class WalletService {
       timeout: 10000,
     });
 
-    const wallets = await this.listWallets(false, true);
+    const wallets = await this.listWallets();
     dispatchToMainWindow({
       type: SET_WALLETS,
       payload: createPayloadForSetWallets(wallets),
@@ -133,7 +138,7 @@ class WalletService {
         type: SET_API_KEY,
         payload: this.walletApiKey,
       });
-      const wallets = await this.listWallets(false, true);
+      const wallets = await this.listWallets();
       dispatchToMainWindow({
         type: SET_WALLETS,
         payload: createPayloadForSetWallets(wallets),
@@ -219,7 +224,7 @@ class WalletService {
       timeout: 10000,
     });
 
-    const wallets = await this.listWallets(false, true);
+    const wallets = await this.listWallets();
     dispatchToMainWindow({
       type: SET_WALLETS,
       payload: createPayloadForSetWallets(wallets),
@@ -351,7 +356,7 @@ class WalletService {
     await this.node.wdb.remove(wid);
     this.setWallet(this.name === wid ? null : this.name);
 
-    const wallets = await this.listWallets(false, true);
+    const wallets = await this.listWallets();
 
     dispatchToMainWindow({
       type: SET_WALLETS,
@@ -380,13 +385,27 @@ class WalletService {
       });
     }
 
-    const wallets = await this.listWallets(false, true);
+    const wallets = await this.listWallets();
     dispatchToMainWindow({
       type: SET_WALLETS,
       payload: createPayloadForSetWallets(wallets, name),
     });
 
     return res.getJSON();
+  };
+
+  encryptWallet = async (name, passphrase) => {
+    this.setWallet(name);
+
+    const res = await this._executeRPC('encryptwallet', [passphrase]);
+
+    const wallets = await this.listWallets();
+    dispatchToMainWindow({
+      type: SET_WALLETS,
+      payload: createPayloadForSetWallets(wallets, name),
+    });
+
+    return res;
   };
 
   backup = async (path) => {
@@ -419,7 +438,7 @@ class WalletService {
     };
 
     const res = await this.node.wdb.create({id: name, ...options});
-    const wallets = await this.listWallets(false, true);
+    const wallets = await this.listWallets();
 
     dispatchToMainWindow({
       type: SET_WALLETS,
@@ -741,7 +760,7 @@ class WalletService {
   signMessageWithName = (name, message) => this._ledgerDisabled(
     'method is not supported on ledger yet',
     () => {
-      return this._executeRPC('signmessagewithname', [name, message]);
+      return this._executeRPC('signmessagewithname', [name, message], this.lock);
     }
   );
 
@@ -965,10 +984,10 @@ class WalletService {
   };
 
   /**
-   * List Wallet IDs (exclude unencrypted wallets)
-   * @return {Promise<[string]>}
+   * List Wallets
+   * @return {Promise<[object]>}
    */
-  listWallets = async (includeUnencrypted = false, returnObjects = false) => {
+  listWallets = async () => {
     const wdb = this.node.wdb;
     const wallets = await wdb.getWallets();
     const ret = [];
@@ -976,13 +995,7 @@ class WalletService {
     for (const wid of wallets) {
       const info = await wdb.get(wid);
       const {master: {encrypted}, watchOnly} = info;
-      if (includeUnencrypted === true || encrypted || watchOnly) {
-        if (returnObjects) {
-          ret.push({ wid, encrypted, watchOnly });
-        } else {
-          ret.push(wid);
-        }
-      }
+      ret.push({ wid, encrypted, watchOnly });
     }
 
     return ret;
@@ -1047,6 +1060,102 @@ class WalletService {
 
     await b.write();
   };
+
+  findNonce = async (options) => {
+    const {name, address, expectedBlind, rangeStart, rangeEnd, precision} = options;
+
+    await this._ensureClient();
+
+    const nameHash = hashName(name);
+    const from = Address.fromString(address, this.network)
+    const wallet = await this.node.wdb.get(this.name);
+
+    this.findNonceStop = false;
+    dispatchToMainWindow({
+      type: SET_FIND_NONCE_PROGRESS,
+      payload: {
+        expectedBlind: expectedBlind,
+        progress: 0,
+        isFinding: true,
+        found: false,
+        bidValue: rangeStart,
+      },
+    });
+
+    const maxAttempts = (rangeEnd - rangeStart) / 10**(6-precision) + 1;
+    let counter = 0;
+
+    for (let value = rangeStart; value <= rangeEnd; value += 10**(6-precision)) {
+
+      // Stop on cancel
+      if (this.findNonceStop) {
+        this.findNonceStop = false;
+        return null;
+      };
+
+      if (counter % 10000 === 0) {
+        const progress = (counter/maxAttempts)*100;
+        dispatchToMainWindow({
+          type: SET_FIND_NONCE_PROGRESS,
+          payload: {
+            expectedBlind: expectedBlind,
+            progress: progress,
+            isFinding: true,
+            found: false,
+            bidValue: value,
+          },
+        });
+      }
+
+      counter++;
+
+      const nonce = await wallet.generateNonce(nameHash, from, value);
+      const blind = Rules.blind(value, nonce).toString('hex');
+
+      if (blind === expectedBlind) {
+        const progress = (counter/maxAttempts)*100;
+        dispatchToMainWindow({
+          type: SET_FIND_NONCE_PROGRESS,
+          payload: {
+            expectedBlind: expectedBlind,
+            progress: progress,
+            isFinding: false,
+            found: true,
+            bidValue: value,
+          },
+        });
+        return value;
+      }
+    }
+
+    // Could not find value
+    dispatchToMainWindow({
+      type: SET_FIND_NONCE_PROGRESS,
+      payload: {
+        expectedBlind: expectedBlind,
+        progress: 100,
+        isFinding: false,
+        found: false,
+        bidValue: null,
+      },
+    });
+    return null;
+  }
+
+  findNonceCancel = async () => {
+    this.findNonceStop = true;
+
+    dispatchToMainWindow({
+      type: SET_FIND_NONCE_PROGRESS,
+      payload: {
+        expectedBlind: '',
+        progress: -1,
+        isFinding: false,
+        found: false,
+        bidValue: null,
+      },
+    });
+  }
 
   refreshWalletInfo = async () => {
     if (!this.name) return;
@@ -1453,16 +1562,26 @@ function enforce(value, msg) {
 
 function createPayloadForSetWallets(wallets, addName = null) {
   let wids = wallets.map((wallet) => wallet.wid);
+
+  // array of objects to an object with wid as key
+  const walletsDetails = wallets.reduce((obj, wallet) => {
+    obj[wallet.wid] = wallet;
+    return obj;
+  }, {});
+
+  // Remove unencrypted wids from state.wallet.wallets,
+  // but not objects from state.wallet.walletsDetails
+  wids = wids.filter(
+    (wid) => walletsDetails[wid].encrypted || walletsDetails[wid].watchOnly
+  );
+
   if (addName !== null) {
     wids = uniq([...wids, addName]);
   }
 
   return {
     wallets: wids,
-    walletsDetails: wallets.reduce((obj, wallet) => {
-      obj[wallet.wid] = wallet;
-      return obj;
-    }, {}), // array of objects to a single object with wid as key
+    walletsDetails,
   };
 }
 
@@ -1504,6 +1623,9 @@ const methods = {
   estimateMaxSend: service.estimateMaxSend,
   removeWalletById: service.removeWalletById,
   updateAccountDepth: service.updateAccountDepth,
+  findNonce: service.findNonce,
+  findNonceCancel: service.findNonceCancel,
+  encryptWallet: service.encryptWallet,
   backup: service.backup,
   rescan: service.rescan,
   deepClean: service.deepClean,

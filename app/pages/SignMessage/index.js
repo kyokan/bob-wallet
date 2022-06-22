@@ -68,6 +68,9 @@ class SignMessage extends Component {
     const {names, isFetchingNames} = this.props;
     const {t} = this.context;
 
+    const sortedNames = [].concat(names);
+    sortedNames.sort();
+
     return (
       <div className="sign-message">
         <div className="sign-message__top">
@@ -80,7 +83,7 @@ class SignMessage extends Component {
               : (
                 <Dropdown
                   className="sign-message__top__name-dropdown"
-                  items={names.map(n => ({
+                  items={sortedNames.map(n => ({
                     label: n,
                   }))}
                   onChange={(i) => this.setState({
