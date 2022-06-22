@@ -24,6 +24,7 @@ import {
   START_NODE_STATUS_CHANGE,
   END_NODE_STATUS_CHANGE,
 } from "../../ducks/nodeReducer";
+import pkg from '../../../package.json';
 
 const Network = require('hsd/lib/protocol/network');
 
@@ -209,6 +210,7 @@ export class NodeService extends EventEmitter {
     const Node = spv ? SPVNode : FullNode;
 
     this.hsd = new Node({
+      agent: this.getAgent(),
       config: true,
       argv: true,
       env: true,
@@ -550,6 +552,12 @@ export class NodeService extends EventEmitter {
 
   async sendRawClaim(base64) {
     return this._execRPC('sendrawclaim', [base64]);
+  }
+
+  getAgent() {
+    const { name, version } = pkg;
+
+    return `${name}:${version}`; 
   }
 
   async _ensureStarted() {
