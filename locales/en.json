@@ -28,6 +28,7 @@
   "bidAmount": "Bid Amount",
   "bidNowDisclaimer": "To prevent price sniping, Handshake uses a blind second-price auction called a Vickrey Auction. Users can buy and register top-level domains (TLDs) with Handshake coins (HNS).",
   "bidPending": "Bid Pending...",
+  "bidPendingDuplicateText": "A bid with this value has alreday been sent",
   "bidPlaced": "Bid Placed",
   "bidReminderTitle": "Bidding for this domain name opens on",
   "bidSuccessfullyRevealed": "Bid Successfully Revealed",

@@ -9,6 +9,7 @@ import {
   AuctionPanelHeader,
   AuctionPanelHeaderRow,
 } from '../../../components/AuctionPanel';
+import Alert from '../../../components/Alert';
 import Tooltipable from '../../../components/Tooltipable';
 import SuccessModal from '../../../components/SuccessModal';
 import Checkbox from '../../../components/Checkbox';
@@ -313,13 +314,23 @@ class BidNow extends Component {
   }
 
   renderReviewing() {
+    const {t} = this.context;
+
     const {
       bidAmount,
       disguiseAmount,
       hasAccepted,
     } = this.state;
+    const {pendingOperation, pendingOperationMeta} = this.props.domain;
 
-    const {t} = this.context;
+    const trueBid = Number(bidAmount);
+    const blind = Number(disguiseAmount);
+
+    const isDuplicateBid = !!(
+      pendingOperation === 'BID'
+      && pendingOperationMeta.bids
+        .filter(bid => bid.value === (trueBid+blind)*1e6 && bid.bid.value === trueBid*1e6).length
+    );
 
     return (
       <AuctionPanelFooter>
@@ -351,13 +362,21 @@ class BidNow extends Component {
                 />
               </div>
             </AuctionPanelHeaderRow>
+            {isDuplicateBid &&
+              <div className="domains__bid-now__action duplicate-bid-warn">
+                <Alert
+                  type="warning"
+                  message={t('bidPendingDuplicateText')}
+                />
+              </div>
+            }
             <div className="domains__bid-now__divider" />
             <AuctionPanelHeaderRow
               label={t('totalLockups') + ':'}
               className="domains__bid-now__review-total"
             >
               <div className="domains__bid-now__info__value">
-                {`${Number(disguiseAmount) + Number(bidAmount)} HNS`}
+                {`${trueBid + blind} HNS`}
               </div>
             </AuctionPanelHeaderRow>
           </div>
