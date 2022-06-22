@@ -84,7 +84,7 @@ class BidNow extends Component {
       if (!domain.walletHasName)
         height = domain.info.height - 1;
 
-      await sendBid(bidAmount, lockup, height);
+      await sendBid(Number(bidAmount), lockup, height);
       this.setState({
         isReviewing: false,
         isPlacingBid: false,
@@ -145,7 +145,7 @@ class BidNow extends Component {
         {
           showSuccessModal && (
             <SuccessModal
-              bidAmount={bidAmount}
+              bidAmount={Number(bidAmount)}
               maskAmount={Number(bidAmount) + Number(disguiseAmount)}
               revealStartBlock={bidPeriodEnd}
               onClose={() => this.setState({
@@ -195,6 +195,12 @@ class BidNow extends Component {
 
     const {t} = this.context;
 
+    const isValid = (
+      bidAmount.length                // not blank, and
+      && Number(bidAmount) > 0        // true bid is not zero
+      || Number(disguiseAmount) > 0   // unless blind is not zero
+    )
+
     return (
       <AuctionPanelFooter>
         <div className="domains__bid-now__action domains__bid-now__action--placing-bid">
@@ -215,7 +221,7 @@ class BidNow extends Component {
             className="domains__bid-now__action__cta"
             onClick={() => this.setState({isReviewing: true})}
             // bid amount of zero is allowed as long as a disguise is used
-            disabled={bidAmount > 0 ? false : (disguiseAmount > 0 ? false : true)}
+            disabled={!isValid}
           >
             {t('reviewBid')}
           </button>
@@ -342,7 +348,7 @@ class BidNow extends Component {
             <AuctionPanelHeaderRow label={t('bidAmount') + ':'}>
               <div className="domains__bid-now__review-info">
                 <div className="domains__bid-now__info__value">
-                  {`${bidAmount} HNS`}
+                  {`${Number(bidAmount)} HNS`}
                 </div>
                 <div
                   className="domains__bid-now__action__edit-icon"
@@ -353,7 +359,7 @@ class BidNow extends Component {
             <AuctionPanelHeaderRow label={t('blindAmount') + ':'}>
               <div className="domains__bid-now__review-info">
                 <div className="domains__bid-now__info__value">
-                  {disguiseAmount ? `${disguiseAmount} HNS` : ' - '}
+                  {disguiseAmount ? `${Number(disguiseAmount)} HNS` : ' - '}
                 </div>
                 <div
                   className="domains__bid-now__action__edit-icon"

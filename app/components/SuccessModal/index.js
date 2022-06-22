@@ -11,7 +11,7 @@ class SuccessModal extends Component {
   static propTypes = {
     onClose: PropTypes.func.isRequired,
     className: PropTypes.string,
-    bidAmount: PropTypes.string,
+    bidAmount: PropTypes.number,
     maskAmount: PropTypes.number,
     revealStartBlock: PropTypes.number,
   };
