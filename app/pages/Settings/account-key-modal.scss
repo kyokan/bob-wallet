@@ -1,0 +1,21 @@
+@import '../../variables';
+
+
+.account-key {
+  &__instructions {
+    font-size: 14px;
+    line-height: 1.2rem;
+    margin-bottom: 1rem;
+  }
+
+  &__seed-phrase {
+    background-color: $athens-gray;
+    margin: 0 auto;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 18px;
+    line-break: anywhere;
+    user-select: all;
+  }
+}

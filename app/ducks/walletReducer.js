@@ -35,6 +35,7 @@ export function getInitialState() {
     },
     changeDepth: 0,
     receiveDepth: 0,
+    accountKey: null,
     transactions: new Map(),
     idle: 0,
     maxIdle: 5,
@@ -75,6 +76,7 @@ export default function walletReducer(state = getInitialState(), {type, payload}
         },
         changeDepth: payload.changeDepth,
         receiveDepth: payload.receiveDepth,
+        accountKey: payload.accountKey,
         initialized: typeof payload.initialized === 'undefined' ? state.initialized : payload.initialized,
       };
     case SET_BALANCE:
