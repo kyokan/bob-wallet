@@ -105,7 +105,7 @@ class SendModal extends Component {
         if (input) {
           this.setState({ hip2Loading: true })
 
-          // delay lookup by 120ms 
+          // delay lookup by 120ms
           setTimeout(() => {
             // abort lookup if input has changed
             if (!(this.state.hip2Input && this.state.hip2To === input)) return
@@ -124,7 +124,7 @@ class SendModal extends Component {
                   hip2Error = this.context.t('hip2InvalidAddress')
                 } else if (err.code === 'ECOLLISION') {
                   hip2Error = this.context.t('hip2InvalidAlias')
-                } else if (err.code === -1) {
+                } else if (err.code === 'EINSECURE') {
                   hip2Error = this.context.t('hip2InvalidTLSA')
                 } else {
                   hip2Error = this.context.t('hip2AddressNotFound')
@@ -310,20 +310,20 @@ class SendModal extends Component {
           <div className="send__to">
             <div className="send__label">{t('sendToLabel')}</div>
             <div className="send__input" key="send-input">
-              {hip2Input && 
+              {hip2Input &&
               <span className="send__prefix">{to ? (
                 <img src={LockSVG} />
-              ) : ( hip2Loading ? 
-                <img className="send__hip2-loading" src={RingsSVG} /> 
+              ) : ( hip2Loading ?
+                <img className="send__hip2-loading" src={RingsSVG} />
                 : '@')}
               </span>}
               <input
                 type="text"
-                placeholder={hip2Input ? 
-                  t('recipientHip2Address') : 
-                  (hip2Enabled ? 
-                    t('recipientAddressHip2Enabled') : 
-                    (!this.props.noDns ? 
+                placeholder={hip2Input ?
+                  t('recipientHip2Address') :
+                  (hip2Enabled ?
+                    t('recipientAddressHip2Enabled') :
+                    (!this.props.noDns ?
                       t('recipientAddressHip2Syncing') :
                       t('recipientAddress')
                     )
