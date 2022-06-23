@@ -323,11 +323,12 @@ class BidNow extends Component {
     } = this.state;
     const {pendingOperation, pendingOperationMeta} = this.props.domain;
 
+    const pendingBidExists = pendingOperation === 'BID';
     const trueBid = Number(bidAmount);
     const blind = Number(disguiseAmount);
 
     const isDuplicateBid = !!(
-      pendingOperation === 'BID'
+      pendingBidExists
       && pendingOperationMeta.bids
         .filter(bid => bid.value === (trueBid+blind)*1e6 && bid.bid.value === trueBid*1e6).length
     );
@@ -395,7 +396,7 @@ class BidNow extends Component {
               onClick={this.sendBid}
               disabled={!hasAccepted}
             >
-              {t('submitBid')}
+              {pendingBidExists ? t('submitAnotherBid') : t('submitBid')}
             </button>
           </div>
         </div>

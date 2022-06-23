@@ -504,6 +504,7 @@
   "startingPrice": "Starting Price",
   "status": "Status",
   "submit": "Submit",
+  "submitAnotherBid": "Submit Another Bid",
   "submitBid": "Submit Bid",
   "synchronized": "Synchronized",
   "synchronizedFromRPC": "Synchronized from RPC",
