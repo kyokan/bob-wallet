@@ -107,16 +107,16 @@ export default class Auction extends Component {
     analytics.screenView('Auction');
   }
 
-  async componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps, prevState) {
     if (this.props.chain.height !== prevProps.chain.height) {
       this.refreshInfo();
     }
   }
 
-  refreshInfo = throttle(async () => {
-    await this.props.getNameInfo(this.getDomain());
-    await this.props.fetchPendingTransactions();
-  }, 10*1000, {leading: true}) // 10 seconds
+  refreshInfo = throttle(() => {
+    this.props.getNameInfo(this.getDomain());
+    this.props.fetchPendingTransactions();
+  }, 10*1000, {leading: true, trailing: true}) // 10 seconds
 
   getDomain = () => this.props.match.params.name;
 
