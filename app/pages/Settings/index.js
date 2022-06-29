@@ -85,7 +85,7 @@ const connClient = cClientStub(() => require('electron').ipcRenderer);
 export default class Settings extends Component {
   static propTypes = {
     network: PropTypes.string.isRequired,
-    apiKey: PropTypes.string.isRequired,
+    apiKey: PropTypes.string,
     locale: PropTypes.string.isRequired,
     rsPort: PropTypes.number.isRequired,
     nsPort: PropTypes.number.isRequired,

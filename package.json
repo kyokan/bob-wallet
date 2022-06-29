@@ -142,6 +142,7 @@
     "bcurl": "0.2.0",
     "bdb": "1.4.0",
     "bignumber.js": "9.0.2",
+    "binet": "0.3.7",
     "bns": "0.15.0",
     "classnames": "2.3.1",
     "copy-to-clipboard": "3.3.1",
