@@ -502,6 +502,8 @@
   "splashLoading": "Loading node...",
   "splashMigrate3001": "Database migration in progress!",
   "splashMigrate3002": "This will take several minutes. If Bob Wallet is closed during migration, it will resume on the next open. Migration must be complete before proceeding to login screen. Once complete, you can not downgrade Bob Wallet to an earlier version.",
+  "splashRpcError": "Cannot connect to remote node over RPC.",
+  "splashSwitchToInternal": "switch to internal node",
   "startAuction": "Start Auction",
   "startTransfer": "Start Transfer",
   "startedIn": "Started in Block #%s",

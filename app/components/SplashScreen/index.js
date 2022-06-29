@@ -7,6 +7,13 @@ import Alert from "../Alert";
 import {withRouter} from "react-router-dom";
 import {connect} from "react-redux";
 import {I18nContext} from "../../utils/i18n";
+import {clientStub as nClientStub} from "../../background/node/client";
+import {clientStub as cClientStub} from "../../background/connections/client";
+import {ConnectionTypes} from "../../background/connections/service";
+import "./splash-screen.scss"
+
+const nodeClient = nClientStub(() => require('electron').ipcRenderer);
+const connClient = cClientStub(() => require('electron').ipcRenderer);
 
 
 class SplashScreen extends Component {
@@ -27,6 +34,11 @@ class SplashScreen extends Component {
     hasMigrated400: false,
   };
 
+  async switchToP2P() {
+    await connClient.setConnectionType(ConnectionTypes.P2P);
+    await nodeClient.reset();
+  }
+
   async componentDidMount() {
     // TODO: `network` is ALWAYS 'main' here. I think that is because
     // this code runs before any of the background stuff has a chance
@@ -43,6 +55,8 @@ class SplashScreen extends Component {
     const {error} = this.props;
     const {t} = this.context;
 
+    const isRpcError = error === 'RPC:ECONNREFUSED';
+
     return (
       <div style={wrapperStyle}>
         <div style={logoWrapperStyle}>
@@ -50,7 +64,20 @@ class SplashScreen extends Component {
         </div>
         {
           error
-            ? <div style={textStyles}> {error} </div>
+            ?
+            <>
+              <div style={textStyles}>
+                {isRpcError ? t('splashRpcError') : error}
+              </div>
+              {isRpcError &&
+                <button
+                  className="switch-p2p-button"
+                  onClick={() => this.switchToP2P()}
+                >
+                  {t('splashSwitchToInternal')}
+                </button>
+              }
+            </>
             : (
               <React.Fragment>
                 <div style={spinnerStyle} />
@@ -148,8 +175,9 @@ const spinnerStyle = {
 const textStyles = {
   fontSize: '1rem',
   lineHeight: '1rem * 1.4',
-  color: '#909095',
-  maxWidth: '300px',
+  color: '#3c3c3c',
+  textAlign: 'center',
+  maxWidth: '400px',
 };
 
 const alertStyle = {
