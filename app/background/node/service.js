@@ -193,6 +193,7 @@ export class NodeService extends EventEmitter {
     this.network = network;
     this.apiKey = await this.getAPIKey();
     this.noDns = await this.getNoDns();
+    this.spv = await this.getSpvMode();
   }
 
   async startNode() {
@@ -389,7 +390,6 @@ export class NodeService extends EventEmitter {
   _refreshNodeInfo = throttle(async () => {
     try {
       const info = await this.getInfo();
-      this.emit('refreshNodeInfo', info);
 
       dispatchToMainWindow({
         type: SET_NODE_INFO,

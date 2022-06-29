@@ -108,6 +108,7 @@ class BidNow extends Component {
       const {domain} = this.props;
       await this.props.startWalletSync();
       await walletClient.importName(domain.name, domain.info.height - 1);
+      await this.props.waitForWalletSync();
       await this.props.getNameInfo(domain.name);
     } catch (e) {
       await this.props.stopWalletSync();
