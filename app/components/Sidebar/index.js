@@ -23,6 +23,7 @@ const nodeClient = clientStub(() => require('electron').ipcRenderer);
     walletWatchOnly: state.wallet.watchOnly,
     walletSync: state.wallet.walletSync,
     walletHeight: state.wallet.walletHeight,
+    rescanHeight: state.wallet.rescanHeight,
     address: state.wallet.address,
     updateAvailable: state.app.updateAvailable,
   }),
@@ -46,6 +47,7 @@ class Sidebar extends Component {
     walletWatchOnly: PropTypes.bool.isRequired,
     walletSync: PropTypes.bool.isRequired,
     walletHeight: PropTypes.number.isRequired,
+    rescanHeight: PropTypes.number,
     network: PropTypes.string.isRequired,
     address: PropTypes.string.isRequired,
     updateAvailable: PropTypes.object,
@@ -194,6 +196,7 @@ class Sidebar extends Component {
     const {
       walletSync,
       walletHeight,
+      rescanHeight,
       newBlockStatus,
       chainHeight,
       tip,
@@ -221,7 +224,7 @@ class Sidebar extends Component {
         <div className="sidebar__footer__row">
           <div className="sidebar__footer__title">{t('currentHeight')}</div>
           <div className="sidebar__footer__text">
-            {walletSync ? `${walletHeight}/${chainHeight}` : `${chainHeight}` || '--'}
+            {walletSync ? `${walletHeight}/${rescanHeight}` : `${chainHeight}` || '--'}
           </div>
           <div className="sidebar__footer__simnet-controls">
             {this.renderGenerateBlockButton(1)}

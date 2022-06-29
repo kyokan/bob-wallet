@@ -38,7 +38,7 @@ const TX_VIEW_ITEMS_PER_PAGE_KEY = 'main-tx-items-per-page';
 @connect(
   (state) => ({
     transactions: state.wallet.transactions,
-    height: state.node.chain.height,
+    walletHeight: state.wallet.walletHeight,
   }),
   (dispatch) => ({
     fetchTransactions: () => dispatch(fetchTransactions()),
@@ -47,7 +47,7 @@ const TX_VIEW_ITEMS_PER_PAGE_KEY = 'main-tx-items-per-page';
 export default class Transactions extends Component {
   static propTypes = {
     transactions: PropTypes.instanceOf(Map).isRequired,
-    height: PropTypes.number.isRequired,
+    walletHeight: PropTypes.number.isRequired,
   };
 
   static contextType = I18nContext;
@@ -67,7 +67,7 @@ export default class Transactions extends Component {
   async componentDidUpdate(prevProps, prevState) {
 
     // Refresh transactions on new blocks
-    if (this.props.height !== prevProps.height) {
+    if (this.props.walletHeight !== prevProps.walletHeight) {
       this.refreshTransactions();
     }
 
