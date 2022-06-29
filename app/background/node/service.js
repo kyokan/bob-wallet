@@ -5,6 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
 import EventEmitter from 'events';
+import throttle from 'lodash.throttle';
 import { NodeClient } from 'hs-client';
 import { BigNumber } from 'bignumber.js';
 import { ConnectionTypes, getConnection, getCustomRPC } from '../connections/service';
@@ -254,6 +255,8 @@ export class NodeService extends EventEmitter {
       });
     });
 
+    this.hsd.on('connect', async () => this.refreshNodeInfo());
+
     await this.hsd.ensure();
     await this.hsd.open();
     this.emit('start local', this.hsd.get('walletdb'), walletApiKey);
@@ -265,8 +268,6 @@ export class NodeService extends EventEmitter {
     if (!(await get(migrateFlag))) {
       await put(migrateFlag, true);
     }
-
-    this.hsd.on('connect', async () => this.refreshNodeInfo());
   }
 
   async setHSDLocalClient() {
@@ -382,6 +383,10 @@ export class NodeService extends EventEmitter {
     if (!this.client)
       return;
 
+    await this._refreshNodeInfo();
+  };
+
+  _refreshNodeInfo = throttle(async () => {
     try {
       const info = await this.getInfo();
       this.emit('refreshNodeInfo', info);
@@ -403,9 +408,8 @@ export class NodeService extends EventEmitter {
       }
 
       this.height = info.chain.height;
-    } catch (e) {
-    }
-  };
+    } catch (e) {}
+  }, 500, {trailing: true})
 
   async generateToAddress(numblocks, address) {
     return this._execRPC('generatetoaddress', [numblocks, address]);
@@ -569,7 +573,7 @@ export class NodeService extends EventEmitter {
   getAgent() {
     const { name, version } = pkg;
 
-    return `${name}:${version}`; 
+    return `${name}:${version}`;
   }
 
   async _ensureStarted() {
