@@ -26,12 +26,12 @@ class EditableRecord extends Component {
     };
   }
 
-  componentWillReceiveProps(props) {
-    const {type} = props.record || {};
+  componentDidUpdate() {
+    const {type} = this.props.record || {};
     const currentTypeIndex = DROPDOWN_TYPES.findIndex(d => d.label === type);
     this.setState({
       isEditing: false,
-      value: serializeRecord(props.record),
+      value: serializeRecord(this.props.record),
       errorMessage: '',
       currentTypeIndex: Math.max(currentTypeIndex, 0),
     });

@@ -35,7 +35,7 @@ class MyDomain extends Component {
 
   static contextType = I18nContext;
 
-  async componentWillMount() {
+  async componentDidMount() {
     await this.props.getNameInfo();
     await this.props.fetchPendingTransactions();
   }

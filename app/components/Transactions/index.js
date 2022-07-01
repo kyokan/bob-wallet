@@ -52,7 +52,7 @@ export default class Transactions extends Component {
 
   static contextType = I18nContext;
 
-  async componentWillMount() {
+  async componentDidMount() {
     const itemsPerPage = await dbClient.get(TX_VIEW_ITEMS_PER_PAGE_KEY);
 
     this.setState({
@@ -70,10 +70,8 @@ export default class Transactions extends Component {
     if (this.props.height !== prevProps.height) {
       this.refreshTransactions();
     }
-  }
 
-  componentWillReceiveProps(nextProps) {
-    if (this.props.transactions.size !== nextProps.transactions.size) {
+    if (this.props.transactions.size !== prevProps.transactions.size) {
       this.fuse = null;
     }
   }

@@ -27,7 +27,7 @@ class SplashScreen extends Component {
     hasMigrated400: false,
   };
 
-  async componentWillMount() {
+  async componentDidMount() {
     // TODO: `network` is ALWAYS 'main' here. I think that is because
     // this code runs before any of the background stuff has a chance
     // to update state with user's actual configuration. This is only an

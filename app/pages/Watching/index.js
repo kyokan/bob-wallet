@@ -54,7 +54,7 @@ class Watching extends Component {
     isImporting: false,
   };
 
-  async componentWillMount() {
+  async componentDidMount() {
     const itemsPerPage = await dbClient.get(WATCHING_ITEMS_PER_PAGE_KEY);
 
     this.setState({

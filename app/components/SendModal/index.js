@@ -168,7 +168,7 @@ class SendModal extends Component {
     // }
   }
 
-  componentWillMount = () => {
+  componentDidMount = () => {
     document.addEventListener('keydown', this.handleEscape)
   }
 

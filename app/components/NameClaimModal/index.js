@@ -70,7 +70,7 @@ export default class NameClaimModal extends Component {
     success: null,
   };
 
-  async componentWillMount() {
+  async componentDidMount() {
     if (this.props.name) {
       this.getClaim(this.props.name, null);
     }
@@ -743,7 +743,7 @@ class ClaimOption extends Component {
 
     const faketxt = (!!url && !!txt)
         ? `${url} 300 IN TXT "${txt}"`
-        : ''; 
+        : '';
     const fakesig = (!!url && !!txt)
         ? `${url} 300 IN RRSIG TXT 13 2 300 20210603180907 20210601160907 34505 ${url} f6x5CBP1ySenfPodSGSPNPCdzLzhlXK8shtpfzcEmCs09amCSqCIwniq eEIR1EYCuijP4OCKFyEnEhfEk+l81A==`
         : '';

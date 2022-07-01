@@ -89,7 +89,7 @@ export default class Auction extends Component {
 
   static contextType = I18nContext;
 
-  async componentWillMount() {
+  async componentDidMount() {
     try {
       this.setState({isLoading: true});
       await this.props.getNameInfo(this.getDomain());
