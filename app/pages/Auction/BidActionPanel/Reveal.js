@@ -86,7 +86,7 @@ class Reveal extends Component {
             {bids.length}
           </AuctionPanelHeaderRow>
           <AuctionPanelHeaderRow label={t('highestLockup') + ':'}>
-            {displayBalance(highest, true)}
+            {bids.length ? displayBalance(highest, true) : t('noBids')}
           </AuctionPanelHeaderRow>
         </AuctionPanelHeader>
         <AuctionPanelFooter>

@@ -36,6 +36,7 @@ export const setWallet = opts => {
     apiKey = '',
     changeDepth,
     receiveDepth,
+    accountKey,
   } = opts;
 
   return {
@@ -49,6 +50,7 @@ export const setWallet = opts => {
       apiKey,
       changeDepth,
       receiveDepth,
+      accountKey,
     },
   };
 };
@@ -101,6 +103,7 @@ export const fetchWallet = () => async (dispatch, getState) => {
     balance: accountInfo.balance,
     changeDepth: accountInfo.changeDepth,
     receiveDepth: accountInfo.receiveDepth,
+    accountKey: accountInfo.accountKey,
   }));
 };
 

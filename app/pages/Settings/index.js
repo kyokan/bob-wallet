@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import './index.scss';
 import AccountIndexModal from './AccountIndexModal';
 import MaxIdleModal from './MaxIdleModal';
+import AccountKeyModal from './AccountKeyModal';
 import RevealSeedModal from './RevealSeedModal';
 import ZapTXsModal from './ZapTXsModal';
 import * as logger from '../../utils/logClient';
@@ -380,6 +381,12 @@ export default class Settings extends Component {
           () => history.push('/settings/wallet/zap-txs'),
         )}
         {this.renderSection(
+          t('settingAccountKeyTitle'),
+          t('settingAccountKeyDesc'),
+          t('settingAccountKeyCTA'),
+          () => history.push('/settings/wallet/account-key'),
+        )}
+        {this.renderSection(
           t('settingRevealSeedTitle'),
           t('settingRevealSeedDesc'),
           t('settingRevealSeedCTA'),
@@ -604,6 +611,7 @@ export default class Settings extends Component {
               />
             )}
           />
+          <Route path="/settings/wallet/account-key" component={AccountKeyModal} />
           <Route path="/settings/wallet/reveal-seed" component={RevealSeedModal} />
           <Route path="/settings/wallet/zap-txs" component={ZapTXsModal} />
           <Route path="/settings/connection/configure" component={CustomRPCConfigModal} />

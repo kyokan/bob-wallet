@@ -1,7 +1,7 @@
 const { states } = require("hsd/lib/covenants/namestate");
 
 async function fromBids(wallet) {
-  const height = wallet.wdb.height + 1;
+  const height = wallet.wdb.height;
   const network = wallet.network;
 
   // Live Auctions
@@ -88,7 +88,7 @@ async function fromBids(wallet) {
 }
 
 async function fromReveals(wallet) {
-  const height = wallet.wdb.height + 1;
+  const height = wallet.wdb.height;
   const network = wallet.network;
 
   let redeemableHNS = 0;
@@ -146,7 +146,7 @@ async function fromReveals(wallet) {
 }
 
 async function fromNames(wallet) {
-  const height = wallet.wdb.height + 1;
+  const height = wallet.wdb.height;
   const network = wallet.network;
 
   let transferringDomains = new Set();
