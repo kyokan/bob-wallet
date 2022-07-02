@@ -76,31 +76,27 @@ class Sidebar extends Component {
         <div className="sidebar__section">{title}</div>
         <div className="sidebar__actions">
           <NavLink
-            className="sidebar__action"
             to="/account"
-            activeClassName="sidebar__action--selected"
+            className={isActive => `sidebar__action ${isActive ? "sidebar__action--selected" : ''}`}
           >
             {t('headingPortfolio')}
           </NavLink>
           <NavLink
-            className="sidebar__action"
             to="/send"
-            activeClassName="sidebar__action--selected"
+            className={isActive => `sidebar__action ${isActive ? "sidebar__action--selected" : ''}`}
           >
             {t('headingSend')}
           </NavLink>
           <NavLink
-            className="sidebar__action"
             to="/receive"
-            activeClassName="sidebar__action--selected"
+            className={isActive => `sidebar__action ${isActive ? "sidebar__action--selected" : ''}`}
           >
             {t('headingReceive')}
           </NavLink>
 
           <NavLink
-            className="sidebar__action"
             to="/domain_manager"
-            activeClassName="sidebar__action--selected"
+            className={isActive => `sidebar__action ${isActive ? "sidebar__action--selected" : ''}`}
           >
             {t('headingDomainManager')}
           </NavLink>
@@ -108,30 +104,26 @@ class Sidebar extends Component {
         <div className="sidebar__section">{t('topLevelDomains')}</div>
         <div className="sidebar__actions">
           <NavLink
-            className="sidebar__action"
             to="/domains"
-            activeClassName="sidebar__action--selected"
+            className={isActive => `sidebar__action ${isActive ? "sidebar__action--selected" : ''}`}
           >
             {t('headingBrowseDomains')}
           </NavLink>
           <NavLink
-            className="sidebar__action"
             to="/bids"
-            activeClassName="sidebar__action--selected"
+            className={isActive => `sidebar__action ${isActive ? "sidebar__action--selected" : ''}`}
           >
             {t('headingYourBids')}
           </NavLink>
           <NavLink
-            className="sidebar__action"
             to="/watching"
-            activeClassName="sidebar__action--selected"
+            className={isActive => `sidebar__action ${isActive ? "sidebar__action--selected" : ''}`}
           >
             {t('headingWatching')}
           </NavLink>
           <NavLink
-            className="sidebar__action"
             to="/exchange"
-            activeClassName="sidebar__action--selected"
+            className={isActive => `sidebar__action ${isActive ? "sidebar__action--selected" : ''}`}
           >
             {t('headingExchange')}
           </NavLink>
@@ -154,23 +146,20 @@ class Sidebar extends Component {
         </div>
         <div className="sidebar__actions">
           <NavLink
-            className="sidebar__action"
             to="/get_coins"
-            activeClassName="sidebar__action--selected"
+            className={isActive => `sidebar__action ${isActive ? "sidebar__action--selected" : ''}`}
           >
             {t('headingClaimAirdropName')}
           </NavLink>
           <NavLink
-            className="sidebar__action"
             to="/sign_message"
-            activeClassName="sidebar__action--selected"
+            className={isActive => `sidebar__action ${isActive ? "sidebar__action--selected" : ''}`}
           >
             {t('headingSignMessage')}
           </NavLink>
           <NavLink
-            className="sidebar__action"
             to="/verify_message"
-            activeClassName="sidebar__action--selected"
+            className={isActive => `sidebar__action ${isActive ? "sidebar__action--selected" : ''}`}
           >
             {t('headingVerifyMessage')}
           </NavLink>

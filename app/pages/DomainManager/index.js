@@ -70,7 +70,7 @@ class DomainManager extends Component {
     analytics.screenView('Domain Manager');
   }
 
-  async componentWillMount() {
+  async componentDidMount() {
     this.props.getMyNames();
     const itemsPerPage = await dbClient.get(DM_ITEMS_PER_PAGE_KEY);
 

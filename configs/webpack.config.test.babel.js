@@ -4,6 +4,9 @@ const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
 
 const path = require('path');
 
+const port = process.env.PORT || 1212;
+const publicPath = `http://localhost:${port}/dist`;
+
 module.exports = {
   devtool: 'inline-source-map',
 
@@ -13,6 +16,7 @@ module.exports = {
     './unit.js',
   ],
   output: {
+    publicPath: publicPath,
     path: path.resolve(__dirname, '../test-dist'),
     filename: 'test.js'
   },

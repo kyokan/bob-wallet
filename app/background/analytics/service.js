@@ -1,5 +1,5 @@
 import mixpanel from 'mixpanel';
-import uuid from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import { del, get, put } from '../db/service';
 import * as os from 'os';
 import isDev from '../../utils/isDev';
@@ -21,7 +21,7 @@ export async function setOptIn(state) {
     return;
   }
 
-  const u = uuid.v4();
+  const u = uuidv4();
   await put(USER_ID_KEY, u);
   await put(OPT_IN_STATE_KEY, '1');
   userId = u;
