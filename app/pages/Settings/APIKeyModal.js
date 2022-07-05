@@ -25,7 +25,7 @@ export default class APIKeyModal extends Component {
     startNode: PropTypes.func.isRequired,
     title: PropTypes.string.isRequired,
     closeRoute: PropTypes.string.isRequired,
-    apiKey: PropTypes.string.isRequired,
+    apiKey: PropTypes.string,
     updateAPIKey: PropTypes.func.isRequired,
   };
 

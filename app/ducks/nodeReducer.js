@@ -60,7 +60,7 @@ export function getInitialState() {
 export default function nodeReducer(state = getInitialState(), action = {}) {
   switch (action.type) {
     case START_NODE_STATUS_CHANGE:
-      return { ...state, isChangingNodeStatus: true };
+      return { ...state, isChangingNodeStatus: true, error: '' };
     case END_NODE_STATUS_CHANGE:
       return { ...state, isChangingNodeStatus: false };
     case START_RPC_TEST:

@@ -1,7 +1,5 @@
 import { WalletClient } from 'hs-client';
 import BigNumber from 'bignumber.js';
-import path from 'path';
-import { app } from 'electron';
 import crypto from 'crypto';
 const Validator = require('bval');
 import { ConnectionTypes, getConnection } from '../connections/service';
@@ -17,6 +15,7 @@ import {
   STOP_SYNC_WALLET,
   SYNC_WALLET_PROGRESS,
   SET_WALLET_NETWORK,
+  SET_RESCAN_HEIGHT,
   SET_FIND_NONCE_PROGRESS,
 } from '../../ducks/walletReducer';
 import {STOP, SET_CUSTOM_RPC_STATUS} from '../../ducks/nodeReducer';
@@ -51,7 +50,6 @@ const {LedgerHSD, LedgerChange, LedgerCovenant, LedgerInput} = hsdLedger;
 const {Device} = hsdLedger.HID;
 const ONE_MINUTE = 60000;
 
-const HSD_DATA_DIR = path.join(app.getPath('userData'), 'hsd_data');
 const WALLET_API_KEY = 'walletApiKey';
 
 class WalletService {
@@ -59,16 +57,19 @@ class WalletService {
     nodeService.on('start remote', this._useWalletNode);
     nodeService.on('start local', this._usePlugin);
     nodeService.on('stopped', this._onNodeStop);
-    nodeService.on('refreshNodeInfo', this._onRefreshNodeInfo);
     this.nodeService = nodeService;
-    this.nodeHeight = 0;
     this.lastProgressUpdate = 0;
     this.lastKnownChainHeight = 0;
+    this.heightBeforeRescan = null; // null = not rescanning
     this.conn = {type: null};
     this.findNonceStop = false;
   }
 
-  // Wallet as a plugin to the hsd full node is the default configuration
+  /**
+   * Wallet as a plugin to the hsd full node is the default configuration
+   * @param {import('hsd/lib/wallet/plugin')} plugin
+   * @param {string} apiKey
+   */
   _usePlugin = async (plugin, apiKey) => {
     if (this.node) {
       // The app was restarted but the nodes are already running,
@@ -108,8 +109,8 @@ class WalletService {
     this.node.wdb.on('error', e => {
       console.error('walletdb error', e);
     });
-    this.node.wdb.client.bind('block connect', this.onNewBlock);
-    this.node.wdb.client.bind('block rescan', this.onRescanBlock);
+
+    this.node.wdb.on('block connect', this.onNewBlock);
 
     this.client = new WalletClient({
       network: this.network,
@@ -123,6 +124,8 @@ class WalletService {
       type: SET_WALLETS,
       payload: createPayloadForSetWallets(wallets),
     });
+
+    this.lastKnownChainHeight = this.node.wdb.height;
   };
 
   // Wallet as a separate process only runs in Custom RPC mode
@@ -204,16 +207,7 @@ class WalletService {
       console.error('walletdb error', e);
     });
 
-    this.node.wdb.client.bind('block connect', this.onNewBlock);
-    this.node.wdb.client.unhook('block rescan');
-    this.node.wdb.client.hook('block rescan', async (entry, txs) => {
-      try {
-        await this.node.wdb.rescanBlock(entry, txs);
-      } catch (e) {
-        this.node.wdb.emit('error', e);
-      }
-      await this.onRescanBlock(entry);
-    });
+    this.node.wdb.on('block connect', this.onNewBlock);
 
     await this.node.open();
 
@@ -243,23 +237,6 @@ class WalletService {
     this.didSelectWallet = false;
     this.conn = {type: null};
   };
-
-  // Called when node emits refreshNodeInfo
-  // Required to get node height once node is connected
-  _onRefreshNodeInfo = async (nodeInfo) => {
-    this.nodeHeight = nodeInfo.chain.height;
-
-    // If wallet is synced up with node,
-    // stop wallet sync (similar to onRescanBlock)
-    if (this.lastKnownChainHeight === this.nodeHeight) {
-      dispatchToMainWindow({type: STOP_SYNC_WALLET});
-      dispatchToMainWindow({
-        type: SYNC_WALLET_PROGRESS,
-        payload: this.nodeHeight,
-      });
-      await this.refreshWalletInfo();
-    }
-  }
 
   isReady = async () => {
     let attempts = 0;
@@ -414,10 +391,17 @@ class WalletService {
   };
 
   rescan = async (height = 0) => {
+    this.heightBeforeRescan = this.lastKnownChainHeight;
+    this.lastKnownChainHeight = height;
+
     dispatchToMainWindow({type: START_SYNC_WALLET});
     dispatchToMainWindow({
       type: SYNC_WALLET_PROGRESS,
       payload: height,
+    });
+    dispatchToMainWindow({
+      type: SET_RESCAN_HEIGHT,
+      payload: this.heightBeforeRescan,
     });
 
     return this.node.wdb.rescan(height);
@@ -812,8 +796,16 @@ class WalletService {
     return this.client.zap(this.name, 'default', 1);
   };
 
-  importName = (name, start) => {
-    return this._executeRPC('importname', [name, start]);
+  importName = async (name, start) => {
+    await this._executeRPC('importname', [name, null]);
+
+    // wait 1 sec (for filterload to update on peer)
+    if (this.nodeService.spv) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
+    // rescan
+    this.rescan(start);
   };
 
   rpcGetWalletInfo = async () => {
@@ -1177,42 +1169,36 @@ class WalletService {
 
   onNewBlock = async (entry) => {
     await this._ensureClient();
-    await this.refreshWalletInfo();
-
-    dispatchToMainWindow({
-      type: SYNC_WALLET_PROGRESS,
-      payload: entry.height,
-    });
 
     this.lastKnownChainHeight = entry.height;
-  };
 
-  /**
-   * Stub handler for rescan block
-   *
-   * @param {ChainEntry} entry
-   * @param {TX[]} txs
-   * @returns {Promise}
-   */
-
-  onRescanBlock = async (entry) => {
-    this.lastKnownChainHeight = entry.height;
-
-    if (entry.height === this.nodeHeight) {
+    // If wallet rescanning, and has reached
+    // height before rescan start, the stop sync.
+    if (
+      this.heightBeforeRescan !== null
+      && this.heightBeforeRescan <= entry.height
+    ) {
+      // Stop sync
       dispatchToMainWindow({type: STOP_SYNC_WALLET});
       dispatchToMainWindow({
         type: SYNC_WALLET_PROGRESS,
         payload: entry.height,
       });
+
+      // Reset rescan height
+      this.heightBeforeRescan = null;
+      dispatchToMainWindow({
+        type: SET_RESCAN_HEIGHT,
+        payload: null,
+      });
+
+      // Refresh wallet info
       await this.refreshWalletInfo();
-      return;
     }
 
+    // debounce for 500 msec
     const now = Date.now();
-
-    // debounce wallet sync update
     if (now - this.lastProgressUpdate > 500) {
-      dispatchToMainWindow({type: START_SYNC_WALLET});
       dispatchToMainWindow({
         type: SYNC_WALLET_PROGRESS,
         payload: entry.height,

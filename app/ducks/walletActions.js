@@ -4,7 +4,6 @@ import throttle from 'lodash.throttle';
 import { getInitializationState, setInitializationState, getMaxIdleMinutes, setMaxIdleMinutes } from '../db/system';
 import {
   GET_PASSPHRASE,
-  getInitialState,
   INCREMENT_IDLE,
   LOCK_WALLET,
   RESET_IDLE,
@@ -14,11 +13,9 @@ import {
   SET_WALLET,
   START_SYNC_WALLET,
   STOP_SYNC_WALLET,
-  SYNC_WALLET_PROGRESS,
   UNLOCK_WALLET,
   SET_API_KEY,
   SET_FETCHING,
-  SET_WALLETS,
 } from './walletReducer';
 import { NEW_BLOCK_STATUS } from './nodeReducer';
 import {setNames} from "./myDomains";
@@ -183,17 +180,18 @@ export const waitForWalletSync = () => async (dispatch, getState) => {
   let stall = 0;
 
   for (; ;) {
-    const nodeInfo = await nodeClient.getInfo();
-    const wdbInfo = await walletClient.rpcGetWalletInfo();
+    const state = getState();
+    const nodeHeight = state.node.chain.height;
+    const {walletHeight, rescanHeight, walletSync} = state.wallet;
 
-    if (nodeInfo.chain.height === 0) {
-      dispatch({type: STOP_SYNC_WALLET});
-      break;
+    let progress;
+    if (walletSync) {
+      progress = walletHeight / rescanHeight * 100;
+    } else {
+      progress = walletHeight / nodeHeight * 100;
     }
 
-    const progress = parseInt(wdbInfo.height / nodeInfo.chain.height * 100);
-
-    // If we go 5 seconds without any progress, throw an error
+    // If we go 50 seconds without any progress, throw an error
     if (lastProgress === progress) {
       stall++;
     } else {
@@ -201,19 +199,15 @@ export const waitForWalletSync = () => async (dispatch, getState) => {
       stall = 0;
     }
 
-    if (stall >= 5) {
-      dispatch({type: STOP_SYNC_WALLET});
+    if (stall >= 50) {
       throw new Error('Wallet sync progress has stalled.');
     }
 
-    if (progress === 100) {
-      dispatch({type: STOP_SYNC_WALLET});
+    if (walletSync ? (rescanHeight === null) : (progress === 100)) {
       break;
-    } else {
-      dispatch({type: SYNC_WALLET_PROGRESS, payload: progress});
     }
 
-    await new Promise((r) => setTimeout(r, 10000));
+    await new Promise((r) => setTimeout(r, 1000));
   }
 };
 

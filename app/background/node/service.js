@@ -5,6 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
 import EventEmitter from 'events';
+import throttle from 'lodash.throttle';
 import { NodeClient } from 'hs-client';
 import { BigNumber } from 'bignumber.js';
 import { ConnectionTypes, getConnection, getCustomRPC } from '../connections/service';
@@ -36,6 +37,7 @@ const WALLET_API_KEY = 'walletApiKey';
 const NODE_API_KEY = 'nodeApiKey';
 const NODE_NO_DNS = 'nodeNoDns1';
 const SPV_MODE = 'nodeSpvMode';
+const HANDSHAKE_API_BASE_URL = 'https://api.handshakeapi.com/hsd';
 
 export class NodeService extends EventEmitter {
   constructor() {
@@ -110,10 +112,10 @@ export class NodeService extends EventEmitter {
   }
 
   async setSpvMode(spv) {
-    await put(SPV_MODE, !!spv ? '1' : '');
+    await put(SPV_MODE, !!spv ? '1' : '0');
     dispatchToMainWindow({
       type: SET_SPV_MODE,
-      payload: spv === '1',
+      payload: spv === true,
     });
   }
 
@@ -191,6 +193,7 @@ export class NodeService extends EventEmitter {
     this.network = network;
     this.apiKey = await this.getAPIKey();
     this.noDns = await this.getNoDns();
+    this.spv = await this.getSpvMode();
   }
 
   async startNode() {
@@ -253,6 +256,8 @@ export class NodeService extends EventEmitter {
       });
     });
 
+    this.hsd.on('connect', async () => this.refreshNodeInfo());
+
     await this.hsd.ensure();
     await this.hsd.open();
     this.emit('start local', this.hsd.get('walletdb'), walletApiKey);
@@ -264,8 +269,6 @@ export class NodeService extends EventEmitter {
     if (!(await get(migrateFlag))) {
       await put(migrateFlag, true);
     }
-
-    this.hsd.on('connect', async () => this.refreshNodeInfo());
   }
 
   async setHSDLocalClient() {
@@ -381,9 +384,12 @@ export class NodeService extends EventEmitter {
     if (!this.client)
       return;
 
+    await this._refreshNodeInfo();
+  };
+
+  _refreshNodeInfo = throttle(async () => {
     try {
       const info = await this.getInfo();
-      this.emit('refreshNodeInfo', info);
 
       dispatchToMainWindow({
         type: SET_NODE_INFO,
@@ -402,9 +408,8 @@ export class NodeService extends EventEmitter {
       }
 
       this.height = info.chain.height;
-    } catch (e) {
-    }
-  };
+    } catch (e) {}
+  }, 500, {trailing: true})
 
   async generateToAddress(numblocks, address) {
     return this._execRPC('generatetoaddress', [numblocks, address]);
@@ -438,10 +443,6 @@ export class NodeService extends EventEmitter {
     const name = await this._execRPC('getnamebyhash', [hash], true);
     put(prefixHash(hash), name);
     return name;
-  }
-
-  async getAuctionInfo(name) {
-    return this._execRPC('getauctioninfo', [name], true);
   }
 
   async getBlock(height) {
@@ -572,7 +573,7 @@ export class NodeService extends EventEmitter {
   getAgent() {
     const { name, version } = pkg;
 
-    return `${name}:${version}`; 
+    return `${name}:${version}`;
   }
 
   async _ensureStarted() {
@@ -616,7 +617,6 @@ const methods = {
   getInfo: () => service.getInfo(),
   getNameInfo: (name) => service.getNameInfo(name),
   getNameByHash: (hash) => service.getNameByHash(hash),
-  getAuctionInfo: (name) => service.getAuctionInfo(name),
   getBlock: (height) => service.getBlock(height),
   generateToAddress: (numblocks, address) => service.generateToAddress(numblocks, address),
   getTXByAddresses: (addresses) => service.getTXByAddresses(addresses),
@@ -645,7 +645,7 @@ export async function start(server) {
 }
 
 async function hapiGet(path = '') {
-  const res = await fetch(`https://api.handshakeapi.com/hsd${path}`, {
+  const res = await fetch(HANDSHAKE_API_BASE_URL + path, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -671,7 +671,7 @@ async function hapiGet(path = '') {
 }
 
 async function hapiPost(path = '', body) {
-  const res = await fetch(`https://api.handshakeapi.com/hsd${path}`, {
+  const res = await fetch(HANDSHAKE_API_BASE_URL + path, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

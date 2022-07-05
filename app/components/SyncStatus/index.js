@@ -27,6 +27,7 @@ import {I18nContext} from "../../utils/i18n";
     progress,
     walletSync: state.wallet.walletSync,
     walletHeight: state.wallet.walletHeight,
+    rescanHeight: state.wallet.rescanHeight,
     chainHeight: state.node.chain.height,
   };
 })
@@ -40,6 +41,7 @@ class SyncStatus extends Component {
     isTestingCustomRPC: PropTypes.bool.isRequired,
     walletSync: PropTypes.bool.isRequired,
     walletHeight: PropTypes.number.isRequired,
+    rescanHeight: PropTypes.number,
     chainHeight: PropTypes.number.isRequired,
   };
 
@@ -52,7 +54,6 @@ class SyncStatus extends Component {
       isChangingNodeStatus,
       isTestingCustomRPC,
       isRunning,
-      isCustomRPCConnected,
       walletSync,
       progress,
     } = this.props;
@@ -82,29 +83,29 @@ class SyncStatus extends Component {
       isSynchronized,
       isSynchronizing,
       progress,
-      isRunning,
       isCustomRPCConnected,
       isChangingNodeStatus,
       isTestingCustomRPC,
       walletSync,
       walletHeight,
+      rescanHeight,
       chainHeight,
     } = this.props;
 
     const {t} = this.context;
+
+    if (walletSync) {
+      const percentText = Math.floor((walletHeight * 100) / rescanHeight);
+      return isCustomRPCConnected
+        ? `${t('rescanningFromRPC')}... (${percentText}%)`
+        : `${t('rescanning')}... (${percentText}%)`;
+    }
 
     if (isSynchronizing) {
       const progressText = progress ? "(" + (progress * 100).toFixed(2) + "%)" : "";
       return isCustomRPCConnected
         ? `${t('synchronizingFromRPC')}... ${progressText}`
         : `${t('synchronizing')}... ${progressText}`;
-    }
-
-    if (walletSync) {
-      const percentText = Math.floor((walletHeight * 100) / chainHeight);
-      return isCustomRPCConnected
-        ? `${t('rescanningFromRPC')}... (${percentText}%)`
-        : `${t('rescanning')}... (${percentText}%)`;
     }
 
     if (isSynchronized) {

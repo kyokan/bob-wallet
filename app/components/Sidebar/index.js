@@ -18,10 +18,12 @@ const nodeClient = clientStub(() => require('electron').ipcRenderer);
     chainHeight: state.node.chain.height,
     tip: state.node.chain.tip,
     newBlockStatus: state.node.newBlockStatus,
+    spv: state.node.spv,
     walletId: state.wallet.wid,
     walletWatchOnly: state.wallet.watchOnly,
     walletSync: state.wallet.walletSync,
     walletHeight: state.wallet.walletHeight,
+    rescanHeight: state.wallet.rescanHeight,
     address: state.wallet.address,
     updateAvailable: state.app.updateAvailable,
   }),
@@ -41,9 +43,11 @@ class Sidebar extends Component {
     walletId: PropTypes.string.isRequired,
     tip: PropTypes.string.isRequired,
     newBlockStatus: PropTypes.string.isRequired,
+    spv: PropTypes.bool.isRequired,
     walletWatchOnly: PropTypes.bool.isRequired,
     walletSync: PropTypes.bool.isRequired,
     walletHeight: PropTypes.number.isRequired,
+    rescanHeight: PropTypes.number,
     network: PropTypes.string.isRequired,
     address: PropTypes.string.isRequired,
     updateAvailable: PropTypes.object,
@@ -169,7 +173,11 @@ class Sidebar extends Component {
   }
 
   renderGenerateBlockButton(numblocks) {
-    const { network, address } = this.props;
+    const { network, address, spv } = this.props;
+    if (spv) {
+      return;
+    }
+
     if ([NETWORKS.SIMNET, NETWORKS.REGTEST].includes(network)) {
       return (
         <button
@@ -188,6 +196,7 @@ class Sidebar extends Component {
     const {
       walletSync,
       walletHeight,
+      rescanHeight,
       newBlockStatus,
       chainHeight,
       tip,
@@ -215,7 +224,7 @@ class Sidebar extends Component {
         <div className="sidebar__footer__row">
           <div className="sidebar__footer__title">{t('currentHeight')}</div>
           <div className="sidebar__footer__text">
-            {walletSync ? `${walletHeight}/${chainHeight}` : `${chainHeight}` || '--'}
+            {walletSync ? `${walletHeight}/${rescanHeight}` : `${chainHeight}` || '--'}
           </div>
           <div className="sidebar__footer__simnet-controls">
             {this.renderGenerateBlockButton(1)}

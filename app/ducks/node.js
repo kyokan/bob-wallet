@@ -1,6 +1,8 @@
 import { clientStub } from '../background/node/client';
+import { clientStub as connClientStub } from '../background/connections/client';
 import { clientStub as settingClientStub } from '../background/setting/client';
 import { clientStub as walletClientStub } from '../background/wallet/client';
+import { ConnectionTypes } from '../background/connections/service';
 import { getNetwork, setNetwork } from '../db/system';
 import { getWatching } from "./watching";
 import { throttle } from '../utils/throttle';
@@ -24,6 +26,7 @@ import {
 import { VALID_NETWORKS } from '../constants/networks';
 
 const nodeClient = clientStub(() => require('electron').ipcRenderer);
+const connClient = connClientStub(() => require('electron').ipcRenderer);
 const settingClient = settingClientStub(() => require('electron').ipcRenderer);
 const walletClient = walletClientStub(() => require('electron').ipcRenderer);
 
@@ -89,6 +92,13 @@ export const start = (network) => async (dispatch) => {
   } catch (error) {
     console.error('node start error', error);
     dispatch({ type: STOP });
+    if (error.code === 'ECONNREFUSED') {
+      const conn = await connClient.getConnection();
+      if (conn.type === ConnectionTypes.Custom) {
+        dispatch({ type: START_ERROR, payload: 'RPC:ECONNREFUSED' });
+        return;
+      }
+    }
     dispatch({ type: START_ERROR, payload: error.message });
   } finally {
     dispatch({ type: END_NODE_STATUS_CHANGE });
