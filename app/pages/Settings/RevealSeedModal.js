@@ -1,20 +1,31 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import './reveal-seed-modal.scss';
 import { connect } from 'react-redux';
 import MiniModal from '../../components/Modal/MiniModal';
 import Submittable from '../../components/Submittable';
+import PhraseMismatch from '../../components/PhraseMismatch';
 import * as walletActions from '../../ducks/walletActions';
 import {I18nContext} from "../../utils/i18n";
 
 @connect(
   (state) => ({
+    wid: state.wallet.wid,
     walletWatchOnly: state.wallet.watchOnly,
+    phraseMismatch: state.wallet.phraseMismatch,
   }),
   dispatch => ({
     revealSeed: passphrase => dispatch(walletActions.revealSeed(passphrase))
   })
 )
 class RevealSeedModal extends Component {
+  static propTypes = {
+    wid: PropTypes.string.isRequired,
+    walletWatchOnly: PropTypes.bool.isRequired,
+    phraseMismatch: PropTypes.bool.isRequired,
+    revealSeed: PropTypes.func.isRequired,
+  };
+
   static contextType = I18nContext;
 
   constructor(props) {
@@ -23,16 +34,15 @@ class RevealSeedModal extends Component {
     this.state = {
       passphrase: '',
       mnemonic: '',
+      xpriv: '',
       errorMessage: ''
     };
   }
 
   onClickReveal = async () => {
     try {
-      const mnemonic = await this.props.revealSeed(this.state.passphrase);
-      this.setState({
-        mnemonic
-      });
+      const {phrase: mnemonic, xpriv} = await this.props.revealSeed(this.state.passphrase);
+      this.setState({ mnemonic, xpriv });
     } catch (e) {
       this.setState({
         errorMessage:
@@ -59,7 +69,7 @@ class RevealSeedModal extends Component {
       >
         {walletWatchOnly
           ? t('revealSeedNoLedger')
-          : this.state.mnemonic
+          : this.state.xpriv
           ? this.renderMnemonic()
           : this.renderPassword()}
       </MiniModal>
@@ -67,16 +77,20 @@ class RevealSeedModal extends Component {
   }
 
   renderMnemonic() {
-    return (
-      <React.Fragment>
-        <div className="reveal-seed-modal__instructions">
-          {this.context.t('revealSeedEnterPW')}
-        </div>
+    const {phraseMatchesKey} = this.props;
+    const {mnemonic} = this.state;
+
+    // View seed phrase
+    if (phraseMatchesKey) {
+      return (
         <div className="reveal-seed-modal__seed-phrase">
-          {this.state.mnemonic}
+          {mnemonic}
         </div>
-      </React.Fragment>
-    );
+      )
+    }
+
+    // Phrase doesn't match, show warning alert/modal
+    return <PhraseMismatch />;
   }
 
   renderPassword() {

@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import ImportSeedWarning from '../ImportSeedWarning/index';
 import CreatePassword from '../CreatePassword/index';
 import ImportSeedEnterMnemonic from '../ImportSeedEnterMnemonic/index';
+import ImportSeedEnterMaster from '../ImportSeedEnterMaster/index';
 import Terms from '../Terms/index';
 import * as walletActions from '../../../ducks/walletActions';
 import walletClient from '../../../utils/walletClient';
@@ -29,6 +30,11 @@ class ImportSeedFlow extends Component {
     history: PropTypes.shape({
       push: PropTypes.func,
     }).isRequired,
+    match: PropTypes.shape({
+      params: PropTypes.shape({
+        type: PropTypes.string.isRequired,
+      }),
+    }),
     completeInitialization: PropTypes.func.isRequired,
     network: PropTypes.string.isRequired,
     startWalletSync: PropTypes.func.isRequired,
@@ -42,19 +48,23 @@ class ImportSeedFlow extends Component {
     currentStep: TERMS_OF_USE,
     name: '',
     passphrase: '',
-    mnemonic: '',
+    secret: '',
     isLoading: false,
   };
 
   render() {
-    switch (this.state.currentStep) {
+    const {history, match} = this.props;
+    const {type} = match.params;
+    const {currentStep, isLoading} = this.state;
+
+    switch (currentStep) {
       case TERMS_OF_USE:
         return (
           <Terms
             currentStep={0}
             totalSteps={4}
             onAccept={() => this.setState({currentStep: WARNING_STEP})}
-            onBack={() => this.props.history.push('/existing-options')}
+            onBack={() => history.push('/existing-options')}
           />
         );
       case WARNING_STEP:
@@ -64,7 +74,7 @@ class ImportSeedFlow extends Component {
             totalSteps={4}
             onBack={() => this.setState({currentStep: TERMS_OF_USE})}
             onNext={() => this.goTo(SET_NAME)}
-            onCancel={() => this.props.history.push('/funding-options')}
+            onCancel={() => history.push('/funding-options')}
           />
         );
       case SET_NAME:
@@ -78,7 +88,7 @@ class ImportSeedFlow extends Component {
             onNext={(name) => {
               this.setState({currentStep: CREATE_PASSWORD, name});
             }}
-            onCancel={() => this.props.history.push('/funding-options')}
+            onCancel={() => history.push('/funding-options')}
           />
         );
       case CREATE_PASSWORD:
@@ -93,22 +103,24 @@ class ImportSeedFlow extends Component {
                 currentStep: ENTRY_STEP,
               });
             }}
-            onCancel={() => this.props.history.push('/funding-options')}
+            onCancel={() => history.push('/funding-options')}
           />
         );
       case ENTRY_STEP:
+        const InputComponent = type === 'master' ? ImportSeedEnterMaster : ImportSeedEnterMnemonic;
         return (
-          <ImportSeedEnterMnemonic
+          <InputComponent
             currentStep={3}
             totalSteps={4}
             onBack={() => this.goTo(CREATE_PASSWORD)}
-            onNext={(mnemonic) => {
+            onNext={(secret) => {
               this.setState({
-                mnemonic,
+                secret,
               });
               this.goTo(OPT_IN_ANALYTICS);
             }}
-            onCancel={() => this.props.history.push('/funding-options')}
+            onCancel={() => history.push('/funding-options')}
+            type={type}
           />
         );
       case OPT_IN_ANALYTICS:
@@ -119,10 +131,10 @@ class ImportSeedFlow extends Component {
             onBack={() => this.goTo(ENTRY_STEP)}
             onNext={async (optInState) => {
               await analytics.setOptIn(optInState);
-              await this.finishFlow(this.state.mnemonic);
+              await this.finishFlow();
             }}
-            onCancel={() => this.props.history.push('/funding-options')}
-            isLoading={this.state.isLoading}
+            onCancel={() => history.push('/funding-options')}
+            isLoading={isLoading}
           />
         );
     }
@@ -134,19 +146,21 @@ class ImportSeedFlow extends Component {
     });
   }
 
-  finishFlow = async mnemonic => {
+  finishFlow = async () => {
+    const {type} = this.props.match.params;
+    const {name, passphrase, secret} = this.state;
+
     this.setState({isLoading: true});
     try {
-      await walletClient.importSeed(this.state.name, this.state.passphrase, mnemonic);
+      await walletClient.importSeed(name, passphrase, type, secret);
       walletClient.rescan(0);
-      await this.props.completeInitialization(this.state.name, this.state.passphrase);
+      await this.props.completeInitialization(name, passphrase);
       await this.props.fetchWallet();
       await this.props.fetchTransactions();
       this.props.history.push('/account');
     } catch (e) {
       this.props.showError(e.message);
       logger.error(`Error received from ImportSeedFlow - finishFlow]\n\n${e.message}\n${e.stack}\n`);
-    } finally {
       this.setState({isLoading: false});
     }
   };

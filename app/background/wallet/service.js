@@ -33,6 +33,7 @@ const {Output, MTX, Address, Coin} = require('hsd/lib/primitives');
 const Script = require('hsd/lib/script/script');
 const MasterKey = require('hsd/lib/wallet/masterkey');
 const Mnemonic = require('hsd/lib/hd/mnemonic');
+const HDPrivateKey = require('hsd/lib/hd/private');
 const Covenant = require('hsd/lib/primitives/covenant');
 const common = require('hsd/lib/wallet/common');
 const {Rules} = require('hsd/lib/covenants');
@@ -411,15 +412,35 @@ class WalletService {
     return this.node.wdb.deepClean();
   };
 
-  importSeed = async (name, passphrase, mnemonic) => {
+  importSeed = async (name, passphrase, type, secret) => {
     this.setWallet(name);
 
-    const options = {
-      passphrase,
-      // hsd generates different keys for
-      // menmonics with trailing whitespace
-      mnemonic: mnemonic.trim(),
-    };
+    const options = {passphrase};
+    switch (type) {
+      case 'phrase':
+        options.mnemonic = secret.trim();
+        break;
+      case 'xpriv':
+        options.master = secret.trim();
+        break;
+      case 'master':
+        const data = secret.master;
+        const parsedData = {
+          encrypted: data.encrypted,
+          alg: data.algorithm,
+          iv: Buffer.from(data.iv, 'hex'),
+          ciphertext: Buffer.from(data.ciphertext, 'hex'),
+          n: data.n,
+          r: data.r,
+          p: data.p,
+        };
+        const mk = new MasterKey(parsedData);
+        options.master = await mk.unlock(secret.passphrase, 10)
+        assert(options.master, 'Could not decrypt key.')
+        break;
+      default:
+        throw new Error('Invalid type.')
+    }
 
     const res = await this.node.wdb.create({id: name, ...options});
     const wallets = await this.listWallets();
@@ -554,8 +575,19 @@ class WalletService {
       };
 
       const mk = new MasterKey(parsedData);
-      await mk.unlock(passphrase, 100);
-      return mk.mnemonic.getPhrase();
+      await mk.unlock(passphrase, 10);
+
+      let phrase;
+      let phraseMatchesKey = false;
+      if (mk.mnemonic) {
+        phrase = mk.mnemonic.getPhrase();
+        phraseMatchesKey = mk.key.equals(
+          HDPrivateKey.fromMnemonic(mk.mnemonic)
+        );
+      }
+      const xpriv = mk.key.xprivkey(this.networkName);
+
+      return {phrase, xpriv, phraseMatchesKey, master: data};
     },
   );
 

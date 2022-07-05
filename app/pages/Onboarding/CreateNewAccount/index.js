@@ -148,7 +148,7 @@ class CreateNewAccount extends Component {
                   null   // xpub (Ledger only)
                 );
               }
-              const phrase = await walletClient.revealSeed(this.state.passphrase);
+              const {phrase} = await walletClient.revealSeed(this.state.passphrase);
               this.setState({
                 currentStep: COPY_SEEDPHRASE,
                 seedphrase: phrase,

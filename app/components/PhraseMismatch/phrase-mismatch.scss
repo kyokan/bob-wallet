@@ -1,0 +1,59 @@
+@import "../../variables.scss";
+
+.phrase-mismatch-alert {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  overflow-wrap: break-word;
+  background: #f8d7da;
+  color: #721c24;
+  cursor: pointer;
+  border: none;
+  border-radius: 0;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.phrase-mismatch-modal {
+  .section {
+    text-align: left;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    line-height: 1.3rem;
+
+    & > p {
+      margin: 0;
+      margin-block-end: 0.3rem;
+
+      &:nth-of-type(1) {
+        font-weight: 700;
+        margin-block-start: 1rem;
+      }
+    }
+  }
+
+  .message {
+    font-size: 0.9rem;
+    width: 350px;
+    margin: 0 auto 24px auto;
+    text-align: center;
+
+    &--error {
+      color: $orange-red;
+    }
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+
+    button {
+      @extend %btn-primary;
+      flex: 1 0 auto;
+    }
+  }
+}

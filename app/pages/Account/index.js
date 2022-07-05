@@ -4,6 +4,7 @@ import c from "classnames";
 import { withRouter } from "react-router";
 import { connect } from "react-redux";
 import Transactions from "../../components/Transactions";
+import PhraseMismatch from "../../components/PhraseMismatch";
 import "./account.scss";
 import walletClient from "../../utils/walletClient";
 import { displayBalance } from "../../utils/balances";
@@ -152,6 +153,7 @@ export default class Account extends Component {
 
     return (
       <div className="account">
+        <PhraseMismatch />
         {this.maybeRenderTXAlert()}
         {this.renderBalance()}
         {this.renderCards()}

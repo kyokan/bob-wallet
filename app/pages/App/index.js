@@ -159,7 +159,7 @@ class App extends Component {
             )}
           />
           <Route
-            path="/import-seed"
+            path="/import-seed/:type"
             render={this.uninitializedWrapper(
               ImportSeedFlow,
               false,
