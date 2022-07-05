@@ -6,6 +6,7 @@ import {
   GET_PASSPHRASE,
   INCREMENT_IDLE,
   LOCK_WALLET,
+  SET_PHRASE_MISMATCH,
   RESET_IDLE,
   SET_MAX_IDLE,
   SET_PENDING_TRANSACTIONS,
@@ -150,6 +151,24 @@ export const lockWallet = () => async (dispatch) => {
     type: LOCK_WALLET,
   });
 };
+
+export const verifyPhrase = (passphrase) => async (dispatch, getState) => {
+  const {watchOnly} = getState().wallet;
+  if (watchOnly) {
+    dispatch({
+      type: SET_PHRASE_MISMATCH,
+      payload: false,
+    })
+    return;
+  };
+
+  const {phraseMatchesKey} = await walletClient.revealSeed(passphrase);
+
+  dispatch({
+    type: SET_PHRASE_MISMATCH,
+    payload: !phraseMatchesKey,
+  })
+}
 
 export const reset = () => async (dispatch, getState) => {
   const network = getState().wallet.network;

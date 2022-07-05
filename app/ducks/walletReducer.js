@@ -2,6 +2,7 @@ export const SET_WALLET = 'app/wallet/setWallet';
 export const SET_BALANCE = 'app/wallet/setBalance';
 export const UNLOCK_WALLET = 'app/wallet/unlockWallet';
 export const LOCK_WALLET = 'app/wallet/lockWallet';
+export const SET_PHRASE_MISMATCH = 'app/wallet/verifyPhraseMismatch';
 export const SET_TRANSACTIONS = 'app/wallet/setTransactions';
 export const INCREMENT_IDLE = 'app/wallet/incrementIdle';
 export const RESET_IDLE = 'app/wallet/resetIdle';
@@ -25,6 +26,7 @@ export function getInitialState() {
     wid: '',
     watchOnly: false,
     isLocked: true,
+    phraseMismatch: false,
     isFetching: false,
     initialized: false,
     network: '',
@@ -112,6 +114,11 @@ export default function walletReducer(state = getInitialState(), {type, payload}
       return {
         ...state,
         isLocked: false,
+      };
+    case SET_PHRASE_MISMATCH:
+      return {
+        ...state,
+        phraseMismatch: payload,
       };
     case SET_TRANSACTIONS:
       return {
