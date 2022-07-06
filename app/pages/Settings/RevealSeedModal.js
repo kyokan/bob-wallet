@@ -77,11 +77,11 @@ class RevealSeedModal extends Component {
   }
 
   renderMnemonic() {
-    const {phraseMatchesKey} = this.props;
+    const {phraseMismatch} = this.props;
     const {mnemonic} = this.state;
 
     // View seed phrase
-    if (phraseMatchesKey) {
+    if (!phraseMismatch) {
       return (
         <div className="reveal-seed-modal__seed-phrase">
           {mnemonic}
