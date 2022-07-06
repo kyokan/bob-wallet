@@ -97,6 +97,12 @@
       &:nth-of-type(1) {
         @extend %ellipsify;
         flex: 0 0 8rem;
+
+        .info {
+          display: inline-block;
+          vertical-align: bottom;
+          cursor: help;
+        }
       }
 
       &:nth-of-type(2) {
@@ -112,7 +118,7 @@
       }
 
       &:nth-of-type(5) {
-        flex: 0 0 11rem;
+        flex: 0 0 12rem;
       }
     }
   }
@@ -183,6 +189,10 @@
       }
     }
 
+  }
+
+  .pointer {
+    cursor: pointer;
   }
 }
 

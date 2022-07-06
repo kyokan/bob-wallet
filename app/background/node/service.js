@@ -517,6 +517,11 @@ export class NodeService extends EventEmitter {
     return Math.floor((sum / count) * 1000);
   }
 
+  async getMTP() {
+    const info = await this._execRPC('getblockchaininfo');
+    return info.mediantime;
+  };
+
   async getCoin(hash, index) {
     if (await this.getSpvMode()) {
       return hapiGet(`/coin/${hash}/${index}`);
@@ -627,6 +632,7 @@ const methods = {
   sendRawAirdrop: (data) => service.sendRawAirdrop(data),
   getFees: () => service.getFees(),
   getAverageBlockTime: () => service.getAverageBlockTime(),
+  getMTP: () => service.getMTP(),
   getCoin: (hash, index) => service.getCoin(hash, index),
   setNodeDir: data => service.setNodeDir(data),
   setAPIKey: data => service.setAPIKey(data),

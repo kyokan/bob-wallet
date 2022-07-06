@@ -16,4 +16,5 @@ export const clientStub = ipcRendererInjector => makeClient(ipcRendererInjector,
   'getExchangeAuctions',
   'listAuction',
   'getFeeInfo',
+  'getBestBid',
 ]);

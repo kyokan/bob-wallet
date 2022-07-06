@@ -5,6 +5,7 @@ import { withRouter } from "react-router";
 import { connect } from "react-redux";
 import Transactions from "../../components/Transactions";
 import PhraseMismatch from "../../components/PhraseMismatch";
+import ShakedexDeprecated from '../../components/ShakedexDeprecated';
 import "./account.scss";
 import walletClient from "../../utils/walletClient";
 import { displayBalance } from "../../utils/balances";
@@ -154,7 +155,8 @@ export default class Account extends Component {
     return (
       <div className="account">
         <PhraseMismatch />
-        {this.maybeRenderTXAlert()}
+        <ShakedexDeprecated />
+
         {this.renderBalance()}
         {this.renderCards()}
 
@@ -434,19 +436,6 @@ export default class Account extends Component {
         ) : (
           ""
         )}
-      </div>
-    );
-  }
-
-  maybeRenderTXAlert() {
-    if (this.props.height > 2016) {
-      return null;
-    }
-
-    return (
-      <div className="account__alert">
-        <strong>Important:</strong> Transactions are disabled for the first two
-        weeks of mainnet.
       </div>
     );
   }
