@@ -1,6 +1,6 @@
 // Extract from https://github.com/kurumiimari/shakedex-api/blob/9b6d111afad8b14b4ccf3af7eca4945c3d193bb6/src/service/auctions.js
 
-import { LISTING_STATUS } from '../ducks/exchange';
+import { LISTING_STATUS } from '../constants/exchange';
 
 const jsonSchemaValidate = require('jsonschema').validate;
 

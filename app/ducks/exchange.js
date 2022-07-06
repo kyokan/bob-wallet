@@ -5,6 +5,7 @@ import { clientStub as nodeClientStub } from '../background/node/client.js';
 import { showSuccess, showError } from './notifications.js';
 import networks from 'hsd/lib/protocol/networks.js';
 import {getFinalizeFromTransferTx} from "../utils/shakedex";
+import { LISTING_STATUS } from '../constants/exchange.js';
 
 const shakedex = shakedexClientStub(() => require('electron').ipcRenderer);
 const nodeClient = nodeClientStub(() => require('electron').ipcRenderer);
@@ -55,21 +56,6 @@ export const LAUNCH_EXCHANGE_AUCTION_OK = 'LAUNCH_EXCHANGE_AUCTION/OK';
 export const LAUNCH_EXCHANGE_AUCTION_ERR = 'LAUNCH_EXCHANGE_AUCTION/ERR';
 
 export const SET_AUCTIONS_PAGE = 'SET_AUCTION_PAGE';
-
-export const LISTING_STATUS = {
-  NOT_FOUND: 'NOT_FOUND',
-  TRANSFER_CONFIRMING: 'TRANSFER_CONFIRMING',
-  TRANSFER_CONFIRMED: 'TRANSFER_CONFIRMED',
-  TRANSFER_CONFIRMED_LOCKUP: 'TRANSFER_CONFIRMED_LOCKUP',
-  FINALIZE_CONFIRMING: 'FINALIZE_CONFIRMING',
-  FINALIZE_CONFIRMED: 'FINALIZE_CONFIRMED',
-  ACTIVE: 'ACTIVE',
-  SOLD: 'SOLD',
-  CANCEL_CONFIRMING: 'CANCEL_CONFIRMING',
-  CANCEL_CONFIRMED: 'CANCEL_CONFIRMED',
-  FINALIZE_CANCEL_CONFIRMING: 'FINALIZE_CANCEL_CONFIRMING',
-  FINALIZE_CANCEL_CONFIRMED: 'FINALIZE_CANCEL_CONFIRMED',
-};
 
 export const FULFILLMENT_STATUS = {
   NOT_FOUND: 'NOT_FOUND',

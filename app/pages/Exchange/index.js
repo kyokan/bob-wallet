@@ -23,9 +23,10 @@ import {
   FULFILLMENT_STATUS,
   getExchangeFullfillments,
   getExchangeListings,
-  LISTING_STATUS, setAuctionPage,
+  setAuctionPage,
   submitToShakedex,
 } from "../../ducks/exchange";
+import { LISTING_STATUS } from '../../constants/exchange.js';
 import {formatName} from "../../utils/nameHelpers";
 import {showError} from "../../ducks/notifications";
 import {fromAuctionJSON, listingStatusToI18nKey, validateAuction} from "../../utils/shakedex";
