@@ -101,9 +101,6 @@ export default class Auction extends Component {
     } finally {
       this.setState({isLoading: false});
     }
-  }
-
-  componentDidMount() {
     analytics.screenView('Auction');
   }
 

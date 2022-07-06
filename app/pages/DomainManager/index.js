@@ -66,10 +66,6 @@ class DomainManager extends Component {
       || this.state.itemsPerPage !== nextState.itemsPerPage;
   }
 
-  componentDidMount() {
-    analytics.screenView('Domain Manager');
-  }
-
   async componentDidMount() {
     this.props.getMyNames();
     const itemsPerPage = await dbClient.get(DM_ITEMS_PER_PAGE_KEY);
@@ -77,6 +73,8 @@ class DomainManager extends Component {
     this.setState({
       itemsPerPage: itemsPerPage || 10,
     });
+
+    analytics.screenView('Domain Manager');
   }
 
   onChange = (name) => (e) => {
