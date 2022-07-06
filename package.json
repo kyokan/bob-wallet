@@ -2,7 +2,7 @@
   "name": "bob-wallet",
   "productName": "Bob",
   "author": "Kyokan Group, Inc.",
-  "version": "0.9.0",
+  "version": "1.0.0-rc1",
   "description": "A Handshake wallet and auction manager.",
   "scripts": {
     "build": "./scripts/package.sh",
