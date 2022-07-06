@@ -38,9 +38,6 @@ class MyDomain extends Component {
   async componentDidMount() {
     await this.props.getNameInfo();
     await this.props.fetchPendingTransactions();
-  }
-
-  componentDidMount() {
     analytics.screenView('My Domains');
   }
 

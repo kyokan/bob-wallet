@@ -58,9 +58,7 @@ export default class Transactions extends Component {
     this.setState({
       itemsPerPage: itemsPerPage || 5,
     });
-  }
 
-  async componentDidMount() {
     await this.props.fetchTransactions();
   }
 

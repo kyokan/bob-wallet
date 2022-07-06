@@ -75,10 +75,6 @@ class SendModal extends Component {
     hip2.setServers([`127.0.0.1:${props.hip2Port}`]);
   }
 
-  componentDidMount () {
-    analytics.screenView('Send');
-  }
-
   openLinkHandler (e) {
     e.preventDefault()
     shell.openExternal(e.target.href)
@@ -170,6 +166,7 @@ class SendModal extends Component {
 
   componentDidMount = () => {
     document.addEventListener('keydown', this.handleEscape)
+    analytics.screenView('Send');
   }
 
   componentWillUnmount = () => {

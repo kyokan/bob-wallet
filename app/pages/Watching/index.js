@@ -60,9 +60,7 @@ class Watching extends Component {
     this.setState({
       itemsPerPage: itemsPerPage || 10,
     });
-  }
 
-  componentDidMount() {
     analytics.screenView('Watching');
   }
 
