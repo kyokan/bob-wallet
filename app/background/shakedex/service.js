@@ -84,11 +84,19 @@ export async function iteratePrefix(prefix, cb) {
 }
 
 export async function getExchangeAuctions(currentPage = 1) {
-  return await client.get(`api/v1/auctions?page=${currentPage}&per_page=20`);
+  const res = await client.get(`api/v2/auctions?page=${currentPage}&per_page=20`);
+  const auctions = res.auctions.map(auction => {
+    auction.bids.sort((a,b) => b.price - a.price);
+    return auction;
+  })
+  return {
+    total: +res.total,
+    auctions
+  }
 }
 
 export async function listAuction(auction) {
-  const resp = await fetch(`https://api.shakedex.com/api/v1/auctions`, {
+  const resp = await fetch(`https://api.shakedex.com/api/v2/auctions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -110,7 +118,7 @@ export async function fulfillSwap(auction, bid, passphrase) {
     paymentAddr: auction.paymentAddr,
     price: bid.price,
     fee: bid.fee,
-    lockTime: Math.floor(bid.lockTime / 1000),
+    lockTime: bid.lockTime,
     signature: bid.signature,
   });
 
@@ -332,24 +340,24 @@ export async function launchAuction(nameLock, passphrase, paramsOverride, persis
   const key = `${listingPrefix()}/${nameLock.name}/${nameLock.transferTxHash}`;
   const listing = await get(key);
 
-  const {startPrice, endPrice, durationDays, feeRate, feeAddr} = paramsOverride || listing.params;
+  const {startPrice, endPrice, durationDays, feeRate, feeAddr, lowestDeprecatedPrice} = paramsOverride || listing.params;
 
   if (paramsOverride) {
     listing.params = paramsOverride;
   }
 
-  let reductionTimeMS;
+  let reductionTime;
   switch (durationDays) {
     case 1:
-      reductionTimeMS = 60 * 60 * 1000;
+      reductionTime = 60 * 60;
       break;
     case 3:
-      reductionTimeMS = 3 * 60 * 60 * 1000;
+      reductionTime = 3 * 60 * 60;
       break;
     case 5:
     case 7:
     case 14:
-      reductionTimeMS = 24 * 60 * 60 * 1000;
+      reductionTime = 24 * 60 * 60;
       break;
   }
 
@@ -364,13 +372,15 @@ export async function launchAuction(nameLock, passphrase, paramsOverride, persis
 
   if (!finalizeCoin) throw new Error('cannot find finalize coin');
 
+  const mtp = await nodeService.getMTP();
+
   const auctionFactory = new AuctionFactory({
     name: listing.nameLock.name,
-    startTime: Date.now(),
-    endTime: Date.now() + durationDays * 24 * 60 * 60 * 1000,
+    startTime: mtp >>> 0,
+    endTime: (mtp + durationDays * 24 * 60 * 60) >>> 0,
     startPrice: startPrice,
     endPrice: endPrice,
-    reductionTimeMS,
+    reductionTime,
     reductionStrategy: linearReductionStrategy,
     feeRate: feeRate || 0,
     feeAddr,
@@ -388,6 +398,9 @@ export async function launchAuction(nameLock, passphrase, paramsOverride, persis
   const auctionJSON = auction.toJSON(context);
   if (persist) {
     listing.auction = auctionJSON;
+    if (lowestDeprecatedPrice) {
+      listing.lowestDeprecatedPrice = lowestDeprecatedPrice;
+    }
     await put(
       key,
       listing,
@@ -397,7 +410,7 @@ export async function launchAuction(nameLock, passphrase, paramsOverride, persis
 }
 
 export async function getFeeInfo() {
-  const resp = await fetch(`https://api.shakedex.com/api/v1/fee_info`);
+  const resp = await fetch(`https://api.shakedex.com/api/v2/fee_info`);
   if (resp.status === 404) {
     return {
       rate: 0,
@@ -407,13 +420,18 @@ export async function getFeeInfo() {
   return resp.json();
 }
 
+export async function getBestBid(auction) {
+  const context = getContext();
+  return (new Auction({...auction, data: auction.bids})).bestBidAt(context);
+}
+
 async function downloadProofs(auctionJSON) {
   const context = getContext();
   const proofs = [];
   for (const bid of auctionJSON.bids) {
     proofs.push(new SwapProof({
       price: bid.price,
-      lockTime: bid.lockTime / 1000,
+      lockTime: bid.lockTime,
       signature: bid.signature,
     }));
   }
@@ -472,6 +490,7 @@ const methods = {
   getExchangeAuctions,
   listAuction,
   getFeeInfo,
+  getBestBid,
 };
 
 export async function start(server) {

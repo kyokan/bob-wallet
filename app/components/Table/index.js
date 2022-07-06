@@ -72,6 +72,10 @@ export class TableItem extends Component {
     width: PropTypes.string,
   };
 
+  static defaultProps = {
+    className: '',
+  };
+
   render() {
     const {
       shrink,

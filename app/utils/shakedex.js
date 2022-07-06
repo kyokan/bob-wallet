@@ -1,5 +1,7 @@
 // Extract from https://github.com/kurumiimari/shakedex-api/blob/9b6d111afad8b14b4ccf3af7eca4945c3d193bb6/src/service/auctions.js
 
+import { LISTING_STATUS } from '../ducks/exchange';
+
 const jsonSchemaValidate = require('jsonschema').validate;
 
 const hexRegex = (len = null) => {
@@ -43,6 +45,7 @@ export const fulfillmentSchema = {
 export const auctionSchema = {
   type: 'object',
   required: [
+    'version',
     'name',
     'lockingTxHash',
     'lockingOutputIdx',
@@ -51,6 +54,10 @@ export const auctionSchema = {
     'data',
   ],
   properties: {
+    version: {
+      type: 'integer',
+      minimum: 2,
+    },
     name: {
       type: 'string',
     },
@@ -233,6 +240,7 @@ export async function validateAuction(auction, nodeClient) {
 
 export function fromAuctionJSON(json) {
   return {
+    version: json.version,
     name: json.name,
     lockingTxHash: json.lockingTxHash,
     lockingOutputIdx: json.lockingOutputIdx,
@@ -240,9 +248,7 @@ export function fromAuctionJSON(json) {
     paymentAddr: json.paymentAddr,
     bids: json.data.map(p => ({
       price: p.price,
-      lockTime: `${p.lockTime}`.length === 10
-        ? p.lockTime * 1000
-        : Math.floor(p.lockTime / 1000) * 1000,
+      lockTime: p.lockTime,
       signature: p.signature,
     })),
   };
@@ -297,3 +303,19 @@ export async function getFinalizeFromTransferTx(transferTxHash, name, nodeClient
     coin: finalizeCoin,
   };
 }
+
+export function listingStatusToI18nKey(status) {
+  return {
+    [LISTING_STATUS.NOT_FOUND]: 'shakedexStatusNotFound',
+    [LISTING_STATUS.SOLD]: 'shakedexStatusSold',
+    [LISTING_STATUS.ACTIVE]: 'shakedexStatusActive',
+    [LISTING_STATUS.TRANSFER_CONFIRMING]: 'shakedexStatusTransferConfirming',
+    [LISTING_STATUS.TRANSFER_CONFIRMED]: 'shakedexStatusTransferConfirmed',
+    [LISTING_STATUS.FINALIZE_CONFIRMING]: 'shakedexStatusFinalizeConfirming',
+    [LISTING_STATUS.FINALIZE_CONFIRMED]: 'shakedexStatusFinalizeConfirmed',
+    [LISTING_STATUS.CANCEL_CONFIRMING]: 'shakedexStatusCancelConfirming',
+    [LISTING_STATUS.CANCEL_CONFIRMED]: 'shakedexStatusCancelConfirmed',
+    [LISTING_STATUS.FINALIZE_CANCEL_CONFIRMING]: 'shakedexStatusFinalizeCancelConfirming',
+    [LISTING_STATUS.FINALIZE_CANCEL_CONFIRMED]: 'shakedexStatusFinalizeCancelConfirmed',
+  }[status];
+};

@@ -28,8 +28,7 @@ import {
 } from "../../ducks/exchange";
 import {formatName} from "../../utils/nameHelpers";
 import {showError} from "../../ducks/notifications";
-import {fromAuctionJSON, validateAuction} from "../../utils/shakedex";
-import nodeClient from '../../utils/nodeClient';
+import {fromAuctionJSON, listingStatusToI18nKey, validateAuction} from "../../utils/shakedex";
 import './exchange.scss';
 import PropTypes from "prop-types";
 import {clearDeeplinkParams} from "../../ducks/app";
@@ -37,9 +36,11 @@ import {Link} from "react-router-dom";
 import GenerateListingModal from "./GenerateListingModal";
 import {getPageIndices} from "../../utils/pageable";
 import Dropdown from "../../components/Dropdown";
+import ShakedexDeprecated from '../../components/ShakedexDeprecated/index.js';
 import SpinnerSVG from '../../assets/images/brick-loader.svg';
 import ConfirmFeeModal from './ConfirmFeeModal.js';
 import {I18nContext} from "../../utils/i18n";
+import { Auction } from 'shakedex/src/auction.js';
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 const shakedex = sClientStub(() => require('electron').ipcRenderer);
@@ -49,6 +50,8 @@ class Exchange extends Component {
     spv: PropTypes.bool.isRequired,
     deeplinkParams: PropTypes.object.isRequired,
     clearDeeplinkParams: PropTypes.func.isRequired,
+    network: PropTypes.string.isRequired,
+    height: PropTypes.number.isRequired,
   };
 
   static contextType = I18nContext;
@@ -65,6 +68,8 @@ class Exchange extends Component {
       feeInfo: null,
       generatingListing: null,
       isLoading: true,
+      shakedexDeprecatedToggle: false,
+      currentBidsMap: new Map(),
     };
   }
 
@@ -72,7 +77,15 @@ class Exchange extends Component {
     analytics.screenView('Exchange');
     this.props.getExchangeFullfillments();
     this.props.getExchangeListings();
-    this.fetchShakedex();
+    if (this.props.network === 'main')
+      this.fetchShakedex();
+  }
+
+  async componentDidUpdate(prevProps, prevState) {
+    if (this.props.height !== prevProps.height) {
+      this.props.getExchangeFullfillments();
+      this.props.getExchangeListings();
+    }
   }
 
   async fetchShakedex() {
@@ -85,7 +98,19 @@ class Exchange extends Component {
     }
   }
 
-  static getDerivedStateFromProps(props, state) {
+  getCurrentBidForAuction = async (auction) => {
+    const existing = this.state.currentBidsMap.get(auction.id);
+    if (existing) {
+      return existing;
+    }
+
+    const currentBid = await getCurrentBid(auction);
+    const currentBidsMap = this.state.currentBidsMap;
+    currentBidsMap.set(auction.id, currentBid);
+    this.setState({currentBidsMap});
+  }
+
+  static async getDerivedStateFromProps(props, state) {
     try {
       const { presignJSONString } = props.deeplinkParams;
       let auction, currentBid;
@@ -93,7 +118,7 @@ class Exchange extends Component {
       if (presignJSONString) {
         props.clearDeeplinkParams();
         auction = fromAuctionJSON(JSON.parse(presignJSONString));
-        currentBid = getCurrentBid(auction);
+        currentBid = await getCurrentBid(auction);
         return {
           ...state,
           placingAuction: auction,
@@ -124,14 +149,21 @@ class Exchange extends Component {
         },
       });
 
+      if (!filepath) return;
+
       const buf = await fs.promises.readFile(filepath);
       const content = buf.toString('utf-8');
+
+      // Validate auction
+      await Auction.fromStream(content);
+
       const auctionJSON = JSON.parse(content);
-
-      await validateAuction(auctionJSON, nodeClient);
-
       const auction = fromAuctionJSON(auctionJSON);
-      const currentBid = getCurrentBid(auction);
+      const currentBid = await getCurrentBid(auction);
+
+      if (currentBid === null) {
+        throw new Error('No bids available right now.');
+      }
 
       this.setState({
         placingAuction: auction,
@@ -139,6 +171,7 @@ class Exchange extends Component {
         isUploadingFile: false,
       });
     } catch (e) {
+      console.error(e);
       this.props.showError(e.message);
       this.setState({
         placingAuction: null,
@@ -216,41 +249,10 @@ class Exchange extends Component {
     let statusText = status;
     const {t} = this.context;
 
-    switch (status) {
-      case LISTING_STATUS.NOT_FOUND:
-        statusText = t('shakedexStatusNotFound');
-        break;
-      case LISTING_STATUS.SOLD:
-        statusText = t('shakedexStatusSold');
-        break;
-      case LISTING_STATUS.ACTIVE:
-        statusText = t('shakedexStatusActive');
-        break;
-      case LISTING_STATUS.TRANSFER_CONFIRMING:
-        statusText = t('shakedexStatusTransferConfirming');
-        break;
-      case LISTING_STATUS.TRANSFER_CONFIRMED:
-        statusText = t('shakedexStatusTransferConfirmed');
-        break;
-      case LISTING_STATUS.FINALIZE_CONFIRMING:
-        statusText = t('shakedexStatusFinalizeConfirming');
-        break;
-      case LISTING_STATUS.FINALIZE_CONFIRMED:
-        statusText = t('shakedexStatusFinalizeConfirmed');
-        break;
-      case LISTING_STATUS.CANCEL_CONFIRMING:
-        statusText = t('shakedexStatusCancelConfirming');
-        break;
-      case LISTING_STATUS.CANCEL_CONFIRMED:
-        statusText = t('shakedexStatusCancelConfirmed');
-        break;
-      case LISTING_STATUS.FINALIZE_CANCEL_CONFIRMING:
-        statusText = t('shakedexStatusFinalizeCancelConfirming');
-        break;
-      case LISTING_STATUS.FINALIZE_CANCEL_CONFIRMED:
-        statusText = t('shakedexStatusFinalizeCancelConfirmed');
-        break;
-    }
+    const i18nKey = listingStatusToI18nKey(status);
+
+    if (i18nKey)
+      statusText = t(i18nKey);
 
     return (
       <div className={classNames('exchange-table__listing-status', {
@@ -344,6 +346,7 @@ class Exchange extends Component {
             {t('createListing')}
           </button>
         </div>
+        <ShakedexDeprecated toggle={this.state.shakedexDeprecatedToggle} />
         <div className="exchange__button-header__sub">
           {t('sdBackupReminder', '')}
           <Link to="/settings/exchange/backup">Settings/Exchange</Link>
@@ -363,7 +366,7 @@ class Exchange extends Component {
               </TableItem>
             </TableRow>
           )}
-          {!!this.props.listings.length && this.props.listings.map(l => this.renderListingRow(l))}
+          {!!this.props.listings.length && this.props.listings.map((l, i) => this.renderListingRow(l, i))}
         </Table>
 
         <div className="exchange__button-header">
@@ -372,7 +375,7 @@ class Exchange extends Component {
             className="exchange__button-header-button extension_cta_button"
             onClick={this.onUploadPresigns}
           >
-            {t('uploadAuctionFile')}
+            {t('loadAuctionFile')}
           </button>
         </div>
         <Table className="exchange-table">
@@ -384,8 +387,8 @@ class Exchange extends Component {
             <HeaderItem />
           </HeaderRow>
 
-          {!!this.props.fulfillments.length && this.props.fulfillments.map(f => (
-            <TableRow>
+          {!!this.props.fulfillments.length && this.props.fulfillments.map((f, idx) => (
+            <TableRow key={idx}>
               <TableItem>{formatName(f.fulfillment.name)}</TableItem>
               <TableItem>{this.renderFulfillmentStatus(f.status)}</TableItem>
               <TableItem>{displayBalance(f.fulfillment.price, true)}</TableItem>
@@ -411,7 +414,7 @@ class Exchange extends Component {
           )}
         </Table>
 
-        <h2>{t('liveAuctions')}</h2>
+        {this.props.network === 'main' ? <><h2>{t('liveAuctions')}</h2>
         <Table className="exchange-table">
           <Header />
           {this.state.isLoading && (
@@ -433,7 +436,7 @@ class Exchange extends Component {
               {t('genericError')}
             </div>
           )}
-        </Table>
+        </Table></> : null}
         {this.state.placingAuction && this.state.placingCurrentBid && (
           <PlaceBidModal
             auction={this.state.placingAuction}
@@ -547,8 +550,8 @@ class Exchange extends Component {
     )
   }
 
-  renderListingRow = (l) => {
-    const { auction } = l;
+  renderListingRow = (l, idx) => {
+    const { auction, deprecated, lowestDeprecatedPrice } = l;
     const { data = [] } = auction || {};
     const lastBid = data[data.length - 1];
     const { lockTime = 0 } = lastBid || {}
@@ -557,8 +560,25 @@ class Exchange extends Component {
     const {t} = this.context;
 
     return (
-      <TableRow key={l.nameLock.name}>
-        <TableItem>{formatName(l.nameLock.name)}</TableItem>
+      <TableRow key={idx}>
+        <TableItem>
+          {formatName(l.nameLock.name)}{' '}
+          {deprecated ?
+            <span
+              className="pointer"
+              onClick={() => this.setState({shakedexDeprecatedToggle: !this.state.shakedexDeprecatedToggle})}
+            >⚠️</span>
+            : null
+          }
+          {(!deprecated && lowestDeprecatedPrice && lowestDeprecatedPrice < l.params.startPrice) ?
+            <span
+              title={`Can be sold for ${(lowestDeprecatedPrice/1e6)>>>0} HNS, cancel listing to prevent this.`}
+            >
+              <div className="domains__bid-now__info__icon info" />
+            </span>
+            : null
+          }
+        </TableItem>
         <TableItem>{this.renderListingStatus(l.status)}</TableItem>
         <TableItem>{displayBalance(l.params.startPrice)}</TableItem>
         <TableItem>{displayBalance(l.params.endPrice)}</TableItem>
@@ -617,12 +637,24 @@ class Exchange extends Component {
               >
                 {t('download')}
               </div>
-              <div
-                className="bid-action__link"
-                onClick={() => this.onClickSubmitShakedex(l)}
-              >
-                {t('submit')}
-              </div>
+              {this.props.network === 'main' && (
+                l.deprecated ?
+                  <div
+                    className="bid-action__link"
+                    onClick={() => this.setState({
+                      isGeneratingListing: true,
+                      generatingListing: l,
+                    })}
+                  >
+                    {t('regenerate')}
+                  </div>
+                  : <div
+                    className="bid-action__link"
+                    onClick={() => this.onClickSubmitShakedex(l)}
+                  >
+                    {t('submit')}
+                  </div>
+              )}
 
               <div
                 className="bid-action__link"
@@ -639,7 +671,12 @@ class Exchange extends Component {
 
   renderAuctionRow = (auction) => {
     const {t} = this.context;
-    const currentBid = getCurrentBid(auction);
+    const currentBid = this.state.currentBidsMap.get(auction.id);
+    if (currentBid === undefined) {
+      this.getCurrentBidForAuction(auction);
+    }
+
+    const currentPriceText = currentBid === null ? t('sold') : displayBalance(currentBid?.price, true);
 
     return (
       <TableRow
@@ -648,7 +685,7 @@ class Exchange extends Component {
         onClick={() => shell.openExternal(`https://shakedex.com/a/${auction.name}`)}
       >
         <TableItem>{formatName(auction.name)}</TableItem>
-        <TableItem>{displayBalance(currentBid?.price, true)}</TableItem>
+        <TableItem>{currentPriceText}</TableItem>
         <TableItem>{this.renderNextBid(auction)}</TableItem>
         <TableItem>
           {
@@ -658,6 +695,7 @@ class Exchange extends Component {
                   className="bid-action__link"
                   onClick={(e) => {
                     e.stopPropagation();
+                    if (!currentBid) return;
                     this.setState({
                       placingAuction: auction,
                       placingCurrentBid: currentBid,
@@ -695,21 +733,29 @@ class Exchange extends Component {
       }
     }
 
-    const now = Date.now();
-    let nextBid = null;
-    for (let i = 0; i < auction.bids.length; i++) {
-      const bid = auction.bids[i];
-      if (bid.lockTime > now) {
-        nextBid = bid;
-        break;
-      }
+    const currentBid = this.state.currentBidsMap.get(auction.id);
+    if (currentBid === undefined) {
+      this.getCurrentBidForAuction(auction);
+      return 'Loading...'
     }
+
+    if (!currentBid) {
+      return t('sold');
+    }
+
+    const currentBidIdx = auction.bids.findIndex((bid) => bid.price === currentBid.price);
+
+    if (currentBidIdx === -1) {
+      return 'Not found';
+    }
+
+    const nextBid = auction.bids[currentBidIdx+1]
 
     if (!nextBid) {
       return t('allBidsReleased');
     }
 
-    return moment(nextBid.lockTime).fromNow();
+    return moment(nextBid.lockTime*1000).fromNow();
   }
 }
 
@@ -740,6 +786,8 @@ export default connect(
     deeplinkParams: state.app.deeplinkParams,
     walletWatchOnly: state.wallet.watchOnly,
     spv: state.node.spv,
+    network: state.wallet.network,
+    height: state.node.chain.height,
   }),
   (dispatch) => ({
     setAuctionPage: (page) => dispatch(setAuctionPage(page)),
@@ -757,15 +805,15 @@ export default connect(
   }),
 )(Exchange);
 
-function getCurrentBid(auction) {
-  const now = Date.now();
-  let out;
-  for (let i = 0; i < auction.bids.length; i++) {
-    const bid = auction.bids[i];
-    if (bid.lockTime > now) {
-      break;
-    }
-    out = bid;
+
+async function getCurrentBid(auction) {
+  try {
+    const [bestBid, bestBidIdx] = await shakedex.getBestBid(auction);
+    if (!bestBid)
+      return null;
+
+    return auction.bids[bestBidIdx];
+  } catch (error) {
+    return null;
   }
-  return out;
 }

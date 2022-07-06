@@ -35,6 +35,9 @@ export class GenerateListingModal extends Component {
       const durationDays = this.durationOpts[durationIdx];
 
       const overrideParams = { startPrice: startPrice * 1e6, endPrice: endPrice  * 1e6, durationDays };
+      if (listing.lowestDeprecatedPrice) {
+        overrideParams.lowestDeprecatedPrice = listing.lowestDeprecatedPrice;
+      }
       await launchExchangeAuction(listing.nameLock, overrideParams);
       this.props.onClose();
     } catch (e) {
@@ -58,6 +61,13 @@ export class GenerateListingModal extends Component {
     return (
       <MiniModal title={t('createListing')} onClose={onClose}>
         <div className="exchange__place-listing-modal">
+          {listing.lowestDeprecatedPrice &&
+            <Alert type="warning">
+              Anyone with the old bids will still be able to buy this name
+              at <strong>{listing.lowestDeprecatedPrice/1e6} HNS</strong>!<br />
+              Cancel the listing if you do not want this.
+            </Alert>
+          }
           <div className="exchange__label">{`${t('listingName')}:`}</div>
           <div className="exchange__input">
             {formatName(listing.nameLock.name)}
@@ -122,7 +132,6 @@ export class GenerateListingModal extends Component {
 
 export default connect(
   (state) => ({
-
   }),
   (dispatch) => ({
     launchExchangeAuction: (nameLock, overrideParams) => dispatch(launchExchangeAuction(nameLock, overrideParams)),
