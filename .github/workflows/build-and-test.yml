@@ -41,7 +41,7 @@ jobs:
         run: sudo apt update && sudo apt install libudev-dev libusb-1.0-0-dev -y
 
       - name: Install npm packages
-        run: npm i --legacy-peer-deps
+        run: npm i
 
       - name: Build
         run: ${{ matrix.cmd_build }}
