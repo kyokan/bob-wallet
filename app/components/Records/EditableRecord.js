@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import deepEqual from 'deep-equal';
 import { TableItem, TableRow } from '../Table';
 import { DROPDOWN_TYPES } from '../../ducks/names';
 import { deserializeRecord, serializeRecord, validate } from '../../utils/recordHelpers';
@@ -26,15 +27,18 @@ class EditableRecord extends Component {
     };
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(prevProps) {
     const {type} = this.props.record || {};
     const currentTypeIndex = DROPDOWN_TYPES.findIndex(d => d.label === type);
-    this.setState({
-      isEditing: false,
-      value: serializeRecord(this.props.record),
-      errorMessage: '',
-      currentTypeIndex: Math.max(currentTypeIndex, 0),
-    });
+
+    if (!deepEqual(this.props.record, prevProps.record)) {
+      this.setState({
+        isEditing: false,
+        value: serializeRecord(this.props.record),
+        errorMessage: '',
+        currentTypeIndex: Math.max(currentTypeIndex, 0),
+      });
+    }
   }
 
   cancel = () => {
