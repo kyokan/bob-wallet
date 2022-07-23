@@ -79,3 +79,4 @@ npm run add-locale zh
 | --- | --- | --- |
 | Catalan | ca.json | Faltrum (@faltrum) |
 | Spanish | es-ES.json | Faltrum (@faltrum) |
+| French | fr-FR.json | Miguel Gargallo (@miguelgargallo) |
