@@ -1,5 +1,6 @@
 const { states } = require("hsd/lib/covenants/namestate");
 
+/** @param {import('hsd/lib/wallet/wallet')} wallet */
 async function fromBids(wallet) {
   const height = wallet.wdb.height;
   const network = wallet.network;
@@ -29,6 +30,12 @@ async function fromBids(wallet) {
     const blind = bid.lockup - bid.value;
     const ns = await wallet.getNameState(bid.nameHash);
     const state = ns.state(height, network);
+
+    // Only consider bids from the latest auction (is local?)
+    const bidTx = await wallet.getTX(bid.prevout.hash);
+    if (bidTx.height < ns.height) {
+      continue;
+    }
 
     // Full bid + blind is locked up in the bidding phase
     if (state === states.BIDDING) {
@@ -87,6 +94,7 @@ async function fromBids(wallet) {
   };
 }
 
+/** @param {import('hsd/lib/wallet/wallet')} wallet */
 async function fromReveals(wallet) {
   const height = wallet.wdb.height;
   const network = wallet.network;
@@ -145,6 +153,7 @@ async function fromReveals(wallet) {
   };
 }
 
+/** @param {import('hsd/lib/wallet/wallet')} wallet */
 async function fromNames(wallet) {
   const height = wallet.wdb.height;
   const network = wallet.network;
@@ -236,6 +245,7 @@ async function fromNames(wallet) {
   };
 }
 
+/** @param {import('hsd/lib/wallet/wallet')} wallet */
 export async function getStats(wallet) {
   const [statsFromBids, statsFromReveals, statsFromNames] = await Promise.all([
     fromBids(wallet),

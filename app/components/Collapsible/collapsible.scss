@@ -35,20 +35,19 @@
 
   &__content {
     opacity: 1;
-    // padding: 1rem;
     position: relative;
-    max-height: 35rem;
     height: auto;
     transition: 0.5s ease-out;
 
     &--hidden {
       opacity: 0;
-      max-height: 0;
+      max-height: 0 !important;
       overflow: hidden;
       transition: 0.5s ease-out;
     }
 
     &--overflowY {
+      max-height: 35rem;
       overflow-y: auto;
     }
   }

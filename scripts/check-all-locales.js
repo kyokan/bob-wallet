@@ -20,6 +20,7 @@ const PRIMARY_LOCALE_NAME = process.argv[2] || 'en';
 
     // Skip primary
     if (localeFilename === `${PRIMARY_LOCALE_NAME}.json`) continue;
+    if (localeFilename === `zh.json`) continue; // Skip ZH for now as it's not maintained
     if (!localeFilename.endsWith('.json')) continue;
 
     console.log(`\n\n[*] === Locale: ${localeFilename} ===`);
@@ -33,13 +34,17 @@ const PRIMARY_LOCALE_NAME = process.argv[2] || 'en';
     console.log(
       primaryLocaleKeys
         .filter(k => !locale[k])
-        .map(k => `  "${k}": "TRANSLATE ME: < ${primaryLocale[k].replace(/[\\"']/g, '\\$&')} >",`)
+        .map(k => `  "${k}": "TRANSLATE ME: < ${primaryLocale[k].replace(/[\\"]/g, '\\$&')} >",`)
         .join('\n')
     );
 
     // Strings in this locale, but not in primary
     console.log(`\nStrings not needed in ${localeFilename} (to be removed):`);
     console.log(localeKeys.filter(k => !primaryLocale[k]).map(k => `  ${k}`).join('\n'));
+
+    // Strings that match primary (either not translated, or it makes sense to use the same terms)
+    console.log(`\nStrings in ${localeFilename} matching primary locale (verify):`);
+    console.log(localeKeys.filter(k => primaryLocale[k] === locale[k]).map(k => `  ${k} (${locale[k]})`).join('\n'));
   }
 
   console.log('\nDone!');
