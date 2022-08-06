@@ -1,3 +1,9 @@
+
+# ¡¡¡ THIS IS NOT THE OFFICIAL BOB WALLET. THIS IS A PERSONAL-USE FORK OF BOB CALLED BETTY. DO NOT USE THIS WALLET !!!
+
+## You have been warned. 
+
+
 <p align="center"><img src="./resources/icons/logowithtext.png"></p>
 
 # Bob Wallet: A Handshake Wallet and Full Node
