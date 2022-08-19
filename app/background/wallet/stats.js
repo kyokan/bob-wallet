@@ -56,7 +56,7 @@ async function fromBids(wallet) {
       revealingNum++;
     }
 
-    const bidCoin = await wallet.getCoin(bid.prevout.hash, bid.prevout.index);
+    const bidCoin = await wallet.getUnspentCoin(bid.prevout.hash, bid.prevout.index);
     const isRevealed = !bidCoin;
 
     // If bid not yet revealed and is in reveal period
@@ -130,7 +130,7 @@ async function fromReveals(wallet) {
       continue;
     }
 
-    const revealCoin = await wallet.getCoin(
+    const revealCoin = await wallet.getUnspentCoin(
       reveal.prevout.hash,
       reveal.prevout.index
     );
@@ -172,7 +172,7 @@ async function fromNames(wallet) {
     const name = ns.name.toString("utf-8");
     const stats = ns.toStats(height, network);
 
-    const ownerCoin = await wallet.getCoin(ns.owner.hash, ns.owner.index);
+    const ownerCoin = await wallet.getUnspentCoin(ns.owner.hash, ns.owner.index);
 
     // Only act on currently owned names
     if (!ownerCoin) {

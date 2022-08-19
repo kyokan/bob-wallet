@@ -1,5 +1,3 @@
-import walletClient from "../../utils/walletClient";
-
 const MTX = require('hsd/lib/primitives/mtx');
 const {states} = require('hsd/lib/covenants/namestate');
 const rules = require('hsd/lib/covenants/rules');
@@ -17,7 +15,7 @@ export default async function createRegisterAll(wallet) {
     const ns = names[i];
     const {owner} = ns;
 
-    const coin = await wallet.getCoin(owner.hash, owner.index);
+    const coin = await wallet.getUnspentCoin(owner.hash, owner.index);
 
     if (coin) {
       if (!coin)
