@@ -85,7 +85,6 @@ export default class Account extends Component {
 
   constructor(props) {
     super(props);
-    this.updateStatsAndBalance = throttle(this.updateStatsAndBalance, 15000, { trailing: true });
   }
 
   componentDidMount() {
@@ -105,7 +104,12 @@ export default class Account extends Component {
     this._isMounted = false;
   }
 
-  async updateStatsAndBalance() {
+  /**
+   * Refresh $HNS price,
+   * calculate balance and cards
+   * (Unthrottled update, call without _ to throttle)
+   */
+  async _updateStatsAndBalance() {
     // Update HNS price for conversion
     this.props.updateHNSPrice();
 
@@ -124,6 +128,8 @@ export default class Account extends Component {
     }
   }
 
+  updateStatsAndBalance = throttle(this._updateStatsAndBalance, 15000, { trailing: true })
+
   onCardButtonClick = async (action, args) => {
     const {t} = this.context;
 
@@ -138,6 +144,7 @@ export default class Account extends Component {
     try {
       await functionToExecute(args);
       this.props.fetchTransactions();
+      this._updateStatsAndBalance();
       this.props.showSuccess(t('genericRequestSuccess'));
     } catch (e) {
       if (e.message === 'Could not resolve preferred inputs.') {
