@@ -20,7 +20,7 @@ import {
 } from '../../ducks/walletReducer';
 import {STOP, SET_CUSTOM_RPC_STATUS} from '../../ducks/nodeReducer';
 import {getNamesForRegisterAll} from "./create-register-all";
-import {createFinalizeMany, createTransferMany} from "./bulk-transfer";
+import {createFinalizeMany} from "./bulk-transfer";
 import {createRenewMany} from "./bulk-renewal";
 import {getStats} from "./stats";
 import {get, put} from "../db/service";
@@ -730,6 +730,21 @@ class WalletService {
     );
   };
 
+  finalizeAll = () => this._ledgerProxy(
+    () => this._executeRPC('createbatch', [[['FINALIZE']], {paths: true}]),
+    async () => {
+      try {
+        while (true) {
+          await this._executeRPC('sendbatch', [[['FINALIZE']]]);
+        }
+      } catch (error) {
+        if (error.message !== 'Nothing to do.') throw error;
+      } finally {
+        await this.lock();
+      }
+    }
+  );
+
   finalizeMany = async (names) => {
     const {wdb} = this.node;
     const wallet = await wdb.get(this.name);
@@ -742,6 +757,21 @@ class WalletService {
       unlock();
     }
   };
+
+  renewAll = () => this._ledgerProxy(
+    () => this._executeRPC('createbatch', [[['RENEW']], {paths: true}]),
+    async () => {
+      try {
+        while (true) {
+          await this._executeRPC('sendbatch', [[['RENEW']]]);
+        }
+      } catch (error) {
+        if (error.message !== 'Nothing to do.') throw error;
+      } finally {
+        await this.lock();
+      }
+    }
+  );
 
   renewMany = async (names) => {
     const {wdb} = this.node;
@@ -1715,7 +1745,9 @@ const methods = {
   sendRegisterAll: service.sendRegisterAll,
   sendRenewal: service.sendRenewal,
   transferMany: service.transferMany,
+  finalizeAll: service.finalizeAll,
   finalizeMany: service.finalizeMany,
+  renewAll: service.renewAll,
   renewMany: service.renewMany,
   sendTransfer: service.sendTransfer,
   cancelTransfer: service.cancelTransfer,
