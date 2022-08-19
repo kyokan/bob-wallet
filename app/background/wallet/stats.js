@@ -197,8 +197,10 @@ async function fromNames(wallet) {
       }
     }
 
-    // Mark for renew if the name is going to expire in the next 2 months
-    if (stats.daysUntilExpire < 30 * 2) {
+    // Mark for renew if the name is going to expire in the next 3 months:
+    // About 90 days on main (1.75 years after REGISTER)
+    // 625 blocks on regtest (4375 blocks after REGISTER)
+    if (stats.blocksUntilExpire < network.names.renewalWindow / 8) {
       const isRenewable =
         ns.registered &&
         ns.transfer === 0 &&
