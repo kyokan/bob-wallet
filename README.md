@@ -10,13 +10,27 @@ Bob Wallet is a [Handshake](https://handshake.org) wallet with an integrated ful
 
 Most users should use the prebuilt binaries in this repo's [releases](https://github.com/kyokan/bob-wallet/releases) page.
 
-![Screen Shot 2020-02-22 at 11 08 18 AM](https://user-images.githubusercontent.com/8230144/75097836-06f48480-5564-11ea-85db-64251184e7bf.png)
+![GitHub releases page screenshot](https://user-images.githubusercontent.com/8230144/75097836-06f48480-5564-11ea-85db-64251184e7bf.png)
 
-Note: this screenshot is unlikely to age well but the filetypes are highlighted so you know what to install. It says 0.2.6 here but you should always look for the latest version.
+Note: this screenshot is unlikely to age well but the filetypes are highlighted so you know what to install. It says 0.2.6 here but you should always look for the [latest](https://github.com/kyokan/bob-wallet/releases/latest) version.
 
-* OSX: .dmg
-* Windows: .msi
-* Linux: .AppImage
+* **OSX:** `.dmg` (x86 = Intel; arm64 = Apple Silicon)
+* **Windows:** `.msi`
+* **Linux:** `.AppImage`
+
+For macOS users, Bob is also available through the [Homebrew](https://github.com/homebrew/brew) package manager:
+
+```bash
+brew install kyokan-bob
+```
+
+## Uninstall
+
+Bob Wallet can be uninstalled from your OS apps list. This _does not_ delete any blockchain and wallet data.
+
+To completely remove all stored data, delete the `Bob` directory which can be found in _Settings -> General_. If Bob was installed with brew, then `brew uninstall --zap kyokan-bob` will do this for you.
+
+>Since this deletes wallet data, be sure to **backup your seed phrases** first.
 
 ## Features
 
