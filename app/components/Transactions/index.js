@@ -2,16 +2,19 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import c from 'classnames';
+import fs from 'fs';
 
 import Transaction from './Transaction';
 import './index.scss';
-// Dummy transactions state until we have ducks
-import { fetchTransactions, fetchPendingTransactions } from '../../ducks/walletActions';
+import { fetchTransactions } from '../../ducks/walletActions';
 import Dropdown from '../Dropdown';
 import BidSearchInput from '../BidSearchInput';
 import Fuse from '../../vendor/fuse';
 import dbClient from "../../utils/dbClient";
+import walletClient from "../../utils/walletClient";
 import {I18nContext} from "../../utils/i18n";
+
+const {dialog} = require('@electron/remote');
 
 const SORT_BY_TYPES = {
   DATE_DESCENDING: 'Date - Descending',
@@ -35,37 +38,43 @@ const TX_VIEW_ITEMS_PER_PAGE_KEY = 'main-tx-items-per-page';
 @connect(
   (state) => ({
     transactions: state.wallet.transactions,
+    walletHeight: state.wallet.walletHeight,
   }),
   (dispatch) => ({
     fetchTransactions: () => dispatch(fetchTransactions()),
-    fetchPendingTransactions: () => dispatch(fetchPendingTransactions()),
   })
 )
 export default class Transactions extends Component {
   static propTypes = {
     transactions: PropTypes.instanceOf(Map).isRequired,
+    walletHeight: PropTypes.number.isRequired,
   };
 
   static contextType = I18nContext;
 
-  async componentWillMount() {
+  async componentDidMount() {
     const itemsPerPage = await dbClient.get(TX_VIEW_ITEMS_PER_PAGE_KEY);
 
     this.setState({
       itemsPerPage: itemsPerPage || 5,
     });
-  }
 
-  async componentDidMount() {
     await this.props.fetchTransactions();
-    await this.props.fetchPendingTransactions();
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (this.props.transactions.size !== nextProps.transactions.size) {
+  async componentDidUpdate(prevProps, prevState) {
+
+    // Refresh transactions on new blocks
+    if (this.props.walletHeight !== prevProps.walletHeight) {
+      this.refreshTransactions();
+    }
+
+    if (this.props.transactions.size !== prevProps.transactions.size) {
       this.fuse = null;
     }
   }
+
+  refreshTransactions = debounce(() => this.props.fetchTransactions(), 5000)
 
   state = {
     currentPageIndex: 0,
@@ -75,6 +84,34 @@ export default class Transactions extends Component {
   };
 
   handleOnChange = e => this.setState({ query: e.target.value, currentPageIndex: 0 });
+
+  onExport = async () => {
+    const headers = ['time', 'txhash', 'fee', 'type', 'value', 'domains'];
+    let csvData = headers.join(',') + '\n';
+
+    for (const [_, tx] of this.props.transactions) {
+      const row = {
+        time: new Date(tx.date).toISOString(),
+        txhash: tx.id,
+        fee: tx.fee,
+        type: tx.type,
+        value: (isNegativeValue(tx.type) ? -tx.value : tx.value) / 1e6,
+        domains: tx.domains?.join(', ') || tx.meta.domain || '',
+      }
+      csvData += headers.map(key => `"${row[key]}"`).join(',') + '\n'
+    }
+
+    const savePath = dialog.showSaveDialogSync({
+      filters: [{name: 'spreadsheet', extensions: ['csv']}],
+    });
+    if (savePath) {
+      fs.writeFile(savePath, csvData, (err) => {
+        if (err) {
+          throw err;
+        }
+      });
+    }
+  }
 
   getTransactions() {
     const { sortBy, query } = this.state;
@@ -120,7 +157,7 @@ export default class Transactions extends Component {
       const tx = transactions[i];
       if (tx) {
         result.push(
-          <div className="transaction__container" key={tx.id}>
+          <div className="transaction__container" key={tx.id+tx.pending}>
             <Transaction transaction={tx} />
           </div>
         );
@@ -144,6 +181,14 @@ export default class Transactions extends Component {
               onChange={sortBy => this.setState({ sortBy })}
               currentIndex={this.state.sortBy}
             />
+          </div>
+          <div className="transactions__export">
+            <button
+              className="watching__download"
+              onClick={this.onExport}
+            >
+              {t('export')}
+            </button>
           </div>
         </div>
         {result}
@@ -270,4 +315,41 @@ function getPageIndices(transactions, itemsPerPage, currentPageIndex) {
     answer.push(pageIndex);
   });
   return answer;
+}
+
+function debounce(func, timeout = 300){
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => { func.apply(this, args); }, timeout);
+  };
+}
+
+function isNegativeValue(type) {
+  switch (type) {
+    // Positive
+    case 'RECEIVE':
+    case 'COINBASE':
+    case 'REDEEM':
+    case 'REVEAL':
+    case 'REGISTER':
+      return false;
+
+    // Neutral
+    case 'UPDATE':
+    case 'RENEW':
+    case 'OPEN':
+    case 'FINALIZE':
+    case 'CLAIM':
+      return false;
+
+    // Negative
+    case 'SEND':
+    case 'BID':
+      return true;
+
+    // Should not reach here
+    default:
+      return false;
+  }
 }

@@ -39,14 +39,16 @@ export class PlaceBidModal extends Component {
             {t('shakedexPlaceBidWarning')}
           </p>
           <table className="place-bid-modal__table">
-            <tr>
-              <td><strong>{`${t('domain')}:`}</strong></td>
-              <td>{auction.name}</td>
-            </tr>
-            <tr>
-              <td><strong>{`${t('price')}:`}</strong></td>
-              <td>{displayBalance(bid.price, true)}</td>
-            </tr>
+            <tbody>
+              <tr>
+                <td><strong>{`${t('domain')}:`}</strong></td>
+                <td>{auction.name}</td>
+              </tr>
+              <tr>
+                <td><strong>{`${t('price')}:`}</strong></td>
+                <td>{displayBalance(bid.price, true)}</td>
+              </tr>
+            </tbody>
           </table>
 
           <div className="place-bid-modal__buttons">

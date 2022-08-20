@@ -18,6 +18,7 @@ import { clientStub as aClientStub } from '../../background/analytics/client';
 import './records.scss';
 import {clearDeeplinkParams} from "../../ducks/app";
 import {deserializeRecord} from '../../utils/recordHelpers'
+import {I18nContext} from "../../utils/i18n";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -27,6 +28,8 @@ const DEFAULT_RESOURCE = {
 };
 
 export class Records extends Component {
+  static contextType = I18nContext;
+
   static propTypes = {
     name: PropTypes.string.isRequired,
     resource: PropTypes.object,
@@ -244,17 +247,32 @@ export class Records extends Component {
   }
 
   renderTreeUpdateInfo() {
+    const {t} = this.context;
+    const { currentHeight } = this.props;
     const network = Network.get(this.props.network);
-    const nextTreeUpdateBlock = this.props.currentHeight + (network.names.treeInterval - this.props.currentHeight % network.names.treeInterval);
+    const { treeInterval } = network.names;
+
+    // Next Tree Update Block (w.r.t. current height)
+    let block = currentHeight + (treeInterval - (currentHeight % treeInterval));
+    let text = 'treeUpdateGeneric';
+
+    // If last transaction was an UPDATE, then relative block
+    const { height, covenant } = this.props.domain?.lastTx || {};
+    if (
+      height &&
+      (covenant.action === 'UPDATE' || covenant.action === 'REGISTER')
+    ) {
+      block = height + (treeInterval - (height % treeInterval));
+
+      text =
+        currentHeight < block
+          ? 'treeUpdateFuture'
+          : 'treeUpdatePast';
+    }
 
     return (
       <div className="tree-update">
-        Next tree update: Block {nextTreeUpdateBlock} (
-          <Blocktime
-            height={nextTreeUpdateBlock}
-            fromNow={true}
-          />
-        )
+        {t(text)} {block} (<Blocktime height={block} fromNow prefix />)
       </div>
     );
   }

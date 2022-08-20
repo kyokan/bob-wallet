@@ -1,3 +1,5 @@
+require('@sentry/electron/preload');
+
 window.addEventListener('DOMContentLoaded', () => {
   const scripts = [];
   const port = process.env.PORT || 1212;

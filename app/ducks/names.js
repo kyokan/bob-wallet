@@ -76,6 +76,7 @@ export const getNameInfo = name => async (dispatch) => {
   let bids = [];
   let reveals = [];
   let winner = null;
+  let lastTx = null;
   let isOwner = false;
   let walletHasName = false;
 
@@ -89,6 +90,7 @@ export const getNameInfo = name => async (dispatch) => {
         bids,
         reveals,
         winner,
+        lastTx,
         isOwner,
         walletHasName,
       },
@@ -99,8 +101,8 @@ export const getNameInfo = name => async (dispatch) => {
   try {
     const auctionInfo = await walletClient.getAuctionInfo(name);
     walletHasName = true;
-    bids = await inflateBids(nodeClient, walletClient, auctionInfo.bids, info.height);
-    reveals = await inflateReveals(nodeClient, walletClient, auctionInfo.reveals, info.height);
+    bids = await inflateBids(auctionInfo.bids, info.height);
+    reveals = await inflateReveals(auctionInfo.reveals, info.height);
   } catch (e) {
     if (!e.message.match(/auction not found/i)) {
       throw e;
@@ -114,12 +116,20 @@ export const getNameInfo = name => async (dispatch) => {
       const buyOutput = buyTx.outputs[info.owner.index];
       const coin = await walletClient.getCoin(info.owner.hash, info.owner.index);
       isOwner = !!coin;
-      if (coin && coin.covenant.action === 'TRANSFER') {
-        const {network} = await nodeClient.getInfo();
-        info.transferTo = Address.fromHash(
-          Buffer.from(coin.covenant.items[3], 'hex'),
-          Number(coin.covenant.items[2])
-        ).toString(network);
+
+      if (coin) {
+        lastTx = {
+          height: coin.height,
+          covenant: coin.covenant,
+        }
+
+        if (coin.covenant.action === 'TRANSFER') {
+          const {network} = await nodeClient.getInfo();
+          info.transferTo = Address.fromHash(
+            Buffer.from(coin.covenant.items[3], 'hex'),
+            Number(coin.covenant.items[2])
+          ).toString(network);
+        }
       }
 
       winner = {
@@ -130,11 +140,11 @@ export const getNameInfo = name => async (dispatch) => {
 
   dispatch({
     type: SET_NAME,
-    payload: {name, start, info, bids, reveals, winner, isOwner, walletHasName},
+    payload: {name, start, info, bids, reveals, winner, lastTx, isOwner, walletHasName},
   });
 };
 
-async function inflateBids(nClient, walletClient, bids) {
+async function inflateBids(bids, nameHeight) {
   if (!bids.length) {
     return [];
   }
@@ -145,6 +155,9 @@ async function inflateBids(nClient, walletClient, bids) {
     const res = await nodeClient.getTx(bid.prevout.hash);
 
     if (!res) continue;
+
+    // Ignore bids from previous auctions
+    if (res.height < nameHeight) continue;
 
     const tx = res;
     const out = tx.outputs[bid.prevout.index];
@@ -161,24 +174,27 @@ async function inflateBids(nClient, walletClient, bids) {
   return ret;
 }
 
-async function inflateReveals(nClient, walletClient, bids) {
-  if (!bids.length) {
+async function inflateReveals(reveals, nameHeight) {
+  if (!reveals.length) {
     return [];
   }
 
   const ret = [];
-  for (const bid of bids) {
+  for (const reveal of reveals) {
     // Must use node client to get non-own reveals
-    const res = await nodeClient.getTx(bid.prevout.hash);
+    const res = await nodeClient.getTx(reveal.prevout.hash);
 
     if (!res) continue;
 
+    // Ignore reveals from previous auctions
+    if (res.height < nameHeight) continue;
+
     const tx = res;
-    const out = tx.outputs[bid.prevout.index];
-    const coin = await walletClient.getCoin(bid.prevout.hash, bid.prevout.index);
+    const out = tx.outputs[reveal.prevout.index];
+    const coin = await walletClient.getCoin(reveal.prevout.hash, reveal.prevout.index);
 
     ret.push({
-      bid,
+      bid: reveal, // yes, it really is reveal
       from: out.address,
       date: tx.mtime * 1000,
       value: out.value,

@@ -6,12 +6,14 @@ import { connect } from 'react-redux';
 import './index.scss';
 import AccountIndexModal from './AccountIndexModal';
 import MaxIdleModal from './MaxIdleModal';
+import AccountKeyModal from './AccountKeyModal';
 import RevealSeedModal from './RevealSeedModal';
 import ZapTXsModal from './ZapTXsModal';
 import * as logger from '../../utils/logClient';
 import * as walletActions from '../../ducks/walletActions';
 import * as nodeActions from '../../ducks/node';
 import NetworkPicker from '../NetworkPicker';
+import Hip2Picker from '../Hip2Picker';
 import ExplorerPicker from '../ExplorerPicker';
 import { clientStub as aClientStub } from '../../background/analytics/client';
 const pkg = require('../../../package.json');
@@ -27,7 +29,7 @@ import DeepCleanAndRescanModal from "./DeepCleanAndRescanModal";
 import {showError, showSuccess} from "../../ducks/notifications";
 import BackupListingModal from "./BackupListingModal";
 import fs from "fs";
-const {dialog} = require('electron').remote;
+const {dialog} = require('@electron/remote');
 import {clientStub as sClientStub} from "../../background/shakedex/client";
 import ChangeDirectoryModal from "./ChangeDirectoryModal";
 import dbClient from "../../utils/dbClient";
@@ -51,6 +53,8 @@ const connClient = cClientStub(() => require('electron').ipcRenderer);
     network: state.wallet.network,
     apiKey: state.node.apiKey,
     spv: state.node.spv,
+    rsPort: state.node.rsPort,
+    nsPort: state.node.nsPort,
     noDns: state.node.noDns,
     walletApiKey: state.wallet.apiKey,
     walletSync: state.wallet.walletSync,
@@ -81,8 +85,10 @@ const connClient = cClientStub(() => require('electron').ipcRenderer);
 export default class Settings extends Component {
   static propTypes = {
     network: PropTypes.string.isRequired,
-    apiKey: PropTypes.string.isRequired,
+    apiKey: PropTypes.string,
     locale: PropTypes.string.isRequired,
+    rsPort: PropTypes.number.isRequired,
+    nsPort: PropTypes.number.isRequired,
     noDns: PropTypes.bool.isRequired,
     spv: PropTypes.bool.isRequired,
     wid: PropTypes.string.isRequired,
@@ -363,7 +369,7 @@ export default class Settings extends Component {
         {this.renderSection(
           t('apiKey'),
           <span>
-            API key for <Anchor href="https://hsd-dev.org/api-docs/#get-wallet-info">hsw-cli</Anchor> and <Anchor href="https://hsd-dev.org/api-docs/#selectwallet">hsw-rpc</Anchor>. Make sure you select the wallet id "{wid}".
+            {t('settingAPIKeyDesc', wid)} (<Anchor href="https://hsd-dev.org/api-docs/#get-wallet-info">hsw-cli</Anchor>, <Anchor href="https://hsd-dev.org/api-docs/#selectwallet">hsw-rpc</Anchor>)
           </span>,
           t('settingAPIKeyCTA'),
           () => history.push('/settings/wallet/view-api-key'),
@@ -373,6 +379,12 @@ export default class Settings extends Component {
           t('settingZapDesc'),
           t('settingZapCTA'),
           () => history.push('/settings/wallet/zap-txs'),
+        )}
+        {this.renderSection(
+          t('settingAccountKeyTitle'),
+          t('settingAccountKeyDesc'),
+          t('settingAccountKeyCTA'),
+          () => history.push('/settings/wallet/account-key'),
         )}
         {this.renderSection(
           t('settingRevealSeedTitle'),
@@ -429,6 +441,8 @@ export default class Settings extends Component {
       isRunning,
       history,
       spv,
+      rsPort,
+      nsPort,
       noDns,
       setNoDns,
       isChangingNodeStatus,
@@ -526,11 +540,19 @@ export default class Settings extends Component {
                 t('settingDNSTitle'),
                 !isRunning || noDns
                   ? <><span className="node-status--inactive" /><span>{t('settingDNSNotRunning')}</span></>
-                  : <><span className="node-status--active" /><span>{t('settingDNSRunning')}</span></>,
+                  : <><span className="node-status--active" /><span>{t('settingDNSRunning', nsPort.toString(), rsPort.toString())}</span></>,
                 noDns ? t('enable') : t('disable'),
                 () => {setNoDns(!noDns)},
                 null,
                 isChangingNodeStatus || isTestingCustomRPC || isCustomRPCConnected,
+              )}
+              {this.renderSection(
+                t('settingHip2Title'),
+                t('settingHip2Desc', rsPort.toString()),
+                null,
+                null,
+                <Hip2Picker placeholder={t('settingHip2Placeholder')} />,
+                null
               )}
               {this.renderSection(
                 t('settingHSDDirTitle'),
@@ -589,6 +611,7 @@ export default class Settings extends Component {
               />
             )}
           />
+          <Route path="/settings/wallet/account-key" component={AccountKeyModal} />
           <Route path="/settings/wallet/reveal-seed" component={RevealSeedModal} />
           <Route path="/settings/wallet/zap-txs" component={ZapTXsModal} />
           <Route path="/settings/connection/configure" component={CustomRPCConfigModal} />

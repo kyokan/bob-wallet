@@ -11,6 +11,7 @@ import { withRouter } from 'react-router';
 import walletClient from "../../utils/walletClient";
 import {I18nContext} from "../../utils/i18n";
 
+@withRouter
 @connect(
   (state) => ({
     wallets: state.wallet.wallets,
@@ -18,13 +19,15 @@ import {I18nContext} from "../../utils/i18n";
   }),
   dispatch => ({
     unlockWallet: (name, passphrase) => dispatch(walletActions.unlockWallet(name, passphrase)),
+    verifyPhrase: (passphrase) => dispatch(walletActions.verifyPhrase(passphrase)),
     fetchWallet: () => dispatch(walletActions.fetchWallet()),
   }),
 )
-@withRouter
 export default class AccountLogin extends Component {
   static propTypes = {
     unlockWallet: PropTypes.func.isRequired,
+    verifyPhrase: PropTypes.func.isRequired,
+    fetchWallet: PropTypes.func.isRequired,
   };
 
   static defaultProps = {
@@ -40,13 +43,16 @@ export default class AccountLogin extends Component {
   };
 
   async handleLogin(passphrase) {
+    const {wallets, walletsDetails} = this.props;
+
     try {
-      const walletName = this.props.wallets[this.state.chosenWallet];
+      const walletName = wallets[this.state.chosenWallet];
       await this.props.unlockWallet(
         walletName,
         passphrase,
       );
       await this.props.fetchWallet();
+      await this.props.verifyPhrase(passphrase);
       this.props.history.push('/account');
       await walletClient.lock();
     } catch (error) {
@@ -100,7 +106,7 @@ export default class AccountLogin extends Component {
         </button>
         <div className="login_subheader_text">{t('forgotPassword')}</div>
         <Link
-          to="/import-seed"
+          to="/import-seed/phrase"
           className="login_subheader_text login_subheader_text__accent"
         >
           {t('restoreWithSeed')}

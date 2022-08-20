@@ -1,4 +1,4 @@
-@import "../../variables";
+@import "../../variables.scss";
 
 .bid-history {
   padding-top: 1.5rem;
@@ -29,6 +29,11 @@
       font-size: 0.8rem;
       color: #333;
       font-weight: 400;
+    }
+
+    &__tr--pending td {
+      font-style: italic;
+      color: darken($manatee-gray, 10);
     }
   }
 

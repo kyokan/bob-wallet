@@ -37,7 +37,8 @@ import AppHeader from "../AppHeader";
 import Exchange from '../Exchange';
 import SignMessage from "../SignMessage";
 import VerifyMessage from "../VerifyMessage";
-import {fetchLocale} from "../../ducks/app";
+import {fetchLocale, initHip2, checkForUpdates} from "../../ducks/app";
+import {I18nContext} from "../../utils/i18n";
 const connClient = cClientStub(() => require('electron').ipcRenderer);
 const settingClient = sClientStub(() => require('electron').ipcRenderer);
 
@@ -46,20 +47,27 @@ const settingClient = sClientStub(() => require('electron').ipcRenderer);
     wallets: state.wallet.wallets,
   }),
   (dispatch) => ({
+    initHip2: () => dispatch(initHip2()),
     setExplorer: (explorer) => dispatch(nodeActions.setExplorer(explorer)),
+    checkForUpdates: () => dispatch(checkForUpdates()),
     fetchLocale: () => dispatch(fetchLocale()),
   }),
 )
 class App extends Component {
   static propTypes = {
+    wallets: PropTypes.array.isRequired,
     error: PropTypes.string.isRequired,
     isLocked: PropTypes.bool.isRequired,
     initialized: PropTypes.bool.isRequired,
     startNode: PropTypes.func.isRequired,
     watchActivity: PropTypes.func.isRequired,
+    initHip2: PropTypes.func.isRequired,
+    setExplorer: PropTypes.func.isRequired,
     fetchLocale: PropTypes.func.isRequired,
     isChangingNetworks: PropTypes.bool.isRequired,
   };
+
+  static contextType = I18nContext;
 
   state = {
     isLoading: true,
@@ -70,7 +78,9 @@ class App extends Component {
   async componentDidMount() {
     this.setState({isLoading: true});
     this.props.fetchLocale();
+    this.props.checkForUpdates();
     await this.props.startNode();
+    await this.props.initHip2();
     this.props.watchActivity();
 
     const {type} = await connClient.getConnection();
@@ -126,6 +136,8 @@ class App extends Component {
   }
 
   renderContent() {
+    const {t} = this.context;
+
     return (
       <>
         <LedgerModal />
@@ -147,7 +159,7 @@ class App extends Component {
             )}
           />
           <Route
-            path="/import-seed"
+            path="/import-seed/:type"
             render={this.uninitializedWrapper(
               ImportSeedFlow,
               false,
@@ -159,85 +171,85 @@ class App extends Component {
             isLocked={this.props.isLocked}
             wallets={this.props.wallets}
             path="/account"
-            render={this.routeRenderer('Portfolio', Account, true, false)}
+            render={this.routeRenderer(t('headingPortfolio'), Account, true, false)}
           />
           <ProtectedRoute
             isLocked={this.props.isLocked}
             wallets={this.props.wallets}
             path="/send"
-            render={this.routeRenderer('Send', SendModal)}
+            render={this.routeRenderer(t('headingSend'), SendModal)}
           />
           <ProtectedRoute
             isLocked={this.props.isLocked}
             wallets={this.props.wallets}
             path="/receive"
-            render={this.routeRenderer('Receive', ReceiveModal)}
+            render={this.routeRenderer(t('headingReceive'), ReceiveModal)}
           />
           <ProtectedRoute
             isLocked={this.props.isLocked}
             wallets={this.props.wallets}
             path="/sign_message"
-            render={this.routeRenderer('Sign Message', SignMessage)}
+            render={this.routeRenderer(t('headingSignMessage'), SignMessage)}
           />
           <ProtectedRoute
             isLocked={this.props.isLocked}
             wallets={this.props.wallets}
             path="/verify_message"
-            render={this.routeRenderer('Verify Message', VerifyMessage)}
+            render={this.routeRenderer(t('headingVerifyMessage'), VerifyMessage)}
           />
           <ProtectedRoute
             isLocked={this.props.isLocked}
             wallets={this.props.wallets}
             path="/get_coins"
-            render={this.routeRenderer('Get Coins', GetCoins)}
+            render={this.routeRenderer(t('headingClaimAirdropName'), GetCoins)}
           />
           <ProtectedRoute
             isLocked={this.props.isLocked}
             wallets={this.props.wallets}
             path="/settings"
-            render={this.routeRenderer('Settings', Settings, false, false)}
+            render={this.routeRenderer('', Settings, false, false)}
           />
           <ProtectedRoute
             isLocked={this.props.isLocked}
             wallets={this.props.wallets}
             path="/bids/:filterType?"
-            render={this.routeRenderer('Bid History', YourBids)}
+            render={this.routeRenderer(t('headingYourBids'), YourBids)}
           />
           <ProtectedRoute
             isLocked={this.props.isLocked}
             wallets={this.props.wallets}
             path="/domains"
-            render={this.routeRenderer('Domains', SearchTLD, false)}
+            render={this.routeRenderer('', SearchTLD, false)}
           />
           <ProtectedRoute
             isLocked={this.props.isLocked}
             wallets={this.props.wallets}
             path="/watching"
-            render={this.routeRenderer('Watching', Watching)}
+            render={this.routeRenderer(t('headingWatching'), Watching)}
           />
           <ProtectedRoute
             isLocked={this.props.isLocked}
             wallets={this.props.wallets}
             path="/domain_manager/:name"
-            render={this.routeRenderer('Domain Manager', MyDomain)}
+            render={this.routeRenderer(t('headingDomainManager'), MyDomain)}
           />
           <ProtectedRoute
             isLocked={this.props.isLocked}
             wallets={this.props.wallets}
             path="/domain_manager"
-            render={this.routeRenderer('Domain Manager', DomainManager)}
+            render={this.routeRenderer(t('headingDomainManager'), DomainManager)}
           />
           <ProtectedRoute
             isLocked={this.props.isLocked}
             wallets={this.props.wallets}
             path="/domain/:name?"
-            render={this.routeRenderer('Browse Domains', Auction, false)}
+            render={this.routeRenderer('', Auction, false)}
           />
           <ProtectedRoute
             isLocked={this.props.isLocked}
             wallets={this.props.wallets}
             path="/exchange"
-            render={this.routeRenderer('Exchange', Exchange, true)}
+            render={this.routeRenderer(t('headingExchange'), Exchange, true)}
           />
           <Redirect to="/login" />
         </Switch>
@@ -286,7 +298,16 @@ class App extends Component {
   }
 }
 
+const OPEN_ROUTES = [
+  '/settings/connection',
+  '/settings/connection/configure',
+]
+
 const ProtectedRoute = (props) => {
+  if (OPEN_ROUTES.includes(props.location.pathname)) {
+    return <Route {...props} />;
+  }
+
   if (!props.wallets.length) {
     return <Redirect to="/funding-options" />;
   }

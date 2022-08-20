@@ -2,6 +2,7 @@ export const SET_WALLET = 'app/wallet/setWallet';
 export const SET_BALANCE = 'app/wallet/setBalance';
 export const UNLOCK_WALLET = 'app/wallet/unlockWallet';
 export const LOCK_WALLET = 'app/wallet/lockWallet';
+export const SET_PHRASE_MISMATCH = 'app/wallet/verifyPhraseMismatch';
 export const SET_TRANSACTIONS = 'app/wallet/setTransactions';
 export const INCREMENT_IDLE = 'app/wallet/incrementIdle';
 export const RESET_IDLE = 'app/wallet/resetIdle';
@@ -10,11 +11,13 @@ export const SET_PENDING_TRANSACTIONS = 'app/wallet/setPendingTransactions';
 export const START_SYNC_WALLET = 'app/wallet/startSyncWallet';
 export const STOP_SYNC_WALLET = 'app/wallet/stopSyncWallet';
 export const SYNC_WALLET_PROGRESS = 'app/wallet/syncWalletProgress';
+export const SET_RESCAN_HEIGHT = 'app/wallet/setRescanHeight';
 export const GET_PASSPHRASE = 'app/wallet/getPassphrase';
 export const SET_API_KEY = 'app/wallet/setApiKey';
 export const SET_FETCHING = 'app/wallet/setFetching';
 export const SET_WALLETS = 'app/wallet/setWallets';
 export const SET_WALLET_NETWORK = 'app/wallet/setNetwork';
+export const SET_FIND_NONCE_PROGRESS = 'app/wallet/setFindNonceProgress';
 
 export function getInitialState() {
   return {
@@ -23,6 +26,7 @@ export function getInitialState() {
     wid: '',
     watchOnly: false,
     isLocked: true,
+    phraseMismatch: false,
     isFetching: false,
     initialized: false,
     network: '',
@@ -34,14 +38,23 @@ export function getInitialState() {
     },
     changeDepth: 0,
     receiveDepth: 0,
+    accountKey: null,
     transactions: new Map(),
     idle: 0,
     maxIdle: 5,
     walletSync: false,
     walletHeight: 0,
+    rescanHeight: null,
     getPassphrase: {get: false},
     wallets: [],
     walletsDetails: {},
+    findNonceProgress: {
+      expectedBlind: '',
+      progress: -1,
+      isFinding: false,
+      found: false,
+      bidValue: null,
+    },
   };
 }
 
@@ -67,6 +80,7 @@ export default function walletReducer(state = getInitialState(), {type, payload}
         },
         changeDepth: payload.changeDepth,
         receiveDepth: payload.receiveDepth,
+        accountKey: payload.accountKey,
         initialized: typeof payload.initialized === 'undefined' ? state.initialized : payload.initialized,
       };
     case SET_BALANCE:
@@ -100,6 +114,11 @@ export default function walletReducer(state = getInitialState(), {type, payload}
       return {
         ...state,
         isLocked: false,
+      };
+    case SET_PHRASE_MISMATCH:
+      return {
+        ...state,
+        phraseMismatch: payload,
       };
     case SET_TRANSACTIONS:
       return {
@@ -136,6 +155,11 @@ export default function walletReducer(state = getInitialState(), {type, payload}
         ...state,
         walletHeight: payload,
       };
+    case SET_RESCAN_HEIGHT:
+      return {
+        ...state,
+        rescanHeight: payload,
+      };
     case GET_PASSPHRASE:
       return {
         ...state,
@@ -151,6 +175,11 @@ export default function walletReducer(state = getInitialState(), {type, payload}
         ...state,
         wallets: payload.wallets,
         walletsDetails: payload.walletsDetails,
+      };
+    case SET_FIND_NONCE_PROGRESS:
+      return {
+        ...state,
+        findNonceProgress: payload,
       };
     default:
       return state;

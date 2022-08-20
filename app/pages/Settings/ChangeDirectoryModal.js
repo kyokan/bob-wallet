@@ -8,7 +8,7 @@ import Alert from "../../components/Alert";
 import dbClient from "../../utils/dbClient";
 import {I18nContext} from "../../utils/i18n";
 const nodeClient = clientStub(() => require('electron').ipcRenderer);
-const {dialog} = require('electron').remote;
+const {dialog} = require('@electron/remote');
 
 
 @withRouter

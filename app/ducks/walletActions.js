@@ -4,9 +4,9 @@ import throttle from 'lodash.throttle';
 import { getInitializationState, setInitializationState, getMaxIdleMinutes, setMaxIdleMinutes } from '../db/system';
 import {
   GET_PASSPHRASE,
-  getInitialState,
   INCREMENT_IDLE,
   LOCK_WALLET,
+  SET_PHRASE_MISMATCH,
   RESET_IDLE,
   SET_MAX_IDLE,
   SET_PENDING_TRANSACTIONS,
@@ -14,11 +14,9 @@ import {
   SET_WALLET,
   START_SYNC_WALLET,
   STOP_SYNC_WALLET,
-  SYNC_WALLET_PROGRESS,
   UNLOCK_WALLET,
   SET_API_KEY,
   SET_FETCHING,
-  SET_WALLETS,
 } from './walletReducer';
 import { NEW_BLOCK_STATUS } from './nodeReducer';
 import {setNames} from "./myDomains";
@@ -36,6 +34,7 @@ export const setWallet = opts => {
     apiKey = '',
     changeDepth,
     receiveDepth,
+    accountKey,
   } = opts;
 
   return {
@@ -49,6 +48,7 @@ export const setWallet = opts => {
       apiKey,
       changeDepth,
       receiveDepth,
+      accountKey,
     },
   };
 };
@@ -101,6 +101,7 @@ export const fetchWallet = () => async (dispatch, getState) => {
     balance: accountInfo.balance,
     changeDepth: accountInfo.changeDepth,
     receiveDepth: accountInfo.receiveDepth,
+    accountKey: accountInfo.accountKey,
   }));
 };
 
@@ -151,6 +152,24 @@ export const lockWallet = () => async (dispatch) => {
   });
 };
 
+export const verifyPhrase = (passphrase) => async (dispatch, getState) => {
+  const {watchOnly} = getState().wallet;
+  if (watchOnly) {
+    dispatch({
+      type: SET_PHRASE_MISMATCH,
+      payload: false,
+    })
+    return;
+  };
+
+  const {phraseMatchesKey} = await walletClient.revealSeed(passphrase);
+
+  dispatch({
+    type: SET_PHRASE_MISMATCH,
+    payload: !phraseMatchesKey,
+  })
+}
+
 export const reset = () => async (dispatch, getState) => {
   const network = getState().wallet.network;
   await walletClient.reset();
@@ -180,17 +199,18 @@ export const waitForWalletSync = () => async (dispatch, getState) => {
   let stall = 0;
 
   for (; ;) {
-    const nodeInfo = await nodeClient.getInfo();
-    const wdbInfo = await walletClient.rpcGetWalletInfo();
+    const state = getState();
+    const nodeHeight = state.node.chain.height;
+    const {walletHeight, rescanHeight, walletSync} = state.wallet;
 
-    if (nodeInfo.chain.height === 0) {
-      dispatch({type: STOP_SYNC_WALLET});
-      break;
+    let progress;
+    if (walletSync) {
+      progress = walletHeight / rescanHeight * 100;
+    } else {
+      progress = walletHeight / nodeHeight * 100;
     }
 
-    const progress = parseInt(wdbInfo.height / nodeInfo.chain.height * 100);
-
-    // If we go 5 seconds without any progress, throw an error
+    // If we go 50 seconds without any progress, throw an error
     if (lastProgress === progress) {
       stall++;
     } else {
@@ -198,19 +218,15 @@ export const waitForWalletSync = () => async (dispatch, getState) => {
       stall = 0;
     }
 
-    if (stall >= 5) {
-      dispatch({type: STOP_SYNC_WALLET});
+    if (stall >= 50) {
       throw new Error('Wallet sync progress has stalled.');
     }
 
-    if (progress === 100) {
-      dispatch({type: STOP_SYNC_WALLET});
+    if (walletSync ? (rescanHeight === null) : (progress === 100)) {
       break;
-    } else {
-      dispatch({type: SYNC_WALLET_PROGRESS, payload: progress});
     }
 
-    await new Promise((r) => setTimeout(r, 10000));
+    await new Promise((r) => setTimeout(r, 1000));
   }
 };
 
@@ -282,11 +298,16 @@ export const fetchTransactions = () => async (dispatch, getState) => {
 };
 
 export const fetchPendingTransactions = () => async (dispatch, getState) => {
-  if (!getState().wallet.initialized) {
+  const state = getState();
+
+  if (!state.wallet.initialized) {
     return;
   }
 
-  const payload = await walletClient.getPendingTransactions();
+  const pendingTxs = await walletClient.getPendingTransactions();
+  const payload = await processPendingTransactions(state.names, pendingTxs);
+
+  // SET_PENDING_TRANSACTIONS takes payload to replace `state.names`
   dispatch({
     type: SET_PENDING_TRANSACTIONS,
     payload: payload || [],
@@ -348,6 +369,7 @@ async function parseInputsOutputs(net, tx) {
   // Look for covenants. A TX with multiple covenant types is not supported
   let covAction = null;
   let covValue = 0;
+  let covDomains = new Set();
   let covData = {};
   let count = 0;
   let totalValue = 0;
@@ -427,6 +449,10 @@ async function parseInputsOutputs(net, tx) {
     // May be called redundantly but should be handled by cache
     covData = await parseCovenant(net, covenant);
 
+    if (covData.meta?.domain) {
+      covDomains.add(covData.meta.domain);
+    }
+
     // Identify this TX as having multiple actions
     count++;
     covData.meta.multiple = count > 1;
@@ -438,6 +464,7 @@ async function parseInputsOutputs(net, tx) {
       ...covData,
       fee: tx.fee,
       value: covValue,
+      domains: Array.from(covDomains),
     };
   }
 
@@ -600,4 +627,106 @@ async function nameByHash(net, covenant) {
   }
 
   return name;
+}
+
+// For processPendingTransactions
+const ALLOWED_COVENANTS = new Set([
+  'OPEN',
+  'BID',
+  'REVEAL',
+  'UPDATE',
+  'REGISTER',
+  'RENEW',
+  'REDEEM',
+  'TRANSFER',
+  'FINALIZE',
+]);
+
+/**
+ * Process Pending Transactions
+ * Parse covenant values as needed and add `pendingOperation[Meta]` to state.names
+ * @param {Object} names state.names
+ * @param {TX[]} pendingTxs result of walletClient.getPendingTransactions()
+ * @returns {Object} state.names
+ */
+async function processPendingTransactions(names, pendingTxs) {
+  const pendingOperationsByHash = {};
+  const pendingOpMetasByHash = {};
+  const pendingOutputByHash = {};
+
+  for (const {tx} of pendingTxs) {
+    for (const output of tx.outputs) {
+      if (ALLOWED_COVENANTS.has(output.covenant.action)) {
+        const hash = output.covenant.items[0];
+
+        // Store multiple bids
+        if (output.covenant.action === 'BID') {
+          pendingOperationsByHash[hash] = output.covenant.action;
+          pendingOpMetasByHash[hash] = [...(pendingOpMetasByHash[hash] || []), output.covenant];
+          pendingOutputByHash[hash] = [...(pendingOutputByHash[hash] || []), output];
+        } else {
+          pendingOperationsByHash[hash] = output.covenant.action;
+          pendingOpMetasByHash[hash] = output.covenant;
+          pendingOutputByHash[hash] = output;
+        }
+
+        break;
+      }
+    }
+  }
+
+  const oldNames = Object.keys(names);
+  const newNames = {};
+  for (const name of oldNames) {
+    const data = names[name];
+    const hash = data.hash;
+    const pendingOp = pendingOperationsByHash[hash];
+    const pendingCovenant = pendingOpMetasByHash[hash];
+    const pendingOutput = pendingOutputByHash[hash];
+    const pendingOperationMeta = {};
+
+    if (pendingOp === 'UPDATE' || pendingOp === 'REGISTER') {
+      pendingOperationMeta.data = pendingCovenant.items[2];
+    }
+
+    if (pendingOp === 'REVEAL') {
+      pendingOperationMeta.output = pendingOutput;
+    }
+
+    if (pendingOp === 'BID') {
+      const promises = pendingOutput.map(async output => {
+        const blind = output.covenant.items[3];
+        const bv = await walletClient.getBlind(blind);
+
+        return {
+          value: output.value,
+          height: -1,
+          from: output.address,
+          date: null,
+          bid: {
+            value: bv?.value || null,
+            prevout: null,
+            own: true,
+            namehash: hash,
+            name: name,
+            lockup: output.value,
+            blind: blind,
+          },
+        }
+      });
+
+      pendingOperationMeta.bids = await Promise.all(promises);
+    }
+
+    newNames[name] = {
+      ...data,
+      pendingOperation: pendingOp || null,
+      pendingOperationMeta: pendingOperationMeta,
+    };
+  }
+
+  return {
+    ...names,
+    ...newNames,
+  };
 }

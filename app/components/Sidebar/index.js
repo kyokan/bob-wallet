@@ -1,9 +1,11 @@
+import { shell } from 'electron';
 import React, { Component } from 'react';
 import { withRouter, NavLink } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import './sidebar.scss';
 import ellipsify from '../../utils/ellipsify';
+import {I18nContext} from "../../utils/i18n";
 import { Logo } from '../Logo';
 import {clientStub} from "../../background/node/client";
 import {NETWORKS} from "../../constants/networks";
@@ -16,11 +18,14 @@ const nodeClient = clientStub(() => require('electron').ipcRenderer);
     chainHeight: state.node.chain.height,
     tip: state.node.chain.tip,
     newBlockStatus: state.node.newBlockStatus,
+    spv: state.node.spv,
     walletId: state.wallet.wid,
     walletWatchOnly: state.wallet.watchOnly,
     walletSync: state.wallet.walletSync,
     walletHeight: state.wallet.walletHeight,
+    rescanHeight: state.wallet.rescanHeight,
     address: state.wallet.address,
+    updateAvailable: state.app.updateAvailable,
   }),
   dispatch => ({
 
@@ -38,12 +43,17 @@ class Sidebar extends Component {
     walletId: PropTypes.string.isRequired,
     tip: PropTypes.string.isRequired,
     newBlockStatus: PropTypes.string.isRequired,
+    spv: PropTypes.bool.isRequired,
     walletWatchOnly: PropTypes.bool.isRequired,
     walletSync: PropTypes.bool.isRequired,
     walletHeight: PropTypes.number.isRequired,
+    rescanHeight: PropTypes.number,
     network: PropTypes.string.isRequired,
     address: PropTypes.string.isRequired,
+    updateAvailable: PropTypes.object,
   };
+
+  static contextType = I18nContext;
 
   render() {
     return (
@@ -60,72 +70,66 @@ class Sidebar extends Component {
   }
 
   renderNav() {
+    const {t} = this.context;
     const title = this.props.walletWatchOnly
       ? `Ledger Wallet (${this.props.walletId})`
       : `Wallet (${this.props.walletId})`;
+
     return (
       <React.Fragment>
         <div className="sidebar__section">{title}</div>
         <div className="sidebar__actions">
           <NavLink
-            className="sidebar__action"
             to="/account"
-            activeClassName="sidebar__action--selected"
+            className={isActive => `sidebar__action ${isActive ? "sidebar__action--selected" : ''}`}
           >
-            Portfolio
+            {t('headingPortfolio')}
           </NavLink>
           <NavLink
-            className="sidebar__action"
             to="/send"
-            activeClassName="sidebar__action--selected"
+            className={isActive => `sidebar__action ${isActive ? "sidebar__action--selected" : ''}`}
           >
-            Send
+            {t('headingSend')}
           </NavLink>
           <NavLink
-            className="sidebar__action"
             to="/receive"
-            activeClassName="sidebar__action--selected"
+            className={isActive => `sidebar__action ${isActive ? "sidebar__action--selected" : ''}`}
           >
-            Receive
+            {t('headingReceive')}
           </NavLink>
 
           <NavLink
-            className="sidebar__action"
             to="/domain_manager"
-            activeClassName="sidebar__action--selected"
+            className={isActive => `sidebar__action ${isActive ? "sidebar__action--selected" : ''}`}
           >
-            Domain Manager
+            {t('headingDomainManager')}
           </NavLink>
         </div>
-        <div className="sidebar__section">Top-Level Domains</div>
+        <div className="sidebar__section">{t('topLevelDomains')}</div>
         <div className="sidebar__actions">
           <NavLink
-            className="sidebar__action"
             to="/domains"
-            activeClassName="sidebar__action--selected"
+            className={isActive => `sidebar__action ${isActive ? "sidebar__action--selected" : ''}`}
           >
-            Browse Domains
+            {t('headingBrowseDomains')}
           </NavLink>
           <NavLink
-            className="sidebar__action"
             to="/bids"
-            activeClassName="sidebar__action--selected"
+            className={isActive => `sidebar__action ${isActive ? "sidebar__action--selected" : ''}`}
           >
-            Your Bids
+            {t('headingYourBids')}
           </NavLink>
           <NavLink
-            className="sidebar__action"
             to="/watching"
-            activeClassName="sidebar__action--selected"
+            className={isActive => `sidebar__action ${isActive ? "sidebar__action--selected" : ''}`}
           >
-            Watching
+            {t('headingWatching')}
           </NavLink>
           <NavLink
-            className="sidebar__action"
             to="/exchange"
-            activeClassName="sidebar__action--selected"
+            className={isActive => `sidebar__action ${isActive ? "sidebar__action--selected" : ''}`}
           >
-            Exchange
+            {t('headingExchange')}
           </NavLink>
         </div>
         { this.renderMisc() }
@@ -134,34 +138,34 @@ class Sidebar extends Component {
   }
 
   renderMisc() {
+    const {t} = this.context;
+
     return (
       <>
         <div
           className="sidebar__section"
         >
-          Miscellaneous
+
+          {t('miscellaneous')}
         </div>
         <div className="sidebar__actions">
           <NavLink
-            className="sidebar__action"
             to="/get_coins"
-            activeClassName="sidebar__action--selected"
+            className={isActive => `sidebar__action ${isActive ? "sidebar__action--selected" : ''}`}
           >
-            Claim Airdrop or Name
+            {t('headingClaimAirdropName')}
           </NavLink>
           <NavLink
-            className="sidebar__action"
             to="/sign_message"
-            activeClassName="sidebar__action--selected"
+            className={isActive => `sidebar__action ${isActive ? "sidebar__action--selected" : ''}`}
           >
-            Sign Message
+            {t('headingSignMessage')}
           </NavLink>
           <NavLink
-            className="sidebar__action"
             to="/verify_message"
-            activeClassName="sidebar__action--selected"
+            className={isActive => `sidebar__action ${isActive ? "sidebar__action--selected" : ''}`}
           >
-            Verify Message
+            {t('headingVerifyMessage')}
           </NavLink>
         </div>
       </>
@@ -169,7 +173,11 @@ class Sidebar extends Component {
   }
 
   renderGenerateBlockButton(numblocks) {
-    const { network, address } = this.props;
+    const { network, address, spv } = this.props;
+    if (spv) {
+      return;
+    }
+
     if ([NETWORKS.SIMNET, NETWORKS.REGTEST].includes(network)) {
       return (
         <button
@@ -183,23 +191,40 @@ class Sidebar extends Component {
   }
 
   renderFooter() {
+    const {t} = this.context;
+
     const {
       walletSync,
       walletHeight,
+      rescanHeight,
       newBlockStatus,
       chainHeight,
       tip,
+      updateAvailable,
     } = this.props;
 
     return (
       <div className="sidebar__footer">
+        {updateAvailable ? (
+          <div className="sidebar__footer__row">
+            <button
+              className="sidebar__footer__update-notif"
+              onClick={() => shell.openExternal(updateAvailable.url)}
+            >
+              {t('updateAvailable')} ({updateAvailable.version})
+            </button>
+          </div>
+        ) : null}
+        {newBlockStatus ? (
+          <div className="sidebar__footer__row">
+            <div className="sidebar__footer__title">{newBlockStatus}</div>
+          </div>)
+          : null
+        }
         <div className="sidebar__footer__row">
-          <div className="sidebar__footer__title">{newBlockStatus}</div>
-        </div>
-        <div className="sidebar__footer__row">
-          <div className="sidebar__footer__title">Current Height</div>
+          <div className="sidebar__footer__title">{t('currentHeight')}</div>
           <div className="sidebar__footer__text">
-            {walletSync ? `${walletHeight}/${chainHeight}` : `${chainHeight}` || '--'}
+            {walletSync ? `${walletHeight}/${rescanHeight}` : `${chainHeight}` || '--'}
           </div>
           <div className="sidebar__footer__simnet-controls">
             {this.renderGenerateBlockButton(1)}
@@ -208,7 +233,7 @@ class Sidebar extends Component {
           </div>
         </div>
         <div className="sidebar__footer__row">
-          <div className="sidebar__footer__title">Current Hash</div>
+          <div className="sidebar__footer__title">{t('currentHash')}</div>
           <div className="sidebar__footer__text">
             {tip ? ellipsify(tip) : '--'}
           </div>

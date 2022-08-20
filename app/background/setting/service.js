@@ -37,6 +37,21 @@ export async function setCustomLocale(json) {
   return await put(CUSTOM_LOCALE, JSON.stringify(json));
 }
 
+export async function getLatestRelease() {
+  try {
+    const releases = await (
+      await fetch(
+        'https://api.github.com/repos/kyokan/bob-wallet/releases'
+      )
+    ).json();
+    const latest = releases.filter(r => !r.draft && !r.prerelease)[0];
+    return latest;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
 const sName = 'Setting';
 const methods = {
   getExplorer,
@@ -45,6 +60,7 @@ const methods = {
   setLocale,
   getCustomLocale,
   setCustomLocale,
+  getLatestRelease,
 };
 
 export async function start(server) {

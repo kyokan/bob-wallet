@@ -15,6 +15,7 @@ import {I18nContext} from "../../utils/i18n";
   (state) => ({
     isFetchingNames: state.myDomains.isFetching,
     names: Object.keys(state.myDomains.names),
+    walletWatchOnly: state.wallet.watchOnly,
   }),
   (dispatch) => ({
     getMyNames: () => dispatch(getMyNames()),
@@ -26,6 +27,7 @@ class SignMessage extends Component {
   static propTypes = {
     isFetchingNames: PropTypes.bool.isRequired,
     names: PropTypes.array.isRequired,
+    walletWatchOnly: PropTypes.bool.isRequired,
     showError: PropTypes.func.isRequired,
     getMyNames: PropTypes.func.isRequired,
     getPassphrase: PropTypes.func.isRequired,
@@ -65,8 +67,15 @@ class SignMessage extends Component {
   };
 
   render() {
-    const {names, isFetchingNames} = this.props;
+    const {names, isFetchingNames, walletWatchOnly} = this.props;
     const {t} = this.context;
+
+    if (walletWatchOnly) {
+      return t('notSupportWithLedger');
+    }
+
+    const sortedNames = [].concat(names);
+    sortedNames.sort();
 
     return (
       <div className="sign-message">
@@ -80,7 +89,7 @@ class SignMessage extends Component {
               : (
                 <Dropdown
                   className="sign-message__top__name-dropdown"
-                  items={names.map(n => ({
+                  items={sortedNames.map(n => ({
                     label: n,
                   }))}
                   onChange={(i) => this.setState({

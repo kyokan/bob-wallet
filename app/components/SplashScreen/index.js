@@ -7,6 +7,13 @@ import Alert from "../Alert";
 import {withRouter} from "react-router-dom";
 import {connect} from "react-redux";
 import {I18nContext} from "../../utils/i18n";
+import {clientStub as nClientStub} from "../../background/node/client";
+import {clientStub as cClientStub} from "../../background/connections/client";
+import {ConnectionTypes} from "../../background/connections/service";
+import "./splash-screen.scss"
+
+const nodeClient = nClientStub(() => require('electron').ipcRenderer);
+const connClient = cClientStub(() => require('electron').ipcRenderer);
 
 
 class SplashScreen extends Component {
@@ -14,6 +21,7 @@ class SplashScreen extends Component {
     error: Proptype.string,
     network: Proptype.string,
     spv: Proptype.bool,
+    compactingTree: Proptype.bool,
   };
 
   static defaultProps = {
@@ -23,19 +31,31 @@ class SplashScreen extends Component {
   static contextType = I18nContext;
 
   state = {
-    hasMigrated300: false,
+    hasMigrated400: false,
   };
 
-  async componentWillMount() {
+  async switchToP2P() {
+    await connClient.setConnectionType(ConnectionTypes.P2P);
+    await nodeClient.reset();
+  }
+
+  async componentDidMount() {
+    // TODO: `network` is ALWAYS 'main' here. I think that is because
+    // this code runs before any of the background stuff has a chance
+    // to update state with user's actual configuration. This is only an
+    // issue for developers because we will see the splash screen for a moment
+    // on every boot in regtest until state.network is updated.
     const {network, spv} = this.props;
-    const migrateFlag = `${network}-hsd-3.0.0-migrate${spv ? '-spv' : ''}`;
-    const hasMigrated300 = await dbClient.get(migrateFlag);
-    this.setState({ hasMigrated300 });
+    const migrateFlag = `${network}-hsd-4.0.0-migrate${spv ? '-spv' : ''}`;
+    const hasMigrated400 = await dbClient.get(migrateFlag);
+    this.setState({ hasMigrated400 });
   }
 
   render() {
     const {error} = this.props;
     const {t} = this.context;
+
+    const isRpcError = error === 'RPC:ECONNREFUSED';
 
     return (
       <div style={wrapperStyle}>
@@ -44,28 +64,65 @@ class SplashScreen extends Component {
         </div>
         {
           error
-            ? <div style={textStyles}> {error} </div>
+            ?
+            <>
+              <div style={textStyles}>
+                {isRpcError ? t('splashRpcError') : error}
+              </div>
+              {isRpcError &&
+                <button
+                  className="switch-p2p-button"
+                  onClick={() => this.switchToP2P()}
+                >
+                  {t('splashSwitchToInternal')}
+                </button>
+              }
+            </>
             : (
               <React.Fragment>
                 <div style={spinnerStyle} />
                 <div style={textStyles}>{t('splashLoading')}</div>
-                {
-                  !this.state.hasMigrated300 && (
-                    <Alert type="warning" style={alertStyle}>
-                      <div>
-                        {t('splashMigrate3001')}
-                      </div>
-                      <div>
-                        {t('splashMigrate3002')}
-                      </div>
-                    </Alert>
-                  )
-                }
+                { this.renderAlert(t) }
               </React.Fragment>
             )
         }
       </div>
     );
+  }
+
+  renderAlert(t) {
+    // Tree compaction alert takes precedence
+    if (this.props.compactingTree) {
+      return (
+        <Alert type="warning" style={alertStyle}>
+          <div>
+            {t('compactingTree1')}
+          </div>
+          <div>
+            {t('compactingTree2')}
+          </div>
+        </Alert>
+      );
+    }
+
+    if (!this.state.hasMigrated400) {
+      return(
+        <Alert type="warning" style={alertStyle}>
+          <div>
+            {
+              // Technically the version is now 4.0.0 not 3.0.0
+              // but the atual text in the message is version
+              // agnostic ("migration in progress...")
+              // so we can probably just leave this as is.
+              t('splashMigrate3001')
+            }
+          </div>
+          <div>
+            {t('splashMigrate3002')}
+          </div>
+        </Alert>
+      )
+    }
   }
 }
 
@@ -74,6 +131,7 @@ export default withRouter(
     (state) => ({
       network: state.node.network,
       spv: state.node.spv,
+      compactingTree: state.node.compactingTree,
     }),
   )(SplashScreen)
 );
@@ -117,8 +175,9 @@ const spinnerStyle = {
 const textStyles = {
   fontSize: '1rem',
   lineHeight: '1rem * 1.4',
-  color: '#909095',
-  maxWidth: '300px',
+  color: '#3c3c3c',
+  textAlign: 'center',
+  maxWidth: '400px',
 };
 
 const alertStyle = {

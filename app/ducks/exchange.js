@@ -5,6 +5,7 @@ import { clientStub as nodeClientStub } from '../background/node/client.js';
 import { showSuccess, showError } from './notifications.js';
 import networks from 'hsd/lib/protocol/networks.js';
 import {getFinalizeFromTransferTx} from "../utils/shakedex";
+import { LISTING_STATUS } from '../constants/exchange.js';
 
 const shakedex = shakedexClientStub(() => require('electron').ipcRenderer);
 const nodeClient = nodeClientStub(() => require('electron').ipcRenderer);
@@ -55,21 +56,6 @@ export const LAUNCH_EXCHANGE_AUCTION_OK = 'LAUNCH_EXCHANGE_AUCTION/OK';
 export const LAUNCH_EXCHANGE_AUCTION_ERR = 'LAUNCH_EXCHANGE_AUCTION/ERR';
 
 export const SET_AUCTIONS_PAGE = 'SET_AUCTION_PAGE';
-
-export const LISTING_STATUS = {
-  NOT_FOUND: 'NOT_FOUND',
-  TRANSFER_CONFIRMING: 'TRANSFER_CONFIRMING',
-  TRANSFER_CONFIRMED: 'TRANSFER_CONFIRMED',
-  TRANSFER_CONFIRMED_LOCKUP: 'TRANSFER_CONFIRMED_LOCKUP',
-  FINALIZE_CONFIRMING: 'FINALIZE_CONFIRMING',
-  FINALIZE_CONFIRMED: 'FINALIZE_CONFIRMED',
-  ACTIVE: 'ACTIVE',
-  SOLD: 'SOLD',
-  CANCEL_CONFIRMING: 'CANCEL_CONFIRMING',
-  CANCEL_CONFIRMED: 'CANCEL_CONFIRMED',
-  FINALIZE_CANCEL_CONFIRMING: 'FINALIZE_CANCEL_CONFIRMING',
-  FINALIZE_CANCEL_CONFIRMED: 'FINALIZE_CANCEL_CONFIRMED',
-};
 
 export const FULFILLMENT_STATUS = {
   NOT_FOUND: 'NOT_FOUND',
@@ -210,11 +196,19 @@ export const getExchangeListings = (page = 1) => async (dispatch, getState) => {
     return;
   }
 
+  const mtp = await nodeClient.getMTP();
   const info = await nodeClient.getInfo();
   const transferLockup = networks[info.network].names.transferLockup;
 
   for (const listing of listings) {
     console.log({ listing });
+
+    // deprecated: auction version 1
+    listing.deprecated = false;
+
+    // safe: either all bids released or auction not active
+    listing.safe = true;
+
     let transferTx;
     let finalizeTx;
     let finalizeCoin;
@@ -269,11 +263,31 @@ export const getExchangeListings = (page = 1) => async (dispatch, getState) => {
       continue;
     }
 
+    const version = listing.auction.version || 1;
+
+    if (version < 2) {
+      listing.deprecated = true;
+    }
+
+    // Name transferred and finalized into lockscript
     if (finalizeCoin) {
       listing.status = LISTING_STATUS.ACTIVE;
+
+      if (listing.deprecated) {
+        const futureBids = listing.auction.data.filter(bid => bid.lockTime > mtp);
+
+        if (futureBids.length > 0) {
+          listing.safe = false;
+
+          // lowestDeprecatedPrice:
+          // when v1 auction isn't cancelled, the lowest value of all bids
+          listing.lowestDeprecatedPrice = Math.min(...futureBids.map(bid => bid.price));
+        }
+      }
       continue;
     }
 
+    // Auction cancelled and name being transferred back
     if (cancelTx && !cancelFinalizeTx) {
       listing.status = cancelTx.height > 0 && info.chain.height - cancelTx.height > transferLockup
         ? LISTING_STATUS.CANCEL_CONFIRMED
@@ -281,12 +295,16 @@ export const getExchangeListings = (page = 1) => async (dispatch, getState) => {
       continue;
     }
 
+    // Auction cancelled and name return transfer finalizing
     if (cancelFinalizeTx && cancelFinalizeTx.height === -1) {
       listing.status = LISTING_STATUS.FINALIZE_CANCEL_CONFIRMING;
       continue;
     }
 
+    // At this point, the presigns no longer work
+    listing.deprecated = false;
 
+    // Auction cancelled and name return finalized
     if (cancelCoin) {
       listing.status = LISTING_STATUS.FINALIZE_CANCEL_CONFIRMED;
       continue;
@@ -391,9 +409,14 @@ export const cancelExchangeLock = (nameLock) => async (dispatch) => {
     type: CANCEL_EXCHANGE_LISTING,
   });
 
+  // Coerce into array if single nameLock
+  const nameLocks = Array.isArray(nameLock) ? nameLock : [nameLock]
+
   try {
     const passphrase = await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
-    await shakedex.transferCancel(nameLock, passphrase);
+    for (const nl of nameLocks) {
+      await shakedex.transferCancel(nl, passphrase);
+    }
   } catch (e) {
     dispatch({
       type: CANCEL_EXCHANGE_LISTING_ERR,
@@ -417,9 +440,14 @@ export const finalizeCancelExchangeLock = (nameLock) => async (dispatch) => {
     type: FINALIZE_CANCEL_EXCHANGE_LISTING,
   });
 
+  // Coerce into array if single nameLock
+  const nameLocks = Array.isArray(nameLock) ? nameLock : [nameLock]
+
   try {
     const passphrase = await new Promise((resolve, reject) => dispatch(getPassphrase(resolve, reject)));
-    await shakedex.finalizeCancel(nameLock, passphrase);
+    for (const nl of nameLocks) {
+      await shakedex.finalizeCancel(nl, passphrase);
+    }
   } catch (e) {
     dispatch({
       type: FINALIZE_CANCEL_EXCHANGE_LISTING_ERR,

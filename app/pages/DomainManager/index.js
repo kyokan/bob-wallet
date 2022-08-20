@@ -10,6 +10,7 @@ import fs from 'fs';
 import ClaimNameForPayment from './ClaimNameForPayment';
 import {HeaderItem, HeaderRow, Table, TableItem, TableRow} from "../../components/Table";
 import Blocktime from "../../components/Blocktime";
+import BidSearchInput from "../../components/BidSearchInput";
 import {displayBalance} from "../../utils/balances";
 import {getPageIndices} from "../../utils/pageable";
 import c from "classnames";
@@ -22,7 +23,7 @@ import dbClient from "../../utils/dbClient";
 import BulkFinalizeWarningModal from "./BulkFinalizeWarningModal";
 import {I18nContext} from "../../utils/i18n";
 
-const {dialog} = require('electron').remote;
+const {dialog} = require('@electron/remote');
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -46,6 +47,7 @@ class DomainManager extends Component {
   static contextType = I18nContext;
 
   state = {
+    query: '',
     isShowingNameClaimForPayment: false,
     isShowingBulkTransfer: false,
     isConfirmingBulkFinalize: false,
@@ -56,6 +58,7 @@ class DomainManager extends Component {
   shouldComponentUpdate(nextProps, nextState) {
     return this.props.namesList.join('') !== nextProps.namesList.join('')
       || this.props.isFetching !== nextProps.isFetching
+      || this.state.query !== nextState.query
       || this.state.isShowingNameClaimForPayment !== nextState.isShowingNameClaimForPayment
       || this.state.isShowingBulkTransfer !== nextState.isShowingBulkTransfer
       || this.state.isConfirmingBulkFinalize !== nextState.isConfirmingBulkFinalize
@@ -63,17 +66,34 @@ class DomainManager extends Component {
       || this.state.itemsPerPage !== nextState.itemsPerPage;
   }
 
-  componentDidMount() {
-    analytics.screenView('Domain Manager');
-  }
-
-  async componentWillMount() {
+  async componentDidMount() {
     this.props.getMyNames();
     const itemsPerPage = await dbClient.get(DM_ITEMS_PER_PAGE_KEY);
 
     this.setState({
       itemsPerPage: itemsPerPage || 10,
     });
+
+    analytics.screenView('Domain Manager');
+  }
+
+  onChange = (name) => (e) => {
+    this.setState({
+      [name]: e.target.value,
+    });
+  };
+
+  getNamesList() {
+    let namesList = Array.from(this.props.namesList);
+    let { query } = this.state;
+
+    if (query) {
+      query = query.toLowerCase();
+      namesList = namesList.filter(name => name.includes(query));
+    }
+
+    namesList.sort();
+    return namesList;
   }
 
   handleExportClick() {
@@ -165,14 +185,11 @@ class DomainManager extends Component {
     );
   }
 
-  renderControls() {
+  renderControls(namesList) {
     const {
       currentPageIndex,
       itemsPerPage,
     } = this.state;
-    const {
-      namesList,
-    } = this.props;
 
     const totalPages = Math.ceil(namesList.length / itemsPerPage);
     const pageIndices = getPageIndices(namesList, itemsPerPage, currentPageIndex);
@@ -240,10 +257,11 @@ class DomainManager extends Component {
     )
   }
 
-  renderList() {
-    const {namesList, history} = this.props;
+  renderList(namesList) {
+    const {history} = this.props;
     const {t} = this.context;
     const {
+      query,
       currentPageIndex: i,
       itemsPerPage: n,
     } = this.state;
@@ -278,13 +296,19 @@ class DomainManager extends Component {
           </button>
           {this.renderBulkFinalize()}
         </div>
+        <BidSearchInput
+          className="domain-manager__search"
+          placeholder={t('domainSearchPlaceholder')}
+          onChange={this.onChange('query')}
+          value={query}
+        />
         <Table className="domain-manager__table">
           <HeaderRow>
             <HeaderItem>{t('domain')}</HeaderItem>
             <HeaderItem>{t('expiresOn')}</HeaderItem>
             <HeaderItem>{t('hnsPaid')}</HeaderItem>
           </HeaderRow>
-          {namesList.slice(start, end).map((name) => {
+          {namesList.length ? namesList.slice(start, end).map((name) => {
             return (
               <DomainRow
                 key={`${name}`}
@@ -292,7 +316,10 @@ class DomainManager extends Component {
                 onClick={() => history.push(`/domain_manager/${name}`)}
               />
             );
-          })}
+          }) :
+          <TableRow className="table__empty-row">
+            {this.context.t('domainManagerEmpty')}
+          </TableRow>}
         </Table>
       </div>
     );
@@ -319,8 +346,8 @@ class DomainManager extends Component {
     );
   }
 
-  renderBody() {
-    const {namesList, isFetching} = this.props;
+  renderBody(namesList) {
+    const {isFetching} = this.props;
     const { t } = this.context;
 
     if (isFetching) {
@@ -333,11 +360,7 @@ class DomainManager extends Component {
       );
     }
 
-    if (namesList.length) {
-      return this.renderList();
-    }
-
-    return this.renderEmpty();
+    return this.renderList(namesList);
   }
 
   renderConfirmFinalizeModal() {
@@ -352,10 +375,12 @@ class DomainManager extends Component {
   }
 
   render() {
+    const namesList = this.getNamesList();
+
     return (
       <>
-        {this.renderBody()}
-        {this.renderControls()}
+        {this.renderBody(namesList)}
+        {this.renderControls(namesList)}
         {this.renderConfirmFinalizeModal()}
         {this.state.isShowingBulkTransfer && (
           <BulkTransfer

@@ -1,0 +1,6 @@
+@import "../../variables.scss";
+
+.switch-p2p-button {
+  @extend %btn-primary;
+  margin-top: 1rem;
+}

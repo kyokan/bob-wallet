@@ -1,7 +1,11 @@
 import { clientStub } from '../background/node/client';
+import { clientStub as connClientStub } from '../background/connections/client';
 import { clientStub as settingClientStub } from '../background/setting/client';
 import { clientStub as walletClientStub } from '../background/wallet/client';
+import { ConnectionTypes } from '../background/connections/service';
 import { getNetwork, setNetwork } from '../db/system';
+import { getWatching } from "./watching";
+import { throttle } from '../utils/throttle';
 
 import {
   END_NETWORK_CHANGE,
@@ -9,6 +13,7 @@ import {
   SET_FEE_INFO,
   SET_CUSTOM_RPC_STATUS,
   START_NETWORK_CHANGE,
+  START_ERROR,
   STOP,
   START_NODE_STATUS_CHANGE,
   START_RPC_TEST,
@@ -21,6 +26,7 @@ import {
 import { VALID_NETWORKS } from '../constants/networks';
 
 const nodeClient = clientStub(() => require('electron').ipcRenderer);
+const connClient = connClientStub(() => require('electron').ipcRenderer);
 const settingClient = settingClientStub(() => require('electron').ipcRenderer);
 const walletClient = walletClientStub(() => require('electron').ipcRenderer);
 
@@ -81,9 +87,19 @@ export const start = (network) => async (dispatch) => {
       payload: spv,
     });
 
+    dispatch(getWatching(network));
+
   } catch (error) {
     console.error('node start error', error);
     dispatch({ type: STOP });
+    if (error.code === 'ECONNREFUSED') {
+      const conn = await connClient.getConnection();
+      if (conn.type === ConnectionTypes.Custom) {
+        dispatch({ type: START_ERROR, payload: 'RPC:ECONNREFUSED' });
+        return;
+      }
+    }
+    dispatch({ type: START_ERROR, payload: error.message });
   } finally {
     dispatch({ type: END_NODE_STATUS_CHANGE });
   }
@@ -121,7 +137,7 @@ export const setExplorer = (explorer) => async (dispatch) => {
   })
 };
 
-export const updateHNSPrice = () => async (dispatch) => {
+const _updateHNSPrice = throttle(async (dispatch) => {
   const value = await nodeClient.getHNSPrice();
   dispatch({
     type: UPDATE_HNS_PRICE,
@@ -130,6 +146,10 @@ export const updateHNSPrice = () => async (dispatch) => {
       currency: 'USD',
     },
   })
+}, 120*1000); // 120 seconds
+
+export const updateHNSPrice = () => async (dispatch) => {
+  _updateHNSPrice(dispatch);
 };
 
 export const setNoDns = (noDns) => async (dispatch) => {

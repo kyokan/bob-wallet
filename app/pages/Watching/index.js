@@ -15,10 +15,11 @@ import { clientStub as aClientStub } from '../../background/analytics/client';
 import fs from "fs";
 import Dropdown from "../../components/Dropdown";
 import {getPageIndices} from "../../utils/pageable";
-import {verifyName} from "../../utils/nameChecker";
+import {verifyName} from "hsd/lib/covenants/rules";
 import dbClient from "../../utils/dbClient";
 import {I18nContext} from "../../utils/i18n";
-const {dialog} = require('electron').remote;
+const {dialog} = require('@electron/remote');
+
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -53,15 +54,13 @@ class Watching extends Component {
     isImporting: false,
   };
 
-  async componentWillMount() {
+  async componentDidMount() {
     const itemsPerPage = await dbClient.get(WATCHING_ITEMS_PER_PAGE_KEY);
 
     this.setState({
       itemsPerPage: itemsPerPage || 10,
     });
-  }
 
-  componentDidMount() {
     analytics.screenView('Watching');
   }
 

@@ -1,15 +1,31 @@
 import MiniModal from "../../components/Modal/MiniModal";
 import React, {Component} from "react";
+import {connect} from "react-redux";
+import {withRouter} from "react-router-dom";
 import PropTypes from "prop-types";
 import crypto from "crypto";
 import Alert from "../../components/Alert";
 import {I18nContext} from "../../utils/i18n";
+import * as nodeActions from '../../ducks/node';
 
+@withRouter
+@connect(
+  (state) => ({}),
+  dispatch => ({
+    stopNode: () => dispatch(nodeActions.stop()),
+    startNode: () => dispatch(nodeActions.start()),
+  }),
+)
 export default class APIKeyModal extends Component {
   static propTypes = {
+    history: PropTypes.shape({
+      push: PropTypes.func.isRequired
+    }).isRequired,
+    stopNode: PropTypes.func.isRequired,
+    startNode: PropTypes.func.isRequired,
     title: PropTypes.string.isRequired,
     closeRoute: PropTypes.string.isRequired,
-    apiKey: PropTypes.string.isRequired,
+    apiKey: PropTypes.string,
     updateAPIKey: PropTypes.func.isRequired,
   };
 
@@ -39,9 +55,14 @@ export default class APIKeyModal extends Component {
       });
     }
 
+    await this.props.stopNode();
+    await this.props.startNode();
+
     this.setState({
       saving: false,
     });
+
+    this.props.history.goBack();
   };
 
   render() {
@@ -58,9 +79,6 @@ export default class APIKeyModal extends Component {
         closeRoute={closeRoute}
         title={title}
       >
-        <Alert type="warning">
-          {t('settingAPIKeyWarning')}
-        </Alert>
         <div className="settings__input-row">
           <div className="settings__input-title">
             {t('apiKey')}

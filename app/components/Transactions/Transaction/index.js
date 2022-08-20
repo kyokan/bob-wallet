@@ -32,7 +32,6 @@ const FINALIZE = 'FINALIZE';
     explorer: state.node.explorer
   })
 )
-
 class Transaction extends Component {
   static propTypes = {
     explorer: PropTypes.object.isRequired,
@@ -40,6 +39,10 @@ class Transaction extends Component {
   };
 
   static contextType = I18nContext;
+
+  state = {
+    isExpanded: {},
+  };
 
   // conditional styling
 
@@ -110,46 +113,50 @@ class Transaction extends Component {
       content = ellipsify(tx.meta.from, 12);
     } else if (tx.type === CLAIM) {
       description = t('txDescClaim');
-      content = this.formatDomain(tx.meta.domain);
+      content = this.formatDomains(tx);
     } else if (tx.type === OPEN) {
       description = t('txDescOpen');
-      content = this.formatDomain(tx.meta.domain);
+      content = this.formatDomains(tx);
     } else if (tx.type === BID) {
       description = t('txDescBid');
-      content = this.formatDomain(tx.meta.domain);
+      content = this.formatDomains(tx);
     } else if (tx.type === REVEAL) {
       description = t('txDescReveal');
-      content = this.formatDomain(tx.meta.domain);
+      content = this.formatDomains(tx);
     } else if (tx.type === UPDATE) {
       description = t('txDescUpdate');
-      content = this.formatDomain(tx.meta.domain);
+      content = this.formatDomains(tx);
     } else if (tx.type === REGISTER) {
       description = t('txDescRegister');
-      content = this.formatDomain(tx.meta.domain);
+      content = this.formatDomains(tx);
     } else if (tx.type === RENEW) {
       description = t('txDescRenew');
-      content = this.formatDomain(tx.meta.domain);
+      content = this.formatDomains(tx);
     } else if (tx.type === REDEEM) {
       description = t('txDescRedeem');
-      content = this.formatDomain(tx.meta.domain);
+      content = this.formatDomains(tx);
     } else if (tx.type === COINBASE) {
       description = t('txDescCoinbase');
     } else if (tx.type === TRANSFER) {
       description = t('txDescTransfer');
-      content = this.formatDomain(tx.meta.domain);
+      content = this.formatDomains(tx);
     } else if (tx.type === REVOKE) {
       description = t('txDescRevoke');
-      content = this.formatDomain(tx.meta.domain);
+      content = this.formatDomains(tx);
     } else if (tx.type === 'FINALIZE') {
       description = t('txDescFinalize');
       if (tx.value > 0) description = 'Received Payment for Domain';
       if (tx.value < 0) description = 'Finalized With Payment';
-      content = this.formatDomain(tx.meta.domain);
+      content = this.formatDomains(tx);
     } else {
       description = t('txDescUnknown');
     }
 
-    description += tx.meta.multiple ? ` (${t('txDescMultiple')})` : '';
+    if (tx.domains?.length > 1) {
+      description += ` (${tx.domains.length} ${t('domainsPlural')})`;
+    } else {
+      description += tx.meta.multiple ? ` (${t('txDescMultiple')})` : '';
+    }
 
     return (
       <div className="transaction__tx-description">
@@ -183,7 +190,7 @@ class Transaction extends Component {
   );
 
   render() {
-    const {explorer, transaction} = this.props;
+    const {transaction} = this.props;
 
     return (
       <div className="transaction">
@@ -194,17 +201,60 @@ class Transaction extends Component {
     );
   }
 
-  formatDomain(domain) {
-    return domain
-      ? (
+  formatDomains(tx) {
+    const {t} = this.context;
+    const {id, domains} = tx;
+
+    if (!domains?.length) {
+      return `(${this.context.t('unknown')})`;
+    }
+
+    const expanded = this.state.isExpanded[id]
+    const domainsToDisplay = expanded ? domains : domains.slice(0,1);
+
+    return (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: expanded ? "column" : null,
+        }}
+      >
+        {/* Domains list */}
         <div
-          className="transaction__tld-link"
-          onClick={() => this.props.history.push(`/domain/${domain}`)}
+          className={classnames("transaction__party__container", {
+            "transaction__party__container--expanded": expanded,
+          })}
         >
-          {formatName(domain)}
+          {domainsToDisplay.map((domain, idx) => (
+            <div
+              key={idx}
+              className="transaction__tld-link"
+              onClick={() => this.props.history.push(`/domain/${domain}`)}
+            >
+              {formatName(domain)}
+            </div>
+          ))}
         </div>
-      )
-      : `(${this.context.t('unknown')})`;
+
+        {/* Expand / Collapse button */}
+        {domains.length > 1 ? (
+          <span
+            className="transaction__party__btn"
+            onClick={() =>
+              this.setState((prevState) => ({
+                isExpanded: {
+                  ...prevState.isExpanded,
+                  [id]: !expanded,
+                },
+              }))
+            }
+          >
+            {" "}
+            {t(expanded ? "collapse" : "viewAll")}
+          </span>
+        ) : null}
+      </div>
+    );
   }
 
   onClickTitle = () => {

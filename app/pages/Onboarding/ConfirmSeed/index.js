@@ -20,7 +20,8 @@ export default class ConfirmSeed extends Component {
 
   state = {
     words: '',
-    pasteAttempted: false
+    seedphraseNotMatching: false,
+    pasted: false,
   };
 
   handleKeyDown = e => {
@@ -39,6 +40,8 @@ export default class ConfirmSeed extends Component {
       seedphrase
     } = this.props;
 
+    const {pasted} = this.state;
+
     const {t} = this.context;
 
     return (
@@ -56,9 +59,14 @@ export default class ConfirmSeed extends Component {
           <div className="import_warning_text">
             {t('obConfirmSeedBody')}
           </div>
+          {pasted ? (
+            <div className="confirm-seed__warning">
+              {t('seedPasteWarning')}
+            </div>
+          ) : null}
           <div
             className={c('import-enter__textarea-container', {
-              'copy-seed__textarea--shake': this.state.pasteAttempted
+              'copy-seed__textarea--shake': this.state.seedphraseNotMatching
             })}
           >
             <textarea
@@ -66,6 +74,7 @@ export default class ConfirmSeed extends Component {
               placeholder={t('obConfirmSeedPlaceholder')}
               onKeyDown={this.handleKeyDown}
               onChange={e => this.setState({ words: e.target.value })}
+              onPaste={() => this.setState({ pasted: true })}
               value={this.state.words}
               autoFocus
             />
@@ -83,9 +92,9 @@ export default class ConfirmSeed extends Component {
               if (this.state.words.trim() === seedphrase) {
                 onNext();
               } else {
-                this.setState({ pasteAttempted: true });
+                this.setState({ seedphraseNotMatching: true });
                 setTimeout(
-                  () => this.setState({ pasteAttempted: false }),
+                  () => this.setState({ seedphraseNotMatching: false }),
                   1000
                 );
               }

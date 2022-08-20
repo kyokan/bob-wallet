@@ -14,8 +14,11 @@ export const START_RPC_TEST = 'node/START_RPC_TEST';
 export const END_RPC_TEST = 'node/END_RPC_TEST';
 export const SET_EXPLORER = 'node/SET_EXPLORER';
 export const UPDATE_HNS_PRICE = 'node/UPDATE_HNS_PRICE';
+export const SET_RS_PORT = 'node/SET_RS_PORT';
+export const SET_NS_PORT = 'node/SET_NS_PORT';
 export const SET_NO_DNS = 'node/SET_NO_DNS';
 export const SET_SPV_MODE = 'node/SET_SPV_MODE';
+export const COMPACTING_TREE = 'node/COMPACTING_TREE';
 
 export function getInitialState() {
   return {
@@ -27,8 +30,11 @@ export function getInitialState() {
     isChangingNetworks: false,
     network: 'main',
     apiKey: null,
-    noDns: true,
+    rsPort: 9892,
+    nsPort: 9891,
+    noDns: false,
     spv: false,
+    compactingTree: false,
     fees: {
       slow: 0,
       medium: 0,
@@ -54,7 +60,7 @@ export function getInitialState() {
 export default function nodeReducer(state = getInitialState(), action = {}) {
   switch (action.type) {
     case START_NODE_STATUS_CHANGE:
-      return { ...state, isChangingNodeStatus: true };
+      return { ...state, isChangingNodeStatus: true, error: '' };
     case END_NODE_STATUS_CHANGE:
       return { ...state, isChangingNodeStatus: false };
     case START_RPC_TEST:
@@ -80,7 +86,7 @@ export default function nodeReducer(state = getInitialState(), action = {}) {
         },
       };
     case START_ERROR:
-      return {...state, error: action.payload.error};
+      return {...state, error: action.payload};
     case SET_NODE_INFO:
       return {
         ...state,
@@ -131,6 +137,11 @@ export default function nodeReducer(state = getInitialState(), action = {}) {
       return {
         ...state,
         spv: action.payload,
+      };
+    case COMPACTING_TREE:
+      return {
+        ...state,
+        compactingTree: action.payload,
       };
     default:
       return state;

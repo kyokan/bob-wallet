@@ -12,7 +12,7 @@ import showMainWindow, {dispatchToMainWindow, sendDeeplinkToMainWindow} from './
 import path from 'path';
 import {encrypt} from "./utils/encrypt";
 
-const Sentry = require('@sentry/electron');
+const Sentry = require('@sentry/electron/main');
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -77,6 +77,7 @@ if (isPrimaryInstance) {
       await require('./background/analytics/service').start(server);
       await require('./background/connections/service').start(server);
       await require('./background/setting/service').start(server);
+      await require('./background/hip2/service').start(server);
       await require('./background/claim/service').start(server);
       await require('./background/ledger/service').start(server);
 
@@ -127,4 +128,3 @@ if (isPrimaryInstance) {
 } else {
   app.quit();
 }
-

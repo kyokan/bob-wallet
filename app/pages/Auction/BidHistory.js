@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import c from 'classnames';
 import createAMPMTimeStamp from '../../utils/timeConverter';
 import { displayBalance } from '../../utils/balances';
 import ellipsify from '../../utils/ellipsify';
@@ -33,14 +34,17 @@ export default class BidHistory extends Component {
 
     bids.forEach(bid => {
       order.push(bid.from);
+
+      const {month, day, year} = createAMPMTimeStamp(bid.date);
       map[bid.from] = {
-        date: createAMPMTimeStamp(bid.date),
+        date: bid.date ? `${month}/${day}/${year}` : '(pending)',
         bid: bid.bid.value,
         mask: bid.bid.lockup,
         own: bid.bid.own,
         name: bid.bid.name,
         from: bid.from,
         blind: bid.bid.blind,
+        height: bid.height,
       }
     });
 
@@ -61,23 +65,28 @@ export default class BidHistory extends Component {
             </tr>
           </thead>
           <tbody>
-            {order.map(fromAddress => {
+            {order.map((fromAddress, idx) => {
               const bid = map[fromAddress];
-              const {month, day, year} = bid.date;
               let bidValue = t('hiddenUntilReveal');
-              if (bid.bid == null && bid.own) {
+              if (bid.bid == null && bid.own && bid.height !== -1) {
                 bidValue = <RepairBid bid={bid} />;
               }
-              if (bid.bid != null)
+              if (bid.bid != null) {
                 bidValue = displayBalance(bid.bid, true);
+              }
               return (
-                <tr key={fromAddress}>
-                  <td>{month}/{day}/{year}</td>
-                  <td>{bid.own ? t('you') : ellipsify(fromAddress, 10)}</td>
+                <tr
+                  key={idx}
+                  className={c({
+                    "bid-history__table__tr--pending": bid.height === -1,
+                  })}
+                >
+                  <td>{bid.date}</td>
+                  <td>{bid.own ? t("you") : ellipsify(fromAddress, 10)}</td>
                   <td>{bidValue}</td>
                   <td>{displayBalance(bid.mask, true)}</td>
                 </tr>
-              )
+              );
             })}
           </tbody>
         </table>

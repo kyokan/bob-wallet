@@ -1,20 +1,19 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import c from 'classnames';
 import MiniModal from "../../components/Modal/MiniModal";
 import {withRouter} from "react-router-dom";
 import {connect} from "react-redux";
+const Network = require('hsd/lib/protocol/network');
+const {decode: decodeIP, isRFC1918, isLocal} = require('binet/lib/ip');
 import * as nodeActions from "../../ducks/node";
 import * as walletActions from '../../ducks/walletActions';
 import {setCustomRPCStatus} from "../../ducks/node";
 import {ConnectionTypes} from "../../background/connections/service";
 import {clientStub as cClientStub} from "../../background/connections/client";
 import {clientStub as nClientStub} from "../../background/node/client";
-import NetworkPicker from "../NetworkPicker";
-const Network = require('hsd/lib/protocol/network');
-import './custom-rpc.scss';
 import Dropdown from "../../components/Dropdown";
 import {I18nContext} from "../../utils/i18n";
+import './custom-rpc.scss';
 
 const connClient = cClientStub(() => require('electron').ipcRenderer);
 const nodeClient = nClientStub(() => require('electron').ipcRenderer);
@@ -126,9 +125,22 @@ export default class CustomRPCConfigModal extends Component {
   };
 
   isDangerousURL() {
+    const {protocol, host} = this.state;
+
+    // Blank input
+    if (!host || !host.length)
+      return false;
+
+    // HTTPS is safe
+    if (protocol === 'https')
+      return false;
+
     try {
-      const {protocol, host} = this.state;
-      return (protocol === 'http' && !['127.0.0.1', 'localhost'].includes(host));
+      // Non private IP ranges not allowed for HTTP
+      // Hostnames will always be dangerous
+      const ip = decodeIP(host);
+      const privateOrLocal = isRFC1918(ip) || isLocal(ip);
+      return !privateOrLocal;
     } catch (e) {
       return false;
     }
@@ -191,7 +203,6 @@ export default class CustomRPCConfigModal extends Component {
     let {errorMessage} = this.state;
     if (!errorMessage && this.isDangerousURL())
       errorMessage = t('customRPCNoHTTP');
-
 
     return (
       <MiniModal

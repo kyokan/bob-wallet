@@ -33,6 +33,7 @@ class CreateNewAccount extends Component {
     completeInitialization: PropTypes.func.isRequired,
     network: PropTypes.string.isRequired,
     loc: PropTypes.string,
+    walletsDetails: PropTypes.object.isRequired,
   };
 
   static contextType = I18nContext;
@@ -134,13 +135,20 @@ class CreateNewAccount extends Component {
             }
             onNext={async () => {
               this.setState({ isLoading: true });
-              await walletClient.createNewWallet(
-                this.state.name,
-                this.state.passphrase,
-                false, // isLedger
-                null   // xpub (Ledger only)
-              );
-              const phrase = await walletClient.revealSeed(this.state.passphrase);
+              const existingWallet = this.props.walletsDetails[this.state.name];
+              if (existingWallet) {
+                // Encrypt existing wallet
+                await walletClient.encryptWallet(this.state.name, this.state.passphrase);
+              } else {
+                // Create new wallet
+                await walletClient.createNewWallet(
+                  this.state.name,
+                  this.state.passphrase,
+                  false, // isLedger
+                  null   // xpub (Ledger only)
+                );
+              }
+              const {phrase} = await walletClient.revealSeed(this.state.passphrase);
               this.setState({
                 currentStep: COPY_SEEDPHRASE,
                 seedphrase: phrase,
@@ -189,6 +197,7 @@ export default withRouter(
   connect(
     (state) => ({
       network: state.wallet.network,
+      walletsDetails: state.wallet.walletsDetails,
     }),
     (dispatch) => ({
       completeInitialization: (name, passphrase) =>

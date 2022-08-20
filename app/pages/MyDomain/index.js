@@ -35,12 +35,9 @@ class MyDomain extends Component {
 
   static contextType = I18nContext;
 
-  async componentWillMount() {
+  async componentDidMount() {
     await this.props.getNameInfo();
     await this.props.fetchPendingTransactions();
-  }
-
-  componentDidMount() {
     analytics.screenView('My Domains');
   }
 
@@ -154,7 +151,7 @@ class MyDomain extends Component {
         <Collapsible className="my-domain__info-panel" title={t('domainDetails')} defaultCollapsed>
           <DomainDetails name={name} />
         </Collapsible>
-        <Collapsible className="my-domain__info-panel" title={t('records')}>
+        <Collapsible className="my-domain__info-panel" title={t('records')} overflowY={false}>
           <Records
             name={name}
             transferring={!!domain.info && domain.info.transfer !== 0}

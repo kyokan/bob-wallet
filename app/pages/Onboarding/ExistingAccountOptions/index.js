@@ -6,8 +6,15 @@ import './existing.scss';
 import {I18nContext} from "../../../utils/i18n";
 
 const NONE = 0;
-const CONNECT_LEDGER = 1;
-const IMPORT_SEED = 2;
+const IMPORT_PHRASE = 1;
+const IMPORT_XPRIV = 2;
+const IMPORT_MASTER = 3;
+
+const OPTIONS = {
+  [IMPORT_PHRASE]: {tip: 'obImportOption1Tip', title: 'obImportOption1Title', path: '/import-seed/phrase'},
+  [IMPORT_XPRIV]: {tip: 'obImportOption2Tip', title: 'obImportOption2Title', path: '/import-seed/xpriv'},
+  [IMPORT_MASTER]: {tip: 'obImportOption3Tip', title: 'obImportOption3Title', path: '/import-seed/master'},
+};
 
 @withRouter
 class ExistingAccountOptions extends Component {
@@ -24,15 +31,13 @@ class ExistingAccountOptions extends Component {
   };
 
   getTip() {
-    switch (this.state.hovered) {
-      case IMPORT_SEED:
-        return this.context.t('obImportOptionTip1');
-      case CONNECT_LEDGER:
-        return 'A small device that generates and holds onto your private key. Transactions are signed directly on the device.';
-      case NONE:
-      default:
-        return '';
-    }
+    const {hovered} = this.state;
+    const {t} = this.context;
+
+    if (hovered === NONE)
+      return '';
+
+    return t(OPTIONS[hovered].tip);
   }
 
   render() {
@@ -45,20 +50,25 @@ class ExistingAccountOptions extends Component {
             onClick={() => this.props.history.push('/funding-options')}
           />
         </div>
+
         <div className="existing-options__content">
           <div className="existing-options__content__title">
             {t('obImportOptionHeader')}
           </div>
-          <div
-            className="existing-options__content__option"
-            onMouseEnter={() => this.setState({ hovered: IMPORT_SEED })}
-            onMouseLeave={() => this.setState({ hovered: NONE })}
-            onClick={() => this.props.history.push('/import-seed')}
-          >
-            <div className="existing-options__content__option__title">
-              {t('obImportOption1Title')}
+
+          {Object.entries(OPTIONS).map(([id, option]) => (
+            <div
+              key={id}
+              className="existing-options__content__option"
+              onMouseEnter={() => this.setState({ hovered: id })}
+              onMouseLeave={() => this.setState({ hovered: NONE })}
+              onClick={() => this.props.history.push(option.path)}
+            >
+              <div className="existing-options__content__option__title">
+                {t(option.title)}
+              </div>
             </div>
-          </div>
+          ))}
         </div>
         <div className="existing-options__footer">
           <div className="existing-options__footer__tip">{this.getTip()}</div>

@@ -46,7 +46,7 @@ export default class BulkTransfer extends Component {
     });
     if (e.target.value.length > 2 && !isValidAddress(e.target.value, this.props.network)) {
       this.setState({
-        errorMessage: this.context.t('invalidAddressPrefix'),
+        errorMessage: this.context.t('invalidAddress'),
       });
     }
   };

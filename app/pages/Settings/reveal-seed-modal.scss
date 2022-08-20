@@ -16,10 +16,10 @@
 
 .reveal-seed-modal__error-message {
   color: $orange-red;
-  font-size: 12px;
-  width: 235px;
+  font-size: 0.9rem;
+  width: 350px;
   margin: 0 auto 24px auto;
-  text-align: left;
+  text-align: center;
 }
 
 .reveal-seed-modal__submit {
@@ -37,4 +37,9 @@
   border-radius: 8px;
   font-size: 14px;
   line-height: 18px;
+  user-select: all;
+
+  &.break-anywhere {
+    line-break: anywhere;
+  }
 }

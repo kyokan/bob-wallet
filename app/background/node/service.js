@@ -4,19 +4,14 @@ import { VALID_NETWORKS } from '../../constants/networks';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
-import tcpPortUsed from 'tcp-port-used';
 import EventEmitter from 'events';
+import throttle from 'lodash.throttle';
 import { NodeClient } from 'hs-client';
 import { BigNumber } from 'bignumber.js';
 import { ConnectionTypes, getConnection, getCustomRPC } from '../connections/service';
 import FullNode from 'hsd/lib/node/fullnode';
 import SPVNode from 'hsd/lib/node/spvnode';
 import plugin from 'hsd/lib/wallet/plugin';
-import Address from 'hsd/lib/primitives/address';
-const blake2b = require('bcrypto/lib/blake2b');
-const secp256k1 = require('bcrypto/lib/secp256k1');
-const {safeEqual} = require('bcrypto/lib/safe');
-import pkg from 'hsd/lib/pkg';
 import { prefixHash } from '../../db/names';
 import { get, put } from '../db/service';
 import {dispatchToMainWindow} from "../../mainWindow";
@@ -29,16 +24,20 @@ import {
   SET_SPV_MODE,
   START_NODE_STATUS_CHANGE,
   END_NODE_STATUS_CHANGE,
+  COMPACTING_TREE,
 } from "../../ducks/nodeReducer";
+import pkg from '../../../package.json';
 
 const Network = require('hsd/lib/protocol/network');
 
 const MIN_FEE = new BigNumber(0.01);
 const DEFAULT_BLOCK_TIME = 10 * 60 * 1000;
 const HSD_PREFIX_DIR_KEY = 'hsdPrefixDir';
+const WALLET_API_KEY = 'walletApiKey';
 const NODE_API_KEY = 'nodeApiKey';
-const NODE_NO_DNS = 'nodeNoDns';
+const NODE_NO_DNS = 'nodeNoDns1';
 const SPV_MODE = 'nodeSpvMode';
+const HANDSHAKE_API_BASE_URL = 'https://api.handshakeapi.com/hsd';
 
 export class NodeService extends EventEmitter {
   constructor() {
@@ -57,14 +56,22 @@ export class NodeService extends EventEmitter {
     return newKey;
   }
 
+  async getWalletAPIKey(nodeApiKey) {
+    const apiKey = await get(WALLET_API_KEY);
+    if (apiKey) return apiKey;
+
+    // Fallback to node's api key
+    await put(WALLET_API_KEY, nodeApiKey);
+    return nodeApiKey;
+  }
+
   async getNoDns() {
     const noDns = await get(NODE_NO_DNS);
     if (noDns !== null) {
       return noDns === '1';
     }
 
-    await put(NODE_NO_DNS, '1');
-    return true;
+    return false;
   }
 
   async getSpvMode() {
@@ -105,10 +112,10 @@ export class NodeService extends EventEmitter {
   }
 
   async setSpvMode(spv) {
-    await put(SPV_MODE, !!spv ? '1' : '');
+    await put(SPV_MODE, !!spv ? '1' : '0');
     dispatchToMainWindow({
       type: SET_SPV_MODE,
-      payload: spv === '1',
+      payload: spv === true,
     });
   }
 
@@ -129,7 +136,18 @@ export class NodeService extends EventEmitter {
 
     switch (conn.type) {
       case ConnectionTypes.P2P:
-        await this.startNode();
+        try {
+          await this.startNode();
+        } catch (error) {
+          if (error.code === 'EADDRINUSE') {
+            throw new Error(`
+              Could not bind to ${error.address}:${error.port}.
+              Please make sure no other hsd or Bob Wallet instance is running.
+              Quit Bob, and try again.`);
+          } else {
+            throw error;
+          }
+        }
         await this.setHSDLocalClient();
         dispatchToMainWindow({
           type: SET_CUSTOM_RPC_STATUS,
@@ -175,6 +193,7 @@ export class NodeService extends EventEmitter {
     this.network = network;
     this.apiKey = await this.getAPIKey();
     this.noDns = await this.getNoDns();
+    this.spv = await this.getSpvMode();
   }
 
   async startNode() {
@@ -186,20 +205,16 @@ export class NodeService extends EventEmitter {
       return;
     }
 
-    const portsFree = await checkHSDPortsFree(this.network);
-
-    if (!portsFree) {
-      throw new Error('hsd ports in use. Please make sure no other hsd instance is running, quit Bob, and try again.');
-    }
-
     console.log(`Starting node on ${this.networkName} network.`);
 
     const dir = await this.getDir();
     const spv = await this.getSpvMode();
+    const walletApiKey = await this.getWalletAPIKey(this.apiKey);
 
     const Node = spv ? SPVNode : FullNode;
 
     this.hsd = new Node({
+      agent: this.getAgent(),
       config: true,
       argv: true,
       env: true,
@@ -214,30 +229,46 @@ export class NodeService extends EventEmitter {
       indexAddress: true,
       indexTX: true,
       apiKey: this.apiKey,
-      walletApiKey: this.apiKey,
+      walletApiKey: walletApiKey,
       cors: true,
+      rsPort: 9892,
+      nsPort: 9891,
       noDns: this.noDns,
       listen: this.networkName === 'regtest', // improves remote rpc dev/testing
-      chainMigrate: 2,
+      chainMigrate: 3,
       walletMigrate: 1,
       maxOutbound: 4,
+      compactTreeOnInit: true,
     });
 
     this.hsd.use(plugin);
 
+    this.hsd.on('tree compact start', () => {
+      dispatchToMainWindow({
+        type: COMPACTING_TREE,
+        payload: true,
+      });
+    });
+    this.hsd.on('tree compact end', () => {
+      dispatchToMainWindow({
+        type: COMPACTING_TREE,
+        payload: false,
+      });
+    });
+
+    this.hsd.on('connect', async () => this.refreshNodeInfo());
+
     await this.hsd.ensure();
     await this.hsd.open();
-    this.emit('start local', this.hsd.get('walletdb'), this.apiKey);
+    this.emit('start local', this.hsd.get('walletdb'), walletApiKey);
     await this.hsd.connect();
     await this.hsd.startSync();
 
-    const migrateFlag = `${this.networkName}-hsd-3.0.0-migrate${spv ? '-spv' : ''}`;
+    const migrateFlag = `${this.networkName}-hsd-4.0.0-migrate${spv ? '-spv' : ''}`;
 
     if (!(await get(migrateFlag))) {
       await put(migrateFlag, true);
     }
-
-    this.hsd.on('connect', async () => this.refreshNodeInfo());
   }
 
   async setHSDLocalClient() {
@@ -353,6 +384,10 @@ export class NodeService extends EventEmitter {
     if (!this.client)
       return;
 
+    await this._refreshNodeInfo();
+  };
+
+  _refreshNodeInfo = throttle(async () => {
     try {
       const info = await this.getInfo();
 
@@ -360,7 +395,6 @@ export class NodeService extends EventEmitter {
         type: SET_NODE_INFO,
         payload: info.chain,
       });
-
 
       if (info.chain.progress > 0.99) {
         const fees = await this.getFees();
@@ -374,9 +408,8 @@ export class NodeService extends EventEmitter {
       }
 
       this.height = info.chain.height;
-    } catch (e) {
-    }
-  };
+    } catch (e) {}
+  }, 500, {trailing: true})
 
   async generateToAddress(numblocks, address) {
     return this._execRPC('generatetoaddress', [numblocks, address]);
@@ -410,10 +443,6 @@ export class NodeService extends EventEmitter {
     const name = await this._execRPC('getnamebyhash', [hash], true);
     put(prefixHash(hash), name);
     return name;
-  }
-
-  async getAuctionInfo(name) {
-    return this._execRPC('getauctioninfo', [name], true);
   }
 
   async getBlock(height) {
@@ -488,6 +517,11 @@ export class NodeService extends EventEmitter {
     return Math.floor((sum / count) * 1000);
   }
 
+  async getMTP() {
+    const info = await this._execRPC('getblockchaininfo');
+    return info.mediantime;
+  };
+
   async getCoin(hash, index) {
     if (await this.getSpvMode()) {
       return hapiGet(`/coin/${hash}/${index}`);
@@ -541,6 +575,12 @@ export class NodeService extends EventEmitter {
     return this._execRPC('sendrawclaim', [base64]);
   }
 
+  getAgent() {
+    const { name, version } = pkg;
+
+    return `${name}:${version}`;
+  }
+
   async _ensureStarted() {
     if (!this.client)
       throw new Error('No client.');
@@ -569,24 +609,6 @@ export class NodeService extends EventEmitter {
   }
 }
 
-async function checkHSDPortsFree(network) {
-  const ports = [
-    network.port,
-    network.rpcPort,
-    // network.walletPort,
-    network.nsPort,
-  ];
-
-  for (const port of ports) {
-    const inUse = await tcpPortUsed.check(port);
-    if (inUse) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
 export const service = new NodeService();
 
 const sName = 'Node';
@@ -600,7 +622,6 @@ const methods = {
   getInfo: () => service.getInfo(),
   getNameInfo: (name) => service.getNameInfo(name),
   getNameByHash: (hash) => service.getNameByHash(hash),
-  getAuctionInfo: (name) => service.getAuctionInfo(name),
   getBlock: (height) => service.getBlock(height),
   generateToAddress: (numblocks, address) => service.generateToAddress(numblocks, address),
   getTXByAddresses: (addresses) => service.getTXByAddresses(addresses),
@@ -611,6 +632,7 @@ const methods = {
   sendRawAirdrop: (data) => service.sendRawAirdrop(data),
   getFees: () => service.getFees(),
   getAverageBlockTime: () => service.getAverageBlockTime(),
+  getMTP: () => service.getMTP(),
   getCoin: (hash, index) => service.getCoin(hash, index),
   setNodeDir: data => service.setNodeDir(data),
   setAPIKey: data => service.setAPIKey(data),
@@ -629,7 +651,7 @@ export async function start(server) {
 }
 
 async function hapiGet(path = '') {
-  const res = await fetch(`https://api.handshakeapi.com/hsd${path}`, {
+  const res = await fetch(HANDSHAKE_API_BASE_URL + path, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -655,7 +677,7 @@ async function hapiGet(path = '') {
 }
 
 async function hapiPost(path = '', body) {
-  const res = await fetch(`https://api.handshakeapi.com/hsd${path}`, {
+  const res = await fetch(HANDSHAKE_API_BASE_URL + path, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

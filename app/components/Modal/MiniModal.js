@@ -12,6 +12,7 @@ export class MiniModal extends Component {
     onClose: PropTypes.func,
     children: PropTypes.node.isRequired,
     title: PropTypes.string.isRequired,
+    className: PropTypes.string,
     centered: PropTypes.bool,
     wide: PropTypes.bool,
     top: PropTypes.bool
@@ -27,7 +28,7 @@ export class MiniModal extends Component {
   };
 
   render() {
-    const names = classnames('mini-modal', {
+    const names = classnames('mini-modal', this.props.className, {
       'mini-modal--centered': this.props.centered,
       'mini-modal--wide': this.props.wide,
       'mini-modal--tip': this.props.top

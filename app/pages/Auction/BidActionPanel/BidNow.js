@@ -9,6 +9,7 @@ import {
   AuctionPanelHeader,
   AuctionPanelHeaderRow,
 } from '../../../components/AuctionPanel';
+import Alert from '../../../components/Alert';
 import Tooltipable from '../../../components/Tooltipable';
 import SuccessModal from '../../../components/SuccessModal';
 import Checkbox from '../../../components/Checkbox';
@@ -83,7 +84,7 @@ class BidNow extends Component {
       if (!domain.walletHasName)
         height = domain.info.height - 1;
 
-      await sendBid(bidAmount, lockup, height);
+      await sendBid(Number(bidAmount), lockup, height);
       this.setState({
         isReviewing: false,
         isPlacingBid: false,
@@ -97,6 +98,7 @@ class BidNow extends Component {
       logger.error(`Error received from BidNow - sendBid]\n\n${e.message}\n${e.stack}\n`);
       this.props.showError(`Failed to place bid: ${e.message}`);
     } finally {
+      await this.props.fetchPendingTransactions();
       await this.props.getNameInfo(domain.name);
     }
   };
@@ -106,6 +108,7 @@ class BidNow extends Component {
       const {domain} = this.props;
       await this.props.startWalletSync();
       await walletClient.importName(domain.name, domain.info.height - 1);
+      await this.props.waitForWalletSync();
       await this.props.getNameInfo(domain.name);
     } catch (e) {
       await this.props.stopWalletSync();
@@ -133,19 +136,25 @@ class BidNow extends Component {
     } = this.state;
 
     const {bids = [], info} = domain || {};
-    const {highest = 0, stats} = info || {};
+    const {stats} = info || {};
     const {bidPeriodEnd} = stats || {};
     const {t} = this.context;
+    const highest = Math.max(...bids.map(bid => bid.value));
 
     return (
       <AuctionPanel>
         {
           showSuccessModal && (
             <SuccessModal
-              bidAmount={bidAmount}
+              bidAmount={Number(bidAmount)}
               maskAmount={Number(bidAmount) + Number(disguiseAmount)}
               revealStartBlock={bidPeriodEnd}
-              onClose={() => this.setState({showSuccessModal: false})}
+              onClose={() => this.setState({
+                showSuccessModal: false,
+                hasAccepted: false,
+                bidAmount: '',
+                disguiseAmount: '',
+              })}
             />
           )
         }
@@ -161,7 +170,7 @@ class BidNow extends Component {
             {bids.length}
           </AuctionPanelHeaderRow>
           <AuctionPanelHeaderRow label={t('highestLockup') + ':'}>
-            {highest}
+            {bids.length ? displayBalance(highest, true) : t('noBids')}
           </AuctionPanelHeaderRow>
           <div className="domains__bid-now__info__disclaimer">
             <Tooltipable
@@ -187,6 +196,12 @@ class BidNow extends Component {
 
     const {t} = this.context;
 
+    const isValid = (
+      bidAmount.length                // not blank, and
+      && Number(bidAmount) > 0        // true bid is not zero
+      || Number(disguiseAmount) > 0   // unless blind is not zero
+    )
+
     return (
       <AuctionPanelFooter>
         <div className="domains__bid-now__action domains__bid-now__action--placing-bid">
@@ -207,7 +222,7 @@ class BidNow extends Component {
             className="domains__bid-now__action__cta"
             onClick={() => this.setState({isReviewing: true})}
             // bid amount of zero is allowed as long as a disguise is used
-            disabled={bidAmount > 0 ? false : (disguiseAmount > 0 ? false : true)}
+            disabled={!isValid}
           >
             {t('reviewBid')}
           </button>
@@ -288,6 +303,9 @@ class BidNow extends Component {
 
   renderOwnBidAction() {
     const {t} = this.context;
+    const {pendingOperation} = this.props.domain;
+    const pendingBidExists = pendingOperation === 'BID';
+
     return (
       <AuctionPanelFooter>
         {this.renderOwnHighestBid()}
@@ -295,9 +313,8 @@ class BidNow extends Component {
           <button
             className="domains__bid-now__action__cta"
             onClick={() => this.setState({isPlacingBid: true})}
-            disabled={this.isBidPending()}
           >
-            {this.isBidPending() ? t('bidPending') : t('placeBid')}
+            {pendingBidExists ? t('placeAnotherBid') : t('placeBid')}
           </button>
         </div>
       </AuctionPanelFooter>
@@ -305,13 +322,24 @@ class BidNow extends Component {
   }
 
   renderReviewing() {
+    const {t} = this.context;
+
     const {
       bidAmount,
       disguiseAmount,
       hasAccepted,
     } = this.state;
+    const {pendingOperation, pendingOperationMeta} = this.props.domain;
 
-    const {t} = this.context;
+    const pendingBidExists = pendingOperation === 'BID';
+    const trueBid = Number(bidAmount);
+    const blind = Number(disguiseAmount);
+
+    const isDuplicateBid = !!(
+      pendingBidExists
+      && pendingOperationMeta.bids
+        .filter(bid => bid.value === (trueBid+blind)*1e6 && bid.bid.value === trueBid*1e6).length
+    );
 
     return (
       <AuctionPanelFooter>
@@ -321,7 +349,7 @@ class BidNow extends Component {
             <AuctionPanelHeaderRow label={t('bidAmount') + ':'}>
               <div className="domains__bid-now__review-info">
                 <div className="domains__bid-now__info__value">
-                  {`${bidAmount} HNS`}
+                  {`${Number(bidAmount)} HNS`}
                 </div>
                 <div
                   className="domains__bid-now__action__edit-icon"
@@ -332,7 +360,7 @@ class BidNow extends Component {
             <AuctionPanelHeaderRow label={t('blindAmount') + ':'}>
               <div className="domains__bid-now__review-info">
                 <div className="domains__bid-now__info__value">
-                  {disguiseAmount ? `${disguiseAmount} HNS` : ' - '}
+                  {disguiseAmount ? `${Number(disguiseAmount)} HNS` : ' - '}
                 </div>
                 <div
                   className="domains__bid-now__action__edit-icon"
@@ -343,13 +371,21 @@ class BidNow extends Component {
                 />
               </div>
             </AuctionPanelHeaderRow>
+            {isDuplicateBid &&
+              <div className="domains__bid-now__action duplicate-bid-warn">
+                <Alert
+                  type="warning"
+                  message={t('bidPendingDuplicateText')}
+                />
+              </div>
+            }
             <div className="domains__bid-now__divider" />
             <AuctionPanelHeaderRow
               label={t('totalLockups') + ':'}
               className="domains__bid-now__review-total"
             >
               <div className="domains__bid-now__info__value">
-                {`${Number(disguiseAmount) + Number(bidAmount)} HNS`}
+                {`${trueBid + blind} HNS`}
               </div>
             </AuctionPanelHeaderRow>
           </div>
@@ -368,17 +404,12 @@ class BidNow extends Component {
               onClick={this.sendBid}
               disabled={!hasAccepted}
             >
-              {t('submitBid')}
+              {pendingBidExists ? t('submitAnotherBid') : t('submitBid')}
             </button>
           </div>
         </div>
       </AuctionPanelFooter>
     );
-  }
-
-  isBidPending() {
-    const {successfullyBid} = this.state;
-    return successfullyBid || this.props.isPending;
   }
 
   renderBidNow() {
@@ -420,6 +451,7 @@ export default connect(
     sendBid: (amount, lockup, height) => dispatch(nameActions.sendBid(name, toBaseUnits(amount), toBaseUnits(lockup), height)),
     showError: (message) => dispatch(showError(message)),
     showSuccess: (message) => dispatch(showSuccess(message)),
+    fetchPendingTransactions: () => dispatch(walletActions.fetchPendingTransactions()),
     waitForWalletSync: () => dispatch(walletActions.waitForWalletSync()),
     startWalletSync: () => dispatch(walletActions.startWalletSync()),
     stopWalletSync: () => dispatch(walletActions.stopWalletSync()),

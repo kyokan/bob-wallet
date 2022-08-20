@@ -1,0 +1,15 @@
+@import '../../../variables';
+
+.import-enter {
+  &__inputs-container {
+    & > div {
+      margin-top: 1rem;
+    }
+  }
+
+  &__error {
+    color: $orange-red;
+    font-size: 0.75rem;
+    text-align: center;
+  }
+}

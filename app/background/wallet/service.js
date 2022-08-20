@@ -1,7 +1,5 @@
 import { WalletClient } from 'hs-client';
 import BigNumber from 'bignumber.js';
-import path from 'path';
-import { app } from 'electron';
 import crypto from 'crypto';
 const Validator = require('bval');
 import { ConnectionTypes, getConnection } from '../connections/service';
@@ -17,6 +15,8 @@ import {
   STOP_SYNC_WALLET,
   SYNC_WALLET_PROGRESS,
   SET_WALLET_NETWORK,
+  SET_RESCAN_HEIGHT,
+  SET_FIND_NONCE_PROGRESS,
 } from '../../ducks/walletReducer';
 import {STOP, SET_CUSTOM_RPC_STATUS} from '../../ducks/nodeReducer';
 import createRegisterAll from "./create-register-all";
@@ -31,11 +31,13 @@ const WalletNode = require('hsd/lib/wallet/node');
 const TX = require('hsd/lib/primitives/tx');
 const {Output, MTX, Address, Coin} = require('hsd/lib/primitives');
 const Script = require('hsd/lib/script/script');
-const {hashName, types} = require('hsd/lib/covenants/rules');
 const MasterKey = require('hsd/lib/wallet/masterkey');
 const Mnemonic = require('hsd/lib/hd/mnemonic');
+const HDPrivateKey = require('hsd/lib/hd/private');
 const Covenant = require('hsd/lib/primitives/covenant');
 const common = require('hsd/lib/wallet/common');
+const {Rules} = require('hsd/lib/covenants');
+const {hashName, types} = Rules;
 const ipc = require('electron').ipcMain;
 
 const randomAddrs = {
@@ -49,7 +51,6 @@ const {LedgerHSD, LedgerChange, LedgerCovenant, LedgerInput} = hsdLedger;
 const {Device} = hsdLedger.HID;
 const ONE_MINUTE = 60000;
 
-const HSD_DATA_DIR = path.join(app.getPath('userData'), 'hsd_data');
 const WALLET_API_KEY = 'walletApiKey';
 
 class WalletService {
@@ -60,10 +61,16 @@ class WalletService {
     this.nodeService = nodeService;
     this.lastProgressUpdate = 0;
     this.lastKnownChainHeight = 0;
+    this.heightBeforeRescan = null; // null = not rescanning
     this.conn = {type: null};
+    this.findNonceStop = false;
   }
 
-  // Wallet as a plugin to the hsd full node is the default configuration
+  /**
+   * Wallet as a plugin to the hsd full node is the default configuration
+   * @param {import('hsd/lib/wallet/plugin')} plugin
+   * @param {string} apiKey
+   */
   _usePlugin = async (plugin, apiKey) => {
     if (this.node) {
       // The app was restarted but the nodes are already running,
@@ -72,7 +79,7 @@ class WalletService {
         type: SET_WALLET_NETWORK,
         payload: this.networkName,
       });
-      const wallets = await this.listWallets(false, true);
+      const wallets = await this.listWallets();
       dispatchToMainWindow({
         type: SET_WALLETS,
         payload: createPayloadForSetWallets(wallets),
@@ -88,11 +95,13 @@ class WalletService {
     this.networkName = this.network.type;
     this.walletApiKey = apiKey;
 
-    await this.setAPIKey(apiKey);
-
     dispatchToMainWindow({
       type: SET_WALLET_NETWORK,
       payload: this.networkName,
+    });
+    dispatchToMainWindow({
+      type: SET_API_KEY,
+      payload: this.walletApiKey,
     });
 
     // TODO: This may not work because the plugin is open() already by now
@@ -101,8 +110,8 @@ class WalletService {
     this.node.wdb.on('error', e => {
       console.error('walletdb error', e);
     });
-    this.node.wdb.client.bind('block connect', this.onNewBlock);
-    this.node.wdb.client.bind('block rescan', this.onRescanBlock);
+
+    this.node.wdb.on('block connect', this.onNewBlock);
 
     this.client = new WalletClient({
       network: this.network,
@@ -111,11 +120,13 @@ class WalletService {
       timeout: 10000,
     });
 
-    const wallets = await this.listWallets(false, true);
+    const wallets = await this.listWallets();
     dispatchToMainWindow({
       type: SET_WALLETS,
       payload: createPayloadForSetWallets(wallets),
     });
+
+    this.lastKnownChainHeight = this.node.wdb.height;
   };
 
   // Wallet as a separate process only runs in Custom RPC mode
@@ -131,7 +142,7 @@ class WalletService {
         type: SET_API_KEY,
         payload: this.walletApiKey,
       });
-      const wallets = await this.listWallets(false, true);
+      const wallets = await this.listWallets();
       dispatchToMainWindow({
         type: SET_WALLETS,
         payload: createPayloadForSetWallets(wallets),
@@ -197,16 +208,7 @@ class WalletService {
       console.error('walletdb error', e);
     });
 
-    this.node.wdb.client.bind('block connect', this.onNewBlock);
-    this.node.wdb.client.unhook('block rescan');
-    this.node.wdb.client.hook('block rescan', async (entry, txs) => {
-      try {
-        await this.node.wdb.rescanBlock(entry, txs);
-      } catch (e) {
-        this.node.wdb.emit('error', e);
-      }
-      await this.onRescanBlock(entry);
-    });
+    this.node.wdb.on('block connect', this.onNewBlock);
 
     await this.node.open();
 
@@ -217,7 +219,7 @@ class WalletService {
       timeout: 10000,
     });
 
-    const wallets = await this.listWallets(false, true);
+    const wallets = await this.listWallets();
     dispatchToMainWindow({
       type: SET_WALLETS,
       payload: createPayloadForSetWallets(wallets),
@@ -332,7 +334,7 @@ class WalletService {
     await this.node.wdb.remove(wid);
     this.setWallet(this.name === wid ? null : this.name);
 
-    const wallets = await this.listWallets(false, true);
+    const wallets = await this.listWallets();
 
     dispatchToMainWindow({
       type: SET_WALLETS,
@@ -361,7 +363,7 @@ class WalletService {
       });
     }
 
-    const wallets = await this.listWallets(false, true);
+    const wallets = await this.listWallets();
     dispatchToMainWindow({
       type: SET_WALLETS,
       payload: createPayloadForSetWallets(wallets, name),
@@ -370,16 +372,37 @@ class WalletService {
     return res.getJSON();
   };
 
+  encryptWallet = async (name, passphrase) => {
+    this.setWallet(name);
+
+    const res = await this._executeRPC('encryptwallet', [passphrase]);
+
+    const wallets = await this.listWallets();
+    dispatchToMainWindow({
+      type: SET_WALLETS,
+      payload: createPayloadForSetWallets(wallets, name),
+    });
+
+    return res;
+  };
+
   backup = async (path) => {
     if (!path) throw new Error('Path is required.');
     return this.node.wdb.backup(path);
   };
 
   rescan = async (height = 0) => {
+    this.heightBeforeRescan = this.lastKnownChainHeight;
+    this.lastKnownChainHeight = height;
+
     dispatchToMainWindow({type: START_SYNC_WALLET});
     dispatchToMainWindow({
       type: SYNC_WALLET_PROGRESS,
       payload: height,
+    });
+    dispatchToMainWindow({
+      type: SET_RESCAN_HEIGHT,
+      payload: this.heightBeforeRescan,
     });
 
     return this.node.wdb.rescan(height);
@@ -389,18 +412,38 @@ class WalletService {
     return this.node.wdb.deepClean();
   };
 
-  importSeed = async (name, passphrase, mnemonic) => {
+  importSeed = async (name, passphrase, type, secret) => {
     this.setWallet(name);
 
-    const options = {
-      passphrase,
-      // hsd generates different keys for
-      // menmonics with trailing whitespace
-      mnemonic: mnemonic.trim(),
-    };
+    const options = {passphrase};
+    switch (type) {
+      case 'phrase':
+        options.mnemonic = secret.trim();
+        break;
+      case 'xpriv':
+        options.master = secret.trim();
+        break;
+      case 'master':
+        const data = secret.master;
+        const parsedData = {
+          encrypted: data.encrypted,
+          alg: data.algorithm,
+          iv: Buffer.from(data.iv, 'hex'),
+          ciphertext: Buffer.from(data.ciphertext, 'hex'),
+          n: data.n,
+          r: data.r,
+          p: data.p,
+        };
+        const mk = new MasterKey(parsedData);
+        options.master = await mk.unlock(secret.passphrase, 10)
+        assert(options.master, 'Could not decrypt key.')
+        break;
+      default:
+        throw new Error('Invalid type.')
+    }
 
     const res = await this.node.wdb.create({id: name, ...options});
-    const wallets = await this.listWallets(false, true);
+    const wallets = await this.listWallets();
 
     dispatchToMainWindow({
       type: SET_WALLETS,
@@ -495,6 +538,11 @@ class WalletService {
     return {bids, filter};
   };
 
+  getBlind = async (blind) => {
+    const wallet = await this.node.wdb.get(this.name);
+    return wallet.getBlind(Buffer.from(blind, 'hex'));
+  };
+
   getMasterHDKey = () => this._ledgerDisabled(
     'cannot get HD key for watch-only wallet',
     () => this.client.getMaster(this.name),
@@ -527,8 +575,19 @@ class WalletService {
       };
 
       const mk = new MasterKey(parsedData);
-      await mk.unlock(passphrase, 100);
-      return mk.mnemonic.getPhrase();
+      await mk.unlock(passphrase, 10);
+
+      let phrase;
+      let phraseMatchesKey = false;
+      if (mk.mnemonic) {
+        phrase = mk.mnemonic.getPhrase();
+        phraseMatchesKey = mk.key.equals(
+          HDPrivateKey.fromMnemonic(mk.mnemonic)
+        );
+      }
+      const xpriv = mk.key.xprivkey(this.networkName);
+
+      return {phrase, xpriv, phraseMatchesKey, master: data};
     },
   );
 
@@ -722,7 +781,7 @@ class WalletService {
   signMessageWithName = (name, message) => this._ledgerDisabled(
     'method is not supported on ledger yet',
     () => {
-      return this._executeRPC('signmessagewithname', [name, message]);
+      return this._executeRPC('signmessagewithname', [name, message], this.lock);
     }
   );
 
@@ -769,8 +828,16 @@ class WalletService {
     return this.client.zap(this.name, 'default', 1);
   };
 
-  importName = (name, start) => {
-    return this._executeRPC('importname', [name, start]);
+  importName = async (name, start) => {
+    await this._executeRPC('importname', [name, null]);
+
+    // wait 1 sec (for filterload to update on peer)
+    if (this.nodeService.spv) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
+    // rescan
+    this.rescan(start);
   };
 
   rpcGetWalletInfo = async () => {
@@ -946,10 +1013,10 @@ class WalletService {
   };
 
   /**
-   * List Wallet IDs (exclude unencrypted wallets)
-   * @return {Promise<[string]>}
+   * List Wallets
+   * @return {Promise<[object]>}
    */
-  listWallets = async (includeUnencrypted = false, returnObjects = false) => {
+  listWallets = async () => {
     const wdb = this.node.wdb;
     const wallets = await wdb.getWallets();
     const ret = [];
@@ -957,13 +1024,7 @@ class WalletService {
     for (const wid of wallets) {
       const info = await wdb.get(wid);
       const {master: {encrypted}, watchOnly} = info;
-      if (includeUnencrypted === true || encrypted || watchOnly) {
-        if (returnObjects) {
-          ret.push({ wid, encrypted, watchOnly });
-        } else {
-          ret.push(wid);
-        }
-      }
+      ret.push({ wid, encrypted, watchOnly });
     }
 
     return ret;
@@ -1029,6 +1090,102 @@ class WalletService {
     await b.write();
   };
 
+  findNonce = async (options) => {
+    const {name, address, expectedBlind, rangeStart, rangeEnd, precision} = options;
+
+    await this._ensureClient();
+
+    const nameHash = hashName(name);
+    const from = Address.fromString(address, this.network)
+    const wallet = await this.node.wdb.get(this.name);
+
+    this.findNonceStop = false;
+    dispatchToMainWindow({
+      type: SET_FIND_NONCE_PROGRESS,
+      payload: {
+        expectedBlind: expectedBlind,
+        progress: 0,
+        isFinding: true,
+        found: false,
+        bidValue: rangeStart,
+      },
+    });
+
+    const maxAttempts = (rangeEnd - rangeStart) / 10**(6-precision) + 1;
+    let counter = 0;
+
+    for (let value = rangeStart; value <= rangeEnd; value += 10**(6-precision)) {
+
+      // Stop on cancel
+      if (this.findNonceStop) {
+        this.findNonceStop = false;
+        return null;
+      };
+
+      if (counter % 10000 === 0) {
+        const progress = (counter/maxAttempts)*100;
+        dispatchToMainWindow({
+          type: SET_FIND_NONCE_PROGRESS,
+          payload: {
+            expectedBlind: expectedBlind,
+            progress: progress,
+            isFinding: true,
+            found: false,
+            bidValue: value,
+          },
+        });
+      }
+
+      counter++;
+
+      const nonce = await wallet.generateNonce(nameHash, from, value);
+      const blind = Rules.blind(value, nonce).toString('hex');
+
+      if (blind === expectedBlind) {
+        const progress = (counter/maxAttempts)*100;
+        dispatchToMainWindow({
+          type: SET_FIND_NONCE_PROGRESS,
+          payload: {
+            expectedBlind: expectedBlind,
+            progress: progress,
+            isFinding: false,
+            found: true,
+            bidValue: value,
+          },
+        });
+        return value;
+      }
+    }
+
+    // Could not find value
+    dispatchToMainWindow({
+      type: SET_FIND_NONCE_PROGRESS,
+      payload: {
+        expectedBlind: expectedBlind,
+        progress: 100,
+        isFinding: false,
+        found: false,
+        bidValue: null,
+      },
+    });
+    return null;
+  }
+
+  findNonceCancel = async () => {
+    this.findNonceStop = true;
+
+    dispatchToMainWindow({
+      type: SET_FIND_NONCE_PROGRESS,
+      payload: {
+        expectedBlind: '',
+        progress: -1,
+        isFinding: false,
+        found: false,
+        bidValue: null,
+      },
+    });
+  }
+
   refreshWalletInfo = async () => {
     if (!this.name) return;
 
@@ -1044,38 +1201,36 @@ class WalletService {
 
   onNewBlock = async (entry) => {
     await this._ensureClient();
-    await this.refreshWalletInfo();
 
-    dispatchToMainWindow({
-      type: SYNC_WALLET_PROGRESS,
-      payload: entry.height,
-    });
-  };
+    this.lastKnownChainHeight = entry.height;
 
-  /**
-   * Stub handler for rescan block
-   *
-   * @param {ChainEntry} entry
-   * @param {TX[]} txs
-   * @returns {Promise}
-   */
-
-  onRescanBlock = async (entry) => {
-    if (entry.height === nodeService.height) {
+    // If wallet rescanning, and has reached
+    // height before rescan start, the stop sync.
+    if (
+      this.heightBeforeRescan !== null
+      && this.heightBeforeRescan <= entry.height
+    ) {
+      // Stop sync
       dispatchToMainWindow({type: STOP_SYNC_WALLET});
       dispatchToMainWindow({
         type: SYNC_WALLET_PROGRESS,
         payload: entry.height,
       });
+
+      // Reset rescan height
+      this.heightBeforeRescan = null;
+      dispatchToMainWindow({
+        type: SET_RESCAN_HEIGHT,
+        payload: null,
+      });
+
+      // Refresh wallet info
       await this.refreshWalletInfo();
-      return;
     }
 
+    // debounce for 500 msec
     const now = Date.now();
-
-    // debounce wallet sync update
     if (now - this.lastProgressUpdate > 500) {
-      dispatchToMainWindow({type: START_SYNC_WALLET});
       dispatchToMainWindow({
         type: SYNC_WALLET_PROGRESS,
         payload: entry.height,
@@ -1430,16 +1585,26 @@ function enforce(value, msg) {
 
 function createPayloadForSetWallets(wallets, addName = null) {
   let wids = wallets.map((wallet) => wallet.wid);
+
+  // array of objects to an object with wid as key
+  const walletsDetails = wallets.reduce((obj, wallet) => {
+    obj[wallet.wid] = wallet;
+    return obj;
+  }, {});
+
+  // Remove unencrypted wids from state.wallet.wallets,
+  // but not objects from state.wallet.walletsDetails
+  wids = wids.filter(
+    (wid) => walletsDetails[wid].encrypted || walletsDetails[wid].watchOnly
+  );
+
   if (addName !== null) {
     wids = uniq([...wids, addName]);
   }
 
   return {
     wallets: wids,
-    walletsDetails: wallets.reduce((obj, wallet) => {
-      obj[wallet.wid] = wallet;
-      return obj;
-    }, {}), // array of objects to a single object with wid as key
+    walletsDetails,
   };
 }
 
@@ -1473,6 +1638,7 @@ const methods = {
   getTransactionHistory: service.getTransactionHistory,
   getPendingTransactions: service.getPendingTransactions,
   getBids: service.getBids,
+  getBlind: service.getBlind,
   getMasterHDKey: service.getMasterHDKey,
   hasAddress: service.hasAddress,
   setPassphrase: service.setPassphrase,
@@ -1481,6 +1647,9 @@ const methods = {
   estimateMaxSend: service.estimateMaxSend,
   removeWalletById: service.removeWalletById,
   updateAccountDepth: service.updateAccountDepth,
+  findNonce: service.findNonce,
+  findNonceCancel: service.findNonceCancel,
+  encryptWallet: service.encryptWallet,
   backup: service.backup,
   rescan: service.rescan,
   deepClean: service.deepClean,

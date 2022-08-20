@@ -5,7 +5,7 @@ import { connect } from "react-redux";
 import Submittable from "../Submittable";
 import WizardHeader from "../WizardHeader";
 import Checkbox from "../Checkbox";
-const { dialog } = require("electron").remote;
+const { dialog } = require('@electron/remote');
 
 @connect()
 export default class StepPrivateKey extends Component {

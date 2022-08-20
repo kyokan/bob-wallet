@@ -54,7 +54,7 @@ class VerifyMessage extends Component {
       <div className="verify-message">
         <div className="verify-message__top">
           <div className="verify-message__top-label">
-            Enter Name to Verify:
+            {t('verifyNameSelectLabel')}
           </div>
           <input
             type="text"

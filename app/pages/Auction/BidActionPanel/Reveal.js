@@ -62,14 +62,14 @@ class Reveal extends Component {
       analytics.track('revealed bid');
     } catch (e) {
       logger.error(`Error received from Reveal - sendReveal]\n\n${e.message}\n${e.stack}\n`);
-      this.props.showError(this.context.t('revealSuccess', e.message));
+      this.props.showError(this.context.t('revealFailure', e.message));
     }
   };
 
   render() {
     const {domain, hasRevealableBid} = this.props;
     const {bids = [], info} = domain || {};
-    const highest = Math.max(bids.map(bid => bid.value));
+    const highest = Math.max(...bids.map(bid => bid.value));
     const {t} = this.context;
 
     return (
@@ -86,7 +86,7 @@ class Reveal extends Component {
             {bids.length}
           </AuctionPanelHeaderRow>
           <AuctionPanelHeaderRow label={t('highestLockup') + ':'}>
-            {displayBalance(highest, true)}
+            {bids.length ? displayBalance(highest, true) : t('noBids')}
           </AuctionPanelHeaderRow>
         </AuctionPanelHeader>
         <AuctionPanelFooter>

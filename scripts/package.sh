@@ -5,7 +5,7 @@ CSP_POLICY="default-src 'self'; style-src 'self' 'sha256-GhG3bE0iJoXJDtzwjDYe4ew
 sed -i.tmp "s/{{cspValue}}/${CSP_POLICY}/g" dist/app.html
 rm dist/app.html.tmp
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )/../"
-NODE_ENV=production $DIR/node_modules/.bin/webpack --config ./configs/webpack.config.renderer.prod.babel.js --colors
+NODE_ENV=production $DIR/node_modules/.bin/webpack --config ./configs/webpack.config.renderer.prod.babel.js
 $DIR/node_modules/.bin/babel $DIR/app/main.js -o ./dist/main.js
 $DIR/node_modules/.bin/babel $DIR/app/menu.js -o ./dist/menu.js
 $DIR/node_modules/.bin/babel $DIR/app/sentry.js -o ./dist/sentry.js
@@ -17,4 +17,5 @@ $DIR/node_modules/.bin/babel $DIR/app/db -d ./dist/db
 $DIR/node_modules/.bin/babel $DIR/app/utils -d ./dist/utils
 $DIR/node_modules/.bin/babel $DIR/app/ducks/walletReducer.js -o ./dist/ducks/walletReducer.js
 $DIR/node_modules/.bin/babel $DIR/app/ducks/nodeReducer.js -o ./dist/ducks/nodeReducer.js
+$DIR/node_modules/.bin/babel $DIR/app/ducks/hip2Reducer.js -o ./dist/ducks/hip2Reducer.js
 $DIR/node_modules/.bin/babel $DIR/app/ducks/claims.js -o ./dist/ducks/claims.js

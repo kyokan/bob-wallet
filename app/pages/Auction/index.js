@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import cn from 'classnames';
 import moment from 'moment';
+import throttle from 'lodash.throttle';
 
 import * as names from '../../ducks/names';
 import * as walletActions from '../../ducks/walletActions';
@@ -31,7 +32,11 @@ import { clientStub as aClientStub } from '../../background/analytics/client';
 import NameClaimModal from "../../components/NameClaimModal";
 import {I18nContext} from "../../utils/i18n";
 
-const Sentry = require('@sentry/electron');
+const Sentry = (
+  process.type === 'renderer'
+  ? require('@sentry/electron/renderer')
+  : require('@sentry/electron/main')
+);
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -42,7 +47,7 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
     return {
       domain: state.names[name],
       chain: state.node.chain,
-      explorer: state.node.explorer
+      explorer: state.node.explorer,
     };
   },
   dispatch => ({
@@ -84,7 +89,7 @@ export default class Auction extends Component {
 
   static contextType = I18nContext;
 
-  async componentWillMount() {
+  async componentDidMount() {
     try {
       this.setState({isLoading: true});
       await this.props.getNameInfo(this.getDomain());
@@ -96,11 +101,19 @@ export default class Auction extends Component {
     } finally {
       this.setState({isLoading: false});
     }
-  }
-
-  componentDidMount() {
     analytics.screenView('Auction');
   }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (this.props.chain.height !== prevProps.chain.height) {
+      this.refreshInfo();
+    }
+  }
+
+  refreshInfo = throttle(() => {
+    this.props.getNameInfo(this.getDomain());
+    this.props.fetchPendingTransactions();
+  }, 10*1000, {leading: true, trailing: true}) // 10 seconds
 
   getDomain = () => this.props.match.params.name;
 
@@ -201,10 +214,17 @@ export default class Auction extends Component {
   }
 
   maybeRenderCollapsibles() {
+    const {t} = this.context;
     const domain = this.props.domain || {};
-    const bids = domain.bids || domain.reveals || [];
-    const pillContent = bids.length === 1 ? `${bids.length} bid` : `${bids.length} bids`;
-    const t = this.context.t;
+    const {bids, reveals, pendingOperation, pendingOperationMeta} = domain;
+
+    const bidsIncludingPending =
+      (pendingOperation === 'BID') ?
+        [...pendingOperationMeta.bids, ...bids]
+        : bids;
+
+    const bidsOrReveals = domain.bids || domain.reveals || [];
+    const pillContent = bidsOrReveals.length === 1 ? `${bidsOrReveals.length} bid` : `${bidsOrReveals.length} bids`;
 
     if (isAvailable(domain) || isOpening(domain) || isBidding(domain) || isReveal(domain) || isClosed(domain)) {
       return (
@@ -212,14 +232,9 @@ export default class Auction extends Component {
 
           <Collapsible className="domains__content__info-panel" title="Bids" pillContent={pillContent}>
             {
-              this.props.domain
-                ? (
-                  <BidHistory
-                    bids={this.props.domain.bids}
-                    reveals={this.props.domain.reveals}
-                  />
-                )
-              : t('loading')
+              this.props.domain ?
+                <BidHistory bids={bidsIncludingPending} reveals={reveals} />
+                : t('loading')
             }
           </Collapsible>
 

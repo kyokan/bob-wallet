@@ -7,10 +7,11 @@
  * https://webpack.js.org/concepts/hot-module-replacement/
  */
 
+const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
+
 import path from 'path';
 import webpack from 'webpack';
 import { spawn } from 'child_process';
-import { dependencies } from '../package.json';
 
 const port = process.env.PORT || 1212;
 const publicPath = `http://localhost:${port}/dist`;
@@ -22,7 +23,7 @@ export default {
 
   target: 'electron-renderer',
 
-  entry: require.resolve('../app/index'),
+  entry: path.join(__dirname, '..', 'app', 'index'),
 
   output: {
     publicPath: `http://localhost:${port}/dist/`,
@@ -82,7 +83,8 @@ export default {
           {
             loader: 'css-loader',
             options: {
-              sourceMap: true
+              sourceMap: true,
+              modules: false,
             }
           },
           {
@@ -90,60 +92,14 @@ export default {
           }
         ]
       },
-      // WOFF Font
       {
-        test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
-        use: {
-          loader: 'url-loader',
-          options: {
-            limit: 10000,
-            mimetype: 'application/font-woff'
-          }
-        }
+        test: /\.(png|svg|jpg|jpeg|gif|ico|webp)$/i,
+        type: 'asset/resource',
       },
-      // WOFF2 Font
       {
-        test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
-        use: {
-          loader: 'url-loader',
-          options: {
-            limit: 10000,
-            mimetype: 'application/font-woff'
-          }
-        }
+        test: /\.(woff|woff2|eot|ttf|otf)$/i,
+        type: 'asset/resource',
       },
-      // TTF Font
-      {
-        test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-        use: {
-          loader: 'url-loader',
-          options: {
-            limit: 10000,
-            mimetype: 'application/octet-stream'
-          }
-        }
-      },
-      // EOT Font
-      {
-        test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-        use: 'file-loader'
-      },
-      // SVG Font
-      {
-        test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-        use: {
-          loader: 'url-loader',
-          options: {
-            limit: 10000,
-            mimetype: 'image/svg+xml'
-          }
-        }
-      },
-      // Common Image Formats
-      {
-        test: /\.(?:ico|gif|png|jpg|jpeg|webp)$/,
-        use: 'url-loader'
-      }
     ]
   },
 
@@ -163,12 +119,16 @@ export default {
      * 'staging', for example, by changing the ENV variables in the npm scripts
      */
     new webpack.EnvironmentPlugin({
-      NODE_ENV: 'development'
+      NODE_ENV: 'development',
+      ELECTRON_OVERRIDE_DIST_PATH:
+        path.join(__dirname, '..', '..', 'node_modules', 'electron', 'path.txt')
     }),
 
     new webpack.LoaderOptionsPlugin({
       debug: true
-    })
+    }),
+
+    new NodePolyfillPlugin({excludeAliases: ['process']}),
   ],
 
   node: {
@@ -178,24 +138,22 @@ export default {
 
   devServer: {
     port,
-    publicPath,
-    compress: true,
-    noInfo: true,
-    stats: 'errors-only',
-    inline: true,
-    lazy: false,
+    devMiddleware: {
+      publicPath,
+      stats: 'errors-only',
+    },
     headers: {'Access-Control-Allow-Origin': '*'},
-    contentBase: path.join(__dirname, 'dist'),
-    watchOptions: {
-      aggregateTimeout: 300,
-      ignored: /node_modules/,
-      poll: 100
+    static: {
+      directory: path.join(__dirname, '..', 'dist'),
+      watch: {
+        ignored: /node_modules/
+      },
     },
     historyApiFallback: {
       verbose: true,
       disableDotRule: false
     },
-    before() {
+    onBeforeSetupMiddleware() {
       if (process.env.START_HOT) {
         console.log('Starting Main Process...');
         spawn('npm', ['run', 'start-main-dev'], {

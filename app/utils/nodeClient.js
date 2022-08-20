@@ -27,10 +27,6 @@ const nodeClient = {
     return node.getNameByHash(hash);
   },
 
-  getAuctionInfo: async (name) => {
-    return node.getAuctionInfo(name);
-  },
-
   getBlockByHeight: async (height, verbose, details) => {
     return node.getBlockByHeight(height, verbose, details);
   },

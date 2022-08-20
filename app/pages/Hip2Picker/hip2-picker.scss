@@ -1,0 +1,22 @@
+@import '../../variables.scss';
+
+.hip2-picker {
+
+  &-input {
+    @extend %box-input;
+
+    box-shadow: none;
+    box-sizing: border-box;
+    border: 1px solid $grey;
+    background-color: $white;
+    padding: 0.5rem 1rem;
+    margin-bottom: 1rem;
+    width: 82px;
+
+    text-align: right;
+
+    &-invalid {
+      color: red;
+    }
+  }
+}
