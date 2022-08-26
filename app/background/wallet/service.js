@@ -94,7 +94,7 @@ class WalletService {
     this.node = plugin;
     this.network = plugin.network;
     this.networkName = this.network.type;
-    this.walletApiKey = null;//apiKey;
+    this.walletApiKey = apiKey;
 
     dispatchToMainWindow({
       type: SET_WALLET_NETWORK,
