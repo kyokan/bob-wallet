@@ -382,7 +382,7 @@
   "revealSeedTitle": "Reveal your seed phrase",
   "revealStart": "Reveal Start",
   "revealSuccess": "Your reveal request is submitted! Please wait about 15 minutes for it to complete.",
-  "revealWarning": "Your will lose %s if you don't reveal before the reveal period ends!",
+  "revealWarning": "You will lose %s if you don't reveal before the reveal period ends!",
   "revealYourBids": "Reveal Your Bids",
   "revealing": "Revealing",
   "revealingNow": "Revealing Now",
