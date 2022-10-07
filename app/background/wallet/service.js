@@ -1,6 +1,7 @@
 import { WalletClient } from 'hs-client';
 import BigNumber from 'bignumber.js';
 import crypto from 'crypto';
+const secp256k1 = require('bcrypto/lib/secp256k1');
 const Validator = require('bval');
 import { ConnectionTypes, getConnection } from '../connections/service';
 import { dispatchToMainWindow, getMainWindow } from '../../mainWindow';
@@ -34,6 +35,7 @@ const Script = require('hsd/lib/script/script');
 const MasterKey = require('hsd/lib/wallet/masterkey');
 const Account = require('hsd/lib/wallet/account');
 const Mnemonic = require('hsd/lib/hd/mnemonic');
+const HDPublicKey = require('hsd/lib/hd/public');
 const HDPrivateKey = require('hsd/lib/hd/private');
 const Covenant = require('hsd/lib/primitives/covenant');
 const consensus = require('hsd/lib/protocol/consensus');
@@ -1392,16 +1394,295 @@ class WalletService {
       this.lock();
     }
   }
-    const info = await this.getWalletInfo();
-    if (info.watchOnly) {
-      // I feel terrible about this, but...
-      let res, extra;
-      const oneOrMoreReturnValues = await onLedger();
-      if (!Array.isArray(oneOrMoreReturnValues)) {
-        res = oneOrMoreReturnValues;
-      } else {
-        [res, extra] = oneOrMoreReturnValues;
+
+  /**
+   * Parse Transaction
+   * @param {import('hsd/lib/wallet/wallet')} wallet
+   * @param {import('hsd/lib/primitives/mtx').MTX} mtx
+   * @returns {ParsedTxData}
+   */
+   parseMtx = async (wallet, mtx, {metadata}={}) => {
+    const accountInfo = await this.getAccountInfo();
+    const allAccountKeys = [accountInfo.accountKey, ...accountInfo.keys];
+
+    // Calculated from mtx, disposable
+    const redeemScripts = [];
+    const multisigInfo = [];
+    const signerData = [];
+    let containsMultisig = false;
+    let maxSigsNeeded = 0;
+    let canAddOwnSig = false;
+
+    // Metadata is first read and verified,
+    // and then copied to newMetadata,
+    // which is written to tx file
+    const newMetadata = {
+      inputs: [],
+      outputs: [],
+    }
+
+    const view = await wallet.getCoinView(mtx);
+    mtx.view = await wallet.getWalletCoinView(mtx, view);
+
+    for (const [inputIdx, input] of mtx.inputs.entries()) {
+      newMetadata.inputs[inputIdx] = {};
+      newMetadata.inputs[inputIdx].sighashType = metadata?.inputs?.[inputIdx]?.sighashType;
+
+      const {witness} = input;
+      const script = Script.decode(witness.items[witness.items.length - 1]);
+      let [m, n] = script.getMultisig();
+      m = m === -1 ? 1 : m;
+      n = n === -1 ? 1 : n;
+
+      redeemScripts[inputIdx] = script;
+      multisigInfo[inputIdx] = {m, n};
+
+      // Get input coins to derive our known paths
+      let coin = mtx.view.getCoinFor(input);
+
+      if (!coin) {
+        const coinData = await this.nodeService.getCoin(
+          input.prevout.hash.toString('hex'),
+          input.prevout.index
+        );
+        // ensure that coin exists and is still unspent
+        assert(coinData, `Could not find coin for input ${inputIdx}; is it already spent?`);
+        coin = new Coin();
+        coin.fromJSON(coinData, this.networkName);
+        mtx.view.addCoin(coin);
       }
+
+      // Handle multisig input
+      if (n > 1) {
+        containsMultisig = true;
+
+        // {pubKeyInHex: xpub, ...}
+        const accountKeysByPubKey = await getMultisigKeys(
+          wallet, coin, script, allAccountKeys, this.network
+        );
+
+        // Collect signatures from witness
+        const signatures = [];
+        for (let i = m>1 ? 1 : 0; i < witness.items.length-1; i++) {
+          const item = witness.get(i);
+          if (item.length !== 0) {
+            signatures.push(item);
+          }
+        }
+
+        let inputHasOwnPubkey = false;
+        let inputHasOwnSig = false;
+
+        // Collect signerData
+        // (list of pubkeys matched with account keys, and if they have signed)
+        signerData[inputIdx] = [];
+        for (const [pubKey, accountKey] of Object.entries(accountKeysByPubKey)) {
+          const signed = hasKeySigned(
+            mtx, inputIdx, coin, script, signatures, Buffer.from(pubKey, 'hex')
+          );
+          signerData[inputIdx].push({
+            pubKey: pubKey,
+            accountKey: accountKey,
+            signed: signed,
+          })
+          if (accountKey === accountInfo.accountKey) {
+            inputHasOwnPubkey = true;
+
+            if (signed) {
+              inputHasOwnSig = true;
+            }
+          }
+        }
+
+        // Sort by account key for nicer UI
+        signerData[inputIdx].sort((a, b) => a.accountKey < b.accountKey ? -1 : 1);
+
+        const sigsNeeded = m - signatures.length;
+        if (sigsNeeded > maxSigsNeeded) {
+          maxSigsNeeded = sigsNeeded;
+        }
+
+        if (inputHasOwnPubkey && !inputHasOwnSig) {
+          canAddOwnSig = true;
+        }
+      } else {
+        // Not a multisig input
+
+        const addr = input.getAddress();
+        if (addr.isScripthash() || addr.isPubkeyhash()) {
+          const signed = !!witness.items[0].length;
+          const address = coin.address;
+          const key = await this.getPublicKey(address);
+
+          // own wallet's coin
+          if (key) {
+            signerData[inputIdx] = [
+              {
+                pubKey: key.publicKey, // for consistency, not really needed
+                accountKey: accountInfo.accountKey,
+                signed: signed,
+              },
+            ];
+            if (!signed) {
+              canAddOwnSig = true;
+            }
+          }
+
+          if (!signed) {
+            if (maxSigsNeeded < 1) {
+              maxSigsNeeded = 1;
+            }
+          }
+        }
+      }
+    }
+
+    for (const [outputIdx, output] of mtx.outputs.entries()) {
+      newMetadata.outputs[outputIdx] = {};
+
+      /** @type {import('hsd/lib/primitives/covenant')} */
+      const covenant = output.covenant;
+
+      if (covenant.isName()) {
+        const nameHash = covenant.getHash(0);
+        let name = metadata?.outputs?.[outputIdx]?.name;
+
+        // Verify name with tx if given in metadata
+        if (name) {
+          assert(Rules.verifyName(name), 'Invalid name.');
+          const expectedNameHash = hashName(name);
+          assert(
+            expectedNameHash.equals(nameHash),
+            'Name value does not match transaction name hash.'
+          );
+        } else {
+          // Try to find name from tx or node
+          if (covenant.isOpen()) {
+            name = covenant.getString(2);
+          } else {
+            name = await this.nodeService.getNameByHash(nameHash.toString('hex'));
+          }
+        }
+
+        // Sanity check
+        assert(name, 'Name not found.');
+
+        newMetadata.outputs[outputIdx].name = name;
+      }
+
+      if (covenant.isBid()) {
+        // True bid value from tx file (number, in doos)
+        const trueBid = metadata?.outputs?.[outputIdx]?.bid;
+
+        // If importing a file which has trueBid, verify and save blind to txdb
+        if (trueBid) {
+          // Calculate blind
+          const nameHash = covenant.get(0);
+          const nonce = await wallet.generateNonce(nameHash, output.address, trueBid);
+          const blind = Rules.blind(trueBid, nonce);
+
+          // Ensure tx blind matches
+          assert(
+            blind.equals(covenant.get(3)),
+            'Bid value does not match transaction blind.'
+          );
+
+          await wallet.txdb.saveBlind(blind, {value: trueBid, nonce});
+          newMetadata.outputs[outputIdx].bid = trueBid;
+        } else {
+          const blindFromTx = covenant.get(3);
+          const blindValue = await wallet.getBlind(blindFromTx);
+          assert(blindValue, 'Bid value not found.');
+          newMetadata.outputs[outputIdx].bid = blindValue.value;
+        }
+      }
+    }
+
+    return {
+      mtx,
+      redeemScripts,
+      multisigInfo,
+      signerData,
+      containsMultisig,
+      maxSigsNeeded,
+      canAddOwnSig,
+
+      metadata: newMetadata,
+    }
+  };
+
+  /**
+   * Multisig Proxy
+   * Call _walletProxy, not this directly
+   * @param {ParsedTxData} parsedTxData 
+   * @param {object} options
+   * @param {boolean} [options.broadcast=true] does not broadcast, only for UI
+   * @returns {import('hsd/lib/primitives/mtx').MTX} signed mtx
+   */
+  _multisigProxy = async (
+    parsedTxData,
+    {broadcast} = {broadcast: true}
+  ) => {
+    const wallet = await this.node.wdb.get(this.name);
+    const info = await this.getWalletInfo();
+
+    let {mtx, redeemScripts, metadata} = parsedTxData;
+
+    const mainWindow = getMainWindow();
+    return new Promise(async (resolve, reject) => {
+      const signHandler = async () => {
+        try {
+          if (info.watchOnly) {
+            const ledgerOptions = {
+              includeLedgerInputs: true,
+              redeemScripts,
+              sighashTypes: metadata.inputs.map(x => x.sighashType),
+            };
+            mtx = await this._ledgerProxy(mtx, ledgerOptions);
+          } else {
+            const rings = await wallet.deriveInputs(mtx);
+            const type = metadata?.inputs?.[0]?.sighashType ?? null;
+            await mtx.sign(rings, type);
+          }
+          // Refresh mtx data after signing
+          const parsedMtxData = await this.parseMtx(wallet, mtx, {metadata});
+          ({mtx, redeemScripts, metadata} = parsedMtxData);
+          mainWindow.send('MULTISIG/SHOW', {
+            tx: await this.injectOutputPaths(wallet, mtx.getJSON(this.network)),
+            ...parsedMtxData,
+            broadcast,
+          });
+        } catch (error) {
+          console.error(error);
+          mainWindow.send('MULTISIG/ERR', error.message);
+        }
+      }
+      const continueHandler = async () => {
+        mainWindow.send('MULTISIG/OK');
+        ipc.removeListener('MULTISIG/SIGN', signHandler);
+        ipc.removeListener('MULTISIG/CONTINUE', continueHandler);
+        ipc.removeListener('MULTISIG/CANCEL', cancelHandler);
+        resolve(mtx);
+      }
+      const cancelHandler = () => {
+        // User has given up, inform the calling function.
+        reject(new Error('Cancelled.'));
+
+        // These messages go to the Multisig modal
+        ipc.removeListener('MULTISIG/SIGN', signHandler);
+        ipc.removeListener('MULTISIG/CONTINUE', continueHandler);
+        ipc.removeListener('MULTISIG/CANCEL', cancelHandler);
+      };
+      ipc.on('MULTISIG/SIGN', signHandler);
+      ipc.on('MULTISIG/CONTINUE', continueHandler);
+      ipc.on('MULTISIG/CANCEL', cancelHandler);
+      mainWindow.send('MULTISIG/SHOW', {
+        tx: await this.injectOutputPaths(wallet, mtx.getJSON(this.network)),
+        ...parsedTxData,
+        broadcast,
+      });
+    })
+  }
 
   /**
    * Ledger Proxy
@@ -1607,6 +1888,20 @@ class WalletService {
     if (cb) cb(res);
     return res;
   }
+
+  // Can be removed when hsd starts adding path to output.getJSON()
+  async injectOutputPaths(wallet, mtxJSON) {
+  if (!mtxJSON?.outputs?.length) return;
+
+  for (const output of mtxJSON.outputs) {
+    const {address} = output;
+    if (address) {
+      output.path = await wallet.getPath(new Address(address, this.networkName));
+    }
+  }
+
+  return mtxJSON;
+}
 }
 
 /*
@@ -1723,6 +2018,69 @@ function createPayloadForSetWallets(wallets, addName = null) {
   };
 }
 
+/**
+ * 
+ * @param {import('hsd/lib/wallet/wallet')} wallet
+ * @param {import('hsd/lib/primitives/coin')} coin
+ * @param {import('hsd/lib/script/script')} script
+ * @param {string[]} accountKeys
+ * @param {import('hsd/lib/protocol/network')|string} network
+ * @returns {object} account keys by public key
+ */
+async function getMultisigKeys(wallet, coin, script, accountKeys, network) {
+  const address = coin.address;
+  const path = await wallet.getPath(address.hash);
+
+  // key: public key in hex
+  // value: account key (string|null)
+  const accountKeysByPubKey = {};
+
+  const n = script.getSmall(-2);
+  for (let i = 1; i <= n; i++) {
+    const key = script.getData(i);
+    const keyHex = key.toString('hex');
+    accountKeysByPubKey[keyHex] = null;
+
+    // If no path, then we can't derive pubKeys to match to xpub.
+    // This is possible when the coin is not from our wallet
+    if (!path) {
+      continue;
+    }
+
+    for (const accountKey of accountKeys) {
+      const derivedKey = HDPublicKey
+        .fromBase58(accountKey, network)
+        .derive(path.branch)
+        .derive(path.index);
+      if (derivedKey.publicKey.equals(key)) {
+        accountKeysByPubKey[keyHex] = accountKey;
+        break;
+      }
+    }
+  }
+
+  return accountKeysByPubKey;
+}
+
+function hasKeySigned(mtx, inputIdx, coin, script, signatures, key) {
+  for (const sig of signatures) {
+    const type = sig[sig.length - 1];
+    const hash = mtx.signatureHash(
+      inputIdx,
+      script,
+      coin.value,
+      type
+    );
+    const res = secp256k1.verify(hash, sig.slice(0, -1), key);
+
+    if (res) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 /*
  * EXPORT
  */
@@ -1810,3 +2168,50 @@ const methods = {
 export async function start(server) {
   server.withService(sName, methods);
 }
+
+
+/**
+ * @typedef MultisigInfo
+ * @type {object}
+ * @property {number} m
+ * @property {number} n
+ */
+
+/**
+ * @typedef SignerData
+ * @type {object}
+ * @property {string} pubKey as hex string
+ * @property {string} accountKey xpub string
+ * @property {boolean} signed if key has signed tx
+ */
+
+/**
+ * @typedef MetadataInput
+ * @type {object}
+ * @property {Script.hashType} sighashType
+ */
+/**
+ * @typedef MetadataOutput
+ * @type {object}
+ * @property {string=} name name if covenant
+ * @property {number=} bid true bid value if BID output
+ */
+/**
+ * @typedef Metadata
+ * @type {object}
+ * @property {MetadataInput[]} inputs
+ * @property {MetadataOutput[]} outputs
+ */
+
+/**
+ * @typedef ParsedTxData
+ * @type {object}
+ * @property {import('hsd/lib/primitives/mtx').MTX} mtx
+ * @property {Script[]} redeemScripts scripts for each input
+ * @property {MultisigInfo[]} multisigInfo m and n for each input
+ * @property {SignerData[]} multisigInfo signer data for each input
+ * @property {boolean} containsMultisig has at least one multisig input?
+ * @property {number} maxSigsNeeded max number of sigs needed across all inputs
+ * @property {boolean} canAddOwnSig has own pubkey but not signed yet?
+ * @property {Metadata} metadata extra info about inputs and outputs
+ */
