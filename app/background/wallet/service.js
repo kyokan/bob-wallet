@@ -848,6 +848,10 @@ class WalletService {
     return this.client.addSharedKey(this.name, account, xpub);
   };
 
+  removeSharedKey = async (account, xpub) => {
+    return this.client.removeSharedKey(this.name, account, xpub);
+  };
+
   getNonce = async (options) => {
     await this._ensureClient();
     return this.client.getNonce(this.name, options.name, options);
@@ -1006,9 +1010,9 @@ class WalletService {
       const path =
         'm/' +                                    // master
         '44\'/' +                                 // purpose
-          `${this.network.keyPrefix.coinType}'/` +  // coin type
-          `${key.account}'/` +                      // should be 0 ("default")
-          `${key.branch}/` +                        // should be 1 (change)
+        `${this.network.keyPrefix.coinType}'/` +  // coin type
+        `${key.account}'/` +                      // should be 0 ("default")
+        `${key.branch}/` +                        // should be 1 (change)
         `${key.index}`;
       ledgerInput = new LedgerInput({
         index: 1,
@@ -1037,6 +1041,16 @@ class WalletService {
 
     return null;
   };
+
+  /**
+   * Load Transaction (multisig)
+   * @param {object} tx JSON object of a tx
+   * @param {Metadata} metadata
+   * @returns mtx
+   */
+  loadTransaction = async (tx, metadata) => {
+    return this._walletProxy(() => tx, {metadata});
+  }
 
   /**
    * List Wallets
@@ -1729,41 +1743,41 @@ class WalletService {
         if (options.change)
           throw new Error('Transaction should only have one change output.');
 
-            const path =
-              'm/' +                                  // master
-              '44\'/' +                               // purpose
-              `${this.network.keyPrefix.coinType}'/` +    // coin type
-              `${key.account}'/` +                    // should be 0 ("default")
-              `${key.branch}/` +                      // should be 1 (change)
-              `${key.index}`;
+        const path =
+          'm/' +                                  // master
+          '44\'/' +                               // purpose
+          `${this.network.keyPrefix.coinType}'/` +    // coin type
+          `${key.account}'/` +                    // should be 0 ("default")
+          `${key.branch}/` +                      // should be 1 (change)
+          `${key.index}`;
 
-            options.change = new LedgerChange({
-              index,
-              version: address.version,
-              path
-            });
-          }
+        options.change = new LedgerChange({
+          index,
+          version: address.version,
+          path
+        });
+      }
 
-          // The user needs to verify the raw ASCII name for every covenant.
-          // Because some covenants contain a name's hash but not the preimage,
-          // we must pass the device the name as an extra virtual covenant item.
-          // The device will confirm the nameHash before asking the user to verify.
-          switch (output.covenant.type) {
-            case types.NONE:
-            case types.OPEN:
-            case types.BID:
-            case types.FINALIZE:
-              break;
+      // The user needs to verify the raw ASCII name for every covenant.
+      // Because some covenants contain a name's hash but not the preimage,
+      // we must pass the device the name as an extra virtual covenant item.
+      // The device will confirm the nameHash before asking the user to verify.
+      switch (output.covenant.type) {
+        case types.NONE:
+        case types.OPEN:
+        case types.BID:
+        case types.FINALIZE:
+          break;
 
-            case types.REVEAL:
-            case types.REDEEM:
-            case types.REGISTER:
-            case types.UPDATE:
-            case types.RENEW:
-            case types.TRANSFER:
-            case types.REVOKE: {
-              if (options.covenants == null)
-                options.covenants = [];
+        case types.REVEAL:
+        case types.REDEEM:
+        case types.REGISTER:
+        case types.UPDATE:
+        case types.RENEW:
+        case types.TRANSFER:
+        case types.REVOKE: {
+          if (options.covenants == null)
+            options.covenants = [];
 
           // We could try to just pass the name in from the functions that
           // call _ledgerProxy(), but that wouldn't work for send____All()
@@ -1772,29 +1786,29 @@ class WalletService {
 
           options.covenants.push(new LedgerCovenant({index, name}));
           break;
-            }
-            default:
-              throw new Error('Unrecognized covenant type.');
-          }
         }
+        default:
+          throw new Error('Unrecognized covenant type.');
+      }
+    }
 
-        const mainWindow = getMainWindow();
-        return new Promise((resolve, reject) => {
-          const resHandler = async () => {
-            let device;
-            try {
-              device = await Device.requestDevice();
-              device.set({
-                timeout: ONE_MINUTE,
-              });
-              await device.open();
-              const ledger = new LedgerHSD({device, network: this.networkName});
+    const mainWindow = getMainWindow();
+    return new Promise((resolve, reject) => {
+      const resHandler = async () => {
+        let device;
+        try {
+          device = await Device.requestDevice();
+          device.set({
+            timeout: ONE_MINUTE,
+          });
+          await device.open();
+          const ledger = new LedgerHSD({device, network: this.networkName});
 
-              // Ensure the correct device is connected.
-              // This assumes everything in our world is "default" account (0).
-              const {accountKey} = await this.getAccountInfo();
-              const deviceKey = await ledger.getAccountXPUB(0);
-              if (accountKey !== deviceKey.xpubkey(this.network))
+          // Ensure the correct device is connected.
+          // This assumes everything in our world is "default" account (0).
+          const {accountKey} = await this.getAccountInfo();
+          const deviceKey = await ledger.getAccountXPUB(0);
+          if (accountKey !== deviceKey.xpubkey(this.network))
             throw new Error('Ledger public key does not match wallet. (Wrong device?)')
 
           const retMtx = await ledger.signTransaction(mtx, options);
@@ -1808,34 +1822,34 @@ class WalletService {
           // This ipc message goes to the Ledger modal
           mainWindow.send('LEDGER/CONNECT_ERR', e.message);
 
-              // If we reject from this Promise, it will go to whatever
-              // function is trying to send a transaction. We don't need
-              // errors in two places and it messes up the UI. The Ledger modal
-              // is in charge now and all the errors should be displayed there.
-              // If the user gives up they click CANCEL on the Ledger modal,
-              // which is when the "Cancelled." error (below) is sent to the
-              // calling function.
-              // SO, leave this next line commented out but keep for reference:
-              // reject(e);
-            } finally {
-              if (device) {
-                try {
-                  await device.close();
-                } catch (e) {
-                  console.error('failed to close ledger', e);
-                }
-              }
+          // If we reject from this Promise, it will go to whatever
+          // function is trying to send a transaction. We don't need
+          // errors in two places and it messes up the UI. The Ledger modal
+          // is in charge now and all the errors should be displayed there.
+          // If the user gives up they click CANCEL on the Ledger modal,
+          // which is when the "Cancelled." error (below) is sent to the
+          // calling function.
+          // SO, leave this next line commented out but keep for reference:
+          // reject(e);
+        } finally {
+          if (device) {
+            try {
+              await device.close();
+            } catch (e) {
+              console.error('failed to close ledger', e);
             }
-          };
-          const cancelHandler = () => {
-            // User has given up on Ledger, inform the calling function.
-            reject(new Error('Cancelled.'));
+          }
+        }
+      };
+      const cancelHandler = () => {
+        // User has given up on Ledger, inform the calling function.
+        reject(new Error('Cancelled.'));
 
-            // These messages go to the Ledger modal
-            ipc.removeListener('LEDGER/CONNECT_RES', resHandler);
-            ipc.removeListener('LEDGER/CONNECT_CANCEL', cancelHandler);
-          };
-          ipc.on('LEDGER/CONNECT_RES', resHandler);
+        // These messages go to the Ledger modal
+        ipc.removeListener('LEDGER/CONNECT_RES', resHandler);
+        ipc.removeListener('LEDGER/CONNECT_CANCEL', cancelHandler);
+      };
+      ipc.on('LEDGER/CONNECT_RES', resHandler);
       ipc.on('LEDGER/CONNECT_CANCEL', cancelHandler);
       mainWindow.send('LEDGER/CONNECT', mtx.txid());
     });
@@ -2152,17 +2166,19 @@ const methods = {
   lock: service.lock,
   unlock: service.unlock,
   isLocked: service.isLocked,
+  addSharedKey: service.addSharedKey,
+  removeSharedKey: service.removeSharedKey,
   getNonce: service.getNonce,
   importNonce: service.importNonce,
   zap: service.zap,
   importName: service.importName,
   rpcGetWalletInfo: service.rpcGetWalletInfo,
+  loadTransaction: service.loadTransaction,
   listWallets: service.listWallets,
   getStats: service.getStats,
   isReady: service.isReady,
   createClaim: service.createClaim,
   sendClaim: service.sendClaim,
-  addSharedKey: service.addSharedKey,
 };
 
 export async function start(server) {

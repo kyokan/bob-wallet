@@ -2,6 +2,7 @@ import walletClient from '../utils/walletClient';
 import nodeClient from '../utils/nodeClient';
 import throttle from 'lodash.throttle';
 import { getMaxIdleMinutes, setMaxIdleMinutes } from '../db/system';
+import { getMultisigKeyName, setMultisigKeyName, delMultisigKeyName } from '../db/wallet';
 import {
   GET_PASSPHRASE,
   INCREMENT_IDLE,
@@ -81,7 +82,7 @@ export const fetchWalletAPIKey = () => async (dispatch) => {
 };
 
 export const fetchWallet = () => async (dispatch, getState) => {
-  const network = getState().wallet.network;
+  const {network, wid} = getState().wallet;
 
   const maxIdle = await getMaxIdleMinutes();
   dispatch({
@@ -92,6 +93,13 @@ export const fetchWallet = () => async (dispatch, getState) => {
   const accountInfo = await walletClient.getAccountInfo();
   if (!accountInfo) {
     throw new Error('Could not load wallet.');
+  }
+
+  if (accountInfo.type === 'multisig') {
+    accountInfo.keysNames = {};
+    for (const [idx, key] of accountInfo.keys.entries()) {
+      accountInfo.keysNames[key] = await getMultisigKeyName(network, wid, key) || `Signer #${idx+2}`;
+    }
   }
 
   dispatch(setWallet(accountInfo));
@@ -107,6 +115,20 @@ export const hasAddress = (address) => async () => {
 
 export const revealSeed = (passphrase) => async () => {
   return walletClient.revealSeed(passphrase);
+};
+
+export const addSharedKey = (accountKey, name) => async (dispatch, getState) => {
+  const {network, wid} = getState().wallet;
+  const res = await walletClient.addSharedKey('default', accountKey);
+  await setMultisigKeyName(network, wid, accountKey, name);
+  return res;
+};
+
+export const removeSharedKey = (accountKey) => async (dispatch, getState) => {
+  const {network, wid} = getState().wallet;
+  const res = await walletClient.removeSharedKey('default', accountKey);
+  await delMultisigKeyName(network, wid, accountKey);
+  return res;
 };
 
 export const unlockWallet = (name, passphrase) => async (dispatch, getState) => {
