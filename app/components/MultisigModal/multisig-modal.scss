@@ -1,0 +1,58 @@
+@import "../../variables.scss";
+
+.modal__overlay {
+  overflow: visible;
+}
+
+.multisig-modal {
+  height: 100%;
+  padding: 0 1.5rem;
+  overflow-y: auto;
+
+  &__wrapper {
+    width: 90%;
+    max-height: 90%;
+    padding: 1rem;
+    box-sizing: border-box;
+    overflow-y: auto;
+  }
+
+  &__title {
+    margin-bottom: 1rem;
+    font-weight: 600;
+    font-size: 1.25rem;
+    text-align: center;
+  }
+
+  &__info {
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+
+  &__cta-wrapper {
+    margin-top: 1rem;
+    text-align: center;
+
+    button {
+      flex: 1 1 50%;
+      min-width: 10rem;
+      margin: 0.2rem
+    }
+  }
+
+  &__primary {
+    @extend %btn-primary;
+  }
+
+  &__secondary {
+    @extend %btn-secondary;
+  }
+
+  &__error {
+    border: 1px solid $orange-red;
+    color: $orange-red;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+  }
+}

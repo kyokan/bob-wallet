@@ -29,6 +29,7 @@ import * as node from '../../ducks/node';
 import SplashScreen from "../../components/SplashScreen";
 import IdleModal from '../../components/IdleModal';
 import {LedgerModal} from "../../components/LedgerModal";
+import {MultisigModal} from "../../components/MultisigModal";
 import Notification from "../../components/Notification";
 import {clientStub as cClientStub} from "../../background/connections/client";
 import {clientStub as sClientStub} from "../../background/setting/client";
@@ -143,6 +144,7 @@ class App extends Component {
     return (
       <>
         <LedgerModal />
+        <MultisigModal />
         <Notification />
         <Switch>
           <Route
