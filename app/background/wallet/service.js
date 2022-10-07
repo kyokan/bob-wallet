@@ -642,53 +642,39 @@ class WalletService {
     return value - amount;
   };
 
-  createClaim = (name) => this._ledgerProxy(
-    () => this._executeRPC('createclaim', [name]),
-    () => this._executeRPC('createclaim', [name]),
-    false
+  createClaim = async (name) => {
+    return this._executeRPC('createclaim', [name])
+  }
+
+  sendClaim = async (name) => {
+    return this._executeRPC('sendclaim', [name])
+  }
+
+  sendOpen = (name) => this._walletProxy(
+    () => this._executeRPC('createopen', [name])
   );
 
-  sendClaim = (name) => this._ledgerProxy(
-    () => this._executeRPC('sendclaim', [name]),
-    () => this._executeRPC('sendclaim', [name]),
-    false
-  );
-
-  sendOpen = (name) => this._ledgerProxy(
-    () => this._executeRPC('createopen', [name]),
-    () => this._executeRPC('sendopen', [name], this.lock),
-  );
-
-  sendBid = (name, amount, lockup) => this._ledgerProxy(
+  sendBid = (name, amount, lockup) => this._walletProxy(
     () => this._executeRPC(
       'createbid',
       [name, Number(displayBalance(amount)), Number(displayBalance(lockup))],
     ),
-    () => this._executeRPC(
-      'sendbid',
-      [name, Number(displayBalance(amount)), Number(displayBalance(lockup))],
-      this.lock,
-    ),
   );
 
-  sendRegister = (name) => this._ledgerProxy(
+  sendRegister = (name) => this._walletProxy(
     () => this._executeRPC('createupdate', [name, {records: []}]),
-    () => this._executeRPC('sendupdate', [name, {records: []}], this.lock),
   );
 
-  sendUpdate = (name, json) => this._ledgerProxy(
+  sendUpdate = (name, json) => this._walletProxy(
     () => this._executeRPC('createupdate', [name, json]),
-    () => this._executeRPC('sendupdate', [name, json], this.lock),
   );
 
-  sendReveal = (name) => this._ledgerProxy(
+  sendReveal = (name) => this._walletProxy(
     () => this._executeRPC('createreveal', [name]),
-    () => this._executeRPC('sendreveal', [name], this.lock),
   );
 
-  sendRedeem = (name) => this._ledgerProxy(
+  sendRedeem = (name) => this._walletProxy(
     () => this._executeRPC('createredeem', [name]),
-    () => this._executeRPC('sendredeem', [name], this.lock),
   );
 
   sendRegisterAll = async () => {
@@ -696,6 +682,9 @@ class WalletService {
     const wallet = await wdb.get(this.name);
 
     const names = await getNamesForRegisterAll(wallet);
+    if (!names.length) {
+      throw new Error('Nothing to do.');
+    }
     const actions = names.map(name => ['UPDATE', name, {records: []}]);
 
     // Chunk into multiple batches to stay within consensus limits
@@ -705,23 +694,16 @@ class WalletService {
       chunkedActions.push(actions.slice(i, i + chunkSize));
     }
 
-    return this._ledgerProxy(
+    // Only call once now, see later about repeated calls
+    return this._walletProxy(
       () => this._executeRPC('createbatch', [chunkedActions[0], {paths: true}]),
-      async () => {
-        try {
-          for (const chunk of chunkedActions) {
-            await this._executeRPC('sendbatch', [chunk]);
-          }
-        } catch (error) {
-          if (error.message !== 'Nothing to do.') throw error;
-        } finally {
-          await this.lock();
-        }
-      }
     );
   };
 
   transferMany = async (names, address) => {
+    if (!names.length) {
+      throw new Error('Nothing to do.');
+    }
     const actions = names.map(name => ['TRANSFER', name, address]);
 
     // Chunk into multiple batches to stay within consensus limits
@@ -731,148 +713,105 @@ class WalletService {
       chunkedActions.push(actions.slice(i, i + chunkSize));
     }
 
-    return this._ledgerProxy(
+    // Only call once now, see later about repeated calls
+    return this._walletProxy(
       () => this._executeRPC('createbatch', [chunkedActions[0], {paths: true}]),
-      async () => {
-        try {
-          for (const chunk of chunkedActions) {
-            await this._executeRPC('sendbatch', [chunk]);
-          }
-        } catch (error) {
-          if (error.message !== 'Nothing to do.') throw error;
-        } finally {
-          await this.lock();
-        }
-      }
     );
   };
 
-  finalizeAll = () => this._ledgerProxy(
-    () => this._executeRPC('createbatch', [[['FINALIZE']], {paths: true}]),
-    async () => {
-      try {
-        while (true) {
-          await this._executeRPC('sendbatch', [[['FINALIZE']]]);
-        }
-      } catch (error) {
-        if (error.message !== 'Nothing to do.') throw error;
-      } finally {
-        await this.lock();
-      }
-    }
-  );
+  finalizeAll = async () => {
+    // Only call once now, see later about repeated calls
+    return this._walletProxy(
+      () => this._executeRPC('createbatch', [[['FINALIZE']], {paths: true}]),
+    );
+  }
 
+  // not used, but can be in the future
   finalizeMany = async (names) => {
-    const {wdb} = this.node;
-    const wallet = await wdb.get(this.name);
-    const mtx = await createFinalizeMany(wallet, names);
-    const unlock = await wallet.fundLock.lock();
-
-    try {
-      return this._ledgerSendCustomTx(wallet, mtx);
-    } finally {
-      unlock();
+    if (!names.length) {
+      throw new Error('Nothing to do.');
     }
-  };
+    const actions = names.map(name => ['FINALIZE', name]);
 
-  renewAll = () => this._ledgerProxy(
-    () => this._executeRPC('createbatch', [[['RENEW']], {paths: true}]),
-    async () => {
-      try {
-        while (true) {
-          await this._executeRPC('sendbatch', [[['RENEW']]]);
-        }
-      } catch (error) {
-        if (error.message !== 'Nothing to do.') throw error;
-      } finally {
-        await this.lock();
-      }
+    // Chunk into multiple batches to stay within consensus limits
+    const chunkedActions = [];
+    const chunkSize = consensus.MAX_BLOCK_RENEWALS / 6;
+    for(let i = 0; i < actions.length; i += chunkSize) {
+      chunkedActions.push(actions.slice(i, i + chunkSize));
     }
-  );
 
+    // Only call once now, see later about repeated calls
+    return this._walletProxy(
+      () => this._executeRPC('createbatch', [chunkedActions[0], {paths: true}]),
+    );
+  }
+
+  renewAll = async () => {
+    // Only call once now, see later about repeated calls
+    return this._walletProxy(
+      () => this._executeRPC('createbatch', [[['RENEW']], {paths: true}]),
+    );
+  }
+
+  // not used, but can be in the future
   renewMany = async (names) => {
-    const {wdb} = this.node;
-    const wallet = await wdb.get(this.name);
-    const mtx = await createRenewMany(wallet, names);
-    const unlock = await wallet.fundLock.lock();
-
-    try {
-      return this._ledgerSendCustomTx(wallet, mtx);
-    } finally {
-      unlock();
+    if (!names.length) {
+      throw new Error('Nothing to do.');
     }
-  };
+    const actions = names.map(name => ['RENEW', name]);
 
-  sendRevealAll = () => this._ledgerProxy(
-    () => this._executeRPC('createbatch', [[['REVEAL']], {paths: true}]),
-    async () => {
-      try {
-        while (true) {
-          await this._executeRPC('sendbatch', [[['REVEAL']]]);
-        }
-      } catch (error) {
-        if (error.message !== 'Nothing to do.') throw error;
-      } finally {
-        await this.lock();
-      }
+    // Chunk into multiple batches to stay within consensus limits
+    const chunkedActions = [];
+    const chunkSize = consensus.MAX_BLOCK_RENEWALS / 6;
+    for(let i = 0; i < actions.length; i += chunkSize) {
+      chunkedActions.push(actions.slice(i, i + chunkSize));
     }
-  );
 
-  sendRedeemAll = () => this._ledgerProxy(
-    () => this._executeRPC('createbatch', [[['REDEEM']], {paths: true}]),
-    async () => {
-      try {
-        while (true) {
-          await this._executeRPC('sendbatch', [[['REDEEM']]]);
-        }
-      } catch (error) {
-        if (error.message !== 'Nothing to do.') throw error;
-      } finally {
-        await this.lock();
-      }
-    }
-  );
+    // Only call once now, see later about repeated calls
+    return this._walletProxy(
+      () => this._executeRPC('createbatch', [chunkedActions[0], {paths: true}]),
+    );
+  }
 
-  sendRenewal = (name) => this._ledgerProxy(
+  sendRevealAll = async () => {
+    // Only call once now, see later about repeated calls
+    return this._walletProxy(
+      () => this._executeRPC('createbatch', [[['REVEAL']], {paths: true}]),
+    );
+  }
+
+  sendRedeemAll = async () => {
+    // Only call once now, see later about repeated calls
+    return this._walletProxy(
+      () => this._executeRPC('createbatch', [[['REDEEM']], {paths: true}]),
+    );
+  }
+
+  sendRenewal = (name) => this._walletProxy(
     () => this._executeRPC('createrenewal', [name]),
-    () => this._executeRPC('sendrenewal', [name], this.lock),
   );
 
-  sendTransfer = (name, recipient) => this._ledgerProxy(
+  sendTransfer = (name, recipient) => this._walletProxy(
     () => this._executeRPC('createtransfer', [name, recipient]),
-    () => this._executeRPC('sendtransfer', [name, recipient], this.lock),
   );
 
-  cancelTransfer = (name) => this._ledgerProxy(
+  cancelTransfer = (name) => this._walletProxy(
     () => this._executeRPC('createcancel', [name]),
-    () => this._executeRPC('sendcancel', [name], this.lock),
   );
 
-  finalizeTransfer = (name) => this._ledgerProxy(
+  finalizeTransfer = (name) => this._walletProxy(
     () => this._executeRPC('createfinalize', [name]),
-    () => this._executeRPC('sendfinalize', [name], this.lock),
   );
 
-  revokeName = (name) => this._ledgerProxy(
+  revokeName = (name) => this._walletProxy(
     () => this._executeRPC('createrevoke', [name]),
-    () => this._executeRPC('sendrevoke', [name], this.lock),
   );
 
-  send = (to, amount, fee) => this._ledgerProxy(
+  send = (to, amount, fee) => this._walletProxy(
     async () => {
       await this._executeRPC('settxfee', [Number(fee)]);
+      // createsendtoaddress: "address" amount "comment" "comment-to" subtractfeefromamount "account"
       return this._executeRPC('createsendtoaddress', [to, Number(amount), '', '', false, 'default']);
-    },
-    async () => {
-      const res = await this.client.send(this.name, {
-        rate: Number(toBaseUnits(fee)),
-        outputs: [{
-          value: Number(toBaseUnits(amount)),
-          address: to,
-        }],
-      });
-      await this.lock();
-      return res;
     },
   );
 
@@ -883,38 +822,29 @@ class WalletService {
     }
   );
 
-  lock = () => this._ledgerProxy(
-    () => this.client.lock(this.name),
-    () => this.client.lock(this.name),
-    false
-  );
+  lock = () => {
+    return this.client.lock(this.name);
+  };
 
   unlock = (name, passphrase) => {
     this.setWallet(name);
-    return this._ledgerProxy(
-      () => this.client.unlock(this.name, passphrase),
-      () => this.client.unlock(this.name, passphrase),
-      false
-    );
+    return this.client.unlock(this.name, passphrase);
   };
+
+  isLocked = async () => {
+    const info = await this.getWalletInfo();
+
+    // Ledger is always "unlocked"
+    if (info.watchOnly) {
+      return false;
+    }
+
+    return info === null || info.master.until === 0;
+  }
 
   addSharedKey = async (account, xpub) => {
     return this.client.addSharedKey(this.name, account, xpub);
   };
-
-  isLocked = () => this._ledgerProxy(
-    () => false,
-    async () => {
-      try {
-        const info = await this.client.getInfo(this.name);
-        return info === null || info.master.until === 0;
-      } catch (e) {
-        console.error(e);
-        return true;
-      }
-    },
-    false,
-  );
 
   getNonce = async (options) => {
     await this._ensureClient();
@@ -982,52 +912,34 @@ class WalletService {
     mtx.outputs.push(output0);
     mtx.outputs.push(output1);
 
-    // Sign
-    mtx = await this._ledgerProxy(
-      // With ledger: this function is a little funny because it's
-      // stubbing the wallet.create____() - type functions and must return
-      // an MTX to the guts of _ledgerProxy() for verification & signing.
-      async () => {
-        const key = await wallet.getKey(coin.address);
-        const publicKey = key.publicKey;
-        const path =
-          'm/' +                                    // master
-          '44\'/' +                                 // purpose
-          `${this.network.keyPrefix.coinType}'/` +  // coin type
-          `${key.account}'/` +                      // should be 0 ("default")
-          `${key.branch}/` +                        // should be 1 (change)
-          `${key.index}`;
+    await wallet.template(mtx);
 
-        const options = {
-          inputs: [
-            new LedgerInput({
-              publicKey,
-              path,
-              coin,
-              input: mtx.inputs[0],
-              index: 0,
-              type: Script.hashType.SINGLEREVERSE | Script.hashType.ANYONECANPAY
-            })
-          ]
-        };
+    // Set sighashType for input0
+    const type = Script.hashType.SINGLEREVERSE | Script.hashType.ANYONECANPAY;
+    const metadata = {
+      inputs: [
+        {sighashType: type},
+      ],
+    }
 
-        return [mtx.getJSON(this.network), options];
-      },
-      // No ledger
-      async () => {
-        const rings = await wallet.deriveInputs(mtx);
-        assert(rings.length === 1);
-        const signed = await mtx.sign(
-          rings,
-          Script.hashType.SINGLEREVERSE | Script.hashType.ANYONECANPAY,
-        );
-        assert(signed === 1);
-        assert(mtx.verify());
-        return mtx;
-      },
-      true,    // shouldConfirmLedger (ledger only)
-      false    // broadcast (ledger only)
+    // Sign transaction
+    mtx = await this._walletProxy(
+      () => mtx,
+      {
+        broadcast: false,
+        returnOnlyIfFullySigned: false,
+        ledgerOptions: {includeLedgerInputs: true},
+        metadata,
+      }
     );
+
+    // Check if input0 is signed
+    // (if partially signed multisig, return null)
+    try {
+      mtx.checkInput(0, coin, type);
+    } catch (error) {
+      return null;
+    }
 
     return mtx.encode().toString('hex');
   };
@@ -1035,7 +947,7 @@ class WalletService {
   claimPaidTransfer = async (txHex) => {
     const {wdb} = this.node;
     const wallet = await wdb.get(this.name);
-    const mtx = MTX.decode(Buffer.from(txHex, 'hex'));
+    let mtx = MTX.decode(Buffer.from(txHex, 'hex'));
 
     // Bob should verify all the data in the MTX to ensure everything is valid,
     // but this is the minimum.
@@ -1071,47 +983,57 @@ class WalletService {
       mtx.outputs = [outputs[0], outputs[2], outputs[1]];
     }
 
+    await wallet.template(mtx);
+
     // Sign & Broadcast
     // Bob uses SIGHASHALL. The final TX looks like this:
     //
     // input 0: TRANSFER UTXO --> output 0: FINALIZE covenant
     // input 1: Bob's funds   --- output 1: change to Bob
     //                 (null) --- output 2: payment to Alice
-    await this._ledgerProxy(
-      // With ledger: even though we are signing with SIGHASH_ALL,
-      // we still need to provide Ledger with an array of input
-      // data, or else it will try to sign all inputs.
-      async () => {
-        const coin = mtx.view.getCoinFor(mtx.inputs[1]);
-        const key = await wallet.getKey(coin.address);
-        const publicKey = key.publicKey;
-        const path =
-          'm/' +                                    // master
-          '44\'/' +                                 // purpose
+
+    // With ledger: even though we are signing with SIGHASH_ALL,
+    // we still need to provide Ledger with an array of input
+    // data, or else it will try to sign all inputs.
+    let ledgerInput;
+    {
+      const input = mtx.inputs[1]
+      const coin = mtx.view.getCoinFor(input);
+      const key = await wallet.getKey(coin.address);
+      const script = Script.decode(input.witness.items[input.witness.items.length - 1]);
+      const path =
+        'm/' +                                    // master
+        '44\'/' +                                 // purpose
           `${this.network.keyPrefix.coinType}'/` +  // coin type
           `${key.account}'/` +                      // should be 0 ("default")
           `${key.branch}/` +                        // should be 1 (change)
-          `${key.index}`;
+        `${key.index}`;
+      ledgerInput = new LedgerInput({
+        index: 1,
+        input,
+        coin,
+        path,
+        publicKey: key.publicKey,
+        redeem: script,
+      })
+    }
 
-        const options = {
-          inputs: [
-            new LedgerInput({
-              publicKey,
-              path,
-              coin,
-              input: mtx.inputs[1],
-              index: 1
-            })
-          ]
-        };
-
-        return [mtx.getJSON(this.network), options];
-      },
-      // No ledger.
-      async () => {
-        await wallet.sendMTX(mtx);
+    mtx = await this._walletProxy(
+      () => mtx,
+      {
+        returnOnlyIfFullySigned: false,
+        ledgerOptions: {inputs: [ledgerInput]}
       }
     );
+
+    // Broadcast if mtx is fully signed
+    // (if partially signed multisig, return null)
+    if (mtx.verify()) {
+      await this.nodeService.broadcastRawTx(mtx.toHex());
+      return mtx;
+    }
+
+    return null;
   };
 
   /**
@@ -1382,7 +1304,94 @@ class WalletService {
     this.didSelectWallet = true;
   }
 
-  _ledgerProxy = async (onLedger, onNonLedger, shouldConfirmLedger = true, broadcast = true) => {
+  /**
+   * Wallet Proxy
+   * Parses the tx and routes it to signers
+   * for hot/ledger, pkh/multisig
+   * @param {function} createFn function that returns an mtx
+   * @param {object} options options
+   * @param {boolean} options.broadcast broadcast tx after sign?
+   * @param {boolean} options.returnOnlyIfFullySigned return null if incomplete sigs
+   * @param {object} options.ledgerOptions options passed to ledgerProxy
+   * @param {Metadata} options.metadata extra info about inputs and outputs
+   * @returns {import('hsd/lib/primitives/mtx').MTX | null} mtx or null
+   */
+  _walletProxy = async (createFn, options) => {
+    const {
+      broadcast = true,
+      returnOnlyIfFullySigned = true, // if we don't have all signatures, return null
+      ledgerOptions = {},
+      metadata = null,
+    } = options || {};
+
+    const wallet = await this.node.wdb.get(this.name);
+    const info = await this.getWalletInfo();
+    const accountInfo = await this.getAccountInfo();
+
+    // Call createFn to get an mtx
+    let mtx = await createFn();
+
+    // Coerce into MTX
+    if (!(mtx instanceof MTX)) {
+      mtx = MTX.fromJSON(mtx);
+    }
+
+    // Parse MTX Data
+    const parsedMtxData = await this.parseMtx(wallet, mtx, {metadata});
+    mtx = parsedMtxData.mtx;  // mtx is modified (adding coins to view, etc.)
+
+    try {
+      // Handle multisig (hot and ledger wallets)
+      if (parsedMtxData.containsMultisig) {
+        // multisigProxy does not really broadcast, it's just for UI
+        mtx = await this._multisigProxy(parsedMtxData, {broadcast});
+      } else {
+        // Not a multisig
+
+        // Handle Ledger wallets (non-multisig)
+        if (info.watchOnly && accountInfo.type !== 'multisig') {
+          mtx = await this._ledgerProxy(
+            mtx,
+            {
+              ...ledgerOptions,
+              sighashTypes: parsedMtxData.metadata.inputs.map(x => x.sighashType),
+            }
+          );
+        } else {
+          // Handle hot wallets (non-multisig)
+          const rings = await wallet.deriveInputs(mtx);
+          const type = parsedMtxData.metadata?.inputs?.[0]?.sighashType ?? Script.hashType.ALL;
+          await mtx.sign(rings, type);
+        }
+      }
+
+      // Validate tx
+      let isValid = true;
+      try {
+        mtx.check();
+      } catch (error) {
+        isValid = false;
+      }
+
+      if (broadcast && isValid) {
+        try {
+          await this.nodeService.broadcastRawTx(mtx.toHex());
+          return mtx;
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      if (returnOnlyIfFullySigned) {
+        if (isValid) return mtx;
+        else return null;
+      }
+
+      return mtx;
+    } finally {
+      this.lock();
+    }
+  }
     const info = await this.getWalletInfo();
     if (info.watchOnly) {
       // I feel terrible about this, but...
@@ -1394,29 +1403,50 @@ class WalletService {
         [res, extra] = oneOrMoreReturnValues;
       }
 
-      if (shouldConfirmLedger) {
-        const mtx = MTX.fromJSON(res);
-        // Prepare extra TX data for Ledger.
-        // Unfortunately the MTX returned from the wallet.create____()
-        // functions does not include what we need, so we have to compute it.
-        const options = {};
-        if (extra)
-          Object.assign(options, extra);
-        for (let index = 0; index < res.outputs.length; index++) {
-          const output = res.outputs[index];
+  /**
+   * Ledger Proxy
+   * Call _walletProxy, not this directly
+   * @param {import('hsd/lib/primitives/mtx').MTX} mtx
+   * @param {object} ledgerOptions
+   * @param {LedgerInput[]} ledgerOptions.inputs
+   * @param {boolean} [ledgerOptions.includeLedgerInputs=false] replaces inputs with generated Linputs
+   * @param {Script[]=} ledgerOptions.redeemScripts replaces inputs with generated Linputs
+   * @param {Script.hashType[]=} ledgerOptions.sighashTypes array of sighash types indexed by input number
+   * @returns {import('hsd/lib/primitives/mtx').MTX} signed mtx
+   */
+  _ledgerProxy = async (mtx, ledgerOptions) => {
+    const wallet = await this.node.wdb.get(this.name);
+    const accountInfo = await this.getAccountInfo();
 
-          // The user does not have to verify change outputs on the device.
-          // What we do is pass metadata about the change output to Ledger,
-          // and the app will verify the change address belongs to the wallet.
-          const address = Address.fromString(output.address, this.network);
-          const key = await this.getPublicKey(address);
+    // Prepare extra TX data for Ledger.
+    // Unfortunately the MTX returned from the wallet.create____()
+    // functions does not include what we need, so we have to compute it.
+    const options = {};
+    if (ledgerOptions) {
+      Object.assign(options, ledgerOptions);
+    }
 
-          if (!key)
-            continue;
+    if (options.includeLedgerInputs) {
+      options.inputs = await this._ledgerInputs(
+        wallet, mtx, options.sighashTypes, options.redeemScripts
+      );
+    }
 
-          if (key.branch === 1) {
-            if (options.change)
-              throw new Error('Transaction should only have one change output.');
+    for (let index = 0; index < mtx.outputs.length; index++) {
+      const output = mtx.outputs[index];
+
+      // The user does not have to verify change outputs on the device.
+      // What we do is pass metadata about the change output to Ledger,
+      // and the app will verify the change address belongs to the wallet.
+      const address = output.address;
+      const key = await this.getPublicKey(address);
+
+      if (!key)
+        continue;
+
+      if (key.branch === 1 && accountInfo.type !== 'multisig') {
+        if (options.change)
+          throw new Error('Transaction should only have one change output.');
 
             const path =
               'm/' +                                  // master
@@ -1454,13 +1484,13 @@ class WalletService {
               if (options.covenants == null)
                 options.covenants = [];
 
-              // We could try to just pass the name in from the functions that
-              // call _ledgerProxy(), but that wouldn't work for send____All()
-              const hash = output.covenant.items[0];
-              const name = await this.nodeService.getNameByHash(hash);
+          // We could try to just pass the name in from the functions that
+          // call _ledgerProxy(), but that wouldn't work for send____All()
+          const hash = output.covenant.items[0];
+          const name = await this.nodeService.getNameByHash(hash.toString('hex'));
 
-              options.covenants.push(new LedgerCovenant({index, name}));
-              break;
+          options.covenants.push(new LedgerCovenant({index, name}));
+          break;
             }
             default:
               throw new Error('Unrecognized covenant type.');
@@ -1484,21 +1514,18 @@ class WalletService {
               const {accountKey} = await this.getAccountInfo();
               const deviceKey = await ledger.getAccountXPUB(0);
               if (accountKey !== deviceKey.xpubkey(this.network))
-                throw new Error('Ledger public key does not match wallet. (Wrong device?)')
+            throw new Error('Ledger public key does not match wallet. (Wrong device?)')
 
-              const retMtx = await ledger.signTransaction(mtx, options);
-              retMtx.check();
+          const retMtx = await ledger.signTransaction(mtx, options);
 
-              if (broadcast)
-                await this.nodeService.broadcastRawTx(retMtx.toHex());
-
-              mainWindow.send('LEDGER/CONNECT_OK');
-              ipc.removeListener('LEDGER/CONNECT_RES', resHandler);
-              ipc.removeListener('LEDGER/CONNECT_CANCEL', cancelHandler);
-              resolve(retMtx);
-            } catch (e) {
-              // This ipc message goes to the Ledger modal
-              mainWindow.send('LEDGER/CONNECT_ERR', e.message);
+          mainWindow.send('LEDGER/CONNECT_OK');
+          ipc.removeListener('LEDGER/CONNECT_RES', resHandler);
+          ipc.removeListener('LEDGER/CONNECT_CANCEL', cancelHandler);
+          resolve(retMtx);
+        } catch (e) {
+          console.error(e);
+          // This ipc message goes to the Ledger modal
+          mainWindow.send('LEDGER/CONNECT_ERR', e.message);
 
               // If we reject from this Promise, it will go to whatever
               // function is trying to send a transaction. We don't need
@@ -1528,56 +1555,30 @@ class WalletService {
             ipc.removeListener('LEDGER/CONNECT_CANCEL', cancelHandler);
           };
           ipc.on('LEDGER/CONNECT_RES', resHandler);
-          ipc.on('LEDGER/CONNECT_CANCEL', cancelHandler);
-          mainWindow.send('LEDGER/CONNECT', mtx.txid());
-        });
-      }
-
-      return res;
-    }
-
-    return onNonLedger();
+      ipc.on('LEDGER/CONNECT_CANCEL', cancelHandler);
+      mainWindow.send('LEDGER/CONNECT', mtx.txid());
+    });
   };
 
-  _ledgerDisabled = (message, onNonLedger) => {
-    return this._ledgerProxy(() => {
+  _ledgerDisabled = async (message, fn) => {
+    const info = await this.getWalletInfo();
+    if (info.watchOnly) {
       throw new Error(message);
-    }, onNonLedger, false);
+    }
+
+    return fn();
   };
 
-  async _ledgerSendCustomTx(wallet, mtx) {
-    await wallet.fill(mtx);
-    const finalizedTX = await wallet.finalize(mtx);
-
-    if (wallet.watchOnly) {
-      return await this._ledgerProxy(
-        // With ledger: create ledger inputs that include path
-        async () => {
-          const options = {
-            inputs: await this._ledgerInputs(wallet, finalizedTX),
-          }
-          return [finalizedTX.getJSON(this.network), options];
-        },
-        // No ledger: unused
-        async () => {
-          return finalizedTX;
-        },
-        true,    // shouldConfirmLedger (ledger only)
-        true     // broadcast (ledger only)
-      );
-    } else {
-      return await wallet.sendMTX(finalizedTX, null);
-    }
-  }
-
-  async _ledgerInputs(wallet, tx) {
+  async _ledgerInputs(wallet, tx, sighashTypes = [], redeemScripts = []) {
     // For mtx created in Bob (instead of hsd), the inputs don't include
     // path, so they need to be recreated as LedgerInput
     const ledgerInputs = [];
 
     for (const [idx, input] of tx.inputs.entries()) {
       const coin = await wallet.getCoin(input.prevout.hash, input.prevout.index);
+      if (!coin) continue;
       const key = await wallet.getKey(coin.address);
+      if (!key) continue;
       const publicKey = key.publicKey;
       const path =
         'm/' +                                    // master
@@ -1592,6 +1593,8 @@ class WalletService {
         coin,
         input,
         index: idx,
+        type: sighashTypes[idx] ?? Script.hashType.ALL,
+        redeem: redeemScripts[idx] ?? undefined,
       })
       ledgerInputs.push(ledgerInput)
     }
@@ -1667,9 +1670,9 @@ function getPort(url = '') {
   return Number(port) || 80;
 }
 
-function assert(value) {
+function assert(value, msg) {
   if (!value) {
-    throw new Error('Assertion failed.');
+    throw new Error(msg || 'Assertion failed.');
   }
 }
 
