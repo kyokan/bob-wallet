@@ -35,9 +35,11 @@ class OpenBid extends Component {
     const {t} = this.context;
 
     try {
-      await sendOpen();
-      this.props.showSuccess(t('openSuccessText'));
-      analytics.track('opened bid');
+      const res = await sendOpen();
+      if (res !== null) {
+        this.props.showSuccess(t('openSuccessText'));
+        analytics.track('opened bid');
+      }
     } catch (e) {
       console.error(e);
       logger.error(`Error received from OpenBid - sendOpen]\n\n${e.message}\n${e.stack}\n`);

@@ -150,10 +150,12 @@ export default class Account extends Component {
     }[action];
 
     try {
-      await functionToExecute(args);
-      this.props.fetchTransactions();
-      this._updateStatsAndBalance();
-      this.props.showSuccess(t('genericRequestSuccess'));
+      const res = await functionToExecute(args);
+      if (res !== null) {
+        this.props.fetchTransactions();
+        this._updateStatsAndBalance();
+        this.props.showSuccess(t('genericRequestSuccess'));
+      }
     } catch (e) {
       if (e.message === 'Could not resolve preferred inputs.') {
         this.props.showError(t('pleaseWaitForPendingTxs'));

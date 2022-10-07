@@ -197,9 +197,9 @@ class SendModal extends Component {
       this.setState({
         isSending: false,
         isConfirming: false,
-        transactionSent: true,
+        transactionSent: res !== null,
         errorMessage: '',
-        transactionHash: res.hash
+        transactionHash: (res && res.hash) || '',
       });
       analytics.track('sent coins', {
         selectedGasOption,

@@ -48,40 +48,52 @@ class TransferDetails extends Component {
     );
   };
 
-  sendTransfer = () => {
-    this.props.sendTransfer(this.state.recipient)
-      .then(() => {
+  sendTransfer = async () => {
+    try {
+      const res = await this.props.sendTransfer(this.state.recipient);
+      if (res !== null) {
         this.props.showSuccess(this.context.t('transferSuccess'));
         analytics.track('transferred domain');
-      })
-      .catch(e => this.props.showError(e.message));
+      }
+    } catch (e) {
+      this.props.showError(e.message);
+    }
   };
 
-  cancelTransfer = () => {
-    this.props.cancelTransfer()
-      .then(() => {
+  cancelTransfer = async () => {
+    try {
+      const res = await this.props.cancelTransfer();
+      if (res !== null) {
         this.props.showSuccess(this.context.t('cancelSuccess'));
         analytics.track('cancelled transfer');
-      })
-      .catch(e => this.props.showError(e.message));
+      }
+    } catch (e) {
+      this.props.showError(e.message);
+    }
   };
 
-  revokeName = () => {
-    this.props.revokeName()
-      .then(() => {
+  revokeName = async () => {
+    try {
+      const res = await this.props.revokeName();
+      if (res !== null) {
         this.props.showSuccess(this.context.t('revokeSuccess'));
         analytics.track('revoked name');
-      })
-      .catch(e => this.props.showError(e.message));
+      }
+    } catch (e) {
+      this.props.showError(e.message);
+    }
   };
 
-  finalizeTransfer = () => {
-    this.props.finalizeTransfer()
-      .then(() => {
+  finalizeTransfer = async () => {
+    try {
+      const res = await this.props.finalizeTransfer();
+      if (res !== null) {
         this.props.showSuccess(this.context.t('finalizeSuccess'));
         analytics.track('finalized transfer');
-      })
-      .catch(e => this.props.showError(e.message));
+      }
+    } catch (e) {
+      this.props.showError(e.message);
+    }
   };
 
   finalizeWithPayment = () => {

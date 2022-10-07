@@ -121,13 +121,16 @@ export class Records extends Component {
   };
 
   sendUpdate = async () => {
+    const {t} = this.context;
     this.setState({isUpdating: true});
     try {
       const {updatedResource} = this.state;
-      await this.props.sendUpdate(this.props.name, updatedResource);
+      const res = await this.props.sendUpdate(this.props.name, updatedResource);
       this.setState({isUpdating: false});
-      this.props.showSuccess('Your update request is sent successfully! It should be confirmed in 15 minutes.');
-      analytics.track('updated domain');
+      if (res !== null) {
+        this.props.showSuccess(t('updateSuccess'));
+        analytics.track('updated domain');
+      }
     } catch (e) {
       logger.error(`Error received from Records.js - sendUpdate\n\n${e.message}\n${e.stack}\n`);
       this.setState({
@@ -231,17 +234,19 @@ export class Records extends Component {
   }
 
   renderPendingUpdateOverlay() {
+    const {t} = this.context;
     return (
       <div className="records-table__pending-overlay">
-        <div className="records-table__pending-overlay__content">Updating records...</div>
+        <div className="records-table__pending-overlay__content">{t('updatingRecords')}</div>
       </div>
     );
   }
 
   renderTransferringOverlay() {
+    const {t} = this.context;
     return (
       <div className="records-table__pending-overlay">
-        <div className="records-table__pending-overlay__content">Domain cannot be modified while a transfer is in progress.</div>
+        <div className="records-table__pending-overlay__content">{t('updateDuringTransfer')}</div>
       </div>
     );
   }
@@ -294,6 +299,7 @@ export class Records extends Component {
   }
 
   render() {
+    const {t} = this.context;
     const {
       editable,
       pendingData,
@@ -303,7 +309,7 @@ export class Records extends Component {
     } = this.props;
 
     if (!editable && (!resource || !resource.records.length)) {
-      return <div className="auction-panel__header__content">None</div>
+      return <div className="auction-panel__header__content">{t('none')}</div>
     }
 
 
@@ -384,4 +390,3 @@ function getPendingData(domain) {
 
   return null;
 }
-

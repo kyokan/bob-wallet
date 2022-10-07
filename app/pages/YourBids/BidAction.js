@@ -43,6 +43,28 @@ class BidAction extends Component {
 
   isSold = () => isClosed(this.props.domain);
 
+  sendRegister = async () => {
+    try {
+      const res = await this.props.sendRegister();
+      if (res !== null) {
+        this.props.showSuccess(this.context.t('registerSuccess'));
+      }
+    } catch (e) {
+      this.props.showError(e.message);
+    }
+  };
+
+  sendRedeem = async () => {
+    try {
+      const res = await this.props.sendRedeem();
+      if (res !== null) {
+        this.props.showSuccess(this.context.t('redeemSuccess'));
+      }
+    } catch (e) {
+      this.props.showError(e.message);
+    }
+  };
+
   render() {
     const { domain, history, name } = this.props;
     const {t} = this.context;
@@ -85,12 +107,6 @@ class BidAction extends Component {
   }
 
   renderRegister() {
-    const {
-      name,
-      sendRegister,
-      showSuccess,
-      showError,
-    } = this.props;
     const {t} = this.context;
     const domain = this.props.domain || {};
     const reveals = domain.reveals || [];
@@ -105,9 +121,7 @@ class BidAction extends Component {
               className="bid-action__link"
               onClick={e => {
                 e.stopPropagation();
-                sendRegister(name)
-                  .then(() => showSuccess(t('registerSuccess')))
-                  .catch(e => showError(e.message));
+                this.sendRegister();
               }}
             >
               {t('register')}
@@ -133,9 +147,7 @@ class BidAction extends Component {
               className="bid-action__link"
               onClick={e => {
                 e.stopPropagation();
-                this.props.sendRedeem()
-                  .then(() => this.props.showSuccess(t('redeemSuccess')))
-                  .catch(e => this.props.showError(e.message));
+                this.sendRedeem();
               }}
             >
               {t('redeem')}

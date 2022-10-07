@@ -50,7 +50,6 @@ class BidNow extends Component {
     hasAccepted: false,
     bidAmount: '',
     disguiseAmount: '',
-    successfullyBid: false,
     showSuccessModal: false,
   };
 
@@ -84,12 +83,11 @@ class BidNow extends Component {
       if (!domain.walletHasName)
         height = domain.info.height - 1;
 
-      await sendBid(Number(bidAmount), lockup, height);
+      const res = await sendBid(Number(bidAmount), lockup, height);
       this.setState({
         isReviewing: false,
         isPlacingBid: false,
-        successfullyBid: true,
-        showSuccessModal: true,
+        showSuccessModal: res !== null,
       });
       analytics.track('sent bid');
     } catch (e) {

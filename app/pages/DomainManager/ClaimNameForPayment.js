@@ -72,9 +72,11 @@ export default class ClaimNameForPayment extends Component {
       this.setState({
         isLoading: true,
       });
-      await this.props.claimPaidTransfer(this.state.hex);
+      const mtx = await this.props.claimPaidTransfer(this.state.hex);
+      if (mtx) {
+        this.props.showSuccess(t('claimNamePaymentSuccess'));
+      }
       this.props.onClose();
-      this.props.showSuccess(t('claimNamePaymentSuccess'));
     } catch (e) {
       this.setState({
         transferError: e.message,
