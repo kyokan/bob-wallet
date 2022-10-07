@@ -219,6 +219,8 @@ class KeyInputRow extends Component {
     walletKeys: PropTypes.array.isRequired,
   }
 
+  static contextType = I18nContext;
+
   state = {
     name: '',
     accountKey: '',

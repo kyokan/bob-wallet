@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from "prop-types";
+import {I18nContext} from "../../utils/i18n";
 import './tx-viewer.scss';
 
 @connect(
@@ -19,6 +20,8 @@ export default class TxViewer extends Component {
     signerData: PropTypes.array,
     metadata: PropTypes.object,
   }
+
+  static contextType = I18nContext;
 
   render() {
     const { t } = this.context;
