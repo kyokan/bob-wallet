@@ -51,13 +51,6 @@ class FundAccessOptions extends Component {
           >
             {t('obMainConnectLedger')}
           </button>
-          <button
-            type="button"
-            className="funding-options__footer__secondary-btn"
-            onClick={() => this.props.history.push('/new-wallet/multisig')}
-          >
-            Multisig
-          </button>
 
           {!!this.props.wallets.length && (
             <Link

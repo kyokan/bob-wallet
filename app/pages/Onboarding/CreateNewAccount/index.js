@@ -9,7 +9,7 @@ import BackUpSeedWarning from '../BackUpSeedWarning/index';
 import CopySeed from '../../CopySeed/index';
 import ConfirmSeed from '../ConfirmSeed/index';
 import SetName from '../SetName/index';
-import CreateMultisig from '../CreateMultisig/index';
+import SelectWalletType from '../SelectWalletType/index';
 import * as walletActions from '../../../ducks/walletActions';
 import '../ImportSeedEnterMnemonic/importenter.scss';
 import '../ImportSeedWarning/importwarning.scss';
@@ -22,13 +22,13 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
 
 const TERMS_OF_USE = 0;
 const SET_NAME = 1;
-const CREATE_PASSWORD = 2;
-const OPT_IN_ANALYTICS = 3;
-const BACK_UP_SEED_WARNING = 4;
-const COPY_SEEDPHRASE = 5;
-const CONFIRM_SEEDPHRASE = 6;
-const LEDGER_CONNECT = 7;
-const MULTISIG = 8;
+const SELECT_WALLET_TYPE = 2;
+const CREATE_PASSWORD = 3;
+const OPT_IN_ANALYTICS = 4;
+const BACK_UP_SEED_WARNING = 5;
+const COPY_SEEDPHRASE = 6;
+const CONFIRM_SEEDPHRASE = 7;
+const LEDGER_CONNECT = 8;
 
 class CreateNewAccount extends Component {
   static propTypes = {
@@ -44,21 +44,21 @@ class CreateNewAccount extends Component {
     currentStep: TERMS_OF_USE,
     stepNumber: 1,
     name: '',
+    m: null,
+    n: null,
     seedphrase: '',
     passphrase: '',
     isLoading: false,
   };
 
   render() {
-    // null, 'ledger', 'multisig'
+    // null, 'ledger'
     const variation = this.props.match.params.loc;
 
-    let totalSteps = 6;
+    let totalSteps = 7;
     switch (variation) {
       case 'ledger':
-        totalSteps = 4;
-        break;
-      case 'multisig':
+        totalSteps = 5;
         break;
     }
 
@@ -86,10 +86,31 @@ class CreateNewAccount extends Component {
             })}
             onNext={(name) => {
               this.setState({
-                currentStep: CREATE_PASSWORD,
+                currentStep: SELECT_WALLET_TYPE,
                 name,
                 stepNumber: this.state.stepNumber + 1
-            });
+              });
+            }}
+            onCancel={() => this.props.history.push('/funding-options')}
+          />
+        );
+      case SELECT_WALLET_TYPE:
+        return (
+          <SelectWalletType
+            currentStep={this.state.stepNumber}
+            totalSteps={totalSteps}
+            onBack={() =>
+              this.setState({
+                currentStep: SET_NAME,
+                stepNumber: this.state.stepNumber - 1
+              })
+            }
+            onNext={async (m, n) => {
+              this.setState({
+                currentStep: CREATE_PASSWORD,
+                m, n,
+                stepNumber: this.state.stepNumber + 1
+              });
             }}
             onCancel={() => this.props.history.push('/funding-options')}
           />
@@ -101,7 +122,7 @@ class CreateNewAccount extends Component {
             totalSteps={totalSteps}
             onBack={() =>
               this.setState({
-                currentStep: SET_NAME,
+                currentStep: SELECT_WALLET_TYPE,
                 stepNumber: this.state.stepNumber - 1
               })
             }
@@ -112,9 +133,6 @@ class CreateNewAccount extends Component {
               switch (variation) {
                 case 'ledger':
                   currentStep = LEDGER_CONNECT;
-                  break;
-                case 'multisig':
-                  currentStep = MULTISIG;
                   break;
               }
 
@@ -148,9 +166,6 @@ class CreateNewAccount extends Component {
                 case 'ledger':
                   currentStep = LEDGER_CONNECT;
                   break;
-                case 'multisig':
-                  currentStep = MULTISIG;
-                  break;
               }
 
               this.setState({
@@ -158,20 +173,6 @@ class CreateNewAccount extends Component {
                 stepNumber: this.state.stepNumber + 1
               });
             }}
-            onCancel={() => this.props.history.push('/funding-options')}
-          />
-        );
-      case MULTISIG:
-        return(
-          <CreateMultisig
-            walletName={this.state.name}
-            passphrase={this.state.passphrase}
-            onBack={() =>
-              this.setState({
-                currentStep: CREATE_PASSWORD,
-                stepNumber: this.state.stepNumber - 1
-              })
-            }
             onCancel={() => this.props.history.push('/funding-options')}
           />
         );
@@ -187,6 +188,8 @@ class CreateNewAccount extends Component {
               })
             }
             onCancel={() => this.props.history.push('/funding-options')}
+            walletM={this.state.m}
+            walletN={this.state.n}
           />
         );
       case BACK_UP_SEED_WARNING:
@@ -213,8 +216,8 @@ class CreateNewAccount extends Component {
                   this.state.passphrase,
                   false, // isLedger
                   null,  // xpub (Ledger only)
-                  1,     // m
-                  1      // n
+                  this.state.m,
+                  this.state.n,
                 );
               }
               const {phrase} = await walletClient.revealSeed(this.state.passphrase);

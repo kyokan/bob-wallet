@@ -28,6 +28,8 @@ class ConnectLedger extends React.Component {
     passphrase: PropTypes.string.isRequired,
     onBack: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,
+    walletM: PropTypes.number,
+    walletN: PropTypes.number,
     completeInitialization: PropTypes.func.isRequired,
     network: PropTypes.string.isRequired,
   };
@@ -82,13 +84,20 @@ class ConnectLedger extends React.Component {
     // set a small timeout to clearly show that this is
     // a two-phase process.
     setTimeout(async () => {
+      let m = 1, n = 1;
+
+      if (this.props.walletN) {
+        m = this.props.walletM;
+        n = this.props.walletN;
+      }
+
       await walletClient.createNewWallet(
         this.props.walletName,
         this.props.passphrase,
         true, // is Ledger
         xpub,
-        1,    // m
-        1     // n
+        m,
+        n
       );
       await this.props.completeInitialization(this.props.walletName, this.props.passphrase);
       this.props.history.push('/account');
