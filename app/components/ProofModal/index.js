@@ -26,7 +26,7 @@ const TOTAL_STEPS = 3
 
 @connect(
   (state) => ({
-    address: state.wallet.address,
+    address: state.wallet.receiveAddress,
     network: state.wallet.network,
     chainHeight: state.node.chain ? state.node.chain.height : -1,
     claims: state.claims,

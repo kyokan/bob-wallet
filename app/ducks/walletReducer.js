@@ -21,9 +21,10 @@ export const SET_FIND_NONCE_PROGRESS = 'app/wallet/setFindNonceProgress';
 
 export function getInitialState() {
   return {
-    address: '',
+    receiveAddress: '',
     apiKey: '',
     wid: '',
+    type: '',
     watchOnly: false,
     isLocked: true,
     phraseMismatch: false,
@@ -38,7 +39,9 @@ export function getInitialState() {
     },
     changeDepth: 0,
     receiveDepth: 0,
-    accountKey: null,
+    accountKey: '',
+    keys: [],
+    keysNames: {},
     transactions: new Map(),
     idle: 0,
     maxIdle: 5,
@@ -55,6 +58,8 @@ export function getInitialState() {
       found: false,
       bidValue: null,
     },
+    m: null,
+    n: null,
   };
 }
 
@@ -68,7 +73,7 @@ export default function walletReducer(state = getInitialState(), {type, payload}
           : new Map(),
         wid: payload.wid,
         watchOnly: payload.watchOnly,
-        address: payload.address,
+        receiveAddress: payload.receiveAddress,
         type: payload.type,
         balance: {
           ...state.balance,
@@ -82,7 +87,10 @@ export default function walletReducer(state = getInitialState(), {type, payload}
         receiveDepth: payload.receiveDepth,
         accountKey: payload.accountKey,
         initialized: typeof payload.initialized === 'undefined' ? state.initialized : payload.initialized,
-        accountInfo: payload.accountInfo,
+        keys: payload.keys,
+        keysNames: payload.keysNames,
+        m: payload.m,
+        n: payload.n,
       };
     case SET_BALANCE:
       return {

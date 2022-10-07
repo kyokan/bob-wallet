@@ -148,7 +148,7 @@ export default withRouter(
       const name = state.names[ownProps.name];
       return {
         domain: name,
-        address: state.wallet.address,
+        address: state.wallet.receiveAddress,
       };
     },
     (dispatch, ownProps) => ({

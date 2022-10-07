@@ -154,7 +154,7 @@ export default withRouter(
 
       return {
         domain: name,
-        address: state.wallet.address,
+        address: state.wallet.receiveAddress,
       };
     },
     (dispatch, ownProps) => ({

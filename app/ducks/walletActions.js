@@ -1,7 +1,7 @@
 import walletClient from '../utils/walletClient';
 import nodeClient from '../utils/nodeClient';
 import throttle from 'lodash.throttle';
-import { getInitializationState, setInitializationState, getMaxIdleMinutes, setMaxIdleMinutes } from '../db/system';
+import { getMaxIdleMinutes, setMaxIdleMinutes } from '../db/system';
 import {
   GET_PASSPHRASE,
   INCREMENT_IDLE,
@@ -29,13 +29,17 @@ export const setWallet = opts => {
     wid = '',
     watchOnly = false,
     initialized = false,
-    address = '',
+    type = '',
+    receiveAddress = '',
     balance = {},
     apiKey = '',
     changeDepth,
     receiveDepth,
-    accountKey,
-    accountInfo = {},
+    accountKey = '',
+    keys = [],
+    keysNames = {},
+    m = null,
+    n = null,
   } = opts;
 
   return {
@@ -44,13 +48,17 @@ export const setWallet = opts => {
       wid,
       watchOnly,
       initialized,
-      address,
+      type,
+      receiveAddress,
       balance,
       apiKey,
       changeDepth,
       receiveDepth,
       accountKey,
-      accountInfo
+      keys,
+      keysNames,
+      m,
+      n,
     },
   };
 };
@@ -58,7 +66,6 @@ export const setWallet = opts => {
 export const completeInitialization = (name, passphrase) => async (dispatch, getState) => {
   const network = getState().wallet.network;
   await walletClient.unlock(name, passphrase);
-  await setInitializationState(network, true);
   await dispatch(fetchWallet());
   dispatch({
     type: UNLOCK_WALLET,
@@ -82,30 +89,12 @@ export const fetchWallet = () => async (dispatch, getState) => {
     payload: maxIdle ?? 5,
   })
 
-  const isInitialized = await getInitializationState(network);
-
-  if (!isInitialized) {
-    return dispatch(setWallet({
-      initialized: false,
-    }));
-  }
-
   const accountInfo = await walletClient.getAccountInfo();
   if (!accountInfo) {
     throw new Error('Could not load wallet.');
   }
 
-  dispatch(setWallet({
-    wid: accountInfo.wid,
-    watchOnly: accountInfo.watchOnly,
-    initialized: true,
-    address: accountInfo.receiveAddress,
-    balance: accountInfo.balance,
-    changeDepth: accountInfo.changeDepth,
-    receiveDepth: accountInfo.receiveDepth,
-    accountKey: accountInfo.accountKey,
-    accountInfo, // TODO: remove all the above crap and just pass account object
-  }));
+  dispatch(setWallet(accountInfo));
 };
 
 export const setAccountDepth = (changeDepth = 0, receiveDepth = 0) => async () => {
@@ -174,9 +163,7 @@ export const verifyPhrase = (passphrase) => async (dispatch, getState) => {
 }
 
 export const reset = () => async (dispatch, getState) => {
-  const network = getState().wallet.network;
   await walletClient.reset();
-  await setInitializationState(network, false);
   return dispatch(fetchWallet());
 };
 

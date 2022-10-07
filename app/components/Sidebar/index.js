@@ -56,7 +56,6 @@ class Sidebar extends Component {
     network: PropTypes.string.isRequired,
     address: PropTypes.string.isRequired,
     updateAvailable: PropTypes.object,
-    accountInfo: PropTypes.object.isRequired,
   };
 
   static contextType = I18nContext;
