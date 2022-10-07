@@ -59,7 +59,7 @@ export default class Transactions extends Component {
       itemsPerPage: itemsPerPage || 5,
     });
 
-    await this.props.fetchTransactions();
+    this.props.fetchTransactions();
   }
 
   async componentDidUpdate(prevProps, prevState) {

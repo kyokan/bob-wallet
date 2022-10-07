@@ -31,7 +31,8 @@ const analytics = aClientStub(() => require("electron").ipcRenderer);
     isFetching: state.wallet.isFetching,
     network: state.wallet.network,
     hnsPrice: state.node.hnsPrice,
-    accountInfo: state.wallet.accountInfo,
+    walletInitialized: state.wallet.initialized,
+    walletType: state.wallet.type,
   }),
   (dispatch) => ({
     fetchWallet: () => dispatch(walletActions.fetchWallet()),
@@ -63,7 +64,8 @@ export default class Account extends Component {
     finalizeAll: PropTypes.func.isRequired,
     renewAll: PropTypes.func.isRequired,
     history: PropTypes.object.isRequired,
-    accountInfo: PropTypes.object.isRequired,
+    walletInitialized: PropTypes.bool.isRequired,
+    walletType: PropTypes.string.isRequired,
   };
 
   static contextType = I18nContext;
@@ -89,8 +91,9 @@ export default class Account extends Component {
     super(props);
     this.updateStatsAndBalance = throttle(this.updateStatsAndBalance, 15000, { trailing: true });
 
-    if (   this.props.accountInfo.type === 'multisig'
-        && !this.props.accountInfo.initialized) {
+    const {walletType, walletInitialized} = this.props;
+
+    if (walletType === 'multisig' && !walletInitialized) {
       this.props.history.push('/multisig');
     }
   }

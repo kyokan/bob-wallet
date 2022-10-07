@@ -108,12 +108,15 @@ class Topbar extends Component {
       title,
       showLogo,
       location: { pathname },
+      walletInitialized,
     } = this.props;
 
     return (
       <React.Fragment>
         {showLogo ? this.renderLogo() : this.renderTitle(title)}
-        {!/domains$/.test(pathname) && <TLDInput minimalErrorDisplay />}
+        {walletInitialized && !/domains$/.test(pathname) &&
+          <TLDInput minimalErrorDisplay />
+        }
         <SyncStatus />
         { this.renderSettingIcon() }
       </React.Fragment>

@@ -54,7 +54,7 @@ class Sidebar extends Component {
     walletHeight: PropTypes.number.isRequired,
     rescanHeight: PropTypes.number,
     network: PropTypes.string.isRequired,
-    address: PropTypes.string.isRequired,
+    address: PropTypes.string,
     updateAvailable: PropTypes.object,
   };
 
@@ -80,7 +80,7 @@ class Sidebar extends Component {
 
     const title = 'Wallet: ' + (walletsDetails[walletId]?.displayName || walletId);
 
-    if (!initialized) {
+    if (!walletInitialized) {
       return(
         <React.Fragment>
           <div className="sidebar__section">{title}</div>
@@ -90,7 +90,7 @@ class Sidebar extends Component {
               to="/multisig"
               activeClassName="sidebar__action--selected"
             >
-              ⚠️ Multisig
+              ⚠️ Multisig Setup
             </NavLink>
           </div>
       </React.Fragment>
@@ -109,7 +109,7 @@ class Sidebar extends Component {
               activeClassName="sidebar__action--selected"
             >
               Multisig
-            </NavLink> 
+            </NavLink>
           }
           <NavLink
             to="/account"
@@ -206,7 +206,7 @@ class Sidebar extends Component {
 
   renderGenerateBlockButton(numblocks) {
     const { network, address, spv } = this.props;
-    if (spv) {
+    if (spv || !address) {
       return;
     }
 
