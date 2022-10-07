@@ -1116,9 +1116,19 @@ class WalletService {
     const ret = [];
 
     for (const wid of wallets) {
-      const info = await wdb.get(wid);
-      const {master: {encrypted}, watchOnly} = info;
-      ret.push({ wid, encrypted, watchOnly });
+      const wallet = await wdb.get(wid);
+      const account = await wallet.getAccount('default');
+      const {master: {encrypted}, watchOnly} = wallet;
+      const {type} = account;
+
+      const suffixes = [];
+      if (watchOnly)
+        suffixes.push('Ledger');
+      if (type === Account.types.MULTISIG)
+        suffixes.push('Multisig');
+
+      const displayName = suffixes.length ? `${wid} (${suffixes.join(', ')})` : wid;
+      ret.push({ wid, encrypted, watchOnly, type, displayName });
     }
 
     return ret;

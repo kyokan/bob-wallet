@@ -43,7 +43,7 @@ export default class AccountLogin extends Component {
   };
 
   async handleLogin(passphrase) {
-    const {wallets, walletsDetails} = this.props;
+    const {wallets} = this.props;
 
     try {
       const walletName = wallets[this.state.chosenWallet];
@@ -61,8 +61,8 @@ export default class AccountLogin extends Component {
   }
 
   render() {
-    const {passphrase, showError} = this.state;
     const {walletsDetails} = this.props;
+    const {passphrase, showError} = this.state;
     const {t} = this.context;
 
     if (!this.props.wallets.length) {
@@ -75,7 +75,7 @@ export default class AccountLogin extends Component {
         <Submittable onSubmit={() => this.handleLogin(passphrase)}>
           <Dropdown
             items={this.props.wallets.map((w) => ({
-              label: w + ((walletsDetails[w] && walletsDetails[w].watchOnly) ? " (Ledger)" : ""),
+              label: (walletsDetails[w] && walletsDetails[w].displayName) || w,
             }))}
             currentIndex={this.state.chosenWallet}
             onChange={(i) => this.setState({ chosenWallet: i })}

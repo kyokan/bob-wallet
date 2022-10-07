@@ -20,16 +20,17 @@ const nodeClient = clientStub(() => require('electron').ipcRenderer);
     newBlockStatus: state.node.newBlockStatus,
     spv: state.node.spv,
     walletId: state.wallet.wid,
+    walletsDetails: state.wallet.walletsDetails,
+    walletInitialized: state.wallet.initialized,
+    walletType: state.wallet.type,
     walletWatchOnly: state.wallet.watchOnly,
     walletSync: state.wallet.walletSync,
     walletHeight: state.wallet.walletHeight,
     rescanHeight: state.wallet.rescanHeight,
-    address: state.wallet.address,
+    address: state.wallet.receiveAddress,
     updateAvailable: state.app.updateAvailable,
-    accountInfo: state.wallet.accountInfo,
   }),
   dispatch => ({
-
   }),
 )
 class Sidebar extends Component {
@@ -42,6 +43,9 @@ class Sidebar extends Component {
     }).isRequired,
     chainHeight: PropTypes.number.isRequired,
     walletId: PropTypes.string.isRequired,
+    walletsDetails: PropTypes.object.isRequired,
+    walletInitialized: PropTypes.bool.isRequired,
+    walletType: PropTypes.string.isRequired,
     tip: PropTypes.string.isRequired,
     newBlockStatus: PropTypes.string.isRequired,
     spv: PropTypes.bool.isRequired,
@@ -73,14 +77,9 @@ class Sidebar extends Component {
 
   renderNav() {
     const {t} = this.context;
-    const {watchOnly, type, initialized} = this.props.accountInfo;
+    const {walletId, walletType, walletInitialized, walletsDetails} = this.props;
 
-    let title = 'Wallet';
-    if (watchOnly)
-      title = 'Ledger Wallet';
-    else if (type === 'multisig')
-      title = 'Multisig Wallet';
-    title += ` (${this.props.walletId})`;
+    const title = 'Wallet: ' + (walletsDetails[walletId]?.displayName || walletId);
 
     if (!initialized) {
       return(
@@ -104,7 +103,7 @@ class Sidebar extends Component {
         <div className="sidebar__section">{title}</div>
         <div className="sidebar__actions">
           {
-            type === 'multisig' &&
+            walletType === 'multisig' &&
             <NavLink
               className="sidebar__action"
               to="/multisig"
