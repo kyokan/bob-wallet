@@ -32,6 +32,7 @@ const TX = require('hsd/lib/primitives/tx');
 const {Output, MTX, Address, Coin} = require('hsd/lib/primitives');
 const Script = require('hsd/lib/script/script');
 const MasterKey = require('hsd/lib/wallet/masterkey');
+const Account = require('hsd/lib/wallet/account');
 const Mnemonic = require('hsd/lib/hd/mnemonic');
 const HDPrivateKey = require('hsd/lib/hd/private');
 const Covenant = require('hsd/lib/primitives/covenant');
@@ -360,6 +361,8 @@ class WalletService {
         passphrase,
         watchOnly: true,
         accountKey: xPub,
+        m,
+        n,
       });
     } else {
       const mnemonic = new Mnemonic({bits: 256});
@@ -369,7 +372,7 @@ class WalletService {
         watchOnly: false,
         mnemonic: mnemonic.getPhrase().trim(),
         m,
-        n
+        n,
       });
     }
 
@@ -422,10 +425,15 @@ class WalletService {
     return this.node.wdb.deepClean();
   };
 
-  importSeed = async (name, passphrase, type, secret) => {
+  importSeed = async (name, passphrase, type, secret, m, n) => {
     this.setWallet(name);
 
-    const options = {passphrase};
+    const options = {
+      id: name,
+      passphrase,
+      m,
+      n,
+    };
     switch (type) {
       case 'phrase':
         options.mnemonic = secret.trim();
@@ -452,7 +460,7 @@ class WalletService {
         throw new Error('Invalid type.')
     }
 
-    const res = await this.node.wdb.create({id: name, ...options});
+    const res = await this.node.wdb.create(options);
     const wallets = await this.listWallets();
 
     dispatchToMainWindow({
