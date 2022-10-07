@@ -245,6 +245,7 @@
   "noLockedHNS": "No locked HNS",
   "notSupportInSPV": "Not currently supported in SPV mode.",
   "notSupportWithLedger": "Not currently supported with Ledger wallet.",
+  "notSupportWithMultisig": "Not currently supported with multisig wallets.",
   "note": "Note",
   "now": "Now",
   "obAnalyticsAck": "Yes, opt me in",

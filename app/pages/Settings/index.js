@@ -58,6 +58,7 @@ const connClient = cClientStub(() => require('electron').ipcRenderer);
     noDns: state.node.noDns,
     walletApiKey: state.wallet.apiKey,
     walletSync: state.wallet.walletSync,
+    walletInitialized: state.wallet.initialized,
     wid: state.wallet.wid,
     changeDepth: state.wallet.changeDepth,
     receiveDepth: state.wallet.receiveDepth,
@@ -97,6 +98,7 @@ export default class Settings extends Component {
     walletApiKey: PropTypes.string.isRequired,
     isRunning: PropTypes.bool.isRequired,
     walletSync: PropTypes.bool.isRequired,
+    walletInitialized: PropTypes.bool.isRequired,
     isChangingNodeStatus: PropTypes.bool.isRequired,
     lockWallet: PropTypes.func.isRequired,
     reset: PropTypes.func.isRequired,
@@ -327,6 +329,7 @@ export default class Settings extends Component {
       lockWallet,
       transactions,
       wid,
+      walletInitialized,
       walletSync,
     } = this.props;
 
@@ -348,7 +351,7 @@ export default class Settings extends Component {
           t('settingRescanCTA'),
           () => walletClient.rescan(0),
           null,
-          walletSync,
+          !walletInitialized || walletSync, // disabled?
         )}
         {this.renderSection(
           t('settingBackupWDBTitle'),
@@ -365,6 +368,8 @@ export default class Settings extends Component {
           </div>,
           t('deepcleanTitle'),
           () => history.push('/settings/wallet/deep-clean-and-rescan'),
+          null,
+          !walletInitialized, // disabled?
         )}
         {this.renderSection(
           t('apiKey'),

@@ -12,6 +12,10 @@
       width: 12rem;
       margin-left: .5rem;
 
+      .dropdown__current-item {
+        min-height: 18px;
+      }
+
       .dropdown__options {
         overflow-y: auto;
         height: 12rem;
