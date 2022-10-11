@@ -21,8 +21,6 @@ import {
 } from '../../ducks/walletReducer';
 import {STOP, SET_CUSTOM_RPC_STATUS} from '../../ducks/nodeReducer';
 import {getNamesForRegisterAll} from "./create-register-all";
-import {createFinalizeMany} from "./bulk-transfer";
-import {createRenewMany} from "./bulk-renewal";
 import {getStats} from "./stats";
 import {get, put} from "../db/service";
 import hsdLedger from 'hsd-ledger';
