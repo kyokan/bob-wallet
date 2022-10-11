@@ -42,7 +42,6 @@ class CreateNewAccount extends Component {
 
   state = {
     currentStep: TERMS_OF_USE,
-    stepNumber: 1,
     name: '',
     m: null,
     n: null,
@@ -51,44 +50,39 @@ class CreateNewAccount extends Component {
     isLoading: false,
   };
 
+  goTo(currentStep) {
+    this.setState({
+      currentStep,
+    });
+  }
+
   render() {
     // null, 'ledger'
     const variation = this.props.match.params.loc;
+    const {currentStep} = this.state;
 
-    let totalSteps = 7;
-    switch (variation) {
-      case 'ledger':
-        totalSteps = 5;
-        break;
-    }
+    const totalSteps = variation === 'ledger' ? 5 : 7;
 
-    switch (this.state.currentStep) {
+    switch (currentStep) {
       case TERMS_OF_USE:
         return (
           <Terms
-            currentStep={this.state.stepNumber}
+            currentStep={currentStep}
             totalSteps={totalSteps}
-            onAccept={() => this.setState({
-              currentStep: SET_NAME,
-              stepNumber: this.state.stepNumber + 1
-            })}
+            onAccept={() => this.goTo(SET_NAME)}
             onBack={() => this.props.history.push('/funding-options')}
           />
         );
       case SET_NAME:
         return (
           <SetName
-            currentStep={this.state.stepNumber}
+            currentStep={currentStep}
             totalSteps={totalSteps}
-            onBack={() => this.setState({
-              currentStep: TERMS_OF_USE,
-              stepNumber: this.state.stepNumber - 1
-            })}
+            onBack={() => this.goTo(TERMS_OF_USE)}
             onNext={(name) => {
               this.setState({
                 currentStep: SELECT_WALLET_TYPE,
                 name,
-                stepNumber: this.state.stepNumber + 1
               });
             }}
             onCancel={() => this.props.history.push('/funding-options')}
@@ -97,19 +91,13 @@ class CreateNewAccount extends Component {
       case SELECT_WALLET_TYPE:
         return (
           <SelectWalletType
-            currentStep={this.state.stepNumber}
+            currentStep={currentStep}
             totalSteps={totalSteps}
-            onBack={() =>
-              this.setState({
-                currentStep: SET_NAME,
-                stepNumber: this.state.stepNumber - 1
-              })
-            }
+            onBack={() => this.goTo(SET_NAME)}
             onNext={async (m, n) => {
               this.setState({
                 currentStep: CREATE_PASSWORD,
                 m, n,
-                stepNumber: this.state.stepNumber + 1
               });
             }}
             onCancel={() => this.props.history.push('/funding-options')}
@@ -118,24 +106,15 @@ class CreateNewAccount extends Component {
       case CREATE_PASSWORD:
         return (
           <CreatePassword
-            currentStep={this.state.stepNumber}
+            currentStep={currentStep}
             totalSteps={totalSteps}
-            onBack={() =>
-              this.setState({
-                currentStep: SELECT_WALLET_TYPE,
-                stepNumber: this.state.stepNumber - 1
-              })
-            }
+            onBack={() => this.goTo(SELECT_WALLET_TYPE)}
             onNext={async (passphrase) => {
-              const optInState = await analytics.getOptIn();
-
               let currentStep = BACK_UP_SEED_WARNING;
-              switch (variation) {
-                case 'ledger':
-                  currentStep = LEDGER_CONNECT;
-                  break;
+              if (variation === 'ledger') {
+                currentStep = LEDGER_CONNECT;
               }
-
+              const optInState = await analytics.getOptIn();
               if (optInState === 'NOT_CHOSEN') {
                 currentStep = OPT_IN_ANALYTICS;
               }
@@ -143,7 +122,6 @@ class CreateNewAccount extends Component {
               this.setState({
                 currentStep,
                 passphrase,
-                stepNumber: this.state.stepNumber + 1
               });
             }}
             onCancel={() => this.props.history.push('/funding-options')}
@@ -152,26 +130,14 @@ class CreateNewAccount extends Component {
       case OPT_IN_ANALYTICS:
         return (
           <OptInAnalytics
-            currentStep={this.state.stepNumber}
+            currentStep={currentStep}
             totalSteps={totalSteps}
-            onBack={() => this.setState({
-              currentStep: CREATE_PASSWORD,
-              stepNumber: this.state.stepNumber - 1
-            })}
+            onBack={() => this.goTo(CREATE_PASSWORD)}
             onNext={async (optInState) => {
               await analytics.setOptIn(optInState);
-
-              let currentStep = BACK_UP_SEED_WARNING;
-              switch (variation) {
-                case 'ledger':
-                  currentStep = LEDGER_CONNECT;
-                  break;
-              }
-
-              this.setState({
-                currentStep,
-                stepNumber: this.state.stepNumber + 1
-              });
+              const next = variation === 'ledger'
+                ? LEDGER_CONNECT : BACK_UP_SEED_WARNING;
+              this.goTo(next);
             }}
             onCancel={() => this.props.history.push('/funding-options')}
           />
@@ -181,12 +147,7 @@ class CreateNewAccount extends Component {
           <ConnectLedger
             walletName={this.state.name}
             passphrase={this.state.passphrase}
-            onBack={() =>
-              this.setState({
-                currentStep: CREATE_PASSWORD,
-                stepNumber: this.state.stepNumber - 1
-              })
-            }
+            onBack={() => this.goTo(CREATE_PASSWORD)}
             onCancel={() => this.props.history.push('/funding-options')}
             walletM={this.state.m}
             walletN={this.state.n}
@@ -195,14 +156,9 @@ class CreateNewAccount extends Component {
       case BACK_UP_SEED_WARNING:
         return (
           <BackUpSeedWarning
-            currentStep={this.state.stepNumber}
+            currentStep={currentStep}
             totalSteps={totalSteps}
-            onBack={() =>
-              this.setState({
-                currentStep: CREATE_PASSWORD,
-                stepNumber: this.state.stepNumber - 1
-              })
-            }
+            onBack={() => this.goTo(CREATE_PASSWORD)}
             onNext={async () => {
               this.setState({ isLoading: true });
               const existingWallet = this.props.walletsDetails[this.state.name];
@@ -226,7 +182,6 @@ class CreateNewAccount extends Component {
                 currentStep: COPY_SEEDPHRASE,
                 seedphrase: phrase,
                 isLoading: false,
-                stepNumber: this.state.stepNumber + 1
               });
             }}
             onCancel={() => this.props.history.push('/funding-options')}
@@ -236,30 +191,21 @@ class CreateNewAccount extends Component {
       case COPY_SEEDPHRASE:
         return (
           <CopySeed
-            currentStep={this.state.stepNumber}
+            currentStep={currentStep}
             totalSteps={totalSteps}
             seedphrase={this.state.seedphrase}
-            onBack={() => this.setState({
-              currentStep: BACK_UP_SEED_WARNING,
-              stepNumber: this.state.stepNumber - 1
-            })}
-            onNext={() => this.setState({
-              currentStep: CONFIRM_SEEDPHRASE,
-              stepNumber: this.state.stepNumber + 1
-            })}
+            onBack={() => this.goTo(BACK_UP_SEED_WARNING)}
+            onNext={() => this.goTo(CONFIRM_SEEDPHRASE)}
             onCancel={() => this.props.history.push('/funding-options')}
           />
         );
       case CONFIRM_SEEDPHRASE:
         return (
           <ConfirmSeed
-            currentStep={this.state.stepNumber}
+            currentStep={currentStep}
             totalSteps={totalSteps}
             seedphrase={this.state.seedphrase}
-            onBack={() => this.setState({
-              currentStep: COPY_SEEDPHRASE,
-              stepNumber: this.state.stepNumber - 1
-            })}
+            onBack={() => this.goTo(COPY_SEEDPHRASE)}
             onNext={async () => {
               await this.props.completeInitialization(
                 this.state.name,
