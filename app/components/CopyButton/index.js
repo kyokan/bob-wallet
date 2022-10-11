@@ -46,7 +46,7 @@ export default class CopyButton extends Component {
         })}
         onClick={this.copyAddress}
       >
-        {this.state.hasCopied ? `${t('copied')}!` : t('copy')}
+        {t(this.state.hasCopied ? 'copied' : 'copy')}
       </button>
     )
   }

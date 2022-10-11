@@ -83,7 +83,7 @@ export default class TxViewer extends Component {
           <span>
             {input.coin ?
               `${input.coin.value / 1e6} HNS`
-              : 'Unknown HNS'
+              : `${t('unknown')} HNS`
             }
           </span>
         </div>

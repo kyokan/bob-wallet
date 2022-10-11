@@ -78,7 +78,8 @@ class Sidebar extends Component {
     const {t} = this.context;
     const {walletId, walletType, walletInitialized, walletsDetails} = this.props;
 
-    const title = 'Wallet: ' + (walletsDetails[walletId]?.displayName || walletId);
+    const name = walletsDetails[walletId]?.displayName || walletId;
+    const title = `${t('settingWallet')}: ${name}`;
 
     if (!walletInitialized) {
       return(

@@ -37,15 +37,16 @@ export default class ClaimNameForPayment extends Component {
   }
 
   onSelectFile = async (e) => {
+    const { t } = this.context;
     const {
       filePaths: [filepath],
     } = await dialog.showOpenDialog({
-      title: "Open a handshake transaction file",
-      properties: ["openFile"],
+      title: t('openTxFile'),
+      properties: ['openFile'],
       filters: [
         {
-          name: "Handshake Transaction",
-          extensions: ["json"],
+          name: t('transactionFile'),
+          extensions: ['json'],
         },
       ],
     });

@@ -67,15 +67,16 @@ export default class Multisig extends Component {
   }
 
   onLoadTx = async () => {
+    const { t } = this.context;
     const {
       filePaths: [filepath],
     } = await dialog.showOpenDialog({
-      title: "Open a handshake transaction file",
-      properties: ["openFile"],
+      title: t('openTxFile'),
+      properties: ['openFile'],
       filters: [
         {
-          name: "Handshake Transaction",
-          extensions: ["json"],
+          name: t('transactionFile'),
+          extensions: ['json'],
         },
       ],
     });
@@ -160,6 +161,7 @@ export default class Multisig extends Component {
   }
 
   renderOtherSigners() {
+    const {t} = this.context;
     const {walletN, walletKeys, walletKeysNames, walletInitialized} = this.props;
     const num = walletN - 1; // Our own key is already there
     const keys = walletKeys;
