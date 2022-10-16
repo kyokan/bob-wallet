@@ -1004,7 +1004,6 @@ class WalletService {
       const input = mtx.inputs[1]
       const coin = mtx.view.getCoinFor(input);
       const key = await wallet.getKey(coin.address);
-      const script = Script.decode(input.witness.items[input.witness.items.length - 1]);
       const path =
         'm/' +                                    // master
         '44\'/' +                                 // purpose
@@ -1018,7 +1017,10 @@ class WalletService {
         coin,
         path,
         publicKey: key.publicKey,
-        redeem: script,
+
+        // only provide redeem script
+        // if funding input is not a p2pkh
+        redeem: key.script ? key.script : null,
       })
     }
 
@@ -1626,7 +1628,7 @@ class WalletService {
   /**
    * Multisig Proxy
    * Call _walletProxy, not this directly
-   * @param {ParsedTxData} parsedTxData 
+   * @param {ParsedTxData} parsedTxData
    * @param {object} options
    * @param {boolean} [options.broadcast=true] does not broadcast, only for UI
    * @returns {import('hsd/lib/primitives/mtx').MTX} signed mtx
@@ -2031,7 +2033,7 @@ function createPayloadForSetWallets(wallets, addName = null) {
 }
 
 /**
- * 
+ * Get Multisig Keys
  * @param {import('hsd/lib/wallet/wallet')} wallet
  * @param {import('hsd/lib/primitives/coin')} coin
  * @param {import('hsd/lib/script/script')} script
