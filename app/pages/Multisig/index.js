@@ -237,6 +237,11 @@ class KeyInputRow extends Component {
       return;
     }
 
+    if (walletKeys.includes(accountKey)) {
+      this.props.showError(t('multisigAccountKeyExists'));
+      return;
+    }
+
     try {
       // N - 1 (for us) - num(other added keys as of now)
       const remainingKeys = (walletN - 1 - walletKeys.length);

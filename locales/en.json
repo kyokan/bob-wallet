@@ -220,6 +220,7 @@
   "me": "me",
   "miscellaneous": "Miscellaneous",
   "multisigAccountKey": "Account Key (xpub)",
+  "multisigAccountKeyExists": "This account key has already been added.",
   "multisigAccountKeyInvalid": "Invalid account key.",
   "multisigActions": "Actions",
   "multisigLoadTx": "Load Transaction",
