@@ -303,6 +303,7 @@
   "obSelectWalletTypeBody2": "Leave this unchecked to create a regular wallet.",
   "obSelectWalletTypeCheckbox": "Create a multisig wallet?",
   "obSelectWalletTypeErrorPositive": "Must be a positive integer.",
+  "obSelectWalletTypeErrorLarge": "Total number of signatures cannot be more than %s.",
   "obSelectWalletTypeErrorLimits": "Minimum number of signatures cannot be more than total.",
   "obSelectWalletTypeMinimum": "Minimum (M)",
   "obSelectWalletTypeSignatures": "signatures",

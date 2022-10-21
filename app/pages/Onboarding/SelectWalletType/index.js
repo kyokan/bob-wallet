@@ -51,7 +51,7 @@ export default class SelectWalletType extends Component {
       });
       return;
     }
-    if (isNaN(mNum) || nNum <= 0) {
+    if (isNaN(nNum) || nNum <= 0) {
       this.setState({
         nError: t('obSelectWalletTypeErrorPositive'),
       });
@@ -62,6 +62,13 @@ export default class SelectWalletType extends Component {
       this.setState({
         mError: t('obSelectWalletTypeErrorLimits'),
         nError: ''
+      });
+      return;
+    }
+
+    if (nNum > 15) {
+      this.setState({
+        nError: t('obSelectWalletTypeErrorLarge', 15),
       });
       return;
     }
