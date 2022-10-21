@@ -229,7 +229,7 @@
   "multisigSetupSuccess": "Multisig wallet setup is complete! Please wait till rescan is finished for all transactions to show up.",
   "multisigTransaction": "Multisig Transaction",
   "multisigTxAddOwnSign": "Click Sign add your signature to the transaction.",
-  "multisigTxExportForOthers": "Export and send the transaction to the other signers to get their signatures.",
+  "multisigTxExportForOthers": "Send the transaction to the other signers to get their signatures.",
   "multisigTxFullySigned": "This transaction has the required number of signatures! Broadcast to send it to the network.",
   "next": "Next",
   "nextBid": "Next Bid",

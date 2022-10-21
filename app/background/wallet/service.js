@@ -1413,6 +1413,8 @@ class WalletService {
    * Parse Transaction
    * @param {import('hsd/lib/wallet/wallet')} wallet
    * @param {import('hsd/lib/primitives/mtx').MTX} mtx
+   * @param {object} [options={}]
+   * @param {Metadata} options.metadata
    * @returns {ParsedTxData}
    */
    parseMtx = async (wallet, mtx, {metadata}={}) => {
@@ -1665,6 +1667,7 @@ class WalletService {
             tx: await this.injectOutputPaths(wallet, mtx.getJSON(this.network)),
             ...parsedMtxData,
             broadcast,
+            justSigned: true,
           });
         } catch (error) {
           console.error(error);

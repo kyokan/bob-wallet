@@ -46,8 +46,6 @@ export class MultisigModal extends Component {
 
     this.state = {
       errorMessage: '',
-      isDone: false,
-      isLoading: false,
       tx: null,
       multisigInfo: [],
       signerData: [],
@@ -55,6 +53,7 @@ export class MultisigModal extends Component {
       maxSigsNeeded: null,
       canAddOwnSig: true,
       broadcast: true,
+      justSigned: false,      // whether user just signed tx
     };
   }
 
@@ -63,13 +62,21 @@ export class MultisigModal extends Component {
     ipc.on('MULTISIG/ERR', this.handleError);
     ipc.on('MULTISIG/OK', () => this.setState({
       isVisible: false,
-      isLoading: false,
       errorMessage: '',
     }));
   }
 
   onShowTx = (event, data) => {
-    const {tx, multisigInfo, signerData, metadata, maxSigsNeeded, canAddOwnSig, broadcast} = data;
+    const {
+      tx,
+      multisigInfo,
+      signerData,
+      metadata,
+      maxSigsNeeded,
+      canAddOwnSig,
+      broadcast,
+      justSigned,
+    } = data;
     this.setState({
       isVisible: true,
       tx,
@@ -79,6 +86,7 @@ export class MultisigModal extends Component {
       maxSigsNeeded,
       canAddOwnSig,
       broadcast,
+      justSigned,
     });
   };
 
@@ -86,7 +94,6 @@ export class MultisigModal extends Component {
     console.error('multisig error:', err);
     this.setState({
       errorMessage: err,
-      isLoading: false,
     });
   }
 
@@ -153,12 +160,22 @@ export class MultisigModal extends Component {
       maxSigsNeeded: null,
       canAddOwnSig: true,
       broadcast: true,
+      justSigned: false,
     });
   };
 
   render() {
     const {t} = this.context;
-    const {isVisible, isLoading, tx, signerData, metadata, maxSigsNeeded, canAddOwnSig, broadcast} = this.state;
+    const {
+      isVisible,
+      tx,
+      signerData,
+      metadata,
+      maxSigsNeeded,
+      canAddOwnSig,
+      broadcast,
+      justSigned,
+    } = this.state;
 
     if (!isVisible) {
       return null;
@@ -166,7 +183,6 @@ export class MultisigModal extends Component {
 
     const canSign = maxSigsNeeded > 0 && canAddOwnSig;
     const canBroadcastOrContinue = maxSigsNeeded === 0;
-
 
     return (
       <Modal className="multisig-modal__wrapper" onClose={this.cancel}>
@@ -193,7 +209,6 @@ export class MultisigModal extends Component {
               <button
                 className="multisig-modal__primary"
                 onClick={this.sign}
-                disabled={isLoading}
               >
                 {t('sign')}
               </button>
@@ -202,25 +217,24 @@ export class MultisigModal extends Component {
               <button
                 className="multisig-modal__primary"
                 onClick={this.continue}
-                disabled={isLoading}
               >
                 {t(broadcast ? 'broadcast' : 'continue')}
               </button>
             )}
-            <button
-              className={
-                (canSign || canBroadcastOrContinue)
-                ? "multisig-modal__secondary" : "multisig-modal__primary"
-              }
-              onClick={this.export}
-              disabled={isLoading}
-            >
-              {t('export')}
-            </button>
+            {(justSigned) && (
+              <button
+                className={
+                  (canSign || canBroadcastOrContinue)
+                  ? "multisig-modal__secondary" : "multisig-modal__primary"
+                }
+                onClick={this.export}
+              >
+                {t('export')}
+              </button>
+            )}
             <button
               className="multisig-modal__secondary"
               onClick={this.cancel}
-              disabled={isLoading}
             >
               {t('cancel')}
             </button>
