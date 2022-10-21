@@ -61,10 +61,6 @@ export class MultisigModal extends Component {
   componentDidMount() {
     ipc.on('MULTISIG/SHOW', this.onShowTx);
     ipc.on('MULTISIG/ERR', this.handleError);
-    ipc.on('MULTISIG/OK', () => this.setState({
-      isVisible: false,
-      errorMessage: '',
-    }));
   }
 
   onShowTx = (event, data) => {
@@ -121,6 +117,10 @@ export class MultisigModal extends Component {
 
   continue = () => {
     ipc.send('MULTISIG/CONTINUE');
+    this.setState({
+      isVisible: false,
+      errorMessage: '',
+    })
   }
 
   export = async () => {

@@ -20,6 +20,7 @@ import {
   SET_FIND_NONCE_PROGRESS,
 } from '../../ducks/walletReducer';
 import {STOP, SET_CUSTOM_RPC_STATUS} from '../../ducks/nodeReducer';
+import {showSuccess, showError} from '../../ducks/notifications';
 import {getNamesForRegisterAll} from "./create-register-all";
 import {getStats} from "./stats";
 import {get, put} from "../db/service";
@@ -1684,10 +1685,16 @@ class WalletService {
         }
       }
       const continueHandler = async () => {
-        mainWindow.send('MULTISIG/OK');
         ipc.removeListener('MULTISIG/SIGN', signHandler);
         ipc.removeListener('MULTISIG/CONTINUE', continueHandler);
         ipc.removeListener('MULTISIG/CANCEL', cancelHandler);
+        if (broadcast) {
+          dispatchToMainWindow(
+            showSuccess(
+              'Your request is submitted! Please wait around 15 minutes for it to be confirmed.'
+            )
+          );
+        }
         resolve(mtx);
       }
       const cancelHandler = () => {
