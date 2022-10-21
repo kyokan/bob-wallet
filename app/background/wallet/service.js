@@ -1614,6 +1614,14 @@ class WalletService {
       }
     }
 
+    // Validate tx
+    let isValid = true;
+    try {
+      mtx.check();
+    } catch (error) {
+      isValid = false;
+    }
+
     return {
       mtx,
       redeemScripts,
@@ -1622,6 +1630,7 @@ class WalletService {
       containsMultisig,
       maxSigsNeeded,
       canAddOwnSig,
+      isValid,
 
       metadata: newMetadata,
     }
@@ -2233,4 +2242,5 @@ export async function start(server) {
  * @property {number} maxSigsNeeded max number of sigs needed across all inputs
  * @property {boolean} canAddOwnSig has own pubkey but not signed yet?
  * @property {Metadata} metadata extra info about inputs and outputs
+ * @property {boolean} isValid whether tx is fully signed and valid
  */

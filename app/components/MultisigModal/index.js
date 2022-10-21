@@ -52,6 +52,7 @@ export class MultisigModal extends Component {
       metadata: {},
       maxSigsNeeded: null,
       canAddOwnSig: true,
+      isValid: false,
       broadcast: true,
       justSigned: false,      // whether user just signed tx
     };
@@ -74,9 +75,14 @@ export class MultisigModal extends Component {
       metadata,
       maxSigsNeeded,
       canAddOwnSig,
+      isValid,
       broadcast,
       justSigned,
     } = data;
+
+    // Tx does not need more sigs, is meant to be broadcast, but is not valid
+    const showInvalidTxError = maxSigsNeeded === 0 && broadcast && !isValid;
+
     this.setState({
       isVisible: true,
       tx,
@@ -85,8 +91,12 @@ export class MultisigModal extends Component {
       metadata,
       maxSigsNeeded,
       canAddOwnSig,
+      isValid,
       broadcast,
       justSigned,
+      errorMessage: (showInvalidTxError) ?
+        'This transaction is not valid.'
+        : ''
     });
   };
 
@@ -173,6 +183,7 @@ export class MultisigModal extends Component {
       metadata,
       maxSigsNeeded,
       canAddOwnSig,
+      isValid,
       broadcast,
       justSigned,
     } = this.state;
@@ -217,6 +228,7 @@ export class MultisigModal extends Component {
               <button
                 className="multisig-modal__primary"
                 onClick={this.continue}
+                disabled={broadcast && !isValid}
               >
                 {t(broadcast ? 'broadcast' : 'continue')}
               </button>
