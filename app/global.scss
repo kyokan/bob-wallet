@@ -51,3 +51,115 @@ i.arrow {
     background-image: url('./assets/images/arrow-back-blue.svg');
   }
 }
+
+
+// Dark mode stuff
+html {
+  background-color: black;
+  color: white !important;
+  border-color: black !important;
+  caret-color: white !important;
+}
+
+
+.account, .transactions__header, .receive__container, .send__container, .domain-manager, .domains, .bids, .watching, .get-coins, .sign-message,.verify-message, .app__uninitialized, .settings__content {
+  background-color: rgb(31, 31, 31) !important;
+}
+.transactions__search,  input.bid-search-input__input, .domain-manager__page-control, .bid-search-input, .auction-panel, .settings__nav {
+  background-color: #606060 !important;
+
+}
+.table__header__item, .tree-update, .tree-update span ,.settings__content__section--disabled {
+  color: black !important;
+}
+
+.domains, .domain-manager, .bids ,.watching, .get-coins, .sign-message, .verify-message {
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 1rem;
+  padding-bottom: 5em;
+  
+}
+.domain-manager, .bids, .watching, .get-coins, .sign-message, .verify-message {
+  padding: 1em 1em 5em 1em;
+  width: auto;
+}
+.domain-manager__page-control {
+  padding: 1em;
+}
+.get-coins__panel {
+  background-color: black !important;
+}
+
+.mini-modal {
+  background-color: rgb(81 19 118);
+}
+
+// Text areas needing black text
+.sign-message__content__textarea__message, .verify-message__content__textarea__message, .verify-message__content__textarea__signature, .account-key__seed-phrase, .reveal-seed-modal__seed-phrase {
+  color: black !important;
+  caret-color: black;
+}
+
+
+::placeholder {
+  color: white !important;
+}
+input, select, textarea, .tooltipable, .transaction__title, .send__label, .send__confirm__label, .send__input-disclaimer, .receive__warning-subtitle, td, .bids__filter--active {
+  color: white !important;
+}
+input, .send__input,.send__amount-input, .send__network-fee__fee-amount, .send__network-fee__select, .tld, option, .dropdown__current-item {
+  background-color: grey !important;
+}
+
+// Invert images
+.receive__warning-icon, .receive__qr-code, .logo {
+    filter: invert(1);
+} 
+.send__confirm__secure img {
+  filter: invert(1) !important;
+}
+.transaction__party {
+  color: rgb(156, 0, 104) !important;
+}
+
+textarea:focus, input:focus {
+  color: white;
+}
+
+.app__header {
+  background-color: rgb(49, 49, 49);
+}
+.dropdown__current-item {
+  background-color: grey;
+}
+.dropdown--reversed .dropdown__current-item{
+  background-color: grey;
+  border: 1px solid black;
+}
+.dropdown__option:hover {
+  background-color: black !important;
+}
+.dropdown__options {
+  background-color: grey !important;
+}
+span {
+  color: white !important;
+}
+.topbar {
+  background-color: rgb(49, 49, 49);
+}
+.sidebar {
+  background-color: rgb(0, 0, 75);
+}
+a {
+  color: rgb(0, 0, 206) !important;
+}
+.sidebar__footer{
+  background-color: black !important;
+}
+.setting-menu {
+  background-color: #606060 !important;
+}
+.account {
+  padding-bottom: 5em !important;
+}
