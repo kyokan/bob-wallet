@@ -6,10 +6,9 @@
   align-items: center;
   font-weight: 500;
   line-height: 1rem;
-  color: $manatee-gray;
+  color: $second-contrast;
   transition: color 250ms ease-in-out;
   margin: 0 2rem;
-
   &:hover {
     cursor: default;
   }
@@ -22,6 +21,7 @@
     background-size: cover;
     background-position: center;
     margin-right: 4px;
+    filter: invert($invert-bob);
     background-image: url("../../assets/images/brick-loader.svg");
   }
 
@@ -44,10 +44,11 @@
   }
 
   &--loading {
-    color: $manatee-gray;
+    color: $second-contrast;
     font-weight: 600;
 
     &:before {
+      filter: invert($invert-bob);
       background-image: url("../../assets/images/brick-loader.svg");
     }
   }

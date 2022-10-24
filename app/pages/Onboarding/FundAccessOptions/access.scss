@@ -49,12 +49,13 @@
       font-style: italic;
       padding: 0 3.5rem 0.5rem;
       line-height: 1.5rem;
+      color: $main-contrast;
     }
 
     &__body-text {
       @extend %h5;
       text-align: center;
-      color: $manatee-gray;
+      color: $second-contrast;
     }
   }
 

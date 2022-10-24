@@ -25,6 +25,7 @@
       line-height: 1.5rem;
       font-weight: 500;
       margin-bottom: 1rem;
+      color: $main-contrast;
     }
 
     &__option {
@@ -74,7 +75,7 @@
 
     &__tip {
       @extend %h6;
-      color: $manatee-gray;
+      color: $second-contrast;
       padding: 1rem;
       text-align: center;
       font-weight: 500;

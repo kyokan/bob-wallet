@@ -20,23 +20,23 @@
       width : 100%;
       bottom: 0;
       left: 0;
-      border-bottom: 1px dashed lighten($manatee-gray, 25);
+      border-bottom: 1px dashed lighten($second-contrast, 25);
 
       &:hover {
-        border-bottom: 1px dashed lighten($manatee-gray, 30);
+        border-bottom: 1px dashed lighten($second-contrast, 30);
       }
 
       &:active {
-        border-bottom: 1px dashed lighten($manatee-gray, 20);
+        border-bottom: 1px dashed lighten($second-contrast, 20);
       }
     }
 
     &:hover {
-      color: lighten($manatee-gray, 10);
+      color: lighten($second-contrast, 10);
     }
 
     &:active {
-      color: darken($manatee-gray, 10);
+      color: darken($second-contrast, 10);
     }
   }
 
@@ -104,7 +104,7 @@
   &__party {
     width: 100%;
     margin-left: 1rem;
-    color: $manatee-gray;
+    color: $second-contrast;
     overflow: hidden;
 
     &__container {
@@ -160,7 +160,7 @@
       color: rgba($main-contrast, 0.5);
 
       em {
-        color: $manatee-gray;
+        color: $second-contrast;
       }
     }
 

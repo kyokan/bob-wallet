@@ -236,7 +236,7 @@
         @extend %h4;
         @extend %row-nowrap;
         align-items: center;
-        color: $manatee-gray;
+        color: $second-contrast;
         margin: 1rem 1.5rem 0;
         font-weight: 500;
       }
@@ -400,7 +400,7 @@
     &__HNS-status {
       @extend %h5;
       font-weight: 500;
-      color: $manatee-gray;
+      color: $second-contrast;
       text-align: center;
     }
 
@@ -453,8 +453,8 @@
 
     &__mask {
       margin-right: .2rem;
-      border-bottom: 1px dashed $manatee-gray;
-      color: $manatee-gray;
+      border-bottom: 1px dashed $second-contrast;
+      color: $second-contrast;
 
       .tooltipable__tooltip {
         display: inline-block !important;

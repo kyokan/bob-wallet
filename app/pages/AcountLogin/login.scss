@@ -24,6 +24,7 @@
   margin: 1rem 0 0 0;
   border: none;
   border-radius: 8px;
+  color: $main-contrast;
 
   &--error {
     animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;

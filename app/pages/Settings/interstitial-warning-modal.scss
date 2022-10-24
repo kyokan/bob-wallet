@@ -1,7 +1,7 @@
 @import '../../variables';
 
 .interstitial-warning-modal__instructions {
-  color: #111;
+  color: $main-contrast;
   font-size: 14px;
   line-height: 16px;
   margin-bottom: 23px;
@@ -21,7 +21,7 @@
 .interstitial-warning-modal__checkbox-label {
   margin-left: 12px;
   font-size: 14px;
-  color: #909095;
+  color: $second-contrast;
   font-weight: 500;
   line-height: 18px;
 }
@@ -39,7 +39,7 @@
   @extend %btn-secondary;
   margin-right: 6px;
   border-color: $second-back;
-  color: $manatee-gray;
+  color: $second-contrast;
 }
 
 .interstitial-warning-modal__submit-button {

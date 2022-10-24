@@ -8,6 +8,7 @@
   &__header-text {
     @extend %header_text;
     margin-bottom: 1rem;
+    color: $main-contrast;
   }
 
   &__cancel {
@@ -26,7 +27,7 @@
 
   &__body-text,
   &__checkbox-description {
-    color: $manatee-gray;
+    color: $second-contrast;
     font-size: 0.875rem;
     line-height: 1.125rem;
     margin-bottom: 1rem;

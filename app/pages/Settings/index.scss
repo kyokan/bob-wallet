@@ -58,7 +58,7 @@
 
       &--disabled {
         background-color: rgba(0, 0, 0, 0.5);
-        color: $manatee-gray;
+        color: $second-contrast;
       }
 
       &__info {
@@ -75,7 +75,7 @@
           align-items: center;
           font-size: .875rem;
           font-weight: 400;
-          color: $manatee-gray;
+          color: $second-contrast;
           margin-top: .25rem;
         }
       }
@@ -208,7 +208,7 @@
   }
 
   &--inactive {
-    background-color: $manatee-gray;
+    background-color: $second-contrast;
   }
 }
 
@@ -296,7 +296,7 @@
 .settings__footer {
   @extend %h5;
   padding: 1rem;
-  color: $manatee-gray;
+  color: $second-contrast;
   font-family: monospace;
   text-align: right;
 }

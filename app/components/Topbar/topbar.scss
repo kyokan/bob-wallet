@@ -49,7 +49,7 @@
     align-items: center;
     font-weight: 500;
     line-height: 1rem;
-    color: $manatee-gray;
+    color: $second-contrast;
     transition: color 250ms ease-in-out;
     margin: 0 2rem;
 
@@ -87,7 +87,7 @@
     }
 
     &--loading {
-      color: $manatee-gray;
+      color: $second-contrast;
       font-weight: 600;
 
       &:before {
@@ -117,7 +117,13 @@
       background-image: url('../../assets/images/settings-gray.svg');
 
       &--opened {
+        
+        @if $invert-bob == 1 {
+          background-image: url('../../assets/images/settings-gray.svg');
+
+        } @else {
         background-image: url('../../assets/images/settings.svg');
+        }
       }
 
       &:hover {
@@ -157,7 +163,7 @@
 
       &__label {
         font-size: .6rem;
-        color: $manatee-gray;
+        color: $second-contrast;
       }
 
       &__amount {

@@ -11,6 +11,7 @@
     padding: .7rem 1.25rem;
     border-radius: .5rem;
     cursor: pointer;
+    color: $main-contrast;
 
     &::after {
       position: absolute;
@@ -56,6 +57,7 @@
     overflow-x: hidden;
     white-space: nowrap;
     flex: 0 0 auto;
+    color: $main-contrast;
 
     &:hover {
       background-color: $second-back;

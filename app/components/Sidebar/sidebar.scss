@@ -35,7 +35,7 @@
 
   &__section {
     @extend %h6;
-    color: $manatee-gray;
+    color: $second-contrast;
     text-transform: uppercase;
     padding: 0.5rem 0.75rem 0.5rem 0;
 
@@ -93,11 +93,11 @@
     &__title {
       @extend %h6;
       opacity: 0.5;
-      color: $manatee-gray;
+      color: $second-contrast;
     }
     &__text {
       @extend %h5;
-      color: $manatee-gray;
+      color: $second-contrast;
       font-family: monospace;
     }
 

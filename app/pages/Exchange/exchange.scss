@@ -32,7 +32,7 @@
 
   &__sub {
     @extend %h6;
-    color: $manatee-gray;
+    color: $second-contrast;
     margin-bottom: .5rem;
   }
 }
@@ -140,7 +140,7 @@
       width: .5rem;
       height: .5rem;
       border-radius: 50%;
-      background-color: $manatee-gray;
+      background-color: $second-contrast;
       margin-right: .5rem;
     }
 
