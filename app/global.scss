@@ -55,22 +55,26 @@ i.arrow {
 
 // Dark mode stuff
 html {
-  background-color: black;
+  background-color: #2A0944;
   color: white !important;
   border-color: black !important;
   caret-color: white !important;
 }
 
 
-.account, .transactions__header, .receive__container, .send__container, .domain-manager, .domains, .bids, .watching, .get-coins, .sign-message,.verify-message, .app__uninitialized, .settings__content {
-  background-color: rgb(31, 31, 31) !important;
+.account, .transactions__header, .receive__container, .send__container, .domain-manager, .domains, .bids, .watching, .get-coins, .sign-message,.verify-message, .app__uninitialized, .settings__content, .import-enter__inputs-container input[type="file"] {
+  background-color: #3E065F !important;
 }
-.transactions__search,  input.bid-search-input__input, .domain-manager__page-control, .bid-search-input, .auction-panel, .settings__nav {
-  background-color: #606060 !important;
+.transactions__search,  input.bid-search-input__input, .domain-manager__page-control, .bid-search-input, .auction-panel,.auction-graph, .settings__nav {
+  background-color: #700B97 !important;
 
 }
-.table__header__item, .tree-update, .tree-update span ,.settings__content__section--disabled {
+.settings__content__section--disabled {
   color: black !important;
+}
+
+.topbar,.app__header, .existing-options__footer, .connect__status-pill, .table__header, .records-table__action-row, .reserved-name-info, .name-claim__choose-options__option{
+  background-color: #11021a;
 }
 
 .domains, .domain-manager, .bids ,.watching, .get-coins, .sign-message, .verify-message {
@@ -89,9 +93,11 @@ html {
 .get-coins__panel {
   background-color: black !important;
 }
-
-.mini-modal {
-  background-color: rgb(81 19 118);
+.mini-modal,.name-claim__container, .proof__container, .modal__wrapper, .ledger-modal, .ledger-modal__wrapper {
+  background-color: #8E05C2;
+}
+.transaction__party {
+  color: #8E05C2 !important;
 }
 
 // Text areas needing black text
@@ -99,60 +105,38 @@ html {
   color: black !important;
   caret-color: black;
 }
-
-
 ::placeholder {
+  color: black !important;
+}
+input, select, textarea, .tooltipable, .transaction__title, .send__label, .send__confirm__label, .send__input-disclaimer, .receive__warning-subtitle, td, .bids__filter--active, .bid-history__empty, span, textarea:focus, input:focus, .reserved-name-info__group__label, .name-claim__choose-options__option{
   color: white !important;
 }
-input, select, textarea, .tooltipable, .transaction__title, .send__label, .send__confirm__label, .send__input-disclaimer, .receive__warning-subtitle, td, .bids__filter--active {
-  color: white !important;
+input, .send__input,.send__amount-input, .send__network-fee__fee-amount, .send__network-fee__select, .tld, option, .dropdown__current-item, .dropdown--reversed .dropdown__current-item, .dropdown__options, .create-password__input, textarea.import_enter_textarea, .step_privKey__passphrase, .step_privKey__pgp__keyId, .step_privKey__privKey__content textarea, .proof__text-input textarea, textarea.name-claim__claim-content__textarea{
+  background-color: #b700ff !important;
 }
-input, .send__input,.send__amount-input, .send__network-fee__fee-amount, .send__network-fee__select, .tld, option, .dropdown__current-item {
-  background-color: grey !important;
+.terms__html-box, .column span{
+  background-color: white;
+  color: black !important;
 }
 
 // Invert images
-.receive__warning-icon, .receive__qr-code, .logo {
+.receive__warning-icon, .logo {
     filter: invert(1);
 } 
 .send__confirm__secure img {
   filter: invert(1) !important;
 }
-.transaction__party {
-  color: rgb(156, 0, 104) !important;
-}
-
-textarea:focus, input:focus {
-  color: white;
-}
-
-.app__header {
-  background-color: rgb(49, 49, 49);
-}
-.dropdown__current-item {
-  background-color: grey;
-}
-.dropdown--reversed .dropdown__current-item{
-  background-color: grey;
-  border: 1px solid black;
-}
-.dropdown__option:hover {
+.dropdown__option:hover, .settings__nav__item:hover {
   background-color: black !important;
 }
-.dropdown__options {
-  background-color: grey !important;
-}
-span {
-  color: white !important;
-}
-.topbar {
-  background-color: rgb(49, 49, 49);
+.topbar,.app__header, .existing-options__footer, .connect__status-pill {
+  background-color: #11021a;
 }
 .sidebar {
-  background-color: rgb(0, 0, 75);
+  background-color: #340550;
 }
 a {
-  color: rgb(0, 0, 206) !important;
+  color: rgb(169 0 255) !important;
 }
 .sidebar__footer{
   background-color: black !important;
@@ -162,4 +146,7 @@ a {
 }
 .account {
   padding-bottom: 5em !important;
+}
+.records-table__actions__cancel, .records-table__actions__accept, .records-table__actions__accept {
+  background-color: transparent;
 }
