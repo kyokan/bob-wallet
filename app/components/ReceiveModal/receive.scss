@@ -4,7 +4,7 @@
   &__container {
     @extend %col-nowrap;
     max-width: 30rem;
-    border: 1px solid rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba($main-contrast, 0.15);
     border-radius: 0.6rem;
     padding: 2rem;
     margin: 0 auto;
@@ -20,6 +20,7 @@
     font-size: 1.1rem;
     margin-bottom: 0.75rem;
     letter-spacing: -1px;
+    color: $main-contrast;
   }
 
   &__warning-title {
@@ -27,6 +28,7 @@
     font-weight: 600;
     font-size: 1rem;
     padding-top: 1rem;
+    color:$main-contrast;
   }
 
   &__warning-icon {
@@ -37,12 +39,13 @@
     width: 4rem;
     margin: 1.5rem 0 2rem 0;
     opacity: 0.9;
+    filter: invert($invert-bob);
   }
 
   &__warning-subtitle {
     @extend %h4;
     font-weight: 400;
-    color: rgba($black, 0.8);
+    color: rgba($main-contrast, 0.8);
     padding: 1rem 0;
     text-align: center;
   }
@@ -66,11 +69,12 @@
     margin-bottom: 1rem;
     align-items: center;
     justify-content: center;
+    filter: invert($invert-bob);
   }
 
   &__address-display {
     @extend %row-nowrap;
-    border: solid 1.25px rgba($black, 0.1);
+    border: solid 1.25px rgba($main-contrast, 0.1);
     margin: 0rem 0 1.5rem 0;
     border-radius: 8px;
     align-items: center;
@@ -83,6 +87,7 @@
     font-size: 0.7rem;
     font-family: 'Roboto Mono', monospace;
     font-weight: 500;
+    color: $main-contrast;
   }
 
   &__disclaimer {
@@ -102,8 +107,8 @@
     outline: none;
     font-size: 0.7rem;
     padding: 0.25rem 0.75rem;
-    background-color: rgba($azure-blue, 0.15);
-    color: $azure-blue;
+    background-color: rgba($accent-main, 0.15);
+    color: $accent-main;
     font-weight: 700;
     border-radius: 0.5rem;
     cursor: pointer;
@@ -111,7 +116,7 @@
     transition: background-color 200ms ease-in-out;
 
     &:hover {
-      background-color: rgba($azure-blue, 0.13);
+      background-color: rgba($accent-main, 0.13);
 
       &::after {
         content: 'Copy to Clipboard';
@@ -119,8 +124,8 @@
         top: -1.8rem;
         left: -2rem;
         width: 7rem;
-        background-color: rgba($black, 0.8);
-        color: $white;
+        background-color: rgba($main-contrast, 0.8);
+        color: $main-back;
         padding: 0.3rem 0.4rem;
         border-radius: 0.25rem;
       }
@@ -131,12 +136,12 @@
         left: 1.45rem;
         position: absolute;
         border: 0.25rem solid transparent;
-        border-top-color: rgba($black, 0.8);
+        border-top-color: rgba($main-contrast, 0.8);
       }
     }
 
     &:active {
-      background-color: rgba($azure-blue, 0.17);
+      background-color: rgba($accent-main, 0.17);
     }
 
     &--copied {

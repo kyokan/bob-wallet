@@ -1,6 +1,7 @@
 @import '../../variables';
 
 .exchange {
+  color: $main-contrast;
   h2 {
     font-size: 1rem;
     font-weight: 500;
@@ -145,19 +146,19 @@
 
     &--active {
       &:before {
-        background-color: $success-green;
+        background-color: $success;
       }
     }
 
     &--transfer-confirmed {
       &:before {
-        background-color: $school-bus-yellow;
+        background-color: $transfer-editing;
       }
     }
 
     &--transfer-confirming {
       &:before {
-        background-color: $school-bus-yellow;
+        background-color: $transfer-editing;
       }
     }
 
@@ -167,25 +168,25 @@
 
     &--not-found {
       &:before {
-        background-color: $orange-red;
+        background-color: $failed;
       }
     }
 
     &--finalized-confirmed {
       &:before {
-        background-color: $school-bus-yellow;
+        background-color: $transfer-editing;
       }
     }
 
     &--finalized-confirming {
       &:before {
-        background-color: $school-bus-yellow;
+        background-color: $transfer-editing;
       }
     }
 
     &--transfer-cofirmed-lockup {
       &:before {
-        background-color: $school-bus-yellow;
+        background-color: $transfer-editing;
       }
     }
 

@@ -7,8 +7,9 @@
 
     box-shadow: none;
     box-sizing: border-box;
-    border: 1px solid $grey;
-    background-color: $white;
+    border: 1px solid $second-back;
+    background-color: $main-back;
+    color: $main-contrast;
     padding: 0.5rem 1rem;
     margin-bottom: 1rem;
     width: 82px;

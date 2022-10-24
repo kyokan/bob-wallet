@@ -110,7 +110,7 @@
       width: 100%;
       text-align: center;
       flex: 0 0 auto;
-      color: $orange-red;
+      color: $failed;
       font-size: 0.7rem;
       padding-bottom: 0.15rem;
     }
@@ -179,7 +179,7 @@
             flex: 1 1 auto;
             width: 0;
             border: none;
-            border-bottom: 1px dashed rgba($black, 0.1);
+            border-bottom: 1px dashed rgba($main-contrast, 0.1);
             outline: none;
           }
         }
@@ -189,8 +189,8 @@
 
   &__action-row {
     @extend %row-nowrap;
-    background-color: $athens-gray;
-    border: 1px solid darken($athens-gray, 5);
+    background-color: $second-back;
+    border: 1px solid darken($second-back, 5);
     align-items: center;
     justify-content: flex-end;
 
@@ -231,7 +231,7 @@
 
     &__error-message {
       font-size: 0.8rem;
-      color: $orange-red;
+      color: $failed;
       margin-right: 1rem;
     }
   }
@@ -248,8 +248,8 @@
     width: 100%;
     height: 100%;
     line-height: 100%;
-    background-color: rgba($black, 0.45);
-    color: $white;
+    background-color: rgba($main-contrast, 0.45);
+    color: $main-back;
     z-index: 100;
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;

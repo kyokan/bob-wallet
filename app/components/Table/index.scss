@@ -8,8 +8,8 @@
     @extend %row-nowrap;
     height: 1.8rem;
     align-items: center;
-    background-color: $athens-gray;
-    border: 1px solid darken($athens-gray, 5);
+    background-color: $second-back;
+    border: 1px solid darken($second-back, 5);
     box-sizing: border-box;
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
@@ -35,7 +35,7 @@
     @extend %row-nowrap;
     min-height: 2.8rem;
     align-items: center;
-    border: 1px solid darken($athens-gray, 5);
+    border: 1px solid darken($second-back, 5);
     border-top: none;
     box-sizing: border-box;
 

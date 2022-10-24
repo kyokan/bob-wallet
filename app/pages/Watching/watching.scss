@@ -90,25 +90,25 @@
     &--confirming {
       @extend %btn-primary;
       border: 1px solid transparent;
-      color: $white;
-      background-color: $orange-red;
+      color: $main-back;
+      background-color: $failed;
 
       &:focus {
         border: 1px solid transparent;
-        color: $white;
-        background-color: lighten($orange-red, 5);
+        color: $main-back;
+        background-color: lighten($failed, 5);
       }
 
       &:hover {
         border: 1px solid transparent;
-        color: $white;
-        background-color: lighten($orange-red, 5);
+        color: $main-back;
+        background-color: lighten($failed, 5);
       }
 
       &:active {
         border: 1px solid transparent;
-        color: $white;
-        background-color: darken($orange-red, 5);
+        color: $main-back;
+        background-color: darken($failed, 5);
       }
     }
   }
@@ -159,15 +159,16 @@
     }
 
     &__row {
+      color: $main-contrast;
       cursor: pointer;
       transition: background-color 250ms ease-in-out;
 
       &:hover {
-        background-color: rgba($black, .025);
+        background-color: rgba($main-contrast, .025);
       }
 
       &:active {
-        background-color: rgba($black, .05);
+        background-color: rgba($main-contrast, .05);
       }
 
       &__item:nth-of-type(1) {
@@ -207,11 +208,11 @@
     transition: none !important;
 
     &:hover {
-      background-color: $white !important;
+      background-color: $main-back !important;
     }
 
     &:active {
-      background-color: $white !important;
+      background-color: $main-back !important;
     }
 
     &__cta {
@@ -247,7 +248,7 @@
           perspective: 1000px;
 
           &:focus-within {
-            box-shadow: 0 0 0 1.25px $orange-red;
+            box-shadow: 0 0 0 1.25px $failed;
           }
         }
       }

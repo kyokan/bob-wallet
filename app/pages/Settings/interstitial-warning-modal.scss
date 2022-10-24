@@ -38,19 +38,19 @@
 .interstitial-warning-modal__cancel-button {
   @extend %btn-secondary;
   margin-right: 6px;
-  border-color: $grey;
+  border-color: $second-back;
   color: $manatee-gray;
 }
 
 .interstitial-warning-modal__submit-button {
   @extend %btn-primary;
-  background: $orange-red;
-  border-color: $orange-red;
+  background: $failed;
+  border-color: $failed;
   width: 100%;
   margin-left: 6px;
 
   &:disabled {
-    background-color: $orange-red;
+    background-color: $failed;
     opacity: 0.3;
     color: white;
   }
@@ -58,9 +58,9 @@
   &:hover,
   &:active,
   &:focus {
-    $hover-color: lighten($orange-red, 10%);
+    $hover-color: lighten($failed, 10%);
     background-color: $hover-color;
-    border-color: lighten($orange-red, 10%);
+    border-color: lighten($failed, 10%);
   }
 }
 

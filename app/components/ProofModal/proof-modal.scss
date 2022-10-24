@@ -12,6 +12,7 @@
 
   &__content {
     padding: 0 1.875rem 1rem;
+    color: $main-contrast;
   }
 
   &__close-btn {
@@ -45,6 +46,7 @@
     font-weight: 600;
     font-size: 1.25rem;
     text-align: center;
+    color: $main-contrast;
   }
 
   &__link {
@@ -62,6 +64,7 @@
     font-size: 0.9rem;
     line-height: 1.2rem;
     margin-bottom: 0.7rem;
+    color: $main-contrast;
 
     &--bolded {
       font-weight: 600;
@@ -95,7 +98,7 @@
 
   &__text-input textarea {
     @extend %box-input;
-    box-shadow: 0 0 0 1.25px $mischka-gray;
+    box-shadow: 0 0 0 1.25px $second-back;
     width: 100%;
     box-sizing: border-box;
     border: 0;
@@ -123,13 +126,13 @@
   }
 
   &__cli-step {
-    background: $athens-gray;
+    background: $second-back;
     padding: 0.5rem;
 
     code {
       font-family: "Courier New", monospace;
       font-size: 0.9rem;
-      color: $black;
+      color: $main-contrast;
     }
   }
 }
@@ -142,6 +145,7 @@
   &__header_text {
     @extend %header_text;
     margin-bottom: 1.125rem;
+    color: $main-contrast;
   }
 
   .wizard-header {
@@ -239,7 +243,7 @@
       border-radius: 0;
       font-size: .8125rem;
       line-height: 1.3125;
-      background: $white;
+      background: $second-back;
       outline: none;
 
       &::placeholder {
@@ -266,7 +270,7 @@
     }
 
     &--error {
-      box-shadow: 0 0 0 1.25px rgba($orange-red, 0.5);
+      box-shadow: 0 0 0 1.25px rgba($failed, 0.5);
     }
   }
 

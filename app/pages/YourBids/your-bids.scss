@@ -30,12 +30,12 @@
   &__filter {
     margin-right: 1rem;
     cursor: pointer;
-    color: $azure-blue;
+    color: $accent-main;
     text-transform: uppercase;
 
     &--active {
       cursor: default;
-      color: $black;
+      color: $main-contrast;
     }
   }
 
@@ -79,15 +79,16 @@
     }
 
     &__row {
+      color: $main-contrast;
       cursor: pointer;
       transition: background-color 250ms ease-in-out;
 
       &:hover {
-        background-color: rgba($black, .025);
+        background-color: rgba($main-contrast, .025);
       }
 
       &:active {
-        background-color: rgba($black, .05);
+        background-color: rgba($main-contrast, .05);
       }
 
       &__item:nth-of-type(1) {
@@ -133,23 +134,23 @@
     }
 
     &--owned {
-      background-color: $success-green;
+      background-color: $success;
     }
 
     &--bidding {
-      background-color: $electric-violet;
+      background-color: $opening-bid;
     }
 
     &--opening {
-      background-color: mix($school-bus-yellow, $electric-violet, 40%);
+      background-color: mix($transfer-editing, $opening-bid, 40%);
     }
 
     &--available {
-      background-color: $school-bus-yellow;
+      background-color: $transfer-editing;
     }
 
     &--reveal {
-      background-color: mix($electric-violet, $success-green, 50%);
+      background-color: mix($opening-bid, $success, 50%);
     }
   }
 

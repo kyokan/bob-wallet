@@ -1,6 +1,9 @@
+@import '../../variables';
+
 .mini-modal {
   width: 420px;
   padding: 20px;
+  color: $main-contrast;
 }
 
 .mini-modal__header {

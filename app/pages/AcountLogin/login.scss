@@ -14,6 +14,7 @@
   @extend %h2;
   font-weight: 600;
   margin-bottom: 2rem;
+  color: $main-contrast;
 }
 
 .login_password_input {
@@ -29,11 +30,11 @@
     transform: translate3d(0, 0, 0);
     backface-visibility: hidden;
     perspective: 1000px;
-    box-shadow: 0 0 0 1.25px rgba($orange-red, 0.6);
+    box-shadow: 0 0 0 1.25px rgba($failed, 0.6);
 
     &:focus-within {
-      border-color: $orange-red;
-      box-shadow: 0 0 0 1.25px rgba($orange-red, 0.6);
+      border-color: $failed;
+      box-shadow: 0 0 0 1.25px rgba($failed, 0.6);
     }
   }
 }
@@ -41,7 +42,7 @@
 .login_password_error {
   @extend %h5;
   height: 1rem;
-  color: $orange-red;
+  color: $failed;
   padding: 0.5rem 0;
 }
 
@@ -49,9 +50,10 @@
   font-weight: 500;
   font-size: 10px;
   margin: 3px 0px;
+  color: $main-contrast;
 
   &__accent {
-    color: $azure-blue;
+    color: $accent-main;
     cursor: pointer;
   }
 }

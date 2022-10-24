@@ -28,7 +28,7 @@
   }
 
   a {
-    color: $azure-blue;
+    color: $accent-main;
     text-decoration: none;
   }
 
@@ -59,7 +59,7 @@
     height: 2rem;
     border-radius: 50%;
     font-weight: 500;
-    border: 2px solid $black;
+    border: 2px solid $main-contrast;
     margin-right: 1rem;
   }
 
@@ -80,19 +80,19 @@
 
   &__link {
     margin: 1rem 0 1.5rem 0;
-    color: $azure-blue;
+    color: $accent-main;
     &:hover {
       cursor: pointer;
     }
   }
   &__panel {
-    background-color: $white;
+    background-color: $main-back;
     width: 16rem;
     box-sizing: border-box;
     padding: 1.75rem;
-    border: 1px solid $grey;
+    border: 1px solid $second-back;
     border-radius: 0.5rem;
-    box-shadow: 0 2px 4px 0 rgba($black, 0.35);
+    box-shadow: 0 2px 4px 0 rgba($main-contrast, 0.35);
 
     &__title {
       font-size: 1.25rem;
@@ -109,7 +109,7 @@
         }
         // Offer Role
         &:nth-of-type(2) {
-          color: $turquioise-blue;
+          color: $success;
           font-size: .8rem;
           font-weight: 500;
           margin-bottom: 0.4rem;

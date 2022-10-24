@@ -15,7 +15,7 @@
 }
 
 .reveal-seed-modal__error-message {
-  color: $orange-red;
+  color: $failed;
   font-size: 0.9rem;
   width: 350px;
   margin: 0 auto 24px auto;
@@ -30,7 +30,7 @@
 }
 
 .reveal-seed-modal__seed-phrase {
-  background-color: $athens-gray;
+  background-color: $second-back;
   width: 235px;
   margin: 0 auto;
   padding: 12px;

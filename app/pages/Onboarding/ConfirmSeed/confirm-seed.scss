@@ -4,7 +4,7 @@
   &__warning {
     @extend %h4;
     margin: 0.2rem 0;
-    color: $orange-red;
+    color: $failed;
   }
 
   &__editable {
@@ -18,14 +18,14 @@
     outline: none;
     font-size: 0.9rem;
     line-height: 1.2rem;
-    color: $black;
+    color: $main-contrast;
     cursor: text;
   }
 
   &__seed-word {
     font-size: 0.9rem;
-    color: $white;
-    background-color: $azure-blue;
+    color: $main-back;
+    background-color: $accent-main;
     height: 1.2rem;
     margin: 0.25rem;
   }

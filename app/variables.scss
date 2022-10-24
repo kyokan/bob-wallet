@@ -1,24 +1,29 @@
-// BW
-$white: #fff;
-$black: #000;
-$grey: #e2e2e2;
+
+// Main colours
+$main-back: #fff;
+$main-contrast: #000;
+$second-back: #e2e2e2;
 $dark-grey: #c2c2c2;
-$athens-gray: #f1f1f3;
 $manatee-gray: #909095;
-$mischka-gray: #cdcdde;
+$accent-main: #2480fd;
+$invert-bob: 0;
 
-// Blue
-$azure-blue: #2480fd;
-$turquioise-blue: #63e8b1;
+// EXAMPLE Dark colours
+// $main-back: #000;
+// $main-contrast: #fff;
+// $second-back: #474747;
+// $dark-grey: #db4545;
+// $manatee-gray: #7373e9;
+// $accent-main: #2480fd;
+// $invert-bob: 1;
 
-// Green
-$caribbean-green: #00e591;
-$success-green: #0bca6b;
 
-// Red
-$orange-red: #ff2f1f;
-$electric-violet: #7524ff;
-$school-bus-yellow: #ffe000;
+
+// General Colours
+$success: #0bca6b;
+$failed: #ff2f1f;
+$opening-bid: #7524ff;
+$transfer-editing: #ffe000;
 
 %col-nowrap {
   display: flex;
@@ -37,16 +42,16 @@ $school-bus-yellow: #ffe000;
 }
 
 %link {
-  color: $azure-blue;
+  color: $accent-main;
   cursor: pointer;
   transition: color 200ms ease-in-out;
 
   &:hover {
-    color: lighten($azure-blue, 10);
+    color: lighten($accent-main, 10);
   }
 
   &:active {
-    color: darken($azure-blue, 10);
+    color: darken($accent-main, 10);
   }
 }
 
@@ -55,12 +60,12 @@ $school-bus-yellow: #ffe000;
 }
 
 %btn-primary {
-  border: 1px solid $azure-blue;
+  border: 1px solid $accent-main;
   padding: 0.6875rem 1rem;
   font-size: 0.875rem;
   outline: none;
-  background-color: $azure-blue;
-  color: $white;
+  background-color: $accent-main;
+  color: $main-back;
   border-radius: 0.5rem;
   cursor: pointer;
   font-weight: 500;
@@ -68,76 +73,76 @@ $school-bus-yellow: #ffe000;
   user-select: none;
 
   &:focus {
-    border-color: lighten($azure-blue, 5);
-    background-color: lighten($azure-blue, 5);
+    border-color: lighten($accent-main, 5);
+    background-color: lighten($accent-main, 5);
   }
 
   &:hover {
-    border-color: lighten($azure-blue, 5);
-    background-color: lighten($azure-blue, 5);
+    border-color: lighten($accent-main, 5);
+    background-color: lighten($accent-main, 5);
   }
 
   &:active {
-    border-color: darken($azure-blue, 5);
-    background-color: darken($azure-blue, 5);
+    border-color: darken($accent-main, 5);
+    background-color: darken($accent-main, 5);
   }
 
   &:disabled {
-    border: 1px solid rgba($azure-blue, .0);
-    background-color: rgba($azure-blue, .25);
-    color: $white;
+    border: 1px solid rgba($accent-main, .0);
+    background-color: rgba($accent-main, .25);
+    color: $main-back;
     cursor: default;
   }
 }
 
 %btn-secondary {
-  border: 1px solid $azure-blue;
+  border: 1px solid $accent-main;
   padding: 0.75rem 1rem;
   font-size: 0.9rem;
   outline: none;
   background-color: transparent;
-  color: $azure-blue;
+  color: $accent-main;
   border-radius: 0.5rem;
   cursor: pointer;
   font-weight: 500;
   transition: 200ms ease-in-out;
 
   &:focus {
-    border-color: lighten($azure-blue, 10);
-    background-color: rgba($white, 0.5);
-    color: lighten($azure-blue, 10);
+    border-color: lighten($accent-main, 10);
+    background-color: rgba($main-back, 0.5);
+    color: lighten($accent-main, 10);
   }
 
   &:hover {
-    border-color: lighten($azure-blue, 10);
-    background-color: rgba($white, 0.5);
-    color: lighten($azure-blue, 10);
+    border-color: lighten($accent-main, 10);
+    background-color: rgba($main-back, 0.5);
+    color: lighten($accent-main, 10);
   }
 
   &:active {
-    border-color: darken($azure-blue, 10);
-    background-color: rgba($white, 0.5);
-    color: darken($azure-blue, 10);
+    border-color: darken($accent-main, 10);
+    background-color: rgba($main-back, 0.5);
+    color: darken($accent-main, 10);
     box-shadow: none;
   }
 
   &:disabled {
-    border-color: $grey;
-    color: $grey;
+    border-color: $second-back;
+    color: $second-back;
     cursor: default;
   }
 }
 
 %panel {
-  background-color: $white;
-  border: 1px solid rgba($black, 0.15);
-  box-shadow: 0 2px 2px 1px rgba($black, 0.1);
+  background-color: $main-back;
+  border: 1px solid rgba($main-contrast, 0.15);
+  box-shadow: 0 2px 2px 1px rgba($main-contrast, 0.1);
   border-radius: 0.5rem;
 }
 
 %box-input {
-  box-shadow: 0 0 0 1.25px $athens-gray;
-  background-color: $athens-gray;
+  box-shadow: 0 0 0 1.25px $second-back;
+  background-color: $second-back;
   padding: 0.6rem 0.75rem;
   border-radius: 0.25rem;
   font-size: 0.85rem;
@@ -147,11 +152,11 @@ $school-bus-yellow: #ffe000;
 
   &::-webkit-input-placeholder {
     font-weight: 300;
-    color: rgba($black, 0.1);
+    color: rgba($main-contrast, 0.1);
   }
 
   &:focus-within {
-    box-shadow: 0 0 0 1.25px rgba($azure-blue, 0.6);
+    box-shadow: 0 0 0 1.25px rgba($accent-main, 0.6);
   }
 
   input {
@@ -160,18 +165,18 @@ $school-bus-yellow: #ffe000;
     width: 0;
     font-size: 0.85rem;
     border: none;
-    background-color: $athens-gray;
+    background-color: $second-back;
 
     &::-webkit-input-placeholder {
       font-weight: 400;
-      color: rgba($black, 0.4);
+      color: rgba($main-contrast, 0.4);
     }
   }
 }
 
 %box-input-secondary {
-  box-shadow: 0 0 0 1.25px $athens-gray;
-  background-color: $athens-gray;
+  box-shadow: 0 0 0 1.25px $second-back;
+  background-color: $second-back;
   padding: 0.6rem 0.75rem;
   border-radius: 0.25rem;
   font-size: 0.85rem;
@@ -181,11 +186,11 @@ $school-bus-yellow: #ffe000;
 
   &::-webkit-input-placeholder {
     font-weight: 300;
-    color: rgba($black, 0.1);
+    color: rgba($main-contrast, 0.1);
   }
 
   &:focus-within {
-    box-shadow: 0 0 0 1.25px rgba($azure-blue, 0.6);
+    box-shadow: 0 0 0 1.25px rgba($accent-main, 0.6);
   }
 
   input {
@@ -194,17 +199,17 @@ $school-bus-yellow: #ffe000;
     width: 0;
     font-size: 0.85rem;
     border: none;
-    background-color: $athens-gray;
+    background-color: $second-back;
 
     &::-webkit-input-placeholder {
       font-weight: 400;
-      color: rgba($black, 0.4);
+      color: rgba($main-contrast, 0.4);
     }
   }
 }
 
 %info-header {
-  box-shadow: 0 1px 0 0 rgba($black, .1);
+  box-shadow: 0 1px 0 0 rgba($main-contrast, .1);
   margin-top: 2.5rem;
 }
 
@@ -247,7 +252,7 @@ $school-bus-yellow: #ffe000;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: $grey;
+  background-color: $second-back;
   -webkit-transition: 0.4s;
   transition: 0.4s;
 }
@@ -265,18 +270,18 @@ $school-bus-yellow: #ffe000;
 }
 
 input:checked + .slider {
-  background-color: $azure-blue;
+  background-color: $accent-main;
 }
 
 input:focus + .slider {
-  box-shadow: 0 0 1px $azure-blue;
+  box-shadow: 0 0 1px $accent-main;
 }
 
 input:checked + .slider:before {
   -webkit-transform: translateX(20px);
   -ms-transform: translateX(20px);
   transform: translateX(20px);
-  background-color: $white;
+  background-color: $main-back;
 }
 
 /* Rounded sliders */
@@ -338,7 +343,7 @@ $monospace: 'Roboto Mono', monospace;
   margin: 0 auto;
   width: 340px;
   height: 430px;
-  background-color: $white;
+  background-color: $main-back;
   border-radius: 0.2rem;
   box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.2);
   padding: 0 !important;
@@ -386,7 +391,7 @@ $monospace: 'Roboto Mono', monospace;
   height: 38px;
   width: 100%;
   border-radius: 8px;
-  background-color: $azure-blue;
+  background-color: $accent-main;
   color: white;
   // font-family: 'SF-Pro-Display-Regular';
   font-family: 'Roboto', sans-serif;
@@ -399,7 +404,7 @@ $monospace: 'Roboto Mono', monospace;
 
 .extension_primary_line_break {
   height: 5px;
-  border-bottom: 1px solid $grey;
+  border-bottom: 1px solid $second-back;
   width: 350px;
 }
 

@@ -13,6 +13,7 @@
       width: 12rem;
       margin-left: .5rem;
       border: none;
+      color: $main-contrast;
     }
 
     &__button {
@@ -34,7 +35,7 @@
     &__textarea {
       @extend %col-nowrap;
       box-sizing: border-box;
-      border: 1px solid $grey;;
+      border: 1px solid $second-back;;
       height: 24rem;
 
       &__title {
@@ -43,8 +44,8 @@
         font-size: .8125rem;
         padding: .5rem;
         font-weight: 500;
-        border-bottom: 1px solid $grey;
-        background-color: rgba($grey, .5);
+        border-bottom: 1px solid $second-back;
+        background-color: rgba($second-back, .5);
 
         > span {
           flex: 1 1 auto;

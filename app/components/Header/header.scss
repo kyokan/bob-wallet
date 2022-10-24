@@ -1,8 +1,8 @@
 @import '../../variables';
 
 .header {
-  background-color: $azure-blue;
-  color: $white;
+  background-color: $accent-main;
+  color: $main-back;
   padding: .5rem 1rem;
   font-size: .9rem;
 
@@ -27,7 +27,7 @@
   }
 
   &__block-height-label {
-    color: rgba($white, .5);
+    color: rgba($main-back, .5);
     font-weight: 600;
     font-size: .8rem;
   }
@@ -45,7 +45,7 @@
     font-size: .75rem;
     padding: .6rem 1rem;
     border-radius: 2rem;
-    background-color: rgba($white, .15);
+    background-color: rgba($main-back, .15);
     margin-left: 1rem;
     font-weight: 600;
     align-items: center;
@@ -61,9 +61,9 @@
       height: .8rem;
       line-height: .75rem;
       font-size: .75rem;
-      background-color: $white;
+      background-color: $main-back;
       border-radius: 1rem;
-      color: mix($white, $azure-blue, 25);
+      color: mix($main-back, $accent-main, 25);
       margin-right: .5rem;
     }
 

@@ -12,15 +12,15 @@
   margin-left: calc($width / -2);
   transform: translateY(calc(-100% - 8px));
   transition: transform 250ms linear;
-  background: rgba($athens-gray, .8);
-  color: $black;
+  background: rgba($second-back, .8);
+  color: $main-contrast;
 
   &--success {
-    border-left: 4px solid $success-green;
+    border-left: 4px solid $success;
   }
 
   &--error {
-    border-left: 4px solid $orange-red;
+    border-left: 4px solid $failed;
   }
 
   &__close {

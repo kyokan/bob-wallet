@@ -5,6 +5,7 @@
   flex: 1 1 auto;
   margin-top: 1px;
   overflow-y: auto;
+  color: $main-contrast;
 
   .content-area__title {
     flex: 0 0 auto;
@@ -30,16 +31,16 @@
       font-weight: 500;
 
       &--selected {
-        color: $azure-blue;
+        color: $accent-main;
         font-weight: bold;
       }
 
       &:hover {
-        background-color: $athens-gray;
+        background-color: $second-back;
       }
 
       &:active {
-        background-color: $grey;
+        background-color: $second-back;
       }
 
     }
@@ -56,7 +57,7 @@
       align-items: center;
 
       &--disabled {
-        background-color: $athens-gray;
+        background-color: rgba(0, 0, 0, 0.5);
         color: $manatee-gray;
       }
 
@@ -108,7 +109,7 @@
       margin: .3125rem 0 1rem;
 
       &--opened {
-        border-color: $azure-blue;
+        border-color: $accent-main;
       }
     }
 
@@ -119,9 +120,9 @@
     .dropdown__current-item {
       font-weight: 400;
       padding: 6px;
-      border: 1px solid $grey;
+      border: 1px solid $second-back;
       font-size: 14px;
-      background-color: $white;
+      background-color: $main-back;
     }
 
     .dropdown__options {
@@ -132,7 +133,7 @@
       text-align: left;
       font-weight: 400;
       padding: 6px;
-      border: 1px solid $grey;
+      border: 1px solid $second-back;
       font-size: 14px;
     }
   }
@@ -148,13 +149,13 @@
     a {
       flex: 1 1 auto;
       text-align: right;
-      color: $azure-blue;
+      color: $accent-main;
       cursor: pointer;
     }
   }
 
   &__input {
-    border: 1px solid $grey;
+    border: 1px solid $second-back;
     padding: 6px;
     width: calc(100% - 12px);
     font-family: "Courier New", monospace;
@@ -163,7 +164,7 @@
     margin-bottom: 1rem;
 
     &:focus {
-      border-color: $azure-blue;
+      border-color: $accent-main;
       outline: 0;
     }
   }
@@ -188,7 +189,7 @@
 
 .rpc-modal-warning {
   font-size: .8125rem;
-  color: $orange-red;
+  color: $failed;
   margin-bottom: .5rem;
 }
 
@@ -203,7 +204,7 @@
   }
 
   &--active {
-    background-color: $caribbean-green;
+    background-color: $success;
   }
 
   &--inactive {
@@ -274,7 +275,7 @@
 }
 
 .settings__copy-api-key {
-  border: 1px solid $grey;
+  border: 1px solid $second-back;
   padding: 6px;
   width: 350px;
   font-family: "Courier New", monospace;
@@ -283,13 +284,13 @@
   margin-bottom: 1rem;
 
   &:focus {
-    border-color: $azure-blue;
+    border-color: $accent-main;
     outline: 0;
   }
 }
 
 .settings__separator {
-  border: 1px solid $athens-gray;
+  border: 1px solid $second-back;
 }
 
 .settings__footer {
@@ -310,7 +311,7 @@
   }
 
   input {
-    border: 1px solid $grey;
+    border: 1px solid $second-back;
     padding: 6px;
     margin-bottom: 1rem;
     font-family: "Courier New", monospace;
@@ -319,7 +320,7 @@
     width: calc(100% - 1rem);
 
     &:focus {
-      border-color: $azure-blue;
+      border-color: $accent-main;
       outline: 0;
     }
   }

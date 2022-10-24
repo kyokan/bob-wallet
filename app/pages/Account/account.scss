@@ -9,7 +9,7 @@
     @extend %row-nowrap;
     padding: 1rem;
     align-items: center;
-    background: rgba($black, 0.04);
+    background: rgba($main-contrast, 0.04);
     border: solid 1px #f1f1f3;
     overflow-x: auto;
     cursor: default;
@@ -21,11 +21,11 @@
       // Spendable block
       &:first-child {
         text-align: right;
-        border-right: solid 1px rgba($black, 0.25);
+        border-right: solid 1px rgba($main-contrast, 0.25);
 
         & > .label {
           visibility: visible;
-          color: rgba($black, 0.25);
+          color: rgba($main-contrast, 0.25);
         }
         & > .amount {
           font-weight: 700;
@@ -41,13 +41,14 @@
         font-size: 0.6875rem;
         font-weight: 700;
         visibility: hidden;
-        color: rgba($black, 0.25);
+        color: rgba($main-contrast, 0.25);
       }
 
       & > .amount {
         font-size: 1.125rem;
         font-weight: 500;
         margin: .3125rem 0 .125rem;
+        color: $main-contrast;
       }
 
       & > .subtext {
@@ -55,7 +56,7 @@
         font-size: 0.8125rem;
         font-weight: 500;
         line-height: 1.25rem;
-        color: rgba($black, 0.25);
+        color: rgba($main-contrast, 0.25);
       }
     }
 
@@ -63,7 +64,7 @@
       font-size: 1.5rem;
       line-height: 2rem;
       font-weight: 500;
-      color: rgba($black, 0.5);
+      color: rgba($main-contrast, 0.5);
     }
   }
 
@@ -97,7 +98,7 @@
 
     &__loading {
       @extend %row-nowrap;
-      color: rgba($black, 0.5);
+      color: rgba($main-contrast, 0.5);
       font-weight: bold;
       font-size: 0.8rem;
       z-index: 100;
@@ -127,13 +128,14 @@
     font-size: 0.8125rem;
     font-weight: 500;
     margin: 1rem 3rem 1rem 3rem;
+    color: $main-contrast;
   }
 
   &__empty-list {
-    // background-color: rgba($black, 0.03);
+    // background-color: rgba($main-contrast, 0.03);
     // padding: 0.75rem 1.25rem;
     // border-radius: 0.5rem;
-    color: rgba($black, 0.5);
+    color: rgba($main-contrast, 0.5);
     font-size: 0.8rem;
     font-style: italic;
   }
@@ -182,7 +184,7 @@
     }
 
     &__account-index {
-      border: 1px solid rgba($black, 0.2);
+      border: 1px solid rgba($main-contrast, 0.2);
       padding: 0.75rem;
       border-radius: 0.5rem;
       font-size: 1rem;
@@ -192,11 +194,11 @@
 
       &::-webkit-input-placeholder {
         font-weight: 300;
-        color: rgba($black, 0.35);
+        color: rgba($main-contrast, 0.35);
       }
 
       &:focus-within {
-        border: 1px solid rgba($black, 0.3);
+        border: 1px solid rgba($main-contrast, 0.3);
       }
     }
 

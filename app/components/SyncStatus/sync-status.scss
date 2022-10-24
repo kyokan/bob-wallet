@@ -26,7 +26,7 @@
   }
 
   &--success {
-    color: $caribbean-green;
+    color: $success;
     font-weight: 600;
 
     &:before {
@@ -35,7 +35,7 @@
   }
 
   &--failure {
-    color: $orange-red;
+    color: $failed;
     font-weight: 600;
 
     &:before {

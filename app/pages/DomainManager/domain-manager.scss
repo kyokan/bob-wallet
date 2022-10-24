@@ -30,12 +30,12 @@
     margin-bottom: .25rem;
 
     &:hover {
-      background-color: $athens-gray;
+      background-color: $second-back;
       cursor: pointer;
     }
 
     &:active {
-      background-color: darken($athens-gray, 2);
+      background-color: darken($second-back, 2);
       cursor: pointer;
     }
 
@@ -73,15 +73,16 @@
       }
 
       &__row {
+        color: $main-contrast;
         cursor: pointer;
         transition: background-color 250ms ease-in-out;
 
         &:hover {
-          background-color: rgba($black, .025);
+          background-color: rgba($main-contrast, .025);
         }
 
         &:active {
-          background-color: rgba($black, .05);
+          background-color: rgba($main-contrast, .05);
         }
 
         &__item:nth-of-type(1) {
@@ -105,13 +106,14 @@
         font-size: 0.8rem;
         align-items: center;
         justify-content: center;
+        color: $main-contrast;  
       }
     }
   }
 
   &__loading {
     @extend %row-nowrap;
-    color: rgba($black, 0.5);
+    color: rgba($main-contrast, 0.5);
     font-weight: bold;
     font-size: 0.8rem;
     z-index: 100;
@@ -161,7 +163,7 @@
       width: 1.5rem;
       height: 1.5rem;
       margin: 0 .5rem;
-      color: $azure-blue;
+      color: $accent-main;
       cursor: pointer;
 
       &:hover {
@@ -174,6 +176,7 @@
       height: 1.5rem;
       margin: 0 .5rem;
       text-align: center;
+      color: $main-contrast;
     }
 
     &__start,
@@ -181,7 +184,7 @@
       background-repeat: no-repeat;
       background-size: contain;
       background-position: center;
-      border: 1.5px solid $athens-gray;
+      border: 1.5px solid $second-back;
     }
 
     &__start {
@@ -193,7 +196,7 @@
     }
 
     &__page--active {
-      color: $black;
+      color: $main-contrast;
       font-weight: 500;
       cursor: default;
 
@@ -217,7 +220,7 @@
     @extend %row-nowrap;
     align-items: center;
     font-size: .65rem;
-
+    color: $main-contrast;
     &__dropdown {
       margin-left: .5rem;
 
@@ -290,19 +293,19 @@
   .abort {
     margin-right: 0.5rem;
     @extend %btn-primary;
-    background: $orange-red;
-    border-color: $orange-red;
+    background: $failed;
+    border-color: $failed;
 
     &:hover,
     &:active,
     &:focus {
-      $hover-color: lighten($orange-red, 10%);
+      $hover-color: lighten($failed, 10%);
       background-color: $hover-color;
-      border-color: lighten($orange-red, 10%);
+      border-color: lighten($failed, 10%);
     }
 
     &:disabled {
-      background-color: $orange-red;
+      background-color: $failed;
       opacity: 0.3;
       color: white;
     }
@@ -317,7 +320,7 @@
 }
 
 .claim-name-for-payment-invalid {
-  color: $orange-red;
+  color: $failed;
 }
 
 .bulk-transfer {
@@ -337,7 +340,7 @@
   }
 
   &__label {
-    color: rgba($black, 0.4);
+    color: rgba($main-contrast, 0.4);
     font-weight: 600;
     font-size: 0.8rem;
     margin-bottom: 0.75rem;

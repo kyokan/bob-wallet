@@ -9,8 +9,8 @@
   outline: none;
   font-size: 0.7rem;
   padding: 0.25rem 0.75rem;
-  background-color: rgba($azure-blue, 0.15);
-  color: $azure-blue;
+  background-color: rgba($accent-main, 0.15);
+  color: $accent-main;
   font-weight: 700;
   border-radius: 0.5rem;
   cursor: pointer;
@@ -18,7 +18,7 @@
   transition: background-color 200ms ease-in-out;
 
   &:hover {
-    background-color: rgba($azure-blue, 0.13);
+    background-color: rgba($accent-main, 0.13);
 
     &::after {
       content: 'Copy to Clipboard';
@@ -26,8 +26,8 @@
       top: -1.8rem;
       left: -2rem;
       width: 7rem;
-      background-color: rgba($black, 0.8);
-      color: $white;
+      background-color: rgba($main-contrast, 0.8);
+      color: $main-back;
       padding: 0.3rem 0.4rem;
       border-radius: 0.25rem;
     }
@@ -38,12 +38,12 @@
       left: 1.45rem;
       position: absolute;
       border: 0.25rem solid transparent;
-      border-top-color: rgba($black, 0.8);
+      border-top-color: rgba($main-contrast, 0.8);
     }
   }
 
   &:active {
-    background-color: rgba($azure-blue, 0.17);
+    background-color: rgba($accent-main, 0.17);
   }
 
   &--copied {

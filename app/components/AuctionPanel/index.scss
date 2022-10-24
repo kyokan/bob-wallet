@@ -4,7 +4,7 @@
   @extend %col-nowrap;
 
   flex: 0 0 auto;
-  box-shadow: 0 2px 4px 2px rgba($black, 0.1);
+  box-shadow: 0 2px 4px 2px rgba($main-contrast, 0.1);
   border-radius: 1rem;
   width: 22rem;
 
@@ -13,7 +13,7 @@
 
     font-weight: 600;
     padding: 1rem 1.5rem;
-    box-shadow: 0 1px 0 0 rgba($black, 0.1);
+    box-shadow: 0 1px 0 0 rgba($main-contrast, 0.1);
   }
 
   &__header {
@@ -41,7 +41,7 @@
   }
 
   &__footer {
-    border-top: 1px solid rgba($black, .1);
+    border-top: 1px solid rgba($main-contrast, .1);
 
   }
 }

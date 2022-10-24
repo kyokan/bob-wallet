@@ -51,12 +51,12 @@
     }
 
     &--error {
-      box-shadow: 0 0 0 1.25px rgba($orange-red, 0.5);
+      box-shadow: 0 0 0 1.25px rgba($failed, 0.5);
     }
   }
 
   &__error {
-    color: $orange-red;
+    color: $failed;
     font-size: 0.75rem;
     margin: -6px 0.375rem 12px 0.375rem;
 

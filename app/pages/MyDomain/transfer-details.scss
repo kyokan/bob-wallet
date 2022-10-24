@@ -45,14 +45,14 @@
   }
 
   &__danger {
-    background: $orange-red !important;
+    background: $failed !important;
 
     &, &:focus, &:hover {
       border: 0 !important;
     }
 
     &:hover {
-      background: rgba($orange-red, 0.90) !important;
+      background: rgba($failed, 0.90) !important;
     }
   }
 }

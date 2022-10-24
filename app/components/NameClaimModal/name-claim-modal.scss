@@ -8,7 +8,7 @@
   cursor: default;
 
   a {
-    color: $azure-blue;
+    color: $accent-main;
     &:hover {
       cursor: pointer;
     }
@@ -26,7 +26,7 @@
     @extend %col-nowrap;
     padding: 0 1.875rem 1rem;
     align-items: center;
-
+    color: $main-contrast;
     &__success {
       width: 100%;
       @extend %col-nowrap;
@@ -46,7 +46,7 @@
         font-size: 1.125rem;
         line-height: 1.3125;
         font-weight: 600;
-        color: $azure-blue;
+        color: $accent-main;
         margin-bottom: 1rem;
       }
 
@@ -99,6 +99,7 @@
     font-weight: 600;
     font-size: 1.25rem;
     text-align: center;
+    color: $main-contrast;
   }
 
   &__name-input-group {
@@ -110,7 +111,7 @@
     @extend %col-nowrap;
 
     &__label {
-      color: rgba($black, 0.4);
+      color: rgba($main-contrast, 0.4);
       font-weight: 600;
       font-size: 0.8rem;
       margin-bottom: 0.75rem;
@@ -119,8 +120,8 @@
     &__input {
       @extend %box-input;
       @extend %row-nowrap;
-      box-shadow: 0 0 0 1.25px rgba($black, .1);
-      background-color: $white;
+      box-shadow: 0 0 0 1.25px rgba($main-contrast, .1);
+      background-color: $main-back;
       width: 100%;
       box-sizing: border-box;
       padding: 0.5rem 0.75rem;
@@ -128,6 +129,7 @@
       flex: 1 1 auto;
       font-size: 0.85rem;
       border: none;
+      color: $main-contrast;
     }
   }
 
@@ -138,6 +140,7 @@
     &__title {
       font-weight: 600;
       text-align: center;
+      color: $main-contrast;
     }
 
     &__options {
@@ -146,11 +149,12 @@
       grid-template-columns: 1fr 1fr;
       margin-top: 1rem;
       grid-gap: .5rem;
+      color: $main-contrast;
     }
 
     &__option {
-      background-color: rgba($black,.05);
-      color: rgba($black,.25);
+      background-color: rgba($main-contrast,.05);
+      color: rgba($main-contrast,.25);
       padding: .75rem 1.5rem;
       border-radius: 4px;
       cursor: pointer;
@@ -158,18 +162,18 @@
       transition: 200ms ease-in-out;
 
       &:hover {
-        background-color: rgba($black,.15);
-        color: rgba($black,.8);
+        background-color: rgba($main-contrast,.15);
+        color: rgba($main-contrast,.8);
       }
 
       &:active {
-        background-color: rgba($black,.15);
-        color: rgba($black,.8);
+        background-color: rgba($main-contrast,.15);
+        color: rgba($main-contrast,.8);
       }
 
       &--active {
-        background-color: rgba($black,.15);
-        color: rgba($black,.8);
+        background-color: rgba($main-contrast,.15);
+        color: rgba($main-contrast,.8);
         font-weight: 600;
       }
     }
@@ -180,6 +184,7 @@
     font-size: .75rem;
     text-align: center;
     width: 27rem;
+    color: $main-contrast;
 
     > div {
       margin-bottom: .25rem;
@@ -232,7 +237,7 @@
       height: 9rem;
       width: 100%;
       box-sizing: border-box;
-      border: 1px solid $grey;;
+      border: 1px solid $second-back;;
       padding: .5rem;
       font-family: "Courier New", monospace;
       outline: none;
@@ -247,12 +252,13 @@
     @extend %row-nowrap;
     justify-content: center;
     padding: 0.5rem 0.75rem;
+    color: $main-contrast;
   }
 
   &__cta {
     height: 38px;
     border-radius: 8px;
-    background-color: $azure-blue;
+    background-color: $accent-main;
     color: white;
     font-family: 'Roboto', sans-serif;
     font-weight: 600;
@@ -266,7 +272,7 @@
   display: grid;
   grid-auto-rows: auto;
   grid-template-columns: 1fr 1fr;
-  background-color: rgba($azure-blue, .1);
+  background-color: rgba($accent-main, .1);
   padding: .5rem 1rem;
   width: calc(100% - 2rem);
   border-radius: 4px;
@@ -276,13 +282,14 @@
     padding: .5rem 1rem;
 
     &__label {
-      color: rgba($black, 0.4);
+      color: rgba($main-contrast, 0.4);
       font-size: 0.8rem;
       margin-bottom: 0.25rem;
     }
 
     &__value {
       font-weight: 600;
+      color: $main-contrast;
     }
   }
 }

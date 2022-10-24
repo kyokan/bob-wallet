@@ -2,8 +2,8 @@
 
 .sidebar {
   @extend %col-nowrap;
-  background-color: $athens-gray;
-  box-shadow: 1px 0 0 0 rgba($black, 0.1);
+  background-color: $second-back;
+  box-shadow: 1px 0 0 0 rgba($main-contrast, 0.1);
   font-size: 0.9rem;
   flex: 1 1 auto;
   height: 100%;
@@ -51,28 +51,28 @@
 
   &__action {
     @extend %link;
-    color: $black;
+    color: $main-contrast;
     font-size: 0.8rem;
     padding: 0.75rem 1rem;
     margin: 0.2rem 0 0.2rem -1rem;
     font-weight: 600;
     transition: background-color 250ms ease-in, color 200ms ease-in-out;
-    background-color: rgba($azure-blue, 0);
+    background-color: rgba($accent-main, 0);
     border-radius: 6px;
     user-select: none;
     text-decoration: none;
     cursor: pointer;
 
     &:hover {
-      background-color: rgba($azure-blue, 0.05);
-      color: $black;
+      background-color: rgba($accent-main, 0.05);
+      color: $main-contrast;
     }
 
     &--selected {
-      background-color: rgba($azure-blue, 0.15);
+      background-color: rgba($accent-main, 0.15);
 
       &:hover {
-        background-color: rgba($azure-blue, 0.15);
+        background-color: rgba($accent-main, 0.15);
       }
     }
   }
@@ -82,8 +82,8 @@
     padding: 0.3rem 0rem;
     position: relative;
     flex: 0 0 auto;
-    border-top: 1px solid rgba($black, 0.1);
-    background-color: rgba($white, 0.5);
+    border-top: 1px solid rgba($main-contrast, 0.1);
+    background-color: rgba($main-back, 0.5);
 
     &__row {
       @extend %col-nowrap;
@@ -128,12 +128,12 @@
     @extend %row-nowrap;
 
     position: relative;
-    border: 1px solid rgba($black, 0.1);
+    border: 1px solid rgba($main-contrast, 0.1);
     border-radius: 0.25rem;
     align-items: center;
     padding: 0.4rem 0.5rem 0.4rem 0.75rem;
     transition: 200ms ease-in-out;
-    box-shadow: 0 2px 2px 0 rgba($black, 0.15);
+    box-shadow: 0 2px 2px 0 rgba($main-contrast, 0.15);
 
     &__input {
       border: none;
@@ -147,13 +147,13 @@
 
       &::-webkit-input-placeholder {
         font-weight: 500;
-        color: rgba($black, 0.35);
+        color: rgba($main-contrast, 0.35);
       }
     }
 
     &:focus-within {
-      border: 1px solid rgba($azure-blue, 0.6);
-      box-shadow: 0 2px 2px 0 rgba($azure-blue, 0.15);
+      border: 1px solid rgba($accent-main, 0.6);
+      box-shadow: 0 2px 2px 0 rgba($accent-main, 0.15);
     }
 
     &__icon {

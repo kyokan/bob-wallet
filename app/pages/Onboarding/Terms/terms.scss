@@ -8,7 +8,7 @@
   &__header {
     @extend %row-nowrap;
     padding: 1.125rem 1.625rem;
-    border-bottom: 1px solid $grey;
+    border-bottom: 1px solid $second-back;
     align-items: center;
 
     &_text {
@@ -25,7 +25,7 @@
   }
 
   &__html-box {
-    border: 1px solid $mischka-gray;
+    border: 1px solid $second-back;
     padding: .5rem 1rem;
     border-radius: 2px;
     cursor: default;
@@ -50,14 +50,14 @@
     line-height: 0.8rem;
     cursor: pointer;
     outline: 0;
-    border: 1px solid $grey;
-    box-shadow: 0 0 0 0.5px $grey;
+    border: 1px solid $second-back;
+    box-shadow: 0 0 0 0.5px $second-back;
     transition: 200ms ease-in-out;
 
     &--accepted {
-      border-color: $azure-blue;
-      box-shadow: 0 0 0 0.5px $azure-blue;
-      color: $black;
+      border-color: $accent-main;
+      box-shadow: 0 0 0 0.5px $accent-main;
+      color: $main-contrast;
     }
   }
 }
@@ -90,9 +90,9 @@
   margin-left: 122px;
   width: 12.5px;
   height: 12.5px;
-  border: 1px solid $azure-blue;
+  border: 1px solid $accent-main;
   border-radius: 20px;
-  background-color: $azure-blue;
+  background-color: $accent-main;
 }
 
 .circle-check-symbol {
@@ -101,7 +101,7 @@
   left: 2px;
   height: 0.2rem;
   width: 0.4rem;
-  border-top: 2px solid $white;
-  border-right: 2px solid $white;
+  border-top: 2px solid $main-back;
+  border-right: 2px solid $main-back;
   transform: rotate(135deg);
 }

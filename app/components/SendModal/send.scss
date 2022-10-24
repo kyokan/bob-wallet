@@ -4,7 +4,7 @@
 
   &__container {
     max-width: 30rem;
-    border: 1px solid rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba($main-contrast, 0.15);
     border-radius: 0.6rem;
     padding: 2rem;
     margin: 0 auto;
@@ -30,6 +30,7 @@
     font-size: 1.1rem;
     margin-bottom: 0.75rem;
     letter-spacing: -1px;
+    color: $main-contrast;
   }
 
   &__to,
@@ -42,7 +43,7 @@
   }
 
   &__label {
-    color: rgba($black, 0.4);
+    color: rgba($main-contrast, 0.4);
     font-weight: 600;
     font-size: 0.8rem;
     margin-bottom: 0.75rem;
@@ -82,8 +83,8 @@
     &__max-btn {
       font-size: 0.7rem;
       padding: 0.25rem 0.75rem;
-      background-color: rgba($azure-blue, 0.15);
-      color: $azure-blue;
+      background-color: rgba($accent-main, 0.15);
+      color: $accent-main;
       font-weight: 700;
       border-radius: 0.5rem;
       cursor: pointer;
@@ -93,11 +94,11 @@
 
       &:focus,
       &:hover {
-        background-color: rgba($azure-blue, 0.13);
+        background-color: rgba($accent-main, 0.13);
       }
 
       &:active {
-        background-color: rgba($azure-blue, 0.17);
+        background-color: rgba($accent-main, 0.17);
       }
     }
 
@@ -111,8 +112,8 @@
     display: inline-block;
     flex: 0 0 auto;
     margin-left: 0.5rem;
-    color: $white;
-    background-color: rgba($black, 0.2);
+    color: $main-back;
+    background-color: rgba($main-contrast, 0.2);
     border-radius: 50%;
     font-size: 0.85rem;
     line-height: 0.8rem;
@@ -153,7 +154,7 @@
       }
 
       &:focus-within {
-        box-shadow: 0 0 0 1.25px rgba($black, 0.1);
+        box-shadow: 0 0 0 1.25px rgba($main-contrast, 0.1);
       }
 
       &::after {
@@ -163,8 +164,8 @@
         right: 0.75rem;
         height: 0.6rem;
         width: 0.6rem;
-        border-top: 1px solid rgba($black, 0.4);
-        border-right: 1px solid rgba($black, 0.4);
+        border-top: 1px solid rgba($main-contrast, 0.4);
+        border-right: 1px solid rgba($main-contrast, 0.4);
         transform: rotate(135deg);
         z-index: 100;
       }
@@ -179,14 +180,14 @@
       height: 2.125rem;
       align-items: center;
       font-size: 0.85rem;
-      color: rgba($black, 0.35);
+      color: rgba($main-contrast, 0.35);
       user-select: none;
       margin-left: 0.75rem;
     }
   }
 
   &__input-disclaimer {
-    color: rgba($black, 0.4);
+    color: rgba($main-contrast, 0.4);
     font-size: 0.8rem;
     padding-top: 0.8rem;
     font-style: italic;
@@ -214,7 +215,7 @@
       content: ' ';
       height: 0.5rem;
       width: 0.5rem;
-      border: solid $black;
+      border: solid $main-contrast;
       border-width: 2px 2px 0 0;
       transform: rotate(-135deg);
       margin-right: 0.25rem;
@@ -230,11 +231,11 @@
     &__to,
     &__time {
       padding-bottom: 1.5rem;
-      // border-bottom: 1px solid rgba($black, 0.05);
+      // border-bottom: 1px solid rgba($main-contrast, 0.05);
     }
 
     &__label {
-      color: rgba($black, 0.4);
+      color: rgba($main-contrast, 0.4);
       font-size: 0.8rem;
       font-weight: 600;
     }
@@ -243,15 +244,17 @@
       font-family: 'Roboto Mono', monospace;
       margin-top: 0.5rem;
       font-size: 0.8rem;
+      color: $main-contrast;
     }
 
     &__time-text {
       margin-top: 0.5rem;
       font-size: 0.85rem;
+      color: $main-contrast;
     }
 
     &__error-message {
-      color: $orange-red;
+      color: $failed;
       font-size: 0.75rem;
       text-align: center;
       margin-bottom: 1rem;
@@ -265,10 +268,11 @@
     &__summary {
       @extend %col-nowrap;
 
-      background-color: rgba($azure-blue, 0.1);
+      background-color: rgba($accent-main, 0.1);
       border-radius: 0.25rem;
       padding: 1rem;
       margin: 0.2rem 0 1.15rem 0;
+      color: $main-contrast;
     }
 
     &__summary-amount,
@@ -313,7 +317,7 @@
       height: 1rem;
       width: 1rem;
       border: 2px solid transparent;
-      border-top-color: $azure-blue;
+      border-top-color: $accent-main;
       border-radius: 50%;
       animation: spin 750ms infinite cubic-bezier(0.55, 0.09, 0.68, 0.53);
       margin: 0 auto;
@@ -339,7 +343,7 @@
       font-size: 2.5rem;
       line-height: 2.5rem * 1.4;
       font-weight: 600;
-      color: $azure-blue;
+      color: $accent-main;
       margin-bottom: 1rem;
     }
 
@@ -355,7 +359,7 @@
       @extend %h4;
       margin: 1rem 0 0.5rem 0;
       font-weight: 600;
-      color: $azure-blue;
+      color: $accent-main;
       &:hover {
         cursor: pointer;
       }
@@ -374,15 +378,15 @@
     align-items: center;
 
     &__dot {
-      background-color: $azure-blue;
-      border: 1px solid $azure-blue;
+      background-color: $accent-main;
+      border: 1px solid $accent-main;
       height: 0.3rem;
       width: 0.3rem;
       border-radius: 50%;
       margin: 0.2rem;
 
       &--empty {
-        background-color: $white;
+        background-color: $main-back;
       }
     }
   }

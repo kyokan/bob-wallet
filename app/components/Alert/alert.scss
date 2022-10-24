@@ -8,8 +8,8 @@
   overflow-wrap: break-word;
 
   &--error {
-    border: 1px solid $orange-red;
-    color: $orange-red;
+    border: 1px solid $failed;
+    color: $failed;
   }
 
   &--warning {
@@ -18,12 +18,12 @@
   }
 
   &--success {
-    border: 1px solid $success-green;
-    color: $success-green;
+    border: 1px solid $success;
+    color: $success;
   }
 
   &--info {
-    border: 1px solid $azure-blue;
-    color: $azure-blue;
+    border: 1px solid $accent-main;
+    color: $accent-main;
   }
 }

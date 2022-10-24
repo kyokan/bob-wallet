@@ -31,8 +31,11 @@
   &__uninitialized {
     width: 400px;
     height: 500px;
-    background: white;
-    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.25);
+    background: $main-back;
+    // box-shadow: 0 1px 8px rgba(0, 0, 0, 0.25);
+    border-color: $main-contrast;
+    border-width: 1px;
+    border-style: solid;
     border-radius: 0.5rem;
 
     &--auto-height {
@@ -64,13 +67,14 @@
     margin: 0;
     box-sizing: border-box;
     overflow-y: auto;
+    color: $main-contrast;
   }
 
   &__login {
     margin: 5rem auto;
     font-size: 16px;
     background-color: white;
-    box-shadow: 0 2px 6px 0 rgba($black, 0.2);
+    box-shadow: 0 2px 6px 0 rgba($main-contrast, 0.2);
     border-radius: 0.2rem;
     width: 320px !important;
     height: 430px !important;
@@ -87,7 +91,7 @@
     margin: 0 auto;
     width: 340px;
     height: 430px;
-    background-color: $white;
+    background-color: $main-back;
     border-radius: 0.2rem;
     box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.2);
     padding: 0 !important;
@@ -121,7 +125,7 @@
   &__cancel {
     margin-right: 1rem;
     font-size: 0.8rem;
-    color: $azure-blue;
+    color: $accent-main;
     font-weight: 500;
     transition: color 200ms ease-in-out;
     cursor: pointer;

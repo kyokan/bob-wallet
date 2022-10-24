@@ -5,9 +5,10 @@
   justify-content: center;
   width: 3rem;
   height: 3rem;
-  background-color: $grey;
+  background-color: $second-back;
   border-radius: 50%;
   margin: 0.5rem 0;
+  filter: invert($invert-bob);
 
   &__bob {
     background-image: url('../../assets/images/bob-logo.svg');

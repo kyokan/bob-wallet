@@ -19,26 +19,26 @@
       text-transform: uppercase;
       text-align: left;
       padding: 0.5rem 0;
-      border-bottom: 1px solid $athens-gray;
+      border-bottom: 1px solid $second-back;
       font-weight: 700;
     }
 
     td {
       padding: 1rem 0;
-      border-bottom: 1px solid $athens-gray;
+      border-bottom: 1px solid $second-back;
       font-size: 0.8rem;
-      color: #333;
+      color: $main-contrast;
       font-weight: 400;
     }
 
     &__tr--pending td {
       font-style: italic;
-      color: darken($manatee-gray, 10);
+      color: darken($main-contrast, 10);
     }
   }
 
   &__correct {
-    background-color: $caribbean-green;
+    background-color: $success;
   }
 
   &__repair-bid {

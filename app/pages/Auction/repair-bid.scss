@@ -102,8 +102,8 @@
     &__max-btn {
       font-size: 0.7rem;
       padding: 0.25rem 0.75rem;
-      background-color: rgba($azure-blue, 0.15);
-      color: $azure-blue;
+      background-color: rgba($accent-main, 0.15);
+      color: $accent-main;
       font-weight: 700;
       border-radius: 0.5rem;
       cursor: pointer;
@@ -113,11 +113,11 @@
 
       &:focus,
       &:hover {
-        background-color: rgba($azure-blue, 0.13);
+        background-color: rgba($accent-main, 0.13);
       }
 
       &:active {
-        background-color: rgba($azure-blue, 0.17);
+        background-color: rgba($accent-main, 0.17);
       }
     }
 

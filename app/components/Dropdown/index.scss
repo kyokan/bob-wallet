@@ -5,7 +5,7 @@
 
   &__current-item {
     position: relative;
-    background-color: lighten($grey, 5);
+    background-color: lighten($second-back, 5);
     font-size: .85rem;
     font-weight: 600;
     padding: .7rem 1.25rem;
@@ -19,8 +19,8 @@
       content: '';
       height: .5rem;
       width: .5rem;
-      border-top: 1px solid $black;
-      border-left: 1px solid $black;
+      border-top: 1px solid $main-contrast;
+      border-left: 1px solid $main-contrast;
       transform: rotate(-135deg);
       transition: 200ms ease-in-out;
     }
@@ -37,7 +37,7 @@
     left: 0;
     width: 100%;
     display: none;
-    border-top: 1px solid $white;
+    border-top: 1px solid $main-back;
     padding: .5rem 0;
     border-bottom-left-radius: .5rem;
     border-bottom-right-radius: .5rem;
@@ -58,22 +58,22 @@
     flex: 0 0 auto;
 
     &:hover {
-      background-color: $grey;
+      background-color: $second-back;
     }
 
     &:active {
-      background-color: darken($grey, 5);
+      background-color: darken($second-back, 5);
     }
 
     &--disabled {
       opacity: .25;
       cursor: default;
       &:hover {
-        background-color: lighten($grey, 5);
+        background-color: lighten($second-back, 5);
       }
 
       &:active {
-        background-color: lighten($grey, 5);
+        background-color: lighten($second-back, 5);
       }
     }
   }
@@ -92,7 +92,7 @@
       &__options {
         @extend %col-nowrap;
 
-        background-color: lighten($grey, 5);
+        background-color: lighten($second-back, 5);
         z-index: 200;
       }
     }
@@ -101,13 +101,13 @@
   &--reversed {
     .dropdown {
       &__current-item {
-        background-color: white;
-        border: 1px solid $grey;
+        background-color: $second-back;
+        border: 1px solid $second-back;
       }
 
       &__options {
-        background-color: white;
-        border: 1px solid $grey;
+        background-color: $second-back;
+        border: 1px solid $second-back;
       }
     }
   }

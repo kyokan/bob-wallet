@@ -5,7 +5,7 @@
   position: relative;
   justify-content: center;
   flex: 1 1 auto;
-  background-color: rgba($athens-gray, .6);
+  background-color: rgba($second-back, .6);
   padding: 3.5rem 3rem 2rem 3rem;
   border-radius: 1.5rem;
 
@@ -15,8 +15,8 @@
     top: 1.5rem;
     left: 3rem;
     padding: 0.25rem 0.75rem;
-    background-color: rgba($azure-blue, 0.15);
-    color: $azure-blue;
+    background-color: rgba($accent-main, 0.15);
+    color: $accent-main;
     font-weight: 700;
     border-radius: 0.5rem;
     transition: background-color 200ms ease-in-out;

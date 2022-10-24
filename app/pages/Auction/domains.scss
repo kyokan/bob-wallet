@@ -2,6 +2,7 @@
 
 .domains {
   @extend %row-nowrap;
+  color: $main-contrast;  
 
   &__content {
     flex: 1 1 auto;
@@ -37,7 +38,7 @@
       align-content: center;
       flex: 1 1 auto;
       height: 139px;
-      background-color: rgba($athens-gray, .6);
+      background-color: rgba($second-back, .6);
       padding: 2rem 2.5rem;
       border-radius: 1.5rem;
     }
@@ -105,7 +106,7 @@
   &__action-panel {
     &__reserved {
       padding: 1rem 0;
-      background-color: $athens-gray;
+      background-color: $second-back;
     }
 
     &__reminder-title,
@@ -223,12 +224,12 @@
         text-align: right;
 
         &--green {
-          color: $caribbean-green;
+          color: $success;
         }
       }
 
       &__time-remaining {
-        color: $orange-red;
+        color: $failed;
       }
 
       &__disclaimer {
@@ -255,7 +256,7 @@
         padding: .5rem 1.5rem;
         text-align: center;
         font-weight: 400;
-        color: $orange-red;
+        color: $failed;
       }
     }
 
@@ -275,25 +276,25 @@
       &__warning {
         @extend %btn-primary;
         font-weight: 600;
-        color: $white;
-        background-color: $orange-red;
-        border: 1px solid $orange-red;
+        color: $main-back;
+        background-color: $failed;
+        border: 1px solid $failed;
 
         &:focus {
-          color: $white;
-          background-color: $orange-red;
-          border: 1px solid $orange-red;
+          color: $main-back;
+          background-color: $failed;
+          border: 1px solid $failed;
         }
 
         &:hover {
-          color: $white;
-          background-color: $orange-red;
-          border: 1px solid $orange-red;
+          color: $main-back;
+          background-color: $failed;
+          border: 1px solid $failed;
         }
 
         &:disabled {
-          background-color: $orange-red;
-          border: 1px solid $orange-red;
+          background-color: $failed;
+          border: 1px solid $failed;
           opacity: .5;
           cursor: default;
         }
@@ -392,7 +393,7 @@
 
     &__divider {
       height: 1px;
-      background-color: rgba($black, 0.1);
+      background-color: rgba($main-contrast, 0.1);
       margin: 0.5rem 0;
     }
 
@@ -410,7 +411,7 @@
       margin-top: 1rem;
       padding: 1.5rem;
       border-radius: 1rem;
-      background-color: $azure-blue;
+      background-color: $accent-main;
       color: white;
 
       &__headline {
@@ -436,16 +437,16 @@
         padding: 0.75rem 1.5rem;
 
         &:hover {
-          background-color: rgba($white, 1);
-          color: lighten($azure-blue, 10);
+          background-color: rgba($main-back, 1);
+          color: lighten($accent-main, 10);
         }
         &:focus {
-          background-color: rgba($white, 0.9);
-          color: lighten($azure-blue, 10);
+          background-color: rgba($main-back, 0.9);
+          color: lighten($accent-main, 10);
         }
         &:active {
-          background-color: rgba($white, 0.9);
-          color: lighten($azure-blue, 10);
+          background-color: rgba($main-back, 0.9);
+          color: lighten($accent-main, 10);
         }
       }
     }
@@ -476,7 +477,7 @@
   &__bid-now-divider {
     height: 1px;
     width: calc(100% + 3rem);
-    background: $mischka-gray;
+    background: $second-back;
     margin: 1rem 0 1rem -1.5rem;
     content: '';
   }
@@ -495,6 +496,7 @@
       background-position: center;
       background-size: cover;
       transition: 0.2s ease-in-out;
+      filter: invert($invert-bob);
 
       &:hover {
         cursor: pointer;

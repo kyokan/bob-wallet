@@ -7,7 +7,7 @@
   &__header {
     @extend %row-nowrap;
     padding: 1.125rem 1.625rem;
-    border-bottom: 1px solid $grey;
+    border-bottom: 1px solid $second-back;
     align-items: center;
 
     .arrow {
@@ -31,8 +31,8 @@
       @extend %col-nowrap;
       align-items: center;
       border-radius: 0.75rem;
-      border: 1px solid $grey;
-      box-shadow: 0 5px 10px 0 $grey;
+      border: 1px solid $second-back;
+      box-shadow: 0 5px 10px 0 $second-back;
       margin: 0.5rem 0;
       padding: 1.4rem 0;
       cursor: pointer;
@@ -40,18 +40,18 @@
 
       &__title {
         @extend %h4;
-        color: $azure-blue;
+        color: $accent-main;
         font-weight: 600;
       }
 
       &__description {
         @extend %h6;
-        color: rgba($azure-blue, 0.8);
+        color: rgba($accent-main, 0.8);
         text-transform: uppercase;
       }
 
       &:hover {
-        border-color: $azure-blue;
+        border-color: $accent-main;
       }
 
       &--disabled {
@@ -59,7 +59,7 @@
         cursor: default;
 
         &:hover {
-          border-color: $grey;
+          border-color: $second-back;
         }
       }
     }
@@ -69,7 +69,7 @@
     @extend %col-nowrap;
     align-items: center;
     justify-content: center;
-    background-color: $athens-gray;
+    background-color: $second-back;
     height: 4.25rem;
 
     &__tip {
