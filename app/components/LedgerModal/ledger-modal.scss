@@ -28,7 +28,16 @@
   .connect__status-pill {
     padding: 0.5rem 1rem;
     border-radius: 0.5rem;
+    background-color: $second-back;
+
+    span.connect__status-number {
+      color: $main-contrast;
+    }
+    span.connect__status-text {
+      color: $main-contrast;
+    }
   }
+  
 
   &__last-step {
     .connect__status-pill {
