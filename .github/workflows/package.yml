@@ -36,9 +36,6 @@ jobs:
       - name: Install npm packages
         run: npm i
         
-      - name: Install npm packages hsd
-        run: npm i hsd#master
-
       - name: Generate Executable
         run: ${{ matrix.cmd_package }}
 
