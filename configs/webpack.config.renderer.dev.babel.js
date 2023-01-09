@@ -153,7 +153,7 @@ export default {
       verbose: true,
       disableDotRule: false
     },
-    onBeforeSetupMiddleware() {
+    setupMiddlewares(middlewares, devServer) {
       if (process.env.START_HOT) {
         console.log('Starting Main Process...');
         spawn('npm', ['run', 'start-main-dev'], {
@@ -164,6 +164,7 @@ export default {
           .on('close', code => process.exit(code))
           .on('error', spawnError => console.error(spawnError));
       }
+      return middlewares;
     }
   }
 };

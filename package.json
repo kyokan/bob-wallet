@@ -130,10 +130,10 @@
     "sinon": "15.0.1",
     "style-loader": "3.3.1",
     "tape": "5.6.1",
-    "webpack": "5.73.0",
-    "webpack-bundle-analyzer": "4.5.0",
-    "webpack-cli": "4.10.0",
-    "webpack-dev-server": "4.9.3"
+    "webpack": "5.75.0",
+    "webpack-bundle-analyzer": "4.7.0",
+    "webpack-cli": "5.0.1",
+    "webpack-dev-server": "4.11.1"
   },
   "dependencies": {
     "@electron/remote": "2.0.9",
