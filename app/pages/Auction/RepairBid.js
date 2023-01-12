@@ -49,17 +49,19 @@ export class RepairBid extends Component {
         bid: value * consensus.COIN
       });
 
-      if (attempt.blind === bid.blind) {
-        if (storeNonce) {
-          await walletClient.importNonce({
-            name: bid.name,
-            address: bid.from,
-            bid: value,
-          });
-          this.props.getNameInfo(bid.name);
-        }
+      for (const attemptBlind of attempt.blinds) {
+        if (attemptBlind === bid.blind) {
+          if (storeNonce) {
+            await walletClient.importNonce({
+              name: bid.name,
+              address: bid.from,
+              bid: value,
+            });
+            this.props.getNameInfo(bid.name);
+          }
 
-        return true;
+          return true;
+        }
       }
     } catch (e) {
       this.props.showError(e.message);
