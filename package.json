@@ -118,8 +118,8 @@
     "connected-react-router": "6.9.2",
     "cross-env": "7.0.3",
     "css-loader": "6.7.3",
-    "electron": "19.0.7",
-    "electron-builder": "23.1.0",
+    "electron": "22.0.0",
+    "electron-builder": "23.6.0",
     "enzyme": "3.11.0",
     "jsdom": "21.0.0",
     "jsdom-global": "3.0.2",
@@ -136,7 +136,7 @@
     "webpack-dev-server": "4.9.3"
   },
   "dependencies": {
-    "@electron/remote": "2.0.8",
+    "@electron/remote": "2.0.9",
     "@sentry/electron": "4.1.2",
     "bcrypto": "5.4.0",
     "bcurl": "0.2.0",
