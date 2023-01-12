@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import Dropdown from '../../components/Dropdown';
 import { NETWORKS } from '../../constants/networks';
 import { withRouter } from 'react-router-dom';
-import connect from 'react-redux/es/connect/connect';
+import { connect } from 'react-redux';
 import * as nodeActions from '../../ducks/node';
 import c from 'classnames';
 import './network-picker.scss';

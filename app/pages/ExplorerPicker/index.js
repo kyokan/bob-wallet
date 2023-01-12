@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 import Dropdown from "../../components/Dropdown";
 import { withRouter } from "react-router-dom";
-import connect from "react-redux/es/connect/connect";
+import { connect } from "react-redux";
 import * as nodeActions from "../../ducks/node";
 import c from "classnames";
 import "./explorer-picker.scss";

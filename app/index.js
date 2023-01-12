@@ -3,8 +3,7 @@ import {clearDeeplink, setDeeplink, setDeeplinkParams} from "./ducks/app";
 require('./sentry');
 
 import React from 'react';
-import { render } from 'react-dom';
-import { AppContainer, setConfig as rhlSetConfig } from 'react-hot-loader';
+import { createRoot } from 'react-dom/client';
 import Root from './pages/Root';
 import { history, store } from './store/configureStore';
 import './global.scss';
@@ -36,13 +35,7 @@ history.listen(location => {
   }
 });
 
-rhlSetConfig({
-  showReactDomPatchNotification: false,
-})
-
-render(
-  <AppContainer>
-    <Root store={store} history={history} />
-  </AppContainer>,
-  document.getElementById('root'),
+const root = createRoot(document.getElementById('root'));
+root.render(
+  <Root store={store} history={history} />
 );

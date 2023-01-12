@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import connect from 'react-redux/es/connect/connect';
+import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import hip2 from "../../utils/hip2Client";
 import './hip2-picker.scss';
