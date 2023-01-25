@@ -232,6 +232,7 @@
   "multisigTxAddOwnSign": "Click Sign add your signature to the transaction.",
   "multisigTxExportForOthers": "Send the transaction to the other signers to get their signatures.",
   "multisigTxFullySigned": "This transaction has the required number of signatures! Broadcast to send it to the network.",
+  "multisigTxIncomplete": "This transaction has the required number of signatures, but is incomplete.",
   "next": "Next",
   "nextBid": "Next Bid",
   "nickname": "Nickname",

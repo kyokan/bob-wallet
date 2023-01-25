@@ -193,7 +193,7 @@ export class MultisigModal extends Component {
     }
 
     const canSign = maxSigsNeeded > 0 && canAddOwnSig;
-    const canBroadcastOrContinue = maxSigsNeeded === 0;
+    const canBroadcastOrContinue = maxSigsNeeded === 0 && tx.fee > 0;
 
     return (
       <Modal className="multisig-modal__wrapper" onClose={this.cancel}>
@@ -205,7 +205,9 @@ export class MultisigModal extends Component {
           <div className="multisig-modal__info">
             <p>
               {maxSigsNeeded === 0 ?
-                t('multisigTxFullySigned')
+                tx.fee >= 0 ?
+                  t('multisigTxFullySigned')
+                  : t('multisigTxIncomplete')
                 : canAddOwnSig ?
                   t('multisigTxAddOwnSign')
                   : t('multisigTxExportForOthers')
