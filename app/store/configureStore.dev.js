@@ -1,7 +1,7 @@
 import { createStore, applyMiddleware, compose } from 'redux';
 import thunk from 'redux-thunk';
 import { createHashHistory } from 'history';
-import { routerMiddleware, routerActions } from 'connected-react-router';
+import { routerMiddleware, routerActions } from '@rithvikvibhu/connected-react-router';
 import { createLogger } from 'redux-logger';
 import createRootReducer from '../ducks';
 
@@ -52,14 +52,6 @@ const configureStore = initialState => {
 
   // Create Store
   const store = createStore(rootReducer, initialState, enhancer);
-
-  if (module.hot) {
-    module.hot.accept(
-      '../ducks',
-      // eslint-disable-next-line global-require
-      () => store.replaceReducer(require('../ducks').default)
-    );
-  }
 
   return store;
 };

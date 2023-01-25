@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import QRCode from 'qrcode.react';
+import {QRCodeSVG} from 'qrcode.react';
 import copy from 'copy-to-clipboard';
 import './receive.scss';
 import CopyButton from '../CopyButton';
@@ -50,7 +50,7 @@ export default class ReceiveModal extends Component {
           <CopyButton content={address} />
         </div>
         <div className="receive__qr-code">
-          <QRCode value={address} />
+          <QRCodeSVG value={address} />
         </div>
         <div className="receive__disclaimer">
           {t('receiveModalQRDisclaimer')}
