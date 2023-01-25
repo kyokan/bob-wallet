@@ -145,6 +145,7 @@
     "bignumber.js": "9.1.1",
     "binet": "0.3.7",
     "bns": "0.15.0",
+    "bval": "0.1.7",
     "classnames": "2.3.2",
     "copy-to-clipboard": "3.3.2",
     "deep-equal": "2.2.0",
