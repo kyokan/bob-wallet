@@ -8,10 +8,12 @@ import './copy-btn.scss';
 export default class CopyButton extends Component {
   static propTypes = {
     content: PropTypes.string.isRequired,
-    className: PropTypes.string.isRequired,
+    btnText: PropTypes.string,
+    className: PropTypes.string,
   };
 
   static defaultProps = {
+    btnText: '',
     className: '',
   };
 
@@ -38,15 +40,20 @@ export default class CopyButton extends Component {
 
   render() {
     const {t} = this.context;
+    const {btnText, className} = this.props;
+    const {hasCopied} = this.state;
 
     return (
       <button
-        className={c('copy-btn', this.props.className, {
-          'copy-btn--copied': this.state.hasCopied,
+        className={c('copy-btn', className, {
+          'copy-btn--copied': hasCopied,
         })}
         onClick={this.copyAddress}
       >
-        {t(this.state.hasCopied ? 'copied' : 'copy')}
+        {hasCopied ?
+          t('copied')
+          : (btnText || t('copy'))
+        }
       </button>
     )
   }

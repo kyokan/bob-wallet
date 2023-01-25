@@ -2,6 +2,7 @@ import fs from 'fs';
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from "prop-types";
+import CopyButton from '../CopyButton';
 import Modal from '../Modal';
 import TxViewer from '../TxViewer';
 import { showError, showSuccess } from "../../ducks/notifications";
@@ -258,6 +259,11 @@ export class MultisigModal extends Component {
             >
               {t('cancel')}
             </button>
+            <CopyButton
+              btnText="Copy Tx Hex"
+              content={tx.hex}
+              className="multisig-modal__tertiary"
+            />
           </div>
         </div>
       </Modal>

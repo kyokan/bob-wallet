@@ -31,6 +31,7 @@
   }
 
   &__cta-wrapper {
+    position: relative;
     margin-top: 1rem;
     text-align: center;
 
@@ -47,6 +48,20 @@
 
   &__secondary {
     @extend %btn-secondary;
+  }
+
+  &__tertiary {
+    display: inline-block;
+    float: right;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    background-color: transparent;
+    color: #2480fd;
+    cursor: pointer;
+    font-weight: 500;
+    min-width: fit-content !important;
+    position: absolute;
+    right: 0;
   }
 
   &__error {
