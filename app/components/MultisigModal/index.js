@@ -179,6 +179,7 @@ export class MultisigModal extends Component {
     const {
       isVisible,
       tx,
+      multisigInfo,
       signerData,
       metadata,
       maxSigsNeeded,
@@ -200,7 +201,12 @@ export class MultisigModal extends Component {
         <div className="multisig-modal">
           <h2 className="multisig-modal__title">{t('multisigTransaction')}</h2>
 
-          <TxViewer tx={tx} signerData={signerData} metadata={metadata} />
+          <TxViewer
+            tx={tx}
+            multisigInfo={multisigInfo}
+            signerData={signerData}
+            metadata={metadata}
+          />
 
           <div className="multisig-modal__info">
             <p>
