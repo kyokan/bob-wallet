@@ -149,7 +149,7 @@ export class MultisigModal extends Component {
             this.props.showError('Error: ' + err);
           } else {
             resolve(savePath);
-            ipc.send('MULTISIG/CONTINUE');
+            ipc.send('MULTISIG/CONTINUE', {hideSuccessNotification: true});
             this.props.showSuccess(t('multisigSavedToFile'));
             this.setState({isVisible: false});
           }

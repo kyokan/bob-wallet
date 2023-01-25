@@ -1684,11 +1684,11 @@ class WalletService {
           mainWindow.send('MULTISIG/ERR', error.message);
         }
       }
-      const continueHandler = async () => {
+      const continueHandler = async (event, options = {}) => {
         ipc.removeListener('MULTISIG/SIGN', signHandler);
         ipc.removeListener('MULTISIG/CONTINUE', continueHandler);
         ipc.removeListener('MULTISIG/CANCEL', cancelHandler);
-        if (broadcast) {
+        if (broadcast && !options.hideSuccessNotification) {
           dispatchToMainWindow(
             showSuccess(
               'Your request is submitted! Please wait around 15 minutes for it to be confirmed.'
