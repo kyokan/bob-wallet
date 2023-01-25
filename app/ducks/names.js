@@ -325,6 +325,14 @@ export const transferMany = (names, recipient) => async (dispatch) => {
   await walletClient.transferMany(names, recipient);
 };
 
+export const finalizeAll = () => async (dispatch) => {
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
+
+  await walletClient.finalizeAll();
+};
+
 export const finalizeMany = (names) => async (dispatch) => {
   if (!names || !names.length) {
     return;
@@ -334,6 +342,14 @@ export const finalizeMany = (names) => async (dispatch) => {
     dispatch(getPassphrase(resolve, reject));
   });
   await walletClient.finalizeMany(names);
+};
+
+export const renewAll = () => async (dispatch) => {
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
+
+  await walletClient.renewAll();
 };
 
 export const renewMany = (names) => async (dispatch) => {

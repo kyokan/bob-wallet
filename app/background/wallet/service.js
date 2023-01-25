@@ -19,8 +19,8 @@ import {
   SET_FIND_NONCE_PROGRESS,
 } from '../../ducks/walletReducer';
 import {STOP, SET_CUSTOM_RPC_STATUS} from '../../ducks/nodeReducer';
-import createRegisterAll from "./create-register-all";
-import {createFinalizeMany, createTransferMany} from "./bulk-transfer";
+import {getNamesForRegisterAll} from "./create-register-all";
+import {createFinalizeMany} from "./bulk-transfer";
 import {createRenewMany} from "./bulk-renewal";
 import {getStats} from "./stats";
 import {get, put} from "../db/service";
@@ -35,6 +35,7 @@ const MasterKey = require('hsd/lib/wallet/masterkey');
 const Mnemonic = require('hsd/lib/hd/mnemonic');
 const HDPrivateKey = require('hsd/lib/hd/private');
 const Covenant = require('hsd/lib/primitives/covenant');
+const consensus = require('hsd/lib/protocol/consensus');
 const common = require('hsd/lib/wallet/common');
 const {Rules} = require('hsd/lib/covenants');
 const {hashName, types} = Rules;
@@ -676,28 +677,73 @@ class WalletService {
   sendRegisterAll = async () => {
     const {wdb} = this.node;
     const wallet = await wdb.get(this.name);
-    const mtx = await createRegisterAll(wallet);
-    const unlock = await wallet.fundLock.lock();
 
-    try {
-      return this._ledgerSendCustomTx(wallet, mtx);
-    } finally {
-      unlock();
+    const names = await getNamesForRegisterAll(wallet);
+    const actions = names.map(name => ['UPDATE', name, {records: []}]);
+
+    // Chunk into multiple batches to stay within consensus limits
+    const chunkedActions = [];
+    const chunkSize = consensus.MAX_BLOCK_RENEWALS / 6;
+    for(let i = 0; i < actions.length; i += chunkSize) {
+      chunkedActions.push(actions.slice(i, i + chunkSize));
     }
+
+    return this._ledgerProxy(
+      () => this._executeRPC('createbatch', [chunkedActions[0], {paths: true}]),
+      async () => {
+        try {
+          for (const chunk of chunkedActions) {
+            await this._executeRPC('sendbatch', [chunk]);
+          }
+        } catch (error) {
+          if (error.message !== 'Nothing to do.') throw error;
+        } finally {
+          await this.lock();
+        }
+      }
+    );
   };
 
   transferMany = async (names, address) => {
-    const {wdb} = this.node;
-    const wallet = await wdb.get(this.name);
-    const mtx = await createTransferMany(wallet, names, address);
-    const unlock = await wallet.fundLock.lock();
+    const actions = names.map(name => ['TRANSFER', name, address]);
 
-    try {
-      return this._ledgerSendCustomTx(wallet, mtx);
-    } finally {
-      unlock();
+    // Chunk into multiple batches to stay within consensus limits
+    const chunkedActions = [];
+    const chunkSize = consensus.MAX_BLOCK_UPDATES / 6;
+    for(let i = 0; i < actions.length; i += chunkSize) {
+      chunkedActions.push(actions.slice(i, i + chunkSize));
     }
+
+    return this._ledgerProxy(
+      () => this._executeRPC('createbatch', [chunkedActions[0], {paths: true}]),
+      async () => {
+        try {
+          for (const chunk of chunkedActions) {
+            await this._executeRPC('sendbatch', [chunk]);
+          }
+        } catch (error) {
+          if (error.message !== 'Nothing to do.') throw error;
+        } finally {
+          await this.lock();
+        }
+      }
+    );
   };
+
+  finalizeAll = () => this._ledgerProxy(
+    () => this._executeRPC('createbatch', [[['FINALIZE']], {paths: true}]),
+    async () => {
+      try {
+        while (true) {
+          await this._executeRPC('sendbatch', [[['FINALIZE']]]);
+        }
+      } catch (error) {
+        if (error.message !== 'Nothing to do.') throw error;
+      } finally {
+        await this.lock();
+      }
+    }
+  );
 
   finalizeMany = async (names) => {
     const {wdb} = this.node;
@@ -711,6 +757,21 @@ class WalletService {
       unlock();
     }
   };
+
+  renewAll = () => this._ledgerProxy(
+    () => this._executeRPC('createbatch', [[['RENEW']], {paths: true}]),
+    async () => {
+      try {
+        while (true) {
+          await this._executeRPC('sendbatch', [[['RENEW']]]);
+        }
+      } catch (error) {
+        if (error.message !== 'Nothing to do.') throw error;
+      } finally {
+        await this.lock();
+      }
+    }
+  );
 
   renewMany = async (names) => {
     const {wdb} = this.node;
@@ -726,13 +787,33 @@ class WalletService {
   };
 
   sendRevealAll = () => this._ledgerProxy(
-    () => this._executeRPC('createreveal', ['']),
-    () => this._executeRPC('sendreveal', [''], this.lock),
+    () => this._executeRPC('createbatch', [[['REVEAL']], {paths: true}]),
+    async () => {
+      try {
+        while (true) {
+          await this._executeRPC('sendbatch', [[['REVEAL']]]);
+        }
+      } catch (error) {
+        if (error.message !== 'Nothing to do.') throw error;
+      } finally {
+        await this.lock();
+      }
+    }
   );
 
   sendRedeemAll = () => this._ledgerProxy(
-    () => this._executeRPC('createredeem', ['']),
-    () => this._executeRPC('sendredeem', [''], this.lock),
+    () => this._executeRPC('createbatch', [[['REDEEM']], {paths: true}]),
+    async () => {
+      try {
+        while (true) {
+          await this._executeRPC('sendbatch', [[['REDEEM']]]);
+        }
+      } catch (error) {
+        if (error.message !== 'Nothing to do.') throw error;
+      } finally {
+        await this.lock();
+      }
+    }
   );
 
   sendRenewal = (name) => this._ledgerProxy(
@@ -1664,7 +1745,9 @@ const methods = {
   sendRegisterAll: service.sendRegisterAll,
   sendRenewal: service.sendRenewal,
   transferMany: service.transferMany,
+  finalizeAll: service.finalizeAll,
   finalizeMany: service.finalizeMany,
+  renewAll: service.renewAll,
   renewMany: service.renewMany,
   sendTransfer: service.sendTransfer,
   cancelTransfer: service.cancelTransfer,

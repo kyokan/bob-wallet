@@ -17,7 +17,7 @@ import c from "classnames";
 import Dropdown from "../../components/Dropdown";
 import BulkTransfer from "./BulkTransfer";
 import * as networks from "hsd/lib/protocol/networks";
-import {finalizeMany} from "../../ducks/names";
+import {finalizeAll} from "../../ducks/names";
 import {showError, showSuccess} from "../../ducks/notifications";
 import dbClient from "../../utils/dbClient";
 import BulkFinalizeWarningModal from "./BulkFinalizeWarningModal";
@@ -113,11 +113,9 @@ class DomainManager extends Component {
     }
   }
 
-  handleFinalizeMany = async () => {
+  handleFinalizeAll = async () => {
     const {
-      names,
-      namesList,
-      finalizeMany,
+      finalizeAll,
       showError,
       showSuccess,
     } = this.props;
@@ -129,24 +127,12 @@ class DomainManager extends Component {
     }
 
     try {
-      const finalizables = [];
-
-      for (const name of namesList) {
-        const domain = names[name];
-        const remainingBlocks = (domain.transfer + networks[this.props.network].names.transferLockup) - this.props.height;
-        if (domain.transfer && remainingBlocks <= 0) {
-          finalizables.push(name);
-        }
-      }
-
-      await finalizeMany(finalizables);
+      await finalizeAll();
       showSuccess(t('finalizeSuccess'));
       this.setState({ isConfirmingBulkFinalize: false });
     } catch (e) {
       showError(e.message);
     }
-
-
   };
 
   renderGoTo(namesList) {
@@ -238,7 +224,6 @@ class DomainManager extends Component {
     const {names, namesList} = this.props;
     const finalizables = [];
 
-
     for (const name of namesList) {
       const domain = names[name];
       const remainingBlocks = (domain.transfer + networks[this.props.network].names.transferLockup) - this.props.height;
@@ -250,7 +235,7 @@ class DomainManager extends Component {
     return !!finalizables.length && (
       <button
         className="extension_cta_button domain-manager__export-btn"
-        onClick={this.handleFinalizeMany}
+        onClick={this.handleFinalizeAll}
       >
         {`${this.context.t('bulkFinalize')} (${finalizables.length})`}
       </button>
@@ -368,7 +353,7 @@ class DomainManager extends Component {
       return (
         <BulkFinalizeWarningModal
           onClose={() => this.setState({ isConfirmingBulkFinalize: false })}
-          onClick={this.handleFinalizeMany}
+          onClick={this.handleFinalizeAll}
         />
       );
     }
@@ -413,7 +398,7 @@ export default withRouter(
     }),
     dispatch => ({
       getMyNames: () => dispatch(myDomainsActions.getMyNames()),
-      finalizeMany: (names) => dispatch(finalizeMany(names)),
+      finalizeAll: () => dispatch(finalizeAll()),
       showSuccess: (message) => dispatch(showSuccess(message)),
       showError: (message) => dispatch(showError(message)),
     }),

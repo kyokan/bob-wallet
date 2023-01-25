@@ -38,8 +38,8 @@ const analytics = aClientStub(() => require("electron").ipcRenderer);
     sendRevealAll: () => dispatch(nameActions.sendRevealAll()),
     sendRedeemAll: () => dispatch(nameActions.sendRedeemAll()),
     sendRegisterAll: () => dispatch(nameActions.sendRegisterAll()),
-    finalizeMany: (names) => dispatch(nameActions.finalizeMany(names)),
-    renewMany: (names) => dispatch(nameActions.renewMany(names)),
+    finalizeAll: () => dispatch(nameActions.finalizeAll()),
+    renewAll: () => dispatch(nameActions.renewAll()),
     showSuccess: (message) => dispatch(showSuccess(message)),
     showError: (message) => dispatch(showError(message)),
     fetchTransactions: () => dispatch(fetchTransactions()),
@@ -59,8 +59,8 @@ export default class Account extends Component {
     sendRevealAll: PropTypes.func.isRequired,
     sendRedeemAll: PropTypes.func.isRequired,
     sendRegisterAll: PropTypes.func.isRequired,
-    finalizeMany: PropTypes.func.isRequired,
-    renewMany: PropTypes.func.isRequired,
+    finalizeAll: PropTypes.func.isRequired,
+    renewAll: PropTypes.func.isRequired,
     history: PropTypes.object.isRequired,
   };
 
@@ -85,7 +85,6 @@ export default class Account extends Component {
 
   constructor(props) {
     super(props);
-    this.updateStatsAndBalance = throttle(this.updateStatsAndBalance, 15000, { trailing: true });
   }
 
   componentDidMount() {
@@ -105,7 +104,12 @@ export default class Account extends Component {
     this._isMounted = false;
   }
 
-  async updateStatsAndBalance() {
+  /**
+   * Refresh $HNS price,
+   * calculate balance and cards
+   * (Unthrottled update, call without _ to throttle)
+   */
+  async _updateStatsAndBalance() {
     // Update HNS price for conversion
     this.props.updateHNSPrice();
 
@@ -124,6 +128,8 @@ export default class Account extends Component {
     }
   }
 
+  updateStatsAndBalance = throttle(this._updateStatsAndBalance, 15000, { trailing: true })
+
   onCardButtonClick = async (action, args) => {
     const {t} = this.context;
 
@@ -131,13 +137,14 @@ export default class Account extends Component {
       reveal: this.props.sendRevealAll,
       redeem: this.props.sendRedeemAll,
       register: this.props.sendRegisterAll,
-      finalize: this.props.finalizeMany,
-      renew: this.props.renewMany,
+      finalize: this.props.finalizeAll,
+      renew: this.props.renewAll,
     }[action];
 
     try {
       await functionToExecute(args);
       this.props.fetchTransactions();
+      this._updateStatsAndBalance();
       this.props.showSuccess(t('genericRequestSuccess'));
     } catch (e) {
       if (e.message === 'Could not resolve preferred inputs.') {
@@ -344,9 +351,7 @@ export default class Account extends Component {
                 {t('renewCardWarning', blocksDeltaToTimeDelta(renewable.block, network, true))}
               </Fragment>
             }
-            buttonAction={() =>
-              this.onCardButtonClick("renew", renewable.domains)
-            }
+            buttonAction={() => this.onCardButtonClick("renew")}
           />
         ) : (
           ""
@@ -409,9 +414,7 @@ export default class Account extends Component {
                 {t('transferCardWarning')}
               </Fragment>
             }
-            buttonAction={() =>
-              this.onCardButtonClick("finalize", finalizable.domains)
-            }
+            buttonAction={() => this.onCardButtonClick("finalize")}
           />
         ) : (
           ""
