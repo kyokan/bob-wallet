@@ -1592,7 +1592,7 @@ class WalletService {
         const trueBid = metadata?.outputs?.[outputIdx]?.bid;
 
         // If importing a file which has trueBid, verify and save blind to txdb
-        if (trueBid) {
+        if (trueBid !== undefined && !isNaN(Number(trueBid))) {
           // Calculate blind
           const nameHash = covenant.get(0);
           const nonce = await wallet.generateNonce(nameHash, output.address, trueBid);
