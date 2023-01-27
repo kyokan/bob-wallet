@@ -1,7 +1,7 @@
 import { createStore, applyMiddleware } from 'redux';
 import thunk from 'redux-thunk';
 import { createHashHistory } from 'history';
-import { routerMiddleware } from 'connected-react-router';
+import { routerMiddleware } from '@rithvikvibhu/connected-react-router';
 import createRootReducer from '../ducks';
 
 const history = createHashHistory();

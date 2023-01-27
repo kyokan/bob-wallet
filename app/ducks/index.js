@@ -1,5 +1,5 @@
 import { combineReducers } from 'redux';
-import { connectRouter } from 'connected-react-router';
+import { connectRouter } from '@rithvikvibhu/connected-react-router';
 import names from './namesReducer';
 import wallet from './walletReducer';
 import node, { START_NETWORK_CHANGE } from './nodeReducer';

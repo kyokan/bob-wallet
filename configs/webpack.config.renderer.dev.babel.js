@@ -8,6 +8,7 @@
  */
 
 const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
+const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 
 import path from 'path';
 import webpack from 'webpack';
@@ -38,7 +39,8 @@ export default {
         use: {
           loader: 'babel-loader',
           options: {
-            cacheDirectory: true
+            cacheDirectory: true,
+            plugins: ['react-refresh/babel'],
           }
         }
       },
@@ -129,6 +131,8 @@ export default {
     }),
 
     new NodePolyfillPlugin({excludeAliases: ['process']}),
+
+    new ReactRefreshWebpackPlugin(),
   ],
 
   node: {
@@ -153,7 +157,7 @@ export default {
       verbose: true,
       disableDotRule: false
     },
-    onBeforeSetupMiddleware() {
+    setupMiddlewares(middlewares, devServer) {
       if (process.env.START_HOT) {
         console.log('Starting Main Process...');
         spawn('npm', ['run', 'start-main-dev'], {
@@ -164,6 +168,7 @@ export default {
           .on('close', code => process.exit(code))
           .on('error', spawnError => console.error(spawnError));
       }
+      return middlewares;
     }
   }
 };

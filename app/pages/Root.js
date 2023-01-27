@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {connect, Provider} from 'react-redux';
-import { ConnectedRouter } from 'connected-react-router';
+import { ConnectedRouter } from '@rithvikvibhu/connected-react-router';
 import App from './App';
 import translations, {I18nContext} from "../utils/i18n";
 

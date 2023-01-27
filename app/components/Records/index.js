@@ -3,7 +3,7 @@ import { HeaderItem, HeaderRow, Table, TableRow } from '../Table';
 import Blocktime from '../../components/Blocktime';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
-import connect from 'react-redux/es/connect/connect';
+import { connect } from 'react-redux';
 import cn from 'classnames';
 import { Resource } from 'hsd/lib/dns/resource';
 import Network from 'hsd/lib/protocol/network';
