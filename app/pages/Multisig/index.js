@@ -96,10 +96,8 @@ export default class Multisig extends Component {
           metadata
         );
       } catch (e) {
-        if (e.message !== 'Cancelled.') {
-          this.props.showError(e.message);
-          console.error(e);
-        }
+        this.props.showError(e.message);
+        console.error(e);
       }
     });
   }

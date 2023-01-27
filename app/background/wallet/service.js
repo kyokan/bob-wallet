@@ -1699,7 +1699,7 @@ class WalletService {
       }
       const cancelHandler = () => {
         // User has given up, inform the calling function.
-        reject(new Error('Cancelled.'));
+        resolve(null);
 
         // These messages go to the Multisig modal
         ipc.removeListener('MULTISIG/SIGN', signHandler);
