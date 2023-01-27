@@ -58,7 +58,7 @@ export default class ClaimNameForPayment extends Component {
       const {txHex} = parseTxFile(fileContent);
 
       if (!txHex || typeof txHex !== 'string') {
-        throw new Error('Invalid transaction file.');
+        throw new Error(t('invalidTransactionFile'));
       }
 
       this.setState({hex: txHex});

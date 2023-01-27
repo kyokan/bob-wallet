@@ -91,7 +91,7 @@ class Sidebar extends Component {
               to="/multisig"
               activeClassName="sidebar__action--selected"
             >
-              ⚠️ Multisig Setup
+              ⚠️ {t('headingMultisigSetup')}
             </NavLink>
           </div>
       </React.Fragment>
@@ -109,7 +109,7 @@ class Sidebar extends Component {
               to="/multisig"
               activeClassName="sidebar__action--selected"
             >
-              Multisig
+              {t('headingMultisig')}
             </NavLink>
           }
           <NavLink

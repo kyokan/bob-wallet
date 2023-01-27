@@ -46,18 +46,18 @@ export default class TxViewer extends Component {
     return (
       <div className="tx-viewer">
         <p className="tx-viewer__title">
-          Transaction {tx.hash}
+          {t('transaction')} {tx.hash}
         </p>
 
-        <p className="tx-viewer__heading">Contains:</p>
+        <p className="tx-viewer__heading">{t('contains')}:</p>
         {this.renderContent()}
 
         <p className="tx-viewer__fee">
-          Fee: {tx.fee / 1e6} HNS ({tx.rate / 1e6} HNS/kB)
+          {t('fee')}: {tx.fee / 1e6} HNS ({tx.rate / 1e6} HNS/kB)
         </p>
 
         <p className="tx-viewer__heading">
-          Multisig
+          {t('headingMultisig')}
           {n && ` (${m}-of-${n})`}
           :
         </p>
@@ -67,7 +67,7 @@ export default class TxViewer extends Component {
           className="tx-viewer__heading link"
           onClick={() => this.setState({isAdvancedExpanded: !isAdvancedExpanded})}
         >
-          Advanced View »
+          {t('advancedView')} »
         </p>
         {isAdvancedExpanded && this.renderAdvanced()}
       </div>
@@ -131,16 +131,16 @@ export default class TxViewer extends Component {
         <div>
           <p>
             {signed.length ?
-              `Has been signed by ${signed.length} members:`
-              : 'No member has signed this transaction yet.'
+              t('txViewSignedByNMembers', signed.length)
+              : t('txViewSignedByNobody')
             }
           </p>
           <div className="tx-viewer__sigs">
             {signed.map((signer, idx) => (
               <div key={idx} className="signed">
                 {(signer.accountKey === accountKey) ?
-                  (`${walletId} (me)`)
-                  : walletKeysNames[signer.accountKey] || `unknown-signer #${idx}`
+                  (`${walletId} (${t('me')})`)
+                  : walletKeysNames[signer.accountKey] || `${t('unknownSigner')} #${idx}`
                 }
               </div>
             ))}
@@ -151,16 +151,16 @@ export default class TxViewer extends Component {
         <div>
           <p>
             {signed.length < m ?
-              `Requires ${m-signed.length} signatures from any of:`
-              : 'Has enough signatures and is valid! Other members:'
+              t('txViewRequiresNSigs', m-signed.length)
+              : t('txViewRequiresNoSigs')
             }
           </p>
           <div className="tx-viewer__sigs">
             {notSigned.map((signer, idx) => (
               <div key={idx} className={signed.length < m ? "potential" : ""}>
                 {(signer.accountKey === accountKey) ?
-                  (`${walletId} (me)`)
-                  : walletKeysNames[signer.accountKey] || `unknown-signer #${idx}`
+                  (`${walletId} (${t('me')})`)
+                  : walletKeysNames[signer.accountKey] || `${t('unknownSigner')} #${idx}`
                 }
               </div>
             ))}
@@ -193,6 +193,7 @@ export default class TxViewer extends Component {
   }
 
   renderInput = (input, inputIdx) => {
+    const { t } = this.context;
     const { signerData, accountKey, walletKeysNames, walletId } = this.props;
     const { hash } = input.prevout;
 
@@ -213,8 +214,8 @@ export default class TxViewer extends Component {
             {signerData[inputIdx].map((signer, idx) => (
               <div key={idx} className={signer.signed ? 'signed' : ''}>
                 {(signer.accountKey === accountKey) ?
-                  (`${walletId} (me)`)
-                  : walletKeysNames[signer.accountKey] || `unknown-signer #${idx}`
+                  (`${walletId} (${t('me')})`)
+                  : walletKeysNames[signer.accountKey] || `${t('unknownSigner')} #${idx}`
                 }
               </div>
             ))}
@@ -243,6 +244,7 @@ export default class TxViewer extends Component {
   }
 
   renderCovenant = (output, outputIdx) => {
+    const { t } = this.context;
     const { metadata } = this.props;
     const { covenant } = output;
 
@@ -251,17 +253,20 @@ export default class TxViewer extends Component {
       return null;
     }
 
+    const name = metadata.outputs[outputIdx].name;
+    const bid = metadata.outputs[outputIdx].bid / 1e6;
+    const blind = (output.value - metadata.outputs[outputIdx].bid) / 1e6;
+
     return (
       <div className="tx-viewer__card__covenant">
         <div className="tx-viewer__card__covenant__header">
           <span>{covenant.action}</span>
-          <span>{metadata.outputs[outputIdx].name || 'unknown name!'}/</span>
+          <span>{name ? `${name}/` : `${t('unknownName')}!`}</span>
         </div>
 
         {covenant.action === 'BID' &&
           <div className="tx-viewer__card__covenant__bid">
-            {metadata.outputs[outputIdx].bid / 1e6} HNS bid +
-            {(output.value - metadata.outputs[outputIdx].bid) / 1e6} HNS blind
+            {bid} HNS {t('bid')} + {blind} HNS {t('blind')}
           </div>
         }
       </div>

@@ -139,7 +139,7 @@ export class MultisigModal extends Component {
 
     const savePath = dialog.showSaveDialogSync({
       defaultPath: getFileName(tx.hash, maxSigsNeeded),
-      filters: [{name: 'Handshake Transaction', extensions: ['json']}],
+      filters: [{name: t('transactionFile'), extensions: ['json']}],
     });
 
     await new Promise((resolve, reject) => {
@@ -260,7 +260,7 @@ export class MultisigModal extends Component {
               {t('cancel')}
             </button>
             <CopyButton
-              btnText="Copy Tx Hex"
+              btnText={t('copyTxHex')}
               content={tx.hex}
               className="multisig-modal__tertiary"
             />
