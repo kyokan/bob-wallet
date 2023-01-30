@@ -53,6 +53,8 @@ class Exchange extends Component {
     clearDeeplinkParams: PropTypes.func.isRequired,
     network: PropTypes.string.isRequired,
     height: PropTypes.number.isRequired,
+    walletType: PropTypes.string.isRequired,
+    walletWatchOnly: PropTypes.bool.isRequired,
   };
 
   static contextType = I18nContext;
@@ -328,6 +330,10 @@ class Exchange extends Component {
 
     if (this.props.walletWatchOnly) {
       return t('notSupportWithLedger');
+    }
+
+    if (this.props.walletType === 'multisig') {
+      return t('notSupportWithMultisig');
     }
 
     if (this.props.isLoading) {
@@ -785,6 +791,7 @@ export default connect(
     listings: state.exchange.listings,
     finalizingName: state.exchange.finalizingName,
     deeplinkParams: state.app.deeplinkParams,
+    walletType: state.wallet.type,
     walletWatchOnly: state.wallet.watchOnly,
     spv: state.node.spv,
     network: state.wallet.network,

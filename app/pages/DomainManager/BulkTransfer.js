@@ -54,8 +54,10 @@ export default class BulkTransfer extends Component {
   onTransfer = async () => {
     const { selectedOptions, recipientAddress } = this.state;
     try {
-      await this.props.transferMany(selectedOptions, recipientAddress);
-      this.props.showSuccess(this.context.t('bulkTransferSuccess'));
+      const res = await this.props.transferMany(selectedOptions, recipientAddress);
+      if (res !== null) {
+        this.props.showSuccess(this.context.t('bulkTransferSuccess'));
+      }
       this.props.onClose();
     } catch (e) {
       this.setState({

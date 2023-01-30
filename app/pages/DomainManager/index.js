@@ -127,8 +127,10 @@ class DomainManager extends Component {
     }
 
     try {
-      await finalizeAll();
-      showSuccess(t('finalizeSuccess'));
+      const res = await finalizeAll();
+      if (res !== null) {
+        showSuccess(t('finalizeSuccess'));
+      }
       this.setState({ isConfirmingBulkFinalize: false });
     } catch (e) {
       showError(e.message);

@@ -6,7 +6,7 @@ import WizardHeader from "../WizardHeader";
 import isValidAddress from "../../utils/verifyAddress";
 
 @connect((state) => ({
-  address: state.wallet.address,
+  address: state.wallet.receiveAddress,
   network: state.wallet.network,
 }))
 export default class StepHnsAddress extends Component {

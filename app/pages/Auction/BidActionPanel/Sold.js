@@ -30,10 +30,15 @@ class Sold extends Component {
 
   static contextType = I18nContext;
 
-  sendRedeem = () => {
-    this.props.sendRedeem()
-      .then(() => this.props.showSuccess(this.context.t('redeemSuccess')))
-      .catch(e => this.props.showError(e.message))
+  sendRedeem = async () => {
+    try {
+      const res = await this.props.sendRedeem();
+      if (res !== null) {
+        this.props.showSuccess(this.context.t('redeemSuccess'));
+      }
+    } catch (e) {
+      this.props.showError(e.message);
+    }
   };
 
   render() {

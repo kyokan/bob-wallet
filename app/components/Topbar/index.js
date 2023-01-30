@@ -23,9 +23,11 @@ import * as walletActions from '../../ducks/walletActions';
     return {
       isRunning,
       isCustomRPCConnected,
+      network: state.wallet.network,
       spendableBalance: state.wallet.balance.spendable,
       walletId: state.wallet.wid,
-      walletWatchOnly: state.wallet.watchOnly,
+      walletInitialized: state.wallet.initialized,
+      walletsDetails: state.wallet.walletsDetails,
     };
   },
   dispatch => ({
@@ -42,11 +44,13 @@ class Topbar extends Component {
     location: PropTypes.shape({
       pathname: PropTypes.string.isRequired
     }).isRequired,
+    network: PropTypes.string.isRequired,
     walletId: PropTypes.string.isRequired,
+    walletInitialized: PropTypes.bool.isRequired,
+    walletsDetails: PropTypes.object.isRequired,
     getNameInfo: PropTypes.func.isRequired,
     lockWallet: PropTypes.func.isRequired,
     spendableBalance: PropTypes.number,
-    walletWatchOnly: PropTypes.bool.isRequired,
   };
 
   static contextType = I18nContext;
@@ -104,12 +108,15 @@ class Topbar extends Component {
       title,
       showLogo,
       location: { pathname },
+      walletInitialized,
     } = this.props;
 
     return (
       <React.Fragment>
         {showLogo ? this.renderLogo() : this.renderTitle(title)}
-        {!/domains$/.test(pathname) && <TLDInput minimalErrorDisplay />}
+        {walletInitialized && !/domains$/.test(pathname) &&
+          <TLDInput minimalErrorDisplay />
+        }
         <SyncStatus />
         { this.renderSettingIcon() }
       </React.Fragment>
@@ -119,11 +126,10 @@ class Topbar extends Component {
   renderSettingIcon() {
     const {t} = this.context;
 
-    const { spendableBalance, walletId } = this.props;
+    const {network, spendableBalance, walletId, walletsDetails} = this.props;
     const { isShowingSettingMenu } = this.state;
-    const walletName = this.props.walletWatchOnly
-      ? `${walletId} (Ledger)`
-      : walletId;
+
+    const walletName = walletsDetails[walletId]?.displayName || walletId;
 
     return (
       <div
@@ -138,7 +144,8 @@ class Topbar extends Component {
               <div className="setting-menu">
                 <div className="setting-menu__balance-container">
                   {this.renderSettingGroup(t('walletID'), walletName)}
-                  {this.renderSettingGroup(t('balanceSpendable'), `HNS ${displayBalance(spendableBalance)}`)}
+                  {this.renderSettingGroup(t('balanceSpendable'), `${displayBalance(spendableBalance)} HNS`)}
+                  {this.renderSettingGroup(t('settingNetTitle'), network)}
                 </div>
                 <div className="setting-menu__items">
                   <div

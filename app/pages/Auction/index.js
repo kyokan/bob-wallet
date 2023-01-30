@@ -52,10 +52,8 @@ const analytics = aClientStub(() => require('electron').ipcRenderer);
   },
   dispatch => ({
     getNameInfo: tld => dispatch(names.getNameInfo(tld)),
-    sendRenewal: tld => dispatch(names.sendRenewal(tld)),
     showSuccess: (message) => dispatch(showSuccess(message)),
     showError: (message) => dispatch(showError(message)),
-    sendRedeem: tld => dispatch(names.sendRedeem(tld)),
     fetchPendingTransactions: () => dispatch(walletActions.fetchPendingTransactions()),
   }),
 )
@@ -73,8 +71,6 @@ export default class Auction extends Component {
       }),
     }),
     getNameInfo: PropTypes.func.isRequired,
-    sendRenewal: PropTypes.func.isRequired,
-    sendRedeem: PropTypes.func.isRequired,
     showSuccess: PropTypes.func.isRequired,
     showError: PropTypes.func.isRequired,
     fetchPendingTransactions: PropTypes.func.isRequired,

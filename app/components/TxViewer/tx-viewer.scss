@@ -1,0 +1,174 @@
+@import "../../variables.scss";
+
+.tx-viewer {
+  padding: 0.8rem 1.6rem;
+  border: solid 1px $grey;
+  border-radius: 4px;
+  background: $athens-gray;
+  font-size: 0.8rem;
+
+  &__title {
+    text-align: center;
+    font-weight: 500;
+    font-size: 1rem;
+  }
+
+  &__heading {
+    margin-top: 16px;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  &__section {
+    padding: 0.8rem;
+    gap: 1rem;
+    background: $white;
+    border: solid 1px $grey;
+    border-radius: 4px;
+    min-height: 1.8rem;
+    max-height: 5rem;
+    resize: vertical;
+    overflow-y: auto;
+
+    // allow resizing more than initial max-height
+    &[style*="height"] {
+      max-height: unset;
+    }
+
+    &.section__content {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      align-content: flex-start;
+
+      > div {
+        padding: 5px 15px;
+        background: darken($grey, 2);
+        border-radius: 50px;
+      }
+    }
+
+    &.section__multisig {
+      display: flex;
+
+      > .pie {
+        margin: 0px 20px;
+        width: 80px;
+        aspect-ratio: 1;
+        border: solid 1px $mischka-gray;
+        border-radius: 50px;
+        background:conic-gradient(
+          $caribbean-green 0% var(--ms-pie-signed),
+          $school-bus-yellow var(--ms-pie-signed), calc(var(--ms-pie-signed) + var(--ms-pie-required)),
+          #F1F1F3 calc(var(--ms-pie-signed) + var(--ms-pie-required)) 100%,
+        );
+      }
+
+      > div:not(:first-child) {
+        flex: 1;
+        p {
+          margin: 0;
+        }
+      }
+    }
+
+  }
+
+  &__fee {
+    margin-top: 6px;
+    font-weight: 300;
+  }
+
+  &__sigs {
+    display: inline-flex;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+
+    > div {
+      background: $grey;
+      padding: 0.125rem 0.75rem;
+      border: solid 2px $white;
+
+      &.signed {
+        background: $caribbean-green;
+      }
+
+      &.potential {
+        background: $school-bus-yellow;
+      }
+    }
+  }
+
+  &__adv {
+    margin-bottom: 0.5rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)); // 2 equal columns
+    gap: 2.5rem;
+    border: solid 1px $grey;
+    border-radius: 4px;
+    padding: 1rem;
+    background: $white;
+
+    &__heading {
+      margin-top: 0;
+      text-align: center;
+      font-weight: 500;
+    }
+  }
+
+  &__card {
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    border: solid 1px $grey;
+    border-radius: 4px;
+    background: $athens-gray;
+
+    &__desc {
+      display: flex;
+      width: 100%;
+      font-family: monospace;
+
+      // (left) truncated text start
+      :nth-child(1) {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-transform: lowercase;
+      }
+
+      // (left) truncated text end
+      :nth-child(2) {
+        flex-shrink: 0;
+      }
+
+      // (right) value
+      :nth-child(3) {
+        flex-shrink: 0;
+        margin-left: 1.6rem;
+      }
+    }
+
+    &__covenant {
+      margin-top: 0.5rem;
+      padding: 0.25rem 1rem;
+      background: $white;
+      border: solid 1px $grey;
+      border-radius: 4px;
+
+      &__header {
+        display: flex;
+        justify-content: space-between;
+
+        // covenant action
+        > span:first-of-type {
+          font-weight: 500;
+        }
+      }
+
+      &__bid {
+        text-align: right;
+      }
+
+    }
+  }
+}

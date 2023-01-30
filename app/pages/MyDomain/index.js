@@ -41,22 +41,28 @@ class MyDomain extends Component {
     analytics.screenView('My Domains');
   }
 
-  handleRegister = () => {
-    this.props.sendRegister(this.props.name)
-      .then(() => {
+  handleRegister = async () => {
+    try {
+      const res = await this.props.sendRegister(this.props.name);
+      if (res !== null) {
         this.props.showSuccess(this.context.t('registerSuccess'));
         analytics.track('registered domain');
-      })
-      .catch(e => this.props.showError(e.message));
+      }
+    } catch (e) {
+      this.props.showError(e.message);
+    }
   };
 
-  handleRenew = () => {
-    this.props.sendRenewal(this.props.name)
-      .then(() => {
+  handleRenew = async () => {
+    try {
+      const res = await this.props.sendRenewal(this.props.name);
+      if (res !== null) {
         this.props.showSuccess(this.context.t('renewSuccess'));
         analytics.track('renewed domain');
-      })
-      .catch(e => this.props.showError(e.message));
+      }
+    } catch (e) {
+      this.props.showError(e.message);
+    }
   };
 
   renderRegisterOrRenewal() {

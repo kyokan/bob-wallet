@@ -11,7 +11,7 @@ import {I18nContext} from "../../utils/i18n";
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
 @connect(state => ({
-  address: state.wallet.address,
+  address: state.wallet.receiveAddress,
 }))
 export default class ReceiveModal extends Component {
   static propTypes = {

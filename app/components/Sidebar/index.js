@@ -20,15 +20,17 @@ const nodeClient = clientStub(() => require('electron').ipcRenderer);
     newBlockStatus: state.node.newBlockStatus,
     spv: state.node.spv,
     walletId: state.wallet.wid,
+    walletsDetails: state.wallet.walletsDetails,
+    walletInitialized: state.wallet.initialized,
+    walletType: state.wallet.type,
     walletWatchOnly: state.wallet.watchOnly,
     walletSync: state.wallet.walletSync,
     walletHeight: state.wallet.walletHeight,
     rescanHeight: state.wallet.rescanHeight,
-    address: state.wallet.address,
+    address: state.wallet.receiveAddress,
     updateAvailable: state.app.updateAvailable,
   }),
   dispatch => ({
-
   }),
 )
 class Sidebar extends Component {
@@ -41,6 +43,9 @@ class Sidebar extends Component {
     }).isRequired,
     chainHeight: PropTypes.number.isRequired,
     walletId: PropTypes.string.isRequired,
+    walletsDetails: PropTypes.object.isRequired,
+    walletInitialized: PropTypes.bool.isRequired,
+    walletType: PropTypes.string.isRequired,
     tip: PropTypes.string.isRequired,
     newBlockStatus: PropTypes.string.isRequired,
     spv: PropTypes.bool.isRequired,
@@ -49,7 +54,7 @@ class Sidebar extends Component {
     walletHeight: PropTypes.number.isRequired,
     rescanHeight: PropTypes.number,
     network: PropTypes.string.isRequired,
-    address: PropTypes.string.isRequired,
+    address: PropTypes.string,
     updateAvailable: PropTypes.object,
   };
 
@@ -71,14 +76,42 @@ class Sidebar extends Component {
 
   renderNav() {
     const {t} = this.context;
-    const title = this.props.walletWatchOnly
-      ? `Ledger Wallet (${this.props.walletId})`
-      : `Wallet (${this.props.walletId})`;
+    const {walletId, walletType, walletInitialized, walletsDetails} = this.props;
+
+    const name = walletsDetails[walletId]?.displayName || walletId;
+    const title = `${t('settingWallet')}: ${name}`;
+
+    if (!walletInitialized) {
+      return(
+        <React.Fragment>
+          <div className="sidebar__section">{title}</div>
+          <div className="sidebar__actions">
+            <NavLink
+              className="sidebar__action"
+              to="/multisig"
+              activeClassName="sidebar__action--selected"
+            >
+              ⚠️ {t('headingMultisigSetup')}
+            </NavLink>
+          </div>
+      </React.Fragment>
+      );
+    }
 
     return (
       <React.Fragment>
         <div className="sidebar__section">{title}</div>
         <div className="sidebar__actions">
+          {
+            walletType === 'multisig' &&
+            <NavLink
+              className="sidebar__action"
+              to="/multisig"
+              activeClassName="sidebar__action--selected"
+            >
+              {t('headingMultisig')}
+            </NavLink>
+          }
           <NavLink
             to="/account"
             className={isActive => `sidebar__action ${isActive ? "sidebar__action--selected" : ''}`}
@@ -174,7 +207,7 @@ class Sidebar extends Component {
 
   renderGenerateBlockButton(numblocks) {
     const { network, address, spv } = this.props;
-    if (spv) {
+    if (spv || !address) {
       return;
     }
 
