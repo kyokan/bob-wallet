@@ -216,6 +216,7 @@
   "locked": "LOCKED",
   "locktime": "Locktime",
   "lockup": "Lockup",
+  "logDownloadSuccess": "Log file saved to %s.",
   "loginError": "Invalid password.",
   "loginTitle": "Log in to your wallet",
   "logout": "Logout",
