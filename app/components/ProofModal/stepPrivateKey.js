@@ -169,8 +169,8 @@ export default class StepPrivateKey extends Component {
                   value={privKey}
                   onChange={this.onChange("privKey")}
                   autoFocus
-                  autoCorrect={false}
-                  autoComplete={false}
+                  autoCorrect="false"
+                  autoComplete="false"
                 />
               </div>
             </div>
