@@ -2,12 +2,15 @@ name: Package for distribution
 
 on: workflow_dispatch
 
+env:
+  CSC_IDENTITY_AUTO_DISCOVERY: false
+
 jobs:
   package:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-18.04]
+        os: [windows-latest, ubuntu-18.04, macos-latest]
 
         # OS-specific commands/variables
         include:
@@ -17,6 +20,9 @@ jobs:
           - os: windows-latest
             cmd_package: npm run package-win
             out_filename: Bob-windows
+          - os: macos-latest
+            cmd_package: npm run package-mac
+            out_filename: Bob-macos-intel
 
     runs-on: ${{matrix.os}}
 
@@ -36,6 +42,10 @@ jobs:
       - name: Install npm packages
         run: npm i
 
+      - name: Install dmg-license (macos only)
+        if: startsWith(matrix.os, 'macos')
+        run: npm i dmg-license --no-save
+
       - name: Generate Executable
         run: ${{ matrix.cmd_package }}
 
@@ -46,3 +56,4 @@ jobs:
           path: |
             release/*.AppImage
             release/*.msi
+            release/*.dmg
