@@ -6,6 +6,7 @@ import * as names from '../../ducks/names';
 import { showError, showSuccess } from '../../ducks/notifications';
 import { clientStub as aClientStub } from '../../background/analytics/client';
 import * as networks from 'hsd/lib/protocol/networks';
+import AddressInput from '../../components/AddressInput';
 import Checkbox from '../../components/Checkbox';
 import FinalizeWithPaymentModal from './FinalizeWithPaymentModal';
 import {I18nContext} from "../../utils/i18n";
@@ -188,13 +189,10 @@ class TransferDetails extends Component {
       <div className="transfer-details">
         <div className="transfer-details__form">
           <div className="transfer-details__inputs">
-            <input
-              type="text"
-              value={this.state.recipient}
-              onChange={(e) => this.setState({
-                recipient: e.target.value,
+            <AddressInput
+              onAddress={({address}) => this.setState({
+                recipient: address,
               })}
-              placeholder={this.context.t('recipientAddress')}
             />
           </div>
           <div className="transfer-details__cta">
