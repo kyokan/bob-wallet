@@ -4,9 +4,10 @@ import { BigNumber as bn } from 'bignumber.js';
 import { connect } from 'react-redux';
 import c from 'classnames';
 import './send.scss';
-import { displayBalance, toDisplayUnits } from '../../utils/balances';
+import { displayBalance } from '../../utils/balances';
 import * as walletActions from '../../ducks/walletActions';
 import Alert from '../Alert';
+import AddressInput from '../AddressInput';
 import isValidAddress from '../../utils/verifyAddress';
 import * as logger from '../../utils/logClient';
 import { clientStub as aClientStub } from '../../background/analytics/client';
@@ -14,8 +15,6 @@ import walletClient from '../../utils/walletClient';
 import { shell } from 'electron';
 import {I18nContext} from "../../utils/i18n";
 import LockSVG from '../../assets/images/lock.svg';
-import RingsSVG from '../../assets/images/rings.svg';
-import hip2 from "../../utils/hip2Client";
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
@@ -30,7 +29,6 @@ const FAST = 'Fast';
     fees: state.node.fees,
     spendableBalance: state.wallet.balance.spendable,
     network: state.wallet.network,
-    hip2Port: state.hip2.port,
     noDns: state.node.noDns,
     explorer: state.node.explorer,
   }),
@@ -60,19 +58,13 @@ class SendModal extends Component {
       transactionHash: '',
       isSending: false,
       to: '',
-      hip2Input: false,
-      hip2To: '',
-      hip2Error: '',
-      hip2Loading: false,
-      hip2Disabled: false,
+      hip2Domain: '',
       amount: '',
       errorMessage: '',
       addressError: false,
       feeAmount: 0,
       txSize: 0,
     };
-
-    hip2.setServers([`127.0.0.1:${props.hip2Port}`]);
   }
 
   openLinkHandler (e) {
@@ -80,97 +72,8 @@ class SendModal extends Component {
     shell.openExternal(e.target.href)
   }
 
-  updateToAddress = async e => {
-    const hip2Enabled = !this.props.noDns && this.props.isSynchronized // && !this.state.simulateSynchronizing
-    let input = e.target.value
-    let justEnabled = false
-
-    if (hip2Enabled) {
-      if (!this.state.hip2Input && input[0] === '@') {
-        justEnabled = true
-
-        // handle alias copy/pastes
-        input = input.slice(1)
-        this.setState({ hip2Input: true, hip2To: input, to: '', errorMessage: '', hip2Error: '', hip2Loading: false })
-      }
-
-      if (this.state.hip2Input || justEnabled) {
-        // prevent latency attacks: clear `to` address on new input
-        this.setState({ hip2To: input, hip2Error: '', to: '' })
-
-        if (input) {
-          this.setState({ hip2Loading: true })
-
-          // delay lookup by 120ms
-          setTimeout(() => {
-            // abort lookup if input has changed
-            if (!(this.state.hip2Input && this.state.hip2To === input)) return
-
-            hip2.fetchAddress(input).then(to => {
-              // prevent latency attacks: only set `to` address if matches the current input
-              if (this.state.hip2Input && this.state.hip2To === input) {
-                this.setState({ to, errorMessage: '', hip2Error: '', hip2Loading: false })
-              }
-            }).catch(err => {
-              if (this.state.hip2Input && this.state.hip2To === input) {
-                let hip2Error
-                if (err.code === 'EINVALID') {
-                  hip2Error = this.context.t('hip2InvalidAddress')
-                } else if (err.code === 'ELARGE') {
-                  hip2Error = this.context.t('hip2InvalidAddress')
-                } else if (err.code === 'ECOLLISION') {
-                  hip2Error = this.context.t('hip2InvalidAlias')
-                } else if (err.code === 'EINSECURE') {
-                  hip2Error = this.context.t('hip2InvalidTLSA')
-                } else {
-                  hip2Error = this.context.t('hip2AddressNotFound')
-                }
-                this.setState({ to: '', errorMessage: '', hip2Error, hip2Loading: false })
-              }
-            })
-          }, 120)
-        }
-      } else {
-        this.setState({ to: input, errorMessage: '', hip2Error: '', hip2Loading: false });
-      }
-    } else {
-      this.setState({ to: input, errorMessage: '', hip2Error: '', hip2Loading: false });
-    }
-
-    if (!justEnabled && !this.state.hip2Input && input.length > 2 && !isValidAddress(input, this.props.network)) {
-      this.setState({ errorMessage: this.context.t('invalidAddress') });
-    }
-  };
-
-  updateHip2 = e => {
-    if (this.state.hip2Input) {
-      if (e.key === 'Backspace' && this.state.hip2To.length === 0) {
-        this.resetInput()
-      }
-    }
-  }
-
-  resetInput = () => {
-    this.setState({ hip2Input: false, hip2To: '', hip2Error: '', to: '', errorMessage: '', hip2Loading: false })
-  }
-
-  handleEscape = e => {
-    if (this.state.hip2Input && e.key === 'Escape') {
-      this.resetInput()
-    }
-
-    // if (e.metaKey && e.key === 's') {
-    //   this.setState({ simulateSynchronizing: !this.state.simulateSynchronizing }) // toggle sync simulation
-    // }
-  }
-
   componentDidMount = () => {
-    document.addEventListener('keydown', this.handleEscape)
     analytics.screenView('Send');
-  }
-
-  componentWillUnmount = () => {
-    document.removeEventListener('keydown', this.handleEscape)
   }
 
   updateAmount = e => this.setState({amount: e.target.value, errorMessage: ''});
@@ -278,23 +181,9 @@ class SendModal extends Component {
   }
 
   renderSend() {
-    const {selectedGasOption, amount, to, hip2Input, hip2To, hip2Error, hip2Loading} = this.state;
+    const {selectedGasOption, amount} = this.state;
     const {t} = this.context;
     const {isValid} = this.validate();
-
-    const hip2Enabled = !this.props.noDns && this.props.isSynchronized // && !this.state.simulateSynchronizing
-    const hip2Disabled = !hip2Enabled && hip2Input; // waiting for node to synchronize
-    const hip2DisabledWarning = hip2Disabled ? t('hip2DisabledWarning') : '';
-
-    // clear hip2 lookup address and error
-    if (hip2Disabled && (this.state.to || this.state.hip2Error)) {
-      this.setState({ to: '', hip2Error: '', hip2Disabled: true })
-
-    // lookup again once synchronized
-    } else if (hip2Enabled && this.state.hip2Disabled) {
-      this.setState({ hip2Disabled: false })
-      this.updateToAddress({ target: { value: this.state.hip2To } })
-    }
 
     return (
       <div className="send__container">
@@ -303,42 +192,14 @@ class SendModal extends Component {
             <div className="send__title">{t('sendTitle')}</div>
           </div>
           <Alert type="error" message={this.state.errorMessage} />
-          <Alert type="warning" message={hip2DisabledWarning} />
           <div className="send__to">
             <div className="send__label">{t('sendToLabel')}</div>
-            <div className="send__input" key="send-input">
-              {hip2Input &&
-              <span className="send__prefix">{to ? (
-                <img src={LockSVG} />
-              ) : ( hip2Loading ?
-                <img className="send__hip2-loading" src={RingsSVG} />
-                : '@')}
-              </span>}
-              <input
-                type="text"
-                placeholder={hip2Input ?
-                  t('recipientHip2Address') :
-                  (hip2Enabled ?
-                    t('recipientAddressHip2Enabled') :
-                    (!this.props.noDns ?
-                      t('recipientAddressHip2Syncing') :
-                      t('recipientAddress')
-                    )
-                  )
-                }
-                onChange={this.updateToAddress}
-                onKeyDown={this.updateHip2}
-                spellCheck="false"
-                disabled={hip2Disabled}
-                value={hip2Input ? hip2To : to}
-              />
-            </div>
-            { hip2Input && (
-              <React.Fragment>
-                <Alert type="error" message={hip2Error} />
-                <Alert type="info" message={to && `↪ ${to}`} />
-              </React.Fragment>
-            ) }
+            <AddressInput
+              onAddress={({domain, address}) => this.setState({
+                to: address,
+                hip2Domain: domain,
+              })}
+            />
           </div>
           <div className="send__amount">
             <div className="send__label">{t('amount')}</div>
@@ -416,11 +277,10 @@ class SendModal extends Component {
       gasFee,
       amount,
       to,
+      hip2Domain,
       isSending,
       feeAmount,
       txSize,
-      hip2Input,
-      hip2To
     } = this.state;
 
     const {t} = this.context;
@@ -435,9 +295,14 @@ class SendModal extends Component {
           <div className="send__confirm__to">
             <div className="send__confirm__label">{t('sendToLabel')}</div>
             <div className="send__confirm__address">
-              {(hip2Input && to) ? (
+              {(hip2Domain && to) ? (
                 <span>
-                  <span className="send__confirm__secure"><img src={LockSVG} /> <a href={`https://${hip2To}`} onClick={this.openLinkHandler}>{hip2To}</a></span>
+                  <span className="send__confirm__secure">
+                    <img src={LockSVG} />
+                    <a href={`https://${hip2Domain}`} onClick={this.openLinkHandler}>
+                      {hip2Domain}
+                    </a>
+                  </span>
                   ({to})
                 </span>
               ) : to}

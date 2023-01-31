@@ -184,7 +184,6 @@
   "highestBid": "Highest Bid",
   "highestLockup": "Highest Lockup",
   "hip2AddressNotFound": "No alias address found",
-  "hip2DisabledWarning": "Please wait until sync'd for alias lookup or hit escape key",
   "hip2InvalidAlias": "Invalid alias",
   "hip2InvalidAddress": "Invalid address",
   "hip2InvalidTLSA": "Invalid TLSA",
