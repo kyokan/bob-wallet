@@ -26,7 +26,7 @@ const FAST = 'Fast';
 @connect(
   state => ({
     isSynchronized: state.node.isRunning && (state.node.chain || {}).progress >= 0.99,
-    address: state.wallet.address,
+    address: state.wallet.receiveAddress,
     fees: state.node.fees,
     spendableBalance: state.wallet.balance.spendable,
     network: state.wallet.network,
@@ -186,7 +186,7 @@ class SendModal extends Component {
   }
 
   send = async () => {
-    const {to, amount, isSending, gasFee} = this.state;
+    const {to, amount, isSending, gasFee, selectedGasOption} = this.state;
     if (isSending) {
       return;
     }
@@ -197,9 +197,9 @@ class SendModal extends Component {
       this.setState({
         isSending: false,
         isConfirming: false,
-        transactionSent: true,
+        transactionSent: res !== null,
         errorMessage: '',
-        transactionHash: res.hash
+        transactionHash: (res && res.hash) || '',
       });
       analytics.track('sent coins', {
         selectedGasOption,

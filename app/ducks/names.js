@@ -211,9 +211,10 @@ export const sendOpen = name => async (dispatch) => {
     dispatch(getPassphrase(resolve, reject));
   });
 
-  await walletClient.sendOpen(name);
+  const res = await walletClient.sendOpen(name);
   await namesDb.storeName(name);
   await dispatch(fetchPendingTransactions());
+  return res;
 };
 
 export const sendBid = (name, amount, lockup, height) => async (dispatch) => {
@@ -236,8 +237,9 @@ export const sendBid = (name, amount, lockup, height) => async (dispatch) => {
     }
   }
 
-  await walletClient.sendBid(name, amount, lockup);
+  let res = await walletClient.sendBid(name, amount, lockup);
   await namesDb.storeName(name);
+  return res;
 };
 
 export const sendReveal = (name) => async (dispatch) => {
@@ -249,7 +251,7 @@ export const sendReveal = (name) => async (dispatch) => {
   });
 
   await namesDb.storeName(name);
-  await walletClient.sendReveal(name);
+  return await walletClient.sendReveal(name);
 };
 
 export const sendRegister = (name) => async (dispatch) => {
@@ -260,7 +262,7 @@ export const sendRegister = (name) => async (dispatch) => {
     dispatch(getPassphrase(resolve, reject));
   });
 
-  await walletClient.sendRegister(name);
+  return await walletClient.sendRegister(name);
 };
 
 export const sendRedeem = (name) => async (dispatch) => {
@@ -272,7 +274,7 @@ export const sendRedeem = (name) => async (dispatch) => {
   });
 
   await namesDb.storeName(name);
-  await walletClient.sendRedeem(name);
+  return await walletClient.sendRedeem(name);
 };
 
 export const sendRedeemAll = () => async (dispatch) => {
@@ -280,7 +282,7 @@ export const sendRedeemAll = () => async (dispatch) => {
     dispatch(getPassphrase(resolve, reject));
   });
 
-  await walletClient.sendRedeemAll();
+  return await walletClient.sendRedeemAll();
 };
 
 export const sendRevealAll = () => async (dispatch) => {
@@ -288,7 +290,7 @@ export const sendRevealAll = () => async (dispatch) => {
     dispatch(getPassphrase(resolve, reject));
   });
 
-  await walletClient.sendRevealAll();
+  return await walletClient.sendRevealAll();
 };
 
 export const sendRegisterAll = () => async (dispatch) => {
@@ -296,7 +298,7 @@ export const sendRegisterAll = () => async (dispatch) => {
     dispatch(getPassphrase(resolve, reject));
   });
 
-  await walletClient.sendRegisterAll();
+  return await walletClient.sendRegisterAll();
 };
 
 export const sendRenewal = (name) => async (dispatch) => {
@@ -308,7 +310,7 @@ export const sendRenewal = (name) => async (dispatch) => {
   });
 
   await namesDb.storeName(name);
-  await walletClient.sendRenewal(name);
+  return await walletClient.sendRenewal(name);
 };
 
 export const transferMany = (names, recipient) => async (dispatch) => {
@@ -322,7 +324,7 @@ export const transferMany = (names, recipient) => async (dispatch) => {
   await new Promise((resolve, reject) => {
     dispatch(getPassphrase(resolve, reject));
   });
-  await walletClient.transferMany(names, recipient);
+  return await walletClient.transferMany(names, recipient);
 };
 
 export const finalizeAll = () => async (dispatch) => {
@@ -330,7 +332,7 @@ export const finalizeAll = () => async (dispatch) => {
     dispatch(getPassphrase(resolve, reject));
   });
 
-  await walletClient.finalizeAll();
+  return await walletClient.finalizeAll();
 };
 
 export const finalizeMany = (names) => async (dispatch) => {
@@ -349,7 +351,7 @@ export const renewAll = () => async (dispatch) => {
     dispatch(getPassphrase(resolve, reject));
   });
 
-  await walletClient.renewAll();
+  return await walletClient.renewAll();
 };
 
 export const renewMany = (names) => async (dispatch) => {
@@ -373,7 +375,7 @@ export const sendTransfer = (name, recipient) => async (dispatch) => {
   await new Promise((resolve, reject) => {
     dispatch(getPassphrase(resolve, reject));
   });
-  await walletClient.sendTransfer(name, recipient);
+  return await walletClient.sendTransfer(name, recipient);
 };
 
 export const cancelTransfer = (name) => async (dispatch) => {
@@ -383,7 +385,7 @@ export const cancelTransfer = (name) => async (dispatch) => {
   await new Promise((resolve, reject) => {
     dispatch(getPassphrase(resolve, reject));
   });
-  await walletClient.cancelTransfer(name);
+  return await walletClient.cancelTransfer(name);
 };
 
 export const finalizeTransfer = (name) => async (dispatch) => {
@@ -393,7 +395,7 @@ export const finalizeTransfer = (name) => async (dispatch) => {
   await new Promise((resolve, reject) => {
     dispatch(getPassphrase(resolve, reject));
   });
-  await walletClient.finalizeTransfer(name);
+  return await walletClient.finalizeTransfer(name);
 };
 
 export const finalizeWithPayment = (name, fundingAddr, recipient, price) => async (dispatch) => {
@@ -417,7 +419,7 @@ export const revokeName = (name) => async (dispatch) => {
   await new Promise((resolve, reject) => {
     dispatch(getPassphrase(resolve, reject));
   });
-  await walletClient.revokeName(name);
+  return await walletClient.revokeName(name);
 };
 
 export const sendUpdate = (name, json) => async (dispatch) => {
@@ -425,6 +427,7 @@ export const sendUpdate = (name, json) => async (dispatch) => {
     dispatch(getPassphrase(resolve, reject));
   });
   await namesDb.storeName(name);
-  await walletClient.sendUpdate(name, json);
+  const res = await walletClient.sendUpdate(name, json);
   await dispatch(fetchPendingTransactions());
+  return res;
 };

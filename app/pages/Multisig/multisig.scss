@@ -1,0 +1,104 @@
+@import "../../variables.scss";
+
+
+.multisig {
+  max-width: 38rem;
+  position: relative;
+  padding: 1.5rem 0;
+  box-sizing: border-box;
+  cursor: default;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+
+    button {
+      @extend %btn-primary;
+    }
+  }
+
+  &__not-init-alert {
+    padding: 1rem;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    overflow-wrap: break-word;
+    color: #6c5700;
+    background-color: #fff4c6;
+    border: solid 1px #ffcd00;
+  }
+
+  &__signers-table {
+    margin-top: 1rem;
+
+    .table__row__item:nth-of-type(1),
+    .table__header__item:nth-of-type(1) {
+      flex: 0 0 auto;
+      margin-right: 1rem;
+      width: 9rem;
+      padding: 0.6rem;
+    }
+
+    .table__row__item:nth-of-type(2),
+    .table__header__item:nth-of-type(2) {
+      flex: 1 1 auto;
+      overflow: hidden;
+      margin-right: 1rem;
+      padding: 0.6rem;
+    }
+
+    .table__row__item:nth-of-type(3),
+    .table__header__item:nth-of-type(3) {
+      flex: 0 0 auto;
+      white-space: initial;
+      word-break: break-all;
+      display: flex;
+      flex-flow: row nowrap;
+      align-items: center;
+      padding: 0.6rem;
+      margin-right: 1rem;
+      gap: 6px;
+    }
+
+    .input-container {
+      @extend %box-input;
+      @extend %row-nowrap;
+
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0.4rem 0.6rem;
+
+      input {
+        outline: none;
+        flex: 1 1 auto;
+        width: 0;
+        font-size: 0.85rem;
+        border: none;
+      }
+    }
+
+    .btn-secondary {
+      @extend %btn-secondary;
+      padding: 0.3rem 1rem;
+    }
+
+    .btn-danger {
+      @extend %row-nowrap;
+
+      position: relative;
+      align-items: center;
+      border: none;
+      outline: none;
+      font-size: 0.7rem;
+      padding: 0.25rem 0.75rem;
+      background-color: rgba($orange-red, 0.15);
+      color: $orange-red;
+      font-weight: 700;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 200ms ease-in-out;
+    }
+  }
+}

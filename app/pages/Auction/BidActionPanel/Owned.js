@@ -30,16 +30,26 @@ class Owned extends Component {
 
   static contextType = I18nContext;
 
-  sendRenewal = () => {
-    this.props.sendRenewal()
-      .then(() => this.props.showSuccess(this.context.t('renewSuccess')))
-      .catch(e => this.props.showError(e.message))
+  sendRenewal = async () => {
+    try {
+      const res = await this.props.sendRenewal();
+      if (res !== null) {
+        this.props.showSuccess(this.context.t('renewSuccess'));
+      }
+    } catch (e) {
+      this.props.showError(e.message);
+    }
   };
 
-  sendRegister = () => {
-    this.props.sendRegister()
-      .then(() => this.props.showSuccess(this.context.t('registerSuccess')))
-      .catch(e => this.props.showError(e.message))
+  sendRegister = async () => {
+    try {
+      const res = await this.props.sendRegister();
+      if (res !== null) {
+        this.props.showSuccess(this.context.t('registerSuccess'));
+      }
+    } catch (e) {
+      this.props.showError(e.message);
+    }
   };
 
   render() {

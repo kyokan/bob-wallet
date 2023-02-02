@@ -104,7 +104,8 @@ function main() {
     'ducks/nodeReducer.js',
     'ducks/hip2Reducer.js',
     'ducks/walletReducer.js',
-    'ducks/claims.js'
+    'ducks/claims.js',
+    'ducks/notifications.js'
   ];
   const babelizeFiles = () => {
     if (!babelFiles.length) {

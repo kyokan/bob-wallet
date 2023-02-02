@@ -31,6 +31,8 @@ const analytics = aClientStub(() => require("electron").ipcRenderer);
     isFetching: state.wallet.isFetching,
     network: state.wallet.network,
     hnsPrice: state.node.hnsPrice,
+    walletInitialized: state.wallet.initialized,
+    walletType: state.wallet.type,
   }),
   (dispatch) => ({
     fetchWallet: () => dispatch(walletActions.fetchWallet()),
@@ -62,6 +64,8 @@ export default class Account extends Component {
     finalizeAll: PropTypes.func.isRequired,
     renewAll: PropTypes.func.isRequired,
     history: PropTypes.object.isRequired,
+    walletInitialized: PropTypes.bool.isRequired,
+    walletType: PropTypes.string.isRequired,
   };
 
   static contextType = I18nContext;
@@ -85,6 +89,13 @@ export default class Account extends Component {
 
   constructor(props) {
     super(props);
+    this.updateStatsAndBalance = throttle(this.updateStatsAndBalance, 15000, { trailing: true });
+
+    const {walletType, walletInitialized} = this.props;
+
+    if (walletType === 'multisig' && !walletInitialized) {
+      this.props.history.push('/multisig');
+    }
   }
 
   componentDidMount() {
@@ -142,10 +153,12 @@ export default class Account extends Component {
     }[action];
 
     try {
-      await functionToExecute(args);
-      this.props.fetchTransactions();
-      this._updateStatsAndBalance();
-      this.props.showSuccess(t('genericRequestSuccess'));
+      const res = await functionToExecute(args);
+      if (res !== null) {
+        this.props.fetchTransactions();
+        this._updateStatsAndBalance();
+        this.props.showSuccess(t('genericRequestSuccess'));
+      }
     } catch (e) {
       if (e.message === 'Could not resolve preferred inputs.') {
         this.props.showError(t('pleaseWaitForPendingTxs'));

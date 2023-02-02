@@ -78,8 +78,10 @@ class YourBids extends Component {
     } = this.props;
 
     try {
-      await sendRegisterAll();
-      showSuccess(this.context.t('registerSuccess'));
+      const res = await sendRegisterAll();
+      if (res !== null) {
+        showSuccess(this.context.t('registerSuccess'));
+      }
     } catch (e) {
       showError(e.message)
     }
@@ -93,8 +95,10 @@ class YourBids extends Component {
     } = this.props;
 
     try {
-      await sendRedeemAll();
-      showSuccess(this.context.t('redeemSuccess'));
+      const res = await sendRedeemAll();
+      if (res !== null) {
+        showSuccess(this.context.t('redeemSuccess'));
+      }
     } catch (e) {
       showError(e.message)
     }
@@ -108,8 +112,10 @@ class YourBids extends Component {
     } = this.props;
 
     try {
-      await sendRevealAll();
-      showSuccess(this.context.t('revealSuccess'));
+      const res = await sendRevealAll();
+      if (res !== null) {
+        showSuccess(this.context.t('revealSuccess'));
+      }
     } catch (e) {
       showError(e.message)
     }

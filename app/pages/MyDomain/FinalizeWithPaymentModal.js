@@ -31,10 +31,15 @@ export class FinalizeWithPaymentModal extends Component {
         this.props.transferTo,
         this.state.price,
       );
-      this.setState({
-        hex,
-      });
+      if (hex) {
+        this.setState({
+          hex,
+        });
+      } else {
+        this.props.onClose();
+      }
     } catch (e) {
+      console.error(e);
       this.setState({
         error: e.message || e,
       });

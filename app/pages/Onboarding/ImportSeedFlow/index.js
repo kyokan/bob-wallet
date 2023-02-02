@@ -15,15 +15,19 @@ import OptInAnalytics from '../OptInAnalytics';
 import { clientStub as aClientStub } from '../../../background/analytics/client';
 import { showError } from '../../../ducks/notifications';
 import SetName from '../SetName';
+import SelectWalletType from '../SelectWalletType';
 
 const analytics = aClientStub(() => require('electron').ipcRenderer);
 
-const TERMS_OF_USE = 'TERM_OF_USE';
-const WARNING_STEP = 'WARNING';
-const CREATE_PASSWORD = 'CREATE_PASSWORD';
-const ENTRY_STEP = 'ENTRY';
-const OPT_IN_ANALYTICS = 'ANALYTICS';
-const SET_NAME = 'SET_NAME';
+const TERMS_OF_USE = 0;
+const WARNING_STEP = 1;
+const SET_NAME = 2;
+const SELECT_WALLET_TYPE = 3;
+const CREATE_PASSWORD = 4;
+const ENTRY_STEP = 5;
+const OPT_IN_ANALYTICS = 6;
+
+const TOTAL_STEPS = 6;
 
 class ImportSeedFlow extends Component {
   static propTypes = {
@@ -47,6 +51,8 @@ class ImportSeedFlow extends Component {
   state = {
     currentStep: TERMS_OF_USE,
     name: '',
+    m: null,
+    n: null,
     passphrase: '',
     secret: '',
     isLoading: false,
@@ -61,18 +67,18 @@ class ImportSeedFlow extends Component {
       case TERMS_OF_USE:
         return (
           <Terms
-            currentStep={0}
-            totalSteps={4}
-            onAccept={() => this.setState({currentStep: WARNING_STEP})}
+            currentStep={currentStep}
+            totalSteps={TOTAL_STEPS}
+            onAccept={() => this.goTo(WARNING_STEP)}
             onBack={() => history.push('/existing-options')}
           />
         );
       case WARNING_STEP:
         return (
           <ImportSeedWarning
-            currentStep={0}
-            totalSteps={4}
-            onBack={() => this.setState({currentStep: TERMS_OF_USE})}
+            currentStep={currentStep}
+            totalSteps={TOTAL_STEPS}
+            onBack={() => this.goTo(TERMS_OF_USE)}
             onNext={() => this.goTo(SET_NAME)}
             onCancel={() => history.push('/funding-options')}
           />
@@ -80,27 +86,40 @@ class ImportSeedFlow extends Component {
       case SET_NAME:
         return (
           <SetName
-            currentStep={1}
-            totalSteps={4}
-            onBack={() => this.setState({
-              currentStep: WARNING_STEP,
-            })}
+            currentStep={currentStep}
+            totalSteps={TOTAL_STEPS}
+            onBack={() => this.goTo(WARNING_STEP)}
             onNext={(name) => {
-              this.setState({currentStep: CREATE_PASSWORD, name});
+              this.setState({currentStep: SELECT_WALLET_TYPE, name});
             }}
             onCancel={() => history.push('/funding-options')}
+          />
+        );
+      case SELECT_WALLET_TYPE:
+        return (
+          <SelectWalletType
+            currentStep={currentStep}
+            totalSteps={TOTAL_STEPS}
+            onBack={() => this.goTo(SET_NAME)}
+            onNext={async (m, n) => {
+              this.setState({
+                currentStep: CREATE_PASSWORD,
+                m, n,
+              });
+            }}
+            onCancel={() => this.props.history.push('/funding-options')}
           />
         );
       case CREATE_PASSWORD:
         return (
           <CreatePassword
-            currentStep={2}
-            totalSteps={4}
-            onBack={() => this.setState({currentStep: WARNING_STEP})}
+            currentStep={currentStep}
+            totalSteps={TOTAL_STEPS}
+            onBack={() => this.goTo(SELECT_WALLET_TYPE)}
             onNext={passphrase => {
               this.setState({
-                passphrase,
                 currentStep: ENTRY_STEP,
+                passphrase,
               });
             }}
             onCancel={() => history.push('/funding-options')}
@@ -110,14 +129,14 @@ class ImportSeedFlow extends Component {
         const InputComponent = type === 'master' ? ImportSeedEnterMaster : ImportSeedEnterMnemonic;
         return (
           <InputComponent
-            currentStep={3}
-            totalSteps={4}
+            currentStep={currentStep}
+            totalSteps={TOTAL_STEPS}
             onBack={() => this.goTo(CREATE_PASSWORD)}
             onNext={(secret) => {
               this.setState({
                 secret,
+                currentStep: OPT_IN_ANALYTICS,
               });
-              this.goTo(OPT_IN_ANALYTICS);
             }}
             onCancel={() => history.push('/funding-options')}
             type={type}
@@ -126,8 +145,8 @@ class ImportSeedFlow extends Component {
       case OPT_IN_ANALYTICS:
         return (
           <OptInAnalytics
-            currentStep={4}
-            totalSteps={4}
+            currentStep={currentStep}
+            totalSteps={TOTAL_STEPS}
             onBack={() => this.goTo(ENTRY_STEP)}
             onNext={async (optInState) => {
               await analytics.setOptIn(optInState);
@@ -148,11 +167,11 @@ class ImportSeedFlow extends Component {
 
   finishFlow = async () => {
     const {type} = this.props.match.params;
-    const {name, passphrase, secret} = this.state;
+    const {name, passphrase, secret, m, n} = this.state;
 
     this.setState({isLoading: true});
     try {
-      await walletClient.importSeed(name, passphrase, type, secret);
+      await walletClient.importSeed(name, passphrase, type, secret, m, n);
       walletClient.rescan(0);
       await this.props.completeInitialization(name, passphrase);
       await this.props.fetchWallet();

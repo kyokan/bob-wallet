@@ -1,7 +1,8 @@
 import walletClient from '../utils/walletClient';
 import nodeClient from '../utils/nodeClient';
 import throttle from 'lodash.throttle';
-import { getInitializationState, setInitializationState, getMaxIdleMinutes, setMaxIdleMinutes } from '../db/system';
+import { getMaxIdleMinutes, setMaxIdleMinutes } from '../db/system';
+import { getMultisigKeyName, setMultisigKeyName, delMultisigKeyName } from '../db/wallet';
 import {
   GET_PASSPHRASE,
   INCREMENT_IDLE,
@@ -29,12 +30,17 @@ export const setWallet = opts => {
     wid = '',
     watchOnly = false,
     initialized = false,
-    address = '',
+    type = '',
+    receiveAddress = '',
     balance = {},
     apiKey = '',
     changeDepth,
     receiveDepth,
-    accountKey,
+    accountKey = '',
+    keys = [],
+    keysNames = {},
+    m = null,
+    n = null,
   } = opts;
 
   return {
@@ -43,12 +49,17 @@ export const setWallet = opts => {
       wid,
       watchOnly,
       initialized,
-      address,
+      type,
+      receiveAddress,
       balance,
       apiKey,
       changeDepth,
       receiveDepth,
       accountKey,
+      keys,
+      keysNames,
+      m,
+      n,
     },
   };
 };
@@ -56,7 +67,6 @@ export const setWallet = opts => {
 export const completeInitialization = (name, passphrase) => async (dispatch, getState) => {
   const network = getState().wallet.network;
   await walletClient.unlock(name, passphrase);
-  await setInitializationState(network, true);
   await dispatch(fetchWallet());
   dispatch({
     type: UNLOCK_WALLET,
@@ -72,7 +82,7 @@ export const fetchWalletAPIKey = () => async (dispatch) => {
 };
 
 export const fetchWallet = () => async (dispatch, getState) => {
-  const network = getState().wallet.network;
+  const {network, wid} = getState().wallet;
 
   const maxIdle = await getMaxIdleMinutes();
   dispatch({
@@ -80,29 +90,19 @@ export const fetchWallet = () => async (dispatch, getState) => {
     payload: maxIdle ?? 5,
   })
 
-  const isInitialized = await getInitializationState(network);
-
-  if (!isInitialized) {
-    return dispatch(setWallet({
-      initialized: false,
-    }));
-  }
-
   const accountInfo = await walletClient.getAccountInfo();
   if (!accountInfo) {
     throw new Error('Could not load wallet.');
   }
 
-  dispatch(setWallet({
-    wid: accountInfo.wid,
-    watchOnly: accountInfo.watchOnly,
-    initialized: true,
-    address: accountInfo.receiveAddress,
-    balance: accountInfo.balance,
-    changeDepth: accountInfo.changeDepth,
-    receiveDepth: accountInfo.receiveDepth,
-    accountKey: accountInfo.accountKey,
-  }));
+  if (accountInfo.type === 'multisig') {
+    accountInfo.keysNames = {};
+    for (const [idx, key] of accountInfo.keys.entries()) {
+      accountInfo.keysNames[key] = await getMultisigKeyName(network, wid, key) || `Signer #${idx+2}`;
+    }
+  }
+
+  dispatch(setWallet(accountInfo));
 };
 
 export const setAccountDepth = (changeDepth = 0, receiveDepth = 0) => async () => {
@@ -115,6 +115,20 @@ export const hasAddress = (address) => async () => {
 
 export const revealSeed = (passphrase) => async () => {
   return walletClient.revealSeed(passphrase);
+};
+
+export const addSharedKey = (accountKey, name) => async (dispatch, getState) => {
+  const {network, wid} = getState().wallet;
+  const res = await walletClient.addSharedKey('default', accountKey);
+  await setMultisigKeyName(network, wid, accountKey, name);
+  return res;
+};
+
+export const removeSharedKey = (accountKey) => async (dispatch, getState) => {
+  const {network, wid} = getState().wallet;
+  const res = await walletClient.removeSharedKey('default', accountKey);
+  await delMultisigKeyName(network, wid, accountKey);
+  return res;
 };
 
 export const unlockWallet = (name, passphrase) => async (dispatch, getState) => {
@@ -171,9 +185,7 @@ export const verifyPhrase = (passphrase) => async (dispatch, getState) => {
 }
 
 export const reset = () => async (dispatch, getState) => {
-  const network = getState().wallet.network;
   await walletClient.reset();
-  await setInitializationState(network, false);
   return dispatch(fetchWallet());
 };
 

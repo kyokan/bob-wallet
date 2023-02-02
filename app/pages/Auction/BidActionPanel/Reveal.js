@@ -57,9 +57,11 @@ class Reveal extends Component {
     const {sendReveal} = this.props;
 
     try {
-      await sendReveal();
-      this.props.showSuccess(this.context.t('revealSuccess'));
-      analytics.track('revealed bid');
+      const res = await sendReveal();
+      if (res !== null) {
+        this.props.showSuccess(this.context.t('revealSuccess'));
+        analytics.track('revealed bid');
+      }
     } catch (e) {
       logger.error(`Error received from Reveal - sendReveal]\n\n${e.message}\n${e.stack}\n`);
       this.props.showError(this.context.t('revealFailure', e.message));

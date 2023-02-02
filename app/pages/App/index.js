@@ -29,6 +29,7 @@ import * as node from '../../ducks/node';
 import SplashScreen from "../../components/SplashScreen";
 import IdleModal from '../../components/IdleModal';
 import {LedgerModal} from "../../components/LedgerModal";
+import {MultisigModal} from "../../components/MultisigModal";
 import Notification from "../../components/Notification";
 import {clientStub as cClientStub} from "../../background/connections/client";
 import {clientStub as sClientStub} from "../../background/setting/client";
@@ -38,12 +39,14 @@ import Exchange from '../Exchange';
 import SignMessage from "../SignMessage";
 import VerifyMessage from "../VerifyMessage";
 import {fetchLocale, initHip2, checkForUpdates} from "../../ducks/app";
+import Multisig from "../Multisig";
 import {I18nContext} from "../../utils/i18n";
 const connClient = cClientStub(() => require('electron').ipcRenderer);
 const settingClient = sClientStub(() => require('electron').ipcRenderer);
 
 @connect(
   (state) => ({
+    walletInitialized: state.wallet.initialized,
     wallets: state.wallet.wallets,
   }),
   (dispatch) => ({
@@ -55,10 +58,10 @@ const settingClient = sClientStub(() => require('electron').ipcRenderer);
 )
 class App extends Component {
   static propTypes = {
+    walletInitialized: PropTypes.bool.isRequired,
     wallets: PropTypes.array.isRequired,
     error: PropTypes.string.isRequired,
     isLocked: PropTypes.bool.isRequired,
-    initialized: PropTypes.bool.isRequired,
     startNode: PropTypes.func.isRequired,
     watchActivity: PropTypes.func.isRequired,
     initHip2: PropTypes.func.isRequired,
@@ -116,7 +119,6 @@ class App extends Component {
   }
 
   render() {
-    // TODO: Confirm that error shows properly
     if (this.props.error) {
       return <SplashScreen error={this.props.error} />;
     }
@@ -137,10 +139,12 @@ class App extends Component {
 
   renderContent() {
     const {t} = this.context;
+    const {isLocked, wallets, walletInitialized} = this.props;
 
     return (
       <>
         <LedgerModal />
+        <MultisigModal />
         <Notification />
         <Switch>
           <Route
@@ -168,88 +172,97 @@ class App extends Component {
             )}
           />
           <ProtectedRoute
-            isLocked={this.props.isLocked}
-            wallets={this.props.wallets}
+            isLocked={isLocked}
+            wallets={wallets}
             path="/account"
             render={this.routeRenderer(t('headingPortfolio'), Account, true, false)}
           />
           <ProtectedRoute
-            isLocked={this.props.isLocked}
-            wallets={this.props.wallets}
+            isLocked={isLocked}
+            wallets={wallets}
             path="/send"
             render={this.routeRenderer(t('headingSend'), SendModal)}
           />
           <ProtectedRoute
-            isLocked={this.props.isLocked}
-            wallets={this.props.wallets}
+            isLocked={isLocked}
+            wallets={wallets}
             path="/receive"
             render={this.routeRenderer(t('headingReceive'), ReceiveModal)}
           />
           <ProtectedRoute
-            isLocked={this.props.isLocked}
-            wallets={this.props.wallets}
+            isLocked={isLocked}
+            wallets={wallets}
             path="/sign_message"
             render={this.routeRenderer(t('headingSignMessage'), SignMessage)}
           />
           <ProtectedRoute
-            isLocked={this.props.isLocked}
-            wallets={this.props.wallets}
+            isLocked={isLocked}
+            wallets={wallets}
             path="/verify_message"
             render={this.routeRenderer(t('headingVerifyMessage'), VerifyMessage)}
           />
           <ProtectedRoute
-            isLocked={this.props.isLocked}
-            wallets={this.props.wallets}
+            isLocked={isLocked}
+            wallets={wallets}
             path="/get_coins"
             render={this.routeRenderer(t('headingClaimAirdropName'), GetCoins)}
           />
           <ProtectedRoute
-            isLocked={this.props.isLocked}
-            wallets={this.props.wallets}
+            isLocked={isLocked}
+            wallets={wallets}
             path="/settings"
             render={this.routeRenderer('', Settings, false, false)}
           />
           <ProtectedRoute
-            isLocked={this.props.isLocked}
-            wallets={this.props.wallets}
+            isLocked={isLocked}
+            wallets={wallets}
             path="/bids/:filterType?"
             render={this.routeRenderer(t('headingYourBids'), YourBids)}
           />
           <ProtectedRoute
-            isLocked={this.props.isLocked}
-            wallets={this.props.wallets}
+            isLocked={isLocked}
+            wallets={wallets}
             path="/domains"
             render={this.routeRenderer('', SearchTLD, false)}
           />
           <ProtectedRoute
-            isLocked={this.props.isLocked}
-            wallets={this.props.wallets}
+            isLocked={isLocked}
+            wallets={wallets}
             path="/watching"
             render={this.routeRenderer(t('headingWatching'), Watching)}
           />
           <ProtectedRoute
-            isLocked={this.props.isLocked}
-            wallets={this.props.wallets}
+            isLocked={isLocked}
+            wallets={wallets}
             path="/domain_manager/:name"
             render={this.routeRenderer(t('headingDomainManager'), MyDomain)}
           />
           <ProtectedRoute
-            isLocked={this.props.isLocked}
-            wallets={this.props.wallets}
+            isLocked={isLocked}
+            wallets={wallets}
             path="/domain_manager"
             render={this.routeRenderer(t('headingDomainManager'), DomainManager)}
           />
           <ProtectedRoute
-            isLocked={this.props.isLocked}
-            wallets={this.props.wallets}
+            isLocked={isLocked}
+            wallets={wallets}
             path="/domain/:name?"
             render={this.routeRenderer('', Auction, false)}
           />
           <ProtectedRoute
-            isLocked={this.props.isLocked}
-            wallets={this.props.wallets}
+            isLocked={isLocked}
+            wallets={wallets}
             path="/exchange"
             render={this.routeRenderer(t('headingExchange'), Exchange, true)}
+          />
+          <ProtectedRoute
+            isLocked={isLocked}
+            wallets={wallets}
+            path="/multisig"
+            render={this.routeRenderer(
+              t(walletInitialized ? 'headingMultisig' : 'headingMultisigSetup'),
+              Multisig, true
+            )}
           />
           <Redirect to="/login" />
         </Switch>
@@ -325,7 +338,6 @@ export default withRouter(
       error: state.node.error,
       isLocked: state.wallet.isLocked,
       isChangingNetworks: state.node.isChangingNetworks,
-      initialized: state.wallet.initialized,
       isRunning: state.node.isRunning,
     }),
     dispatch => ({

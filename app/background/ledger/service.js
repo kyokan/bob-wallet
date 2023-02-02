@@ -16,7 +16,6 @@ export async function withLedger(network, action) {
     });
 
     await device.open();
-    // TODO: this network parameter should be passed dynamically.
     ledger = new LedgerHSD({device, network});
   } catch (e) {
     console.error('failed to open ledger', e);

@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { Amount } from 'hsd/lib/ui';
 import React, { Component } from 'react';
 import { MiniModal } from '../../components/Modal/MiniModal';
@@ -7,6 +8,10 @@ import { showSuccess } from '../../ducks/notifications';
 import { claimPaidTransfer } from '../../ducks/names';
 import { waitForPassphrase, hasAddress } from '../../ducks/walletActions';
 import {I18nContext} from "../../utils/i18n";
+import { parseTxFile } from '../../utils/parsers';
+
+const { dialog } = require('@electron/remote');
+
 
 @connect(
   (state) => ({
@@ -31,12 +36,44 @@ export default class ClaimNameForPayment extends Component {
     };
   }
 
-  onClickVerify = async () => {
+  onSelectFile = async (e) => {
+    const { t } = this.context;
+    const {
+      filePaths: [filepath],
+    } = await dialog.showOpenDialog({
+      title: t('openTxFile'),
+      properties: ['openFile'],
+      filters: [
+        {
+          name: t('transactionFile'),
+          extensions: ['json'],
+        },
+      ],
+    });
+
+    if (!filepath) return;
+
+    try {
+      const fileContent = fs.readFileSync(filepath, 'utf-8');
+      const {txHex} = parseTxFile(fileContent);
+
+      if (!txHex || typeof txHex !== 'string') {
+        throw new Error(t('invalidTransactionFile'));
+      }
+
+      this.setState({hex: txHex});
+      this.onClickVerify(txHex);
+    } catch (error) {
+      this.setState({hexError: error?.message || 'Error.'})
+    }
+  }
+
+  onClickVerify = async (hex) => {
     const { t } = this.context;
 
     try {
       const {network, hasAddress} = this.props;
-      const mtx = MTX.decode(Buffer.from(this.state.hex, 'hex'));
+      const mtx = MTX.decode(Buffer.from(hex || this.state.hex, 'hex'));
       const firstOutput = mtx.outputs[0];
       const nameReceiveAddr = firstOutput.address.toString(network);
       const name = firstOutput.covenant.items[2].toString('ascii');
@@ -60,6 +97,7 @@ export default class ClaimNameForPayment extends Component {
         });
       }
     } catch (e) {
+      console.error(e);
       this.setState({
         hexError: t('claimNamePaymentInvalidHexError'),
       });
@@ -72,9 +110,11 @@ export default class ClaimNameForPayment extends Component {
       this.setState({
         isLoading: true,
       });
-      await this.props.claimPaidTransfer(this.state.hex);
+      const mtx = await this.props.claimPaidTransfer(this.state.hex);
+      if (mtx) {
+        this.props.showSuccess(t('claimNamePaymentSuccess'));
+      }
       this.props.onClose();
-      this.props.showSuccess(t('claimNamePaymentSuccess'));
     } catch (e) {
       this.setState({
         transferError: e.message,
@@ -117,6 +157,7 @@ export default class ClaimNameForPayment extends Component {
         <div className="import-enter__textarea-container">
             <textarea
               className="import_enter_textarea"
+              placeholder={t('claimNamePaymentHexPlaceholder')}
               value={this.state.hex}
               onChange={(e) => this.setState({
                 hex: e.target.value,
@@ -125,10 +166,17 @@ export default class ClaimNameForPayment extends Component {
             />
         </div>
 
+        <div className="claim-name-for-payment__file">
+          <p>or</p>
+          <button onClick={this.onSelectFile}>
+            {t('claimNamePaymentSelectFile')}
+          </button>
+        </div>
+
         <div className="send__actions">
           <button
             className="send__cta-btn"
-            onClick={this.onClickVerify}
+            onClick={() => this.onClickVerify()}
             disabled={!this.state.hex.length}
           >
             {t('verify')}
