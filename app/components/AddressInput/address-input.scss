@@ -1,0 +1,44 @@
+@import "../../variables.scss";
+
+.addr-input {
+  @extend %col-nowrap;
+
+  height: 100%;
+  justify-content: center;
+  overflow-wrap: break-word;
+
+  &__input {
+    @extend %box-input;
+    @extend %row-nowrap;
+
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.5rem 0.75rem;
+
+    input {
+      outline: none;
+      flex: 1 1 auto;
+      width: 0;
+      font-size: 0.85rem;
+      border: none;
+    }
+  }
+
+  &__prefix {
+    display: inline-block;
+    width: 1rem;
+    img {
+      width: 1.2rem;
+      vertical-align: sub;
+      margin-left: -0.3rem;
+      filter: grayscale(1);
+    }
+  }
+
+  .alert {
+    border: none !important;
+    margin: 0 0 -1.25rem 0 !important;
+    padding-left: 0.75rem;
+    font-size: 0.8rem;
+  }
+}

@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
+import throttle from 'lodash.throttle';
 import {
   isReveal,
   isClosed,
@@ -18,6 +19,7 @@ class BidStatus extends Component {
   static propTypes = {
     name: PropTypes.string.isRequired,
     domain: PropTypes.object,
+    height: PropTypes.number.isRequired,
     address: PropTypes.string.isRequired,
     fetchName: PropTypes.func.isRequired,
   };
@@ -25,10 +27,20 @@ class BidStatus extends Component {
   static contextType = I18nContext;
 
   componentDidMount() {
-    if (!this.props.domain) {
-      this.props.fetchName();
+    this.fetchName();
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (this.props.height !== prevProps.height) {
+      this.fetchName();
     }
   }
+
+  fetchName = throttle(() => {
+    if (this.props.name) {
+      this.props.fetchName();
+    }
+  }, 10*1000, {leading: true, trailing: true}); // 10 seconds
 
   isSold = () => isClosed(this.props.domain);
   isReveal = () => isReveal(this.props.domain);
@@ -148,11 +160,12 @@ export default withRouter(
       const name = state.names[ownProps.name];
       return {
         domain: name,
+        height: state.node.chain.height,
         address: state.wallet.receiveAddress,
       };
     },
     (dispatch, ownProps) => ({
-      fetchName: () => dispatch(namesActions.fetchName(ownProps.name)),
+      fetchName: () => dispatch(namesActions.fetchName(ownProps.name, true)),
     }),
   )(BidStatus)
 );

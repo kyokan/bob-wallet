@@ -2,12 +2,15 @@ name: Package for distribution
 
 on: workflow_dispatch
 
+env:
+  CSC_IDENTITY_AUTO_DISCOVERY: false
+
 jobs:
   package:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-18.04]
+        os: [windows-latest, ubuntu-18.04, macos-latest]
 
         # OS-specific commands/variables
         include:
@@ -17,32 +20,46 @@ jobs:
           - os: windows-latest
             cmd_package: npm run package-win
             out_filename: Bob-windows
+          - os: macos-latest
+            cmd_package: npm run package-mac
+            out_filename: Bob-macos-intel
 
     runs-on: ${{matrix.os}}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 16
+          cache: "npm"
 
       - name: Install dependencies (linux only)
-        if: matrix.os == 'ubuntu-18.04'
+        if: startsWith(matrix.os, 'ubuntu')
         run: sudo apt update && sudo apt install libudev-dev libusb-1.0-0-dev -y
 
       - name: Install npm packages
-        run: npm i
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_on: error
+          command: npm i
+
+      - name: Install dmg-license (macos only)
+        if: startsWith(matrix.os, 'macos')
+        run: npm i dmg-license --no-save
 
       - name: Generate Executable
         run: ${{ matrix.cmd_package }}
 
       - name: Store artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.out_filename }}
           path: |
             release/*.AppImage
             release/*.msi
+            release/*.dmg
