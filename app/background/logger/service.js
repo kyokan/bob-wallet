@@ -2,6 +2,7 @@ import winston from 'winston';
 import { app } from 'electron';
 import fs from 'fs';
 import path from 'path';
+import { service as nodeService } from '../node/service';
 
 // Set up logger format
 const {combine, timestamp, printf, colorize} = winston.format;
@@ -52,24 +53,17 @@ export async function log() {
   }
 }
 
-export async function download(network) {
-  const udPath = app.getPath('userData');
-  let outputDir = path.join(udPath, 'hsd_data');
+export async function download(network, savePath) {
+  if (!savePath)
+    throw new Error('No destination provided.');
 
-  if (network !== 'main')
-    outputDir = path.join(outputDir, network);
+  const hsdDir = await nodeService.getDir();
 
-  const content = read(`${outputDir}/debug.log`);
+  const networkDir = network !== 'main' ?
+    path.join(hsdDir, network)
+    : hsdDir;
 
-  return content;
-}
-
-function read(filepath) {
-  try {
-    return fs.readFileSync(filepath, 'utf8');
-  } catch (e) {
-    return '\n';
-  }
+  return fs.promises.copyFile(`${networkDir}/debug.log`, savePath);
 }
 
 export function startLogger() {

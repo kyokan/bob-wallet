@@ -18,6 +18,6 @@ export const log = () => {
   logClient.info(...arguments);
 };
 
-export const download = async (network) => {
-  return await logClient.download(network);
+export const download = async (network, savePath) => {
+  return await logClient.download(network, savePath);
 };

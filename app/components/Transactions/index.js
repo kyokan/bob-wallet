@@ -13,6 +13,7 @@ import Fuse from '../../vendor/fuse';
 import dbClient from "../../utils/dbClient";
 import walletClient from "../../utils/walletClient";
 import {I18nContext} from "../../utils/i18n";
+import { debounce } from '../../utils/throttle';
 
 const {dialog} = require('@electron/remote');
 
@@ -315,14 +316,6 @@ function getPageIndices(transactions, itemsPerPage, currentPageIndex) {
     answer.push(pageIndex);
   });
   return answer;
-}
-
-function debounce(func, timeout = 300){
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => { func.apply(this, args); }, timeout);
-  };
 }
 
 function isNegativeValue(type) {

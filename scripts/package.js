@@ -2,7 +2,6 @@ const path = require('path');
 const fs = require('fs');
 const exec = require('child_process').exec;
 const rootDir = path.resolve(path.join(__dirname, '..'));
-const cspPolicy = `default-src 'self'; style-src 'self' 'sha256-GhG3bE0iJoXJDtzwjDYe4ewzpUCrcbsJVwiqGhTOAVg=' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src * data:; connect-src http://localhost:13037 http://localhost:13039 http://localhost:14037 http://localhost:14039 http://localhost:15037 http://localhost:15039 http://localhost:12037 http://localhost:12039 https://*.sentry.io https://*.mixpanel.com;`;
 const binDir = path.join(rootDir, 'node_modules', '.bin');
 const webpackBin = path.join(binDir, 'webpack.cmd');
 const babelBin = path.join(binDir, 'babel.cmd');
@@ -60,24 +59,6 @@ function babelizeFromRoot(source, dest, isDir, cb) {
   });
 }
 
-function replaceCSP(input, cb) {
-  fs.readFile(input, 'utf8', (err, data) => {
-    if (err) {
-      throw err;
-    }
-
-    const replaced = data.replace('{{cspValue}}', cspPolicy);
-    fs.writeFile(input, replaced, 'utf8', (err) => {
-      if (err) {
-        throw err;
-      }
-
-      console.log('Replaced CSP.');
-      cb();
-    });
-  });
-}
-
 function main() {
   const babelDirectories = [
     'background',
@@ -118,8 +99,7 @@ function main() {
     });
   };
   const pack = () => webpack(babelizeFiles);
-  const csp = () => replaceCSP(path.join('dist', 'app.html'), pack);
-  const cpApp = () => copyFileFromRoot(path.join('app', 'app.html'), 'dist', csp);
+  const cpApp = () => copyFileFromRoot(path.join('app', 'app.html'), 'dist', pack);
   const mkDist = () => mkdirPFromRoot('dist', cpApp);
   mkDist();
 }

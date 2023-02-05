@@ -14,7 +14,7 @@ import {I18nContext} from "../../utils/i18n";
 @connect(
   (state) => ({
     isFetchingNames: state.myDomains.isFetching,
-    names: Object.keys(state.myDomains.names),
+    names: Object.keys(state.myDomains.names).sort(),
     walletWatchOnly: state.wallet.watchOnly,
     walletN: state.wallet.n,
   }),
@@ -80,9 +80,6 @@ class SignMessage extends Component {
       return t('notSupportWithMultisig');
     }
 
-    const sortedNames = [].concat(names);
-    sortedNames.sort();
-
     return (
       <div className="sign-message">
         <div className="sign-message__top">
@@ -95,7 +92,7 @@ class SignMessage extends Component {
               : (
                 <Dropdown
                   className="sign-message__top__name-dropdown"
-                  items={sortedNames.map(n => ({
+                  items={names.map(n => ({
                     label: n,
                   }))}
                   onChange={(i) => this.setState({

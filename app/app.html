@@ -1,16 +1,22 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Security-Policy" content="{{cspValue}}">
+  <meta http-equiv="Content-Security-Policy" content="
+  default-src 'self' 'sha256-ifNoD1V8CYOGqCEhgv6hm3CwX8yYueHGf454+Xv7rrI=' http://localhost:1212;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src https://fonts.gstatic.com;
+  img-src * data:;
+  connect-src ws://0.0.0.0:1212 http://localhost:1212 *.sentry.io *.mixpanel.com;
+  ">
   <meta charset="utf-8" />
   <title>Bob</title>
   <!-- Preloading Styles for Splash Screen -->
-  <!-- leave as-is otherwise hash for CSP will need to be regenerated -->
   <style>html, body { margin: 0; padding: 0; font-family: system-ui, 'Roboto', sans-serif; font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; overflow-x: hidden; }</style>
 </head>
 <body>
 <div id="root"></div>
 <div id="modal-root"></div>
+<!-- CSP script hash: sha256-ifNoD1V8CYOGqCEhgv6hm3CwX8yYueHGf454+Xv7rrI= -->
 <script>
   // https://github.com/tc39/proposal-global
   global = globalThis;

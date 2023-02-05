@@ -32,11 +32,11 @@ export const DROPDOWN_TYPES = [
   {label: RECORD_TYPE.TXT},
 ];
 
-export const fetchName = name => async (dispatch, getState) => {
+export const fetchName = (name, force) => async (dispatch, getState) => {
   const {names} = getState();
   const existing = names[name];
 
-  if (existing && existing.info) {
+  if (!force && existing && existing.info) {
     return;
   }
 
