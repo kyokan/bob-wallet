@@ -140,20 +140,16 @@ export default class Settings extends Component {
   onDownload = async () => {
     try {
       const {network} = this.props;
-      const content = await logger.download(network);
-      const csvContent = `data:text/log;charset=utf-8,${content}\r\n`;
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement('a');
-      link.setAttribute('href', encodedUri);
-      link.setAttribute('download', `bob-debug-${network}.log`);
-      document.body.appendChild(link); // Required for FF
-      link.click();
-      link.remove();
+      const savePath = dialog.showSaveDialogSync({
+        defaultPath: `bob-debug-${network}.log`,
+        filters: [{name: 'log file', extensions: ['log']}],
+      });
+      if (!savePath) return;
+      await logger.download(network, savePath);
+      this.props.showSuccess(this.context.t('logDownloadSuccess', savePath));
     } catch (e) {
       logger.error(e.message);
-      setTimeout(() => {
-        throw e;
-      }, 0);
+      this.props.showError(e.message);
     }
   };
 

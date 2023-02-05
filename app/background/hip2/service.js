@@ -29,8 +29,8 @@ async function fetchAddress(host) {
 
   // Host should not be a Handshake address
   if (isValidAddress(host, network)) {
-    const error = new Error('alias cannot be a valid address')
-    error.code = 'ECOLLISION'
+    const error = new Error('alias cannot be a valid address');
+    error.code = 'ECOLLISION';
     throw error;
   }
 
