@@ -63,3 +63,4 @@ jobs:
             release/*.AppImage
             release/*.msi
             release/*.dmg
+            release/*.zip
