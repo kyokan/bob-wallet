@@ -4,8 +4,6 @@
 
 Bob Wallet is a [Handshake](https://handshake.org) wallet with an integrated full node.
 
-**Status**: This is beta software. As with all wallet GUIs, please use with care, and at your own risk.
-
 ## How to Install Bob Wallet
 
 Most users should use the prebuilt binaries in this repo's [releases](https://github.com/kyokan/bob-wallet/releases) page.
