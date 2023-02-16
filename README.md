@@ -24,6 +24,26 @@ For macOS users, Bob is also available through the [Homebrew](https://github.com
 brew install kyokan-bob
 ```
 
+### Verify downloaded binaries
+
+1. Download a _SHA256SUMS.asc_ file included into the release
+2. Paste the file's content into https://keybase.io/verify and click "Verify"
+3. Make sure the file's signer is a trusted signer mentioned in [SECURITY.md](SECURITY.md#trusted-pgp-keys)
+4. Compare a checksum of a downloaded Bob Wallet app file:
+```
+# Linux
+sha256sum Bob-2.0.0.AppImage
+
+# Windows
+certUtil -hashfile Bob-2.0.0.msi SHA256
+
+# macOS
+shasum -a 256 Bob-2.0.0-x86.dmg
+shasum -a 256 bob-2.0.0-arm64.dmg
+```
+
+For more details and more advanced PGP signature verification see https://github.com/kyokan/bob-wallet/pull/607.
+
 ## Uninstall
 
 Bob Wallet can be uninstalled from your OS apps list. This _does not_ delete any blockchain and wallet data.
@@ -145,7 +165,7 @@ Please report issues using Github issues on this repo. Please file bugs with the
 
 ### Security Issues
 
-Please don't report security issues on GitHub. Instead, send an e-mail to dtsui [at] kyokan [dot] io (`4096R/395CD3B2`) describing your issue.
+See [SECURITY.md](SECURITY.md#reporting-a-vulnerability).
 
 ## License
 
