@@ -57,6 +57,10 @@ jobs:
         if: startsWith(matrix.os, 'macos')
         run: npm i dmg-license --no-save
 
+      - name: Uninstall gmp (macos only)
+        if: startsWith(matrix.os, 'macos')
+        run: brew uninstall gmp --ignore-dependencies
+
       - name: Generate Executable
         run: ${{ matrix.cmd_package }}
 
