@@ -130,7 +130,7 @@
     "sinon": "15.0.1",
     "style-loader": "3.3.1",
     "tape": "5.6.3",
-    "webpack": "5.75.0",
+    "webpack": "5.76.0",
     "webpack-bundle-analyzer": "4.7.0",
     "webpack-cli": "5.0.1",
     "webpack-dev-server": "4.11.1"
