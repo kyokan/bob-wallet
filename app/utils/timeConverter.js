@@ -1,33 +1,4 @@
-const createAMPMTimeStamp = timestamp => {
-  const date = new Date(timestamp);
-  const year = date
-    .getFullYear()
-    .toString()
-    .slice(2);
-  const month = pad(date.getMonth() + 1);
-  const day = pad(date.getDate());
-  let h = date.getHours();
-  const m = date.getMinutes();
-  const ampm = h >= 12 ? 'pm' : 'am';
-  h = h % 12;
-  h = h ? h : 12; // the hour '0' should be '12'
-  const mm = m < 10 ? '0'+m : m;
-  const time = h + ':' + mm + ' ' + ampm;
-  return {
-    year,
-    month,
-    day,
-    time
-  };
-};
-
-function pad(num) {
-  if (num < 10) {
-    return `0${num}`
-  }
-
-  return num.toString();
-}
+import { app } from '@electron/remote';
 
 export function hoursToNow(hoursUntil) {
   if (!hoursUntil) {
@@ -46,4 +17,15 @@ export function hoursToNow(hoursUntil) {
   return `~${days}d ${hours}h ${mins}m`
 }
 
-export default createAMPMTimeStamp;
+// TODO: remove before merge
+console.warn('locale:', {
+  locale: app.getLocale(),
+  systemLocale: app.getSystemLocale(),
+  preferredSystemLanguages: app.getPreferredSystemLanguages(),
+});
+
+const locale = app.getLocale();
+export const dateTimeFormatters = {
+  date: new Intl.DateTimeFormat(locale, { dateStyle: 'short' }),
+  time: new Intl.DateTimeFormat(locale, { timeStyle: 'short' }),
+}
