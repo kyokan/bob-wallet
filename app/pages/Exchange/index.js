@@ -73,6 +73,7 @@ class Exchange extends Component {
       isLoading: true,
       shakedexDeprecatedToggle: false,
       currentBidsMap: new Map(),
+      isEditingPageIndex: false,
     };
   }
 
@@ -484,7 +485,25 @@ class Exchange extends Component {
     );
   }
 
+  handlePageJump(event, max) {
+    if (event.key !== 'Enter') return;
+    const {value} = event.currentTarget;
+    if (value === '') {
+      this.setState({isEditingPageIndex: false});
+      return;
+    }
+    let page = parseInt(value);
+    if (isNaN(page)) return;
+    page = Math.max(1, page);
+    page = Math.min(page, max);
+
+    this.props.setAuctionPage(page)
+    this.setState({isEditingPageIndex: false});
+    this.fetchShakedex();
+  }
+
   renderListingControls = () => {
+    const {isEditingPageIndex} = this.state;
     const {
       auctions,
       total,
@@ -507,6 +526,7 @@ class Exchange extends Component {
             className="domain-manager__page-control__start"
             onClick={async () => {
               this.props.setAuctionPage(Math.max(currentPageIndex - 1, 1));
+              this.setState({isEditingPageIndex: false});
               this.fetchShakedex();
             }}
           />
@@ -517,6 +537,19 @@ class Exchange extends Component {
               );
             }
 
+            if (isEditingPageIndex && currentPageIndex === pageIndex + 1) {
+              return (
+                <div key={`${pageIndex}-${i}`} className="domain-manager__page-control__input">
+                  <input
+                  type="number"
+                  autoFocus
+                  placeholder={currentPageIndex+1}
+                  onKeyDown={event => this.handlePageJump(event, totalPages)}
+                />
+                </div>
+              )
+            }
+
             return (
               <div
                 key={`${pageIndex}-${i}`}
@@ -524,8 +557,13 @@ class Exchange extends Component {
                   'domain-manager__page-control__page--active': currentPageIndex === pageIndex + 1,
                 })}
                 onClick={async () => {
-                  this.props.setAuctionPage(pageIndex + 1);
-                  this.fetchShakedex();
+                  if (currentPageIndex === pageIndex + 1) {
+                    this.setState({isEditingPageIndex: true})
+                  } else {
+                    this.props.setAuctionPage(pageIndex + 1);
+                    this.setState({isEditingPageIndex: false});
+                    this.fetchShakedex();
+                  }
                 }}
               >
                 {pageIndex + 1}
@@ -536,6 +574,7 @@ class Exchange extends Component {
             className="domain-manager__page-control__end"
             onClick={async () => {
               this.props.setAuctionPage(Math.min(currentPageIndex + 1, totalPages));
+              this.setState({isEditingPageIndex: false});
               this.fetchShakedex();
             }}
           />

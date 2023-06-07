@@ -195,6 +195,19 @@
       align-items: center;
     }
 
+    &__input {
+      @extend %box-input;
+      @extend %row-nowrap;
+
+      width: 2rem;
+      padding: .35rem .5rem;
+
+      input {
+        @extend %h4;
+        text-align: center;
+      }
+    }
+
     &__dropdowns {
       @extend %row-nowrap;
       align-items: center;
