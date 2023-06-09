@@ -28,25 +28,28 @@ export class HeaderItem extends Component {
     shrink: PropTypes.number,
     grow: PropTypes.number,
     width: PropTypes.string,
+    className: PropTypes.string,
   };
 
   render() {
     const {
+      children,
       shrink,
       grow,
-      width
+      width,
+      className,
     } = this.props;
 
     return (
       <div
-        className="table__header__item"
+        className={classNames('table__header__item', className)}
         style={{
           flexShrink: shrink,
           flexGrow: grow,
           width: width,
         }}
       >
-        {this.props.children}
+        {children}
       </div>
     )
   }
@@ -70,6 +73,7 @@ export class TableItem extends Component {
     shrink: PropTypes.number,
     grow: PropTypes.number,
     width: PropTypes.string,
+    className: PropTypes.string,
   };
 
   static defaultProps = {
@@ -78,21 +82,23 @@ export class TableItem extends Component {
 
   render() {
     const {
+      children,
       shrink,
       grow,
-      width
+      width,
+      className,
     } = this.props;
 
     return (
       <div
-        className={`table__row__item ${this.props.className}`}
+        className={classNames('table__row__item', className)}
         style={{
           flexShrink: shrink,
           flexGrow: grow,
           width: width,
         }}
       >
-        {this.props.children}
+        {children}
       </div>
     )
   }

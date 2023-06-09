@@ -7,6 +7,7 @@ export default class Checkbox extends Component {
   static propTypes = {
     checked: PropTypes.bool,
     onChange: PropTypes.func,
+    onClick: PropTypes.func,
     className: PropTypes.string,
     disabled: PropTypes.bool,
   };
@@ -17,7 +18,7 @@ export default class Checkbox extends Component {
   };
 
   render() {
-    const { className, checked, onChange, disabled } = this.props;
+    const { className, checked, onChange, onClick, disabled } = this.props;
 
     return (
       <div className={c('checkbox', className, { 'checkbox--checked': checked })}>
@@ -25,6 +26,7 @@ export default class Checkbox extends Component {
           type="checkbox"
           checked={checked}
           onChange={onChange}
+          onClick={onClick}
           disabled={disabled}
         />
       </div>

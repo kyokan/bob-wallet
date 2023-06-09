@@ -56,19 +56,24 @@
   &__table {
     .table {
       &__header {
-        &__item:nth-of-type(1) {
-          flex: 0 0 12rem;
-          flex-grow: 1;
-        }
 
-        &__item:nth-of-type(3) {
-          text-align: left;
-          flex: 1 1 auto;
-        }
-
-        &__item:nth-of-type(2) {
-          text-align: left;
-          flex: 0 0 6rem;
+        &__item {
+          &--checkbox {
+            text-align: left;
+            flex: 0 0 2rem;
+          }
+          &--domain {
+            flex: 0 0 12rem;
+            flex-grow: 1;
+          }
+          &--expiry {
+            text-align: left;
+            flex: 0 0 6rem;
+          }
+          &--value {
+            text-align: left;
+            flex: 1 1 auto;
+          }
         }
       }
 
@@ -84,19 +89,23 @@
           background-color: rgba($black, .05);
         }
 
-        &__item:nth-of-type(1) {
-          flex: 0 0 12rem;
-          flex-grow: 1;
-        }
-
-        &__item:nth-of-type(3) {
-          text-align: left;
-          flex: 1 1 auto;
-        }
-
-        &__item:nth-of-type(2) {
-          text-align: left;
-          flex: 0 0 6rem;
+        &__item {
+          &--checkbox {
+            text-align: left;
+            flex: 0 0 2rem;
+          }
+          &--domain {
+            flex: 0 0 12rem;
+            flex-grow: 1;
+          }
+          &--expiry {
+            text-align: left;
+            flex: 0 0 6rem;
+          }
+          &--value {
+            text-align: left;
+            flex: 1 1 auto;
+          }
         }
       }
 

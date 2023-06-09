@@ -14,6 +14,7 @@ import BidSearchInput from "../../components/BidSearchInput";
 import {displayBalance} from "../../utils/balances";
 import {getPageIndices} from "../../utils/pageable";
 import c from "classnames";
+import Checkbox from '../../components/Checkbox';
 import Dropdown from "../../components/Dropdown";
 import BulkTransfer from "./BulkTransfer";
 import * as networks from "hsd/lib/protocol/networks";
@@ -53,6 +54,8 @@ class DomainManager extends Component {
     isConfirmingBulkFinalize: false,
     currentPageIndex: 0,
     itemsPerPage: 10,
+    isSelecting: false,
+    selected: [],
   };
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -63,6 +66,8 @@ class DomainManager extends Component {
       || this.state.isShowingBulkTransfer !== nextState.isShowingBulkTransfer
       || this.state.isConfirmingBulkFinalize !== nextState.isConfirmingBulkFinalize
       || this.state.currentPageIndex !== nextState.currentPageIndex
+      || this.state.isSelecting !== nextState.isSelecting
+      || this.state.selected.length !== nextState.selected.length
       || this.state.itemsPerPage !== nextState.itemsPerPage;
   }
 
@@ -251,6 +256,7 @@ class DomainManager extends Component {
       query,
       currentPageIndex: i,
       itemsPerPage: n,
+      selected,
     } = this.state;
 
     const start = i * n;
@@ -291,9 +297,12 @@ class DomainManager extends Component {
         />
         <Table className="domain-manager__table">
           <HeaderRow>
-            <HeaderItem>{t('domain')}</HeaderItem>
-            <HeaderItem>{t('expiresOn')}</HeaderItem>
-            <HeaderItem>{t('hnsPaid')}</HeaderItem>
+            <HeaderItem className="table__header__item--checkbox">
+              {selected.length ? `(${selected.length})` : ''}
+            </HeaderItem>
+            <HeaderItem className="table__header__item--domain">{t('domain')}</HeaderItem>
+            <HeaderItem className="table__header__item--expiry">{t('expiresOn')}</HeaderItem>
+            <HeaderItem className="table__header__item--value">{t('hnsPaid')}</HeaderItem>
           </HeaderRow>
           {namesList.length ? namesList.slice(start, end).map((name) => {
             return (
@@ -301,11 +310,22 @@ class DomainManager extends Component {
                 key={`${name}`}
                 name={name}
                 onClick={() => history.push(`/domain_manager/${name}`)}
+                isSelected={selected.includes(name)}
+                onSelectChange={(newSelectState) => {
+                  this.setState(state => {
+                    const withoutName = state.selected.filter(x => x !== name);
+                    if (newSelectState) {
+                      return {selected: [...withoutName, name]}
+                    } else {
+                      return {selected: withoutName}
+                    }
+                  });
+                }}
               />
             );
           }) :
           <TableRow className="table__empty-row">
-            {this.context.t('domainManagerEmpty')}
+            {t('domainManagerEmpty')}
           </TableRow>}
         </Table>
       </div>
@@ -416,18 +436,27 @@ const DomainRow = connect(
 )(_DomainRow);
 
 function _DomainRow(props) {
-  const { name, names, onClick, network } = props;
+  const { name, names, onClick, network, isSelected, onSelectChange } = props;
   return (
     <TableRow key={`${name}`} onClick={onClick}>
-      <TableItem>{formatName(name)}</TableItem>
-      <TableItem>
+      <TableItem className="table__row__item--checkbox">
+        <Checkbox
+          checked={isSelected}
+          onChange={(e) => {
+            onSelectChange(e.currentTarget.checked)
+          }}
+          onClick={(e) => e.stopPropagation()}
+        />
+      </TableItem>
+      <TableItem className="table__row__item--domain">{formatName(name)}</TableItem>
+      <TableItem className="table__row__item--expiry">
         <Blocktime
           height={names[name].renewal + networks[network].names.renewalWindow}
           format="ll"
           fromNow
         />
       </TableItem>
-      <TableItem>{displayBalance(names[name].highest, true)}</TableItem>
+      <TableItem className="table__row__item--value">{displayBalance(names[name].value, true)}</TableItem>
     </TableRow>
   );
 }
