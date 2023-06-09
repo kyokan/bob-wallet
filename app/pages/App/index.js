@@ -19,7 +19,6 @@ import DomainManager from '../DomainManager';
 import MyDomain from '../MyDomain';
 import YourBids from '../YourBids';
 import Watching from '../Watching';
-import SearchTLD from '../SearchTLD';
 import * as nodeActions from "../../ducks/node";
 import * as walletActions from '../../ducks/walletActions';
 import './app.scss';
@@ -218,12 +217,6 @@ class App extends Component {
             wallets={wallets}
             path="/bids/:filterType?"
             render={this.routeRenderer(t('headingYourBids'), YourBids)}
-          />
-          <ProtectedRoute
-            isLocked={isLocked}
-            wallets={wallets}
-            path="/domains"
-            render={this.routeRenderer('', SearchTLD, false)}
           />
           <ProtectedRoute
             isLocked={isLocked}
