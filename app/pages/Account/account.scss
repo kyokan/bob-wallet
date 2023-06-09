@@ -74,7 +74,6 @@
     width: 1.125rem;
     background-size: contain;
     background-repeat: no-repeat;
-    opacity: 0.5;
     cursor: pointer;
   }
 
@@ -115,6 +114,14 @@
         margin-right: 4px;
         background-image: url("../../assets/images/brick-loader.svg");
       }
+    }
+
+    &__syncing {
+      @extend %h4;
+      @extend %row-nowrap;
+      align-items: center;
+      color: $manatee-gray;
+      font-weight: 500;
     }
   }
 

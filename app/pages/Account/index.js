@@ -6,6 +6,7 @@ import { connect } from "react-redux";
 import Transactions from "../../components/Transactions";
 import PhraseMismatch from "../../components/PhraseMismatch";
 import ShakedexDeprecated from '../../components/ShakedexDeprecated';
+import Tooltipable from '../../components/Tooltipable';
 import "./account.scss";
 import walletClient from "../../utils/walletClient";
 import { displayBalance } from "../../utils/balances";
@@ -33,6 +34,10 @@ const analytics = aClientStub(() => require("electron").ipcRenderer);
     hnsPrice: state.node.hnsPrice,
     walletInitialized: state.wallet.initialized,
     walletType: state.wallet.type,
+    isSynchronized: (
+      state.node.isRunning
+      && state.node.chain.progress === 1
+    ),
   }),
   (dispatch) => ({
     fetchWallet: () => dispatch(walletActions.fetchWallet()),
@@ -66,6 +71,7 @@ export default class Account extends Component {
     history: PropTypes.object.isRequired,
     walletInitialized: PropTypes.bool.isRequired,
     walletType: PropTypes.string.isRequired,
+    isSynchronized: PropTypes.bool.isRequired,
   };
 
   static contextType = I18nContext;
@@ -170,7 +176,7 @@ export default class Account extends Component {
 
   render() {
     const {t} = this.context;
-    const { isFetching } = this.props;
+    const { isFetching, isSynchronized } = this.props;
 
     return (
       <div className="account">
@@ -184,6 +190,20 @@ export default class Account extends Component {
         <div className="account__transactions">
           <div className="account__panel-title">
             {t('transactionHistory')}
+
+            {!isSynchronized ? 
+              <div className="account__transactions__syncing">
+                <Tooltipable
+                  tooltipContent={t('incompleteDataUntilSyncDesc')}
+                >
+                  <div className="account__info-icon" />
+                </Tooltipable>
+                <span style={{marginLeft: '0.2rem'}}>
+                  {t('incompleteDataUntilSyncInfo')}
+                </span>
+              </div>
+            : null}
+
             {isFetching && (
               <div className="account__transactions__loading">
                 Loading transactions...

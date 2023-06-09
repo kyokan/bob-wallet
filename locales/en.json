@@ -198,6 +198,8 @@
   "inBids": "In bids",
   "inFinishedAuctions": "In finished auctions",
   "inReveals": "In reveal",
+  "incompleteDataUntilSyncDesc": "Data displayed is as of the current sync height. As it catches up with newer blocks, all transactions will be picked up and the balance will be accurate.",
+  "incompleteDataUntilSyncInfo": "May not be up to date until sync is complete",
   "inputs": "Inputs",
   "invalidAddress": "Invalid Address",
   "invalidTransactionFile": "Invalid Transaction File",

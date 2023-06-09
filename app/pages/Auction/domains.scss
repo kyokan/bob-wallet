@@ -269,6 +269,8 @@
 
       &__cta {
         @extend %btn-primary;
+        display: flex;
+        justify-content: center;
         font-weight: 600;
       }
 
