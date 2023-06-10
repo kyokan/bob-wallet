@@ -53,3 +53,8 @@
 .mini-modal--top {
   z-index: 10000;
 }
+
+.mini-modal--overflow {
+  max-height: -webkit-fill-available;
+  overflow: auto;
+}

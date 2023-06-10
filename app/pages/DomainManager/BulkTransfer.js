@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from "prop-types";
 import { MiniModal } from '../../components/Modal/MiniModal';
+import { Table, HeaderRow, HeaderItem, TableRow, TableItem } from '../../components/Table';
 import { connect } from 'react-redux';
 import {showError, showSuccess} from '../../ducks/notifications';
 import { waitForPassphrase, hasAddress } from '../../ducks/walletActions';
@@ -8,6 +9,9 @@ import isValidAddress from "../../utils/verifyAddress";
 import Alert from "../../components/Alert";
 import {transferMany} from "../../ducks/names";
 import {I18nContext} from "../../utils/i18n";
+
+// TODO: Research and set a good value
+const MAX_TRANSFERS_PER_BATCH = 100;
 
 @connect(
   (state) => ({
@@ -24,8 +28,13 @@ import {I18nContext} from "../../utils/i18n";
 )
 export default class BulkTransfer extends Component {
   static propTypes = {
+    transferNames: PropTypes.arrayOf(PropTypes.string),
     onClose: PropTypes.func.isRequired,
     names: PropTypes.object.isRequired,
+  };
+
+  static defaultProps = {
+    transferNames: [],
   };
 
   static contextType = I18nContext;
@@ -52,9 +61,10 @@ export default class BulkTransfer extends Component {
   };
 
   onTransfer = async () => {
-    const { selectedOptions, recipientAddress } = this.state;
+    const { transferNames } = this.props;
+    const { recipientAddress } = this.state;
     try {
-      const res = await this.props.transferMany(selectedOptions, recipientAddress);
+      const res = await this.props.transferMany(transferNames, recipientAddress);
       if (res !== null) {
         this.props.showSuccess(this.context.t('bulkTransferSuccess'));
       }
@@ -66,64 +76,98 @@ export default class BulkTransfer extends Component {
     }
   };
 
+  renderErrors() {
+    const {names, transferNames} = this.props;
+    const {errorMessage} = this.state;
+
+    const unregistered = transferNames.filter(name => !names[name].registered);
+    const transferring = transferNames.filter(name => names[name].transfer !== 0);
+
+    const errors = [];
+
+    if (errorMessage) {
+      errors.push(errorMessage);
+    }
+    if (unregistered.length) {
+      errors.push(`${unregistered.length} domain(s) are not registered yet and cannot be transferred: ${unregistered.join(', ')}`);
+    }
+    if (transferring.length) {
+      errors.push(`${transferring.length} domain(s) are already in transfer: ${transferring.join(', ')}`);
+    }
+    if (transferNames.length >= MAX_TRANSFERS_PER_BATCH) {
+      errors.push(`Only ${MAX_TRANSFERS_PER_BATCH} can be transferred at once.`);
+    }
+
+    if (errors.length === 0) {
+      return null;
+    }
+
+    return errors.map(error => (
+      <Alert type="error">{error}</Alert>
+    ));
+  }
+
   render() {
-    const {names} = this.props;
+    const {transferNames, onClose} = this.props;
+    const {recipientAddress} = this.state;
     const { t } = this.context;
+
+    const errors = this.renderErrors();
+
+    const canTransfer = (
+      recipientAddress
+      && transferNames.length
+      && !errors
+    );
 
     return (
       <MiniModal
         title={t('bulkTransfer')}
-        onClose={this.props.onClose}
+        onClose={onClose}
+        className="bulk-transfer"
+        overflow
       >
-        <div className="bulk-transfer">
-          <Alert type="error" message={this.state.errorMessage} />
-          <p>
-            {t('bulkTransferLabel')}
-          </p>
-          <div className="bulk-transfer">
-            <div className="bulk-transfer__label">{t('transferringTo')}</div>
-            <div className="bulk-transfer__input">
-              <input
-                type="text"
-                placeholder={t('recipientAddress')}
-                onChange={this.updateToAddress}
-                value={this.state.recipientAddress}
-              />
-            </div>
+        {/* Errors */}
+        {errors}
+
+        <p>{t('bulkTransferLabel')}</p>
+
+        {/* To */}
+        <div>
+          <div className="bulk-transfer__label">{t('transferringTo')}</div>
+          <div className="bulk-transfer__input">
+            <input
+              type="text"
+              placeholder={t('recipientAddress')}
+              onChange={this.updateToAddress}
+              value={recipientAddress}
+            />
           </div>
-          <select
-            onChange={e => {
-              this.setState({
-                selectedOptions: Array.prototype.map.call(e.target.selectedOptions, option => option.value),
-              });
-            }}
-            value={this.state.selectedOptions}
-            size={10}
-            multiple
+        </div>
+
+        {/* Names */}
+        <Table className="bulk-transfer__table">
+          <HeaderRow>
+            <HeaderItem>Domains</HeaderItem>
+          </HeaderRow>
+          
+          <div className="bulk-transfer__table__body">
+            {transferNames.map(name => (
+              <TableRow>
+                <TableItem>{name}/</TableItem>
+              </TableRow>
+            ))}
+          </div>
+        </Table>
+
+        {/* Transfer */}
+        <div className="bulk-transfer__actions">
+          <button
+            disabled={!canTransfer}
+            onClick={this.onTransfer}
           >
-            {Object.keys(names).map(name => {
-              const domain = names[name];
-
-              if (!domain.registered || domain.transfer !== 0) return null;
-
-              return (
-                <option
-                  key={domain.name}
-                  value={domain.name}
-                >
-                  {domain.name}
-                </option>
-              )
-            })}
-          </select>
-          <div className="bulk-transfer__actions">
-            <button
-              disabled={!this.state.selectedOptions.length || !this.state.recipientAddress}
-              onClick={this.onTransfer}
-            >
-              {t(`startTransfer`)}
-            </button>
-          </div>
+            {t(`startTransfer`)}
+          </button>
         </div>
       </MiniModal>
     );

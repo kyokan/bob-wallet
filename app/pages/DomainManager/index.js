@@ -279,14 +279,6 @@ class DomainManager extends Component {
           >
             {t('claimPaidTransfer')}
           </button>
-          <button
-            className="extension_cta_button domain-manager__export-btn"
-            onClick={() => this.setState({
-              isShowingBulkTransfer: true,
-            })}
-          >
-            {t('bulkTransfer')}
-          </button>
           {this.renderBulkFinalize()}
         </div>
         
@@ -300,7 +292,9 @@ class DomainManager extends Component {
           {selected.length ? <>
             <span>{selected.length} selected:</span>
             <div className="domain-manager__buttons-multiselect">
-              <button onClick={() => {}}>
+              <button onClick={() => this.setState({
+                isShowingBulkTransfer: true,
+              })}>
                 Transfer
               </button>
               <button onClick={() => {}}>
@@ -399,6 +393,7 @@ class DomainManager extends Component {
   }
 
   render() {
+    const {selected} = this.state;
     const namesList = this.getNamesList();
 
     return (
@@ -408,6 +403,7 @@ class DomainManager extends Component {
         {this.renderConfirmFinalizeModal()}
         {this.state.isShowingBulkTransfer && (
           <BulkTransfer
+            transferNames={selected}
             onClose={() => this.setState({
               isShowingBulkTransfer: false,
             })}
