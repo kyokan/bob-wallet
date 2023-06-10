@@ -14,8 +14,28 @@
     }
   }
 
-  &__search {
+  &__buttons-multiselect {
+    display: flex;
+    gap: 0.5rem;
+
+    button {
+      @extend %h5;
+      @extend %btn-secondary;
+      padding: 0.3rem;
+      text-align: center;
+    }
+  }
+
+  &__search-row {
+    display: flex;
+    align-items: center;
     margin: 1rem 0;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  &__search {
+    margin-right: 1rem;
     width: 10rem;
   }
 

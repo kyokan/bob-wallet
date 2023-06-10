@@ -289,17 +289,34 @@ class DomainManager extends Component {
           </button>
           {this.renderBulkFinalize()}
         </div>
-        <BidSearchInput
-          className="domain-manager__search"
-          placeholder={t('domainSearchPlaceholder')}
-          onChange={this.onChange('query')}
-          value={query}
-        />
+        
+        <div className="domain-manager__search-row">
+          <BidSearchInput
+            className="domain-manager__search"
+            placeholder={t('domainSearchPlaceholder')}
+            onChange={this.onChange('query')}
+            value={query}
+          />
+          {selected.length ? <>
+            <span>{selected.length} selected:</span>
+            <div className="domain-manager__buttons-multiselect">
+              <button onClick={() => {}}>
+                Transfer
+              </button>
+              <button onClick={() => {}}>
+                Renew
+              </button>
+              <button onClick={() => {}}>
+                Set Records
+              </button>
+            </div>
+            </>: null
+          }
+        </div>
+
         <Table className="domain-manager__table">
           <HeaderRow>
-            <HeaderItem className="table__header__item--checkbox">
-              {selected.length ? `(${selected.length})` : ''}
-            </HeaderItem>
+            <HeaderItem className="table__header__item--checkbox"></HeaderItem>
             <HeaderItem className="table__header__item--domain">{t('domain')}</HeaderItem>
             <HeaderItem className="table__header__item--expiry">{t('expiresOn')}</HeaderItem>
             <HeaderItem className="table__header__item--value">{t('hnsPaid')}</HeaderItem>
