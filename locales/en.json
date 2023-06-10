@@ -53,7 +53,7 @@
   "bulkFinalizeConfirm": "I have no pending finalize in Exchange tab.",
   "bulkFinalizeWarning": "Make sure there are no pending finalize in the Exchange tab. If there are pending finalize in Exchange, you will need finalize them individually before continuing.",
   "bulkTransfer": "Bulk Transfer",
-  "bulkTransferLabel": "Select the domains you wish to transfer",
+  "bulkTransferLabel": "Enter an address to transfer %s domain(s) to.",
   "bulkTransferSuccess": "Your transfer request is submitted! Please wait around 15 minutes for it to be confirmed.",
   "cancel": "Cancel",
   "cancelSuccess": "Your cancellation request is submitted! Please wait around 15 minutes for it to be confirmed.",

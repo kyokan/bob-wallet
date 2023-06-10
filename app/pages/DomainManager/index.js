@@ -381,6 +381,7 @@ class DomainManager extends Component {
     return this.renderList(namesList);
   }
 
+  // TODO: remove finalize from this page (after adding warning to Portfolio cards)
   renderConfirmFinalizeModal() {
     if (this.state.isConfirmingBulkFinalize) {
       return (
