@@ -18,10 +18,8 @@ import Checkbox from '../../components/Checkbox';
 import Dropdown from "../../components/Dropdown";
 import BulkTransfer from "./BulkTransfer";
 import * as networks from "hsd/lib/protocol/networks";
-import {finalizeAll} from "../../ducks/names";
 import {showError, showSuccess} from "../../ducks/notifications";
 import dbClient from "../../utils/dbClient";
-import BulkFinalizeWarningModal from "./BulkFinalizeWarningModal";
 import {I18nContext} from "../../utils/i18n";
 
 const {dialog} = require('@electron/remote');
@@ -51,7 +49,6 @@ class DomainManager extends Component {
     query: '',
     isShowingNameClaimForPayment: false,
     isShowingBulkTransfer: false,
-    isConfirmingBulkFinalize: false,
     currentPageIndex: 0,
     itemsPerPage: 10,
     isSelecting: false,
@@ -64,7 +61,6 @@ class DomainManager extends Component {
       || this.state.query !== nextState.query
       || this.state.isShowingNameClaimForPayment !== nextState.isShowingNameClaimForPayment
       || this.state.isShowingBulkTransfer !== nextState.isShowingBulkTransfer
-      || this.state.isConfirmingBulkFinalize !== nextState.isConfirmingBulkFinalize
       || this.state.currentPageIndex !== nextState.currentPageIndex
       || this.state.isSelecting !== nextState.isSelecting
       || this.state.selected.length !== nextState.selected.length
@@ -118,29 +114,22 @@ class DomainManager extends Component {
     }
   }
 
-  handleFinalizeAll = async () => {
-    const {
-      finalizeAll,
-      showError,
-      showSuccess,
-    } = this.props;
+  /**
+   * Mark a name as (un)selected
+   * @param {string} name name to update selection for
+   * @param {boolean} isSelected new select state
+   */
+  updateNameSelect(name, isSelected) {
+    this.setState(state => {
+      const withoutName = state.selected.filter(x => x !== name);
 
-    const { t } = this.context;
-
-    if (!this.state.isConfirmingBulkFinalize) {
-      return this.setState({ isConfirmingBulkFinalize: true });
-    }
-
-    try {
-      const res = await finalizeAll();
-      if (res !== null) {
-        showSuccess(t('finalizeSuccess'));
+      if (isSelected) {
+        return { selected: [...withoutName, name] }
+      } else {
+        return { selected: withoutName }
       }
-      this.setState({ isConfirmingBulkFinalize: false });
-    } catch (e) {
-      showError(e.message);
-    }
-  };
+    });
+  }
 
   renderGoTo(namesList) {
     const {currentPageIndex, itemsPerPage} = this.state;
@@ -227,28 +216,6 @@ class DomainManager extends Component {
     );
   }
 
-  renderBulkFinalize() {
-    const {names, namesList} = this.props;
-    const finalizables = [];
-
-    for (const name of namesList) {
-      const domain = names[name];
-      const remainingBlocks = (domain.transfer + networks[this.props.network].names.transferLockup) - this.props.height;
-      if (domain.transfer && remainingBlocks <= 0) {
-        finalizables.push(name);
-      }
-    }
-
-    return !!finalizables.length && (
-      <button
-        className="extension_cta_button domain-manager__export-btn"
-        onClick={this.handleFinalizeAll}
-      >
-        {`${this.context.t('bulkFinalize')} (${finalizables.length})`}
-      </button>
-    )
-  }
-
   renderList(namesList) {
     const {history} = this.props;
     const {t} = this.context;
@@ -279,7 +246,6 @@ class DomainManager extends Component {
           >
             {t('claimPaidTransfer')}
           </button>
-          {this.renderBulkFinalize()}
         </div>
         
         <div className="domain-manager__search-row">
@@ -322,16 +288,7 @@ class DomainManager extends Component {
                 name={name}
                 onClick={() => history.push(`/domain_manager/${name}`)}
                 isSelected={selected.includes(name)}
-                onSelectChange={(newSelectState) => {
-                  this.setState(state => {
-                    const withoutName = state.selected.filter(x => x !== name);
-                    if (newSelectState) {
-                      return {selected: [...withoutName, name]}
-                    } else {
-                      return {selected: withoutName}
-                    }
-                  });
-                }}
+                onSelectChange={(isSelected) => this.updateNameSelect(name, isSelected)}
               />
             );
           }) :
@@ -381,18 +338,6 @@ class DomainManager extends Component {
     return this.renderList(namesList);
   }
 
-  // TODO: remove finalize from this page (after adding warning to Portfolio cards)
-  renderConfirmFinalizeModal() {
-    if (this.state.isConfirmingBulkFinalize) {
-      return (
-        <BulkFinalizeWarningModal
-          onClose={() => this.setState({ isConfirmingBulkFinalize: false })}
-          onClick={this.handleFinalizeAll}
-        />
-      );
-    }
-  }
-
   render() {
     const {selected} = this.state;
     const namesList = this.getNamesList();
@@ -401,7 +346,6 @@ class DomainManager extends Component {
       <>
         {this.renderBody(namesList)}
         {this.renderControls(namesList)}
-        {this.renderConfirmFinalizeModal()}
         {this.state.isShowingBulkTransfer && (
           <BulkTransfer
             transferNames={selected}
@@ -434,7 +378,6 @@ export default withRouter(
     }),
     dispatch => ({
       getMyNames: () => dispatch(myDomainsActions.getMyNames()),
-      finalizeAll: () => dispatch(finalizeAll()),
       showSuccess: (message) => dispatch(showSuccess(message)),
       showError: (message) => dispatch(showError(message)),
     }),
