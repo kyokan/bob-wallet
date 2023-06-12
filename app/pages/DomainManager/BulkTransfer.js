@@ -42,7 +42,6 @@ export default class BulkTransfer extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      selectedOptions: [],
       recipientAddress: '',
       errorMessage: '',
     };

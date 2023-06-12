@@ -55,6 +55,8 @@
 }
 
 .mini-modal--overflow {
+  display: flex;
+  flex-direction: column;
   max-height: -webkit-fill-available;
   overflow: auto;
 }

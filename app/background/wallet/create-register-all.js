@@ -1,5 +1,6 @@
 const {states} = require('hsd/lib/covenants/namestate');
 
+// TODO: DELETE THIS FILE
 
 /** @param {import('hsd/lib/wallet/wallet')} wallet */
 export const getNamesForRegisterAll = async (wallet) => {
