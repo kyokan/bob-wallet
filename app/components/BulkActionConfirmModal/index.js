@@ -49,11 +49,18 @@ const MAX_LIMITS = {
 export default class BulkTransfer extends Component {
   static propTypes = {
     action: PropTypes.string.isRequired,
+    canSelect: PropTypes.bool,
+    customList: PropTypes.array,
     onClose: PropTypes.func.isRequired,
     onRefresh: PropTypes.func,
 
     walletHeight: PropTypes.number.isRequired,
     finalizableExchangeListings: PropTypes.arrayOf(PropTypes.string).isRequired,
+  };
+
+  static defaultProps = {
+    canSelect: true,
+    customList: null,
   };
 
   static contextType = I18nContext;
@@ -91,10 +98,10 @@ export default class BulkTransfer extends Component {
    * @param {boolean} setSelected whether to update selected names list
    */
   getSelectableNames = async (setSelected = false) => {
-    const { action } = this.props;
+    const { action, customList } = this.props;
 
     try {
-      const names = await walletClient.getNamesForBulkAction(action);
+      const names = customList ?? await walletClient.getNamesForBulkAction(action);
       this.setState({
         selectableNames: names,
         errorMessage: '',
@@ -177,7 +184,7 @@ export default class BulkTransfer extends Component {
   }
 
   render() {
-    const { action, onClose } = this.props;
+    const { action, canSelect, onClose } = this.props;
     const { selectedNames } = this.state;
     const { t } = this.context;
 
@@ -185,6 +192,7 @@ export default class BulkTransfer extends Component {
     if (!Object.keys(TITLES).includes(action)) return null;
 
     const errors = this.renderErrors();
+    const shouldShowAction = action !== 'transferring';
     const canDoAction = selectedNames.length && !errors;
 
     return (
@@ -197,23 +205,21 @@ export default class BulkTransfer extends Component {
         {/* Errors */}
         {errors}
 
-        {/* <p>{t(LABELS[action])}</p> */}
-
         {/* Names list */}
         {this.renderNames()}
 
         {/* Do action */}
-        <div className="bulk-action__actions">
-          {action !== 'transferring' ?
+        {shouldShowAction ?
+          <div className="bulk-action__actions">
             <button
               disabled={!canDoAction}
               onClick={this.doAction}
             >
               {action} {selectedNames.length} domain(s)
             </button>
-            : null
-          }
-        </div>
+          </div>
+          : null
+        }
       </MiniModal>
     );
   }
@@ -257,19 +263,27 @@ export default class BulkTransfer extends Component {
   }
 
   renderNames() {
-    const { action } = this.props;
+    const { action, canSelect } = this.props;
     const { selectableNames } = this.state;
     const { t } = this.context;
+
+    const isSelectable = canSelect && action !== 'transferring';
 
     return (
       <Table className="bulk-action__table">
         <HeaderRow>
-          <HeaderItem className="table__header__item--checkbox"></HeaderItem>
+          {isSelectable ?
+            <HeaderItem className="table__header__item--checkbox"></HeaderItem>
+            : null
+          }
+
           <HeaderItem className="table__header__item--domain">Domains</HeaderItem>
-          {action === 'renew' ?
+
+          {action === 'renew' && selectableNames?.[0]?.renewInBlocks ?
             <HeaderItem className="table__header__item--time">Expires in</HeaderItem>
             : null
           }
+
           {action === 'transferring' ?
             <HeaderItem className="table__header__item--time">Finalize in</HeaderItem>
             : null
@@ -284,27 +298,32 @@ export default class BulkTransfer extends Component {
   }
 
   renderNameRow(name, idx) {
-    const { action, walletHeight } = this.props;
+    const { action, canSelect, walletHeight } = this.props;
     const { selectedNames } = this.state;
     const { t } = this.context;
+
+    const isSelectable = canSelect && action !== 'transferring';
 
     return (
       <TableRow key={idx}>
 
         {/* Checkbox */}
-        <TableItem className="table__row__item--checkbox">
-          <Checkbox
-            checked={selectedNames.includes(name.name)}
-            onChange={(e) => this.updateNameSelect(name.name, e.target.checked)}
-            onClick={(e) => e.stopPropagation()}
-          />
-        </TableItem>
+        {isSelectable ?
+          <TableItem className="table__row__item--checkbox">
+            <Checkbox
+              checked={selectedNames.includes(name.name)}
+              onChange={(e) => this.updateNameSelect(name.name, e.target.checked)}
+              onClick={(e) => e.stopPropagation()}
+            />
+          </TableItem>
+          : null
+        }
 
         {/* Name */}
         <TableItem className="table__row__item--domain">{name.name}/</TableItem>
 
         {/* Renew within */}
-        {action === 'renew' ?
+        {action === 'renew' && name.renewInBlocks ?
           <TableItem className="table__row__item--time">
             {name.renewInBlocks} blocks
             (<Blocktime height={walletHeight + name.renewInBlocks} fromNow prefix />)

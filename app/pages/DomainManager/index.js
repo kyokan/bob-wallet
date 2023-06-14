@@ -11,6 +11,7 @@ import ClaimNameForPayment from './ClaimNameForPayment';
 import {HeaderItem, HeaderRow, Table, TableItem, TableRow} from "../../components/Table";
 import Blocktime from "../../components/Blocktime";
 import BidSearchInput from "../../components/BidSearchInput";
+import BulkActionConfirmModal from "../../components/BulkActionConfirmModal";
 import {displayBalance} from "../../utils/balances";
 import {getPageIndices} from "../../utils/pageable";
 import c from "classnames";
@@ -53,6 +54,10 @@ class DomainManager extends Component {
     itemsPerPage: 10,
     isSelecting: false,
     selected: [],
+    bulkAction: {
+      isShowing: false,
+      action: null,
+    }
   };
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -61,6 +66,7 @@ class DomainManager extends Component {
       || this.state.query !== nextState.query
       || this.state.isShowingNameClaimForPayment !== nextState.isShowingNameClaimForPayment
       || this.state.isShowingBulkTransfer !== nextState.isShowingBulkTransfer
+      || this.state.bulkAction.isShowing !== nextState.bulkAction.isShowing
       || this.state.currentPageIndex !== nextState.currentPageIndex
       || this.state.isSelecting !== nextState.isSelecting
       || this.state.selected.length !== nextState.selected.length
@@ -263,11 +269,13 @@ class DomainManager extends Component {
               })}>
                 Transfer
               </button>
-              <button onClick={() => {}}>
+              <button onClick={() => this.setState({
+                bulkAction: {
+                  isShowing: true,
+                  action: 'renew',
+                },
+              })}>
                 Renew
-              </button>
-              <button onClick={() => {}}>
-                Set Records
               </button>
             </div>
             </>: null
@@ -339,14 +347,19 @@ class DomainManager extends Component {
   }
 
   render() {
-    const {selected} = this.state;
+    const {
+      selected,
+      isShowingBulkTransfer,
+      isShowingNameClaimForPayment,
+      bulkAction,
+    } = this.state;
     const namesList = this.getNamesList();
 
     return (
       <>
         {this.renderBody(namesList)}
         {this.renderControls(namesList)}
-        {this.state.isShowingBulkTransfer && (
+        {isShowingBulkTransfer && (
           <BulkTransfer
             transferNames={selected}
             onClose={() => this.setState({
@@ -354,10 +367,23 @@ class DomainManager extends Component {
             })}
           />
         )}
-        {this.state.isShowingNameClaimForPayment && (
+        {isShowingNameClaimForPayment && (
           <ClaimNameForPayment
             onClose={() => this.setState({
               isShowingNameClaimForPayment: false,
+            })}
+          />
+        )}
+        {bulkAction.isShowing && (
+          <BulkActionConfirmModal
+            action={bulkAction.action}
+            canSelect={false}
+            customList={selected.map(name => ({name}))}
+            onClose={() => this.setState({
+              bulkAction: {
+                isShowing: false,
+                action: null,
+              },
             })}
           />
         )}

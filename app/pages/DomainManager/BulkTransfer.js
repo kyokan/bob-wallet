@@ -129,7 +129,7 @@ export default class BulkTransfer extends Component {
         {/* Errors */}
         {errors}
 
-        <p>{t('bulkTransferLabel')}</p>
+        <p>{t('bulkTransferLabel', transferNames.length)}</p>
 
         {/* To */}
         <div>
@@ -151,8 +151,8 @@ export default class BulkTransfer extends Component {
           </HeaderRow>
           
           <div className="bulk-transfer__table__body">
-            {transferNames.map(name => (
-              <TableRow>
+            {transferNames.map((name, idx) => (
+              <TableRow key={idx}>
                 <TableItem>{name}/</TableItem>
               </TableRow>
             ))}
