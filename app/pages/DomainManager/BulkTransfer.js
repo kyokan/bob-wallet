@@ -78,23 +78,37 @@ export default class BulkTransfer extends Component {
   renderErrors() {
     const {names, transferNames} = this.props;
     const {errorMessage} = this.state;
-
-    const unregistered = transferNames.filter(name => !names[name].registered);
-    const transferring = transferNames.filter(name => names[name].transfer !== 0);
+    const {t} = this.context;
 
     const errors = [];
 
     if (errorMessage) {
       errors.push(errorMessage);
     }
+
+    // Max limit per batch
+    if (transferNames.length > MAX_TRANSFERS_PER_BATCH) {
+      errors.push(t('bulkTransferErrorMaxLimit', MAX_TRANSFERS_PER_BATCH));
+    }
+
+    // Unregistered names cannot be transferred
+    const unregistered = transferNames.filter(name => !names[name].registered);
     if (unregistered.length) {
-      errors.push(`${unregistered.length} domain(s) are not registered yet and cannot be transferred: ${unregistered.join(', ')}`);
+      errors.push(
+        t('bulkTransferErrorNotRegistered', unregistered.length)
+        + ': '
+        + unregistered.join(', ')
+      );
     }
+
+    // Names already in transfer cannot start another transfer
+    const transferring = transferNames.filter(name => names[name].transfer !== 0);
     if (transferring.length) {
-      errors.push(`${transferring.length} domain(s) are already in transfer: ${transferring.join(', ')}`);
-    }
-    if (transferNames.length >= MAX_TRANSFERS_PER_BATCH) {
-      errors.push(`Only ${MAX_TRANSFERS_PER_BATCH} can be transferred at once.`);
+      errors.push(
+        t('bulkTransferErrorInTransfer', transferring.length)
+        + ': '
+        + transferring.join(', ')
+      );
     }
 
     if (errors.length === 0) {
@@ -147,9 +161,9 @@ export default class BulkTransfer extends Component {
         {/* Names */}
         <Table className="bulk-transfer__table">
           <HeaderRow>
-            <HeaderItem>Domains</HeaderItem>
+            <HeaderItem>{t('domainsPlural')}</HeaderItem>
           </HeaderRow>
-          
+
           <div className="bulk-transfer__table__body">
             {transferNames.map((name, idx) => (
               <TableRow key={idx}>

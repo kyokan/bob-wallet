@@ -440,6 +440,5 @@ export const sendBatch = (actions) => async (dispatch) => {
     dispatch(getPassphrase(resolve, reject));
   });
   const res = await walletClient.sendBatch(actions);
-  await dispatch(fetchPendingTransactions());
   return res;
 };

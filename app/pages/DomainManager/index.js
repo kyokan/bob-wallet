@@ -52,7 +52,6 @@ class DomainManager extends Component {
     isShowingBulkTransfer: false,
     currentPageIndex: 0,
     itemsPerPage: 10,
-    isSelecting: false,
     selected: [],
     bulkAction: {
       isShowing: false,
@@ -68,7 +67,6 @@ class DomainManager extends Component {
       || this.state.isShowingBulkTransfer !== nextState.isShowingBulkTransfer
       || this.state.bulkAction.isShowing !== nextState.bulkAction.isShowing
       || this.state.currentPageIndex !== nextState.currentPageIndex
-      || this.state.isSelecting !== nextState.isSelecting
       || this.state.selected.length !== nextState.selected.length
       || this.state.itemsPerPage !== nextState.itemsPerPage;
   }
@@ -267,7 +265,7 @@ class DomainManager extends Component {
               <button onClick={() => this.setState({
                 isShowingBulkTransfer: true,
               })}>
-                Transfer
+                {t('transfer')}
               </button>
               <button onClick={() => this.setState({
                 bulkAction: {
@@ -275,7 +273,7 @@ class DomainManager extends Component {
                   action: 'renew',
                 },
               })}>
-                Renew
+                {t('renew')}
               </button>
             </div>
             </>: null

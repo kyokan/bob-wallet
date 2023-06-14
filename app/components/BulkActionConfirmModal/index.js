@@ -15,11 +15,12 @@ import { I18nContext } from '../../utils/i18n';
 import './bulk-action-confirm-modal.scss';
 import { LISTING_STATUS } from '../../constants/exchange';
 
+// values are i18n keys
 const TITLES = {
-  register: 'Register',
-  finalize: 'Finalize',
-  renew: 'Renew',
-  transferring: 'Transferring',
+  register: 'register',
+  finalize: 'finalize',
+  renew: 'renew',
+  transferring: 'transferring',
 };
 
 const MAX_LIMITS = {
@@ -27,12 +28,6 @@ const MAX_LIMITS = {
   finalize: consensus.MAX_BLOCK_RENEWALS / 6,
   renew: consensus.MAX_BLOCK_RENEWALS / 6,
 }
-// TODO: remove - v
-// const MAX_LIMITS = {
-//   register: 1,
-//   finalize: 1,
-//   renew: 1,
-// }
 
 @connect(
   (state) => ({
@@ -184,7 +179,7 @@ export default class BulkTransfer extends Component {
   }
 
   render() {
-    const { action, canSelect, onClose } = this.props;
+    const { action, onClose } = this.props;
     const { selectedNames } = this.state;
     const { t } = this.context;
 
@@ -197,7 +192,7 @@ export default class BulkTransfer extends Component {
 
     return (
       <MiniModal
-        title={TITLES[action]}
+        title={t(TITLES[action])}
         onClose={onClose}
         className="bulk-action"
         overflow
@@ -215,7 +210,7 @@ export default class BulkTransfer extends Component {
               disabled={!canDoAction}
               onClick={this.doAction}
             >
-              {action} {selectedNames.length} domain(s)
+              {t(TITLES[action])} {selectedNames.length} {t('domains')}
             </button>
           </div>
           : null
@@ -227,6 +222,7 @@ export default class BulkTransfer extends Component {
   renderErrors() {
     const { action, finalizableExchangeListings } = this.props;
     const { selectedNames, errorMessage } = this.state;
+    const { t } = this.context;
 
     const errors = [];
 
@@ -238,7 +234,7 @@ export default class BulkTransfer extends Component {
     // Max limit per batch
     const maxLimit = MAX_LIMITS[action];
     if (selectedNames.length > maxLimit) {
-      errors.push(`Only ${maxLimit} domains can be selected at once.`);
+      errors.push(t('bulkActionErrorMaxLimit', maxLimit));
     }
 
     // Shakedex needs to generate presigns so
@@ -247,11 +243,16 @@ export default class BulkTransfer extends Component {
       name => finalizableExchangeListings.includes(name)
     );
     if (selectedExchangeNames.length) {
-      errors.push(`${selectedExchangeNames.length} domain(s) must be finalized in Exchange: ${selectedExchangeNames.join(', ')}`);
+      errors.push(
+        t('bulkActionErrorFinalizeExchangeName', selectedExchangeNames.length)
+        + ': '
+        + selectedExchangeNames.join(', ')
+      );
     }
 
     // TODO: don't allow finalizing atomic swap finalizes
-    // We first need mark transfers with intent and then check here
+    // We first need to mark transfers with intent and then check here
+    // https://github.com/kyokan/bob-wallet/issues/501
 
     if (errors.length === 0) {
       return null;
@@ -277,15 +278,15 @@ export default class BulkTransfer extends Component {
             : null
           }
 
-          <HeaderItem className="table__header__item--domain">Domains</HeaderItem>
+          <HeaderItem className="table__header__item--domain">{t('domainsPlural')}</HeaderItem>
 
           {action === 'renew' && selectableNames?.[0]?.renewInBlocks ?
-            <HeaderItem className="table__header__item--time">Expires in</HeaderItem>
+            <HeaderItem className="table__header__item--time">{t('expiresIn')}</HeaderItem>
             : null
           }
 
           {action === 'transferring' ?
-            <HeaderItem className="table__header__item--time">Finalize in</HeaderItem>
+            <HeaderItem className="table__header__item--time">{t('finalizeIn')}</HeaderItem>
             : null
           }
         </HeaderRow>
@@ -325,7 +326,7 @@ export default class BulkTransfer extends Component {
         {/* Renew within */}
         {action === 'renew' && name.renewInBlocks ?
           <TableItem className="table__row__item--time">
-            {name.renewInBlocks} blocks
+            {name.renewInBlocks} {t('blocksPlural')} {' '}
             (<Blocktime height={walletHeight + name.renewInBlocks} fromNow prefix />)
           </TableItem>
           : null
@@ -334,7 +335,7 @@ export default class BulkTransfer extends Component {
         {/* Finalize after */}
         {action === 'transferring' ?
           <TableItem className="table__row__item--time">
-            {name.finalizableInBlocks} blocks
+            {name.finalizableInBlocks} {t('blocksPlural')} {' '}
             (<Blocktime height={walletHeight + name.finalizableInBlocks} fromNow prefix />)
           </TableItem>
           : null
