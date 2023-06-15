@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from "prop-types";
+import { consensus } from 'hsd/lib/protocol';
 import { MiniModal } from '../../components/Modal/MiniModal';
 import { Table, HeaderRow, HeaderItem, TableRow, TableItem } from '../../components/Table';
 import { connect } from 'react-redux';
@@ -10,8 +11,7 @@ import Alert from "../../components/Alert";
 import {transferMany} from "../../ducks/names";
 import {I18nContext} from "../../utils/i18n";
 
-// TODO: Research and set a good value
-const MAX_TRANSFERS_PER_BATCH = 100;
+const MAX_TRANSFERS_PER_BATCH = consensus.MAX_BLOCK_UPDATES / 6;
 
 @connect(
   (state) => ({
