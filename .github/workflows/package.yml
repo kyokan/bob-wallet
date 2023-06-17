@@ -36,17 +36,22 @@ jobs:
           node-version: 18
           cache: "npm"
 
+      # https://github.com/actions/setup-node/issues/280#issuecomment-1139455898
+      - name: Update node-gyp (windows only)
+        if: startsWith(matrix.os, 'windows')
+        run: |
+          $WhereNode = Get-Command node | Select-Object -ExpandProperty Definition
+          $NodeDirPath = Split-Path $WhereNode -Parent
+          $NodeModulesPath = $NodeDirPath + "\node_modules\npm\node_modules\@npmcli\run-script"
+          cd $NodeModulesPath
+          npm install node-gyp@latest
+
       - name: Install dependencies (linux only)
         if: startsWith(matrix.os, 'ubuntu')
         run: sudo apt update && sudo apt install libudev-dev libusb-1.0-0-dev -y
 
       - name: Install npm packages
-        uses: nick-fields/retry@v2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_on: error
-          command: npm i
+        run: npm i
 
       - name: Install dmg-license (macos only)
         if: startsWith(matrix.os, 'macos')
