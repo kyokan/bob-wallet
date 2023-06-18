@@ -10,11 +10,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-18.04, macos-latest]
+        os: [windows-latest, ubuntu-20.04, macos-latest]
 
         # OS-specific commands/variables
         include:
-          - os: ubuntu-18.04
+          - os: ubuntu-20.04
             cmd_package: npm run package-linux
             out_filename: Bob-linux
           - os: windows-latest
@@ -30,23 +30,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Use Node.js 16.x
+      - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
           cache: "npm"
+
+      # https://github.com/actions/setup-node/issues/280#issuecomment-1139455898
+      - name: Update node-gyp (windows only)
+        if: startsWith(matrix.os, 'windows')
+        run: |
+          $WhereNode = Get-Command node | Select-Object -ExpandProperty Definition
+          $NodeDirPath = Split-Path $WhereNode -Parent
+          $NodeModulesPath = $NodeDirPath + "\node_modules\npm\node_modules\@npmcli\run-script"
+          cd $NodeModulesPath
+          npm install node-gyp@latest
 
       - name: Install dependencies (linux only)
         if: startsWith(matrix.os, 'ubuntu')
         run: sudo apt update && sudo apt install libudev-dev libusb-1.0-0-dev -y
 
       - name: Install npm packages
-        uses: nick-fields/retry@v2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_on: error
-          command: npm i
+        run: npm i
 
       - name: Install dmg-license (macos only)
         if: startsWith(matrix.os, 'macos')

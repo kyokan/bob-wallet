@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest]
-        node-version: ['16']
+        node-version: ['16', '18']
 
         # OS-specific commands/variables
         include:
@@ -29,12 +29,22 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+      - name: Use Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+
+      # https://github.com/actions/setup-node/issues/280#issuecomment-1139455898
+      - name: Update node-gyp (windows only)
+        if: startsWith(matrix.os, 'windows')
+        run: |
+          $WhereNode = Get-Command node | Select-Object -ExpandProperty Definition
+          $NodeDirPath = Split-Path $WhereNode -Parent
+          $NodeModulesPath = $NodeDirPath + "\node_modules\npm\node_modules\@npmcli\run-script"
+          cd $NodeModulesPath
+          npm install node-gyp@latest
 
       - name: Install dependencies (linux only)
         if: matrix.os == 'ubuntu-latest'
