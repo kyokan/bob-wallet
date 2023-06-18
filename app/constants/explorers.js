@@ -24,27 +24,9 @@ export const EXPLORERS = [
     address: 'https://e.hnsfans.com/address/%s',
   },
   {
-    label: 'Block Explorer',
-    tx: 'https://blockexplorer.com/txs/%s',
-    name: 'https://blockexplorer.com/names/%s',
-    address: 'https://blockexplorer.com/addrs/%s',
-  },
-  {
-    label: 'HNScan',
-    tx: 'https://hnscan.com/tx/%s',
-    name: 'https://hnscan.com/name/%s',
-    address: 'https://hnscan.com/address/%s',
-  },
-  {
-    label: 'Shake Scan',
-    tx: 'https://shakescan.com/transaction/%s',
-    name: 'https://shakescan.com/name/%s',
-    address: 'https://shakescan.com/address/%s',
-  },
-  {
-    label: '3XPL Handshake',
+    label: '3XPL',
     tx: 'https://3xpl.com/handshake/transaction/%s',
-    name: 'https://3xpl.com/handshake/address/%s',
+    name: 'https://3xpl.com/search?q=%s%2F',
     address: 'https://3xpl.com/handshake/address/%s',
   },
 ]
