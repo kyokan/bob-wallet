@@ -41,4 +41,10 @@ export const EXPLORERS = [
     name: 'https://shakescan.com/name/%s',
     address: 'https://shakescan.com/address/%s',
   },
+  {
+    label: '3XPL Handshake',
+    tx: 'https://3xpl.com/handshake/transaction/%s',
+    name: 'https://3xpl.com/handshake/address/%s',
+    address: 'https://3xpl.com/handshake/address/%s',
+  },
 ]
