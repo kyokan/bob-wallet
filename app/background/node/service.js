@@ -238,7 +238,7 @@ export class NodeService extends EventEmitter {
       chainMigrate: 3,
       walletMigrate: 2,
       maxOutbound: 4,
-      compactTreeOnInit: true,
+      compactTreeOnInit: false,
     });
 
     this.hsd.use(plugin);
