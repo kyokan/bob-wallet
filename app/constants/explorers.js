@@ -24,7 +24,7 @@ export const EXPLORERS = [
     address: 'https://e.hnsfans.com/address/%s',
   },
   {
-    label: '3XPL',
+    label: '3xpl',
     tx: 'https://3xpl.com/handshake/transaction/%s',
     name: 'https://3xpl.com/search?q=%s%2F',
     address: 'https://3xpl.com/handshake/address/%s',
