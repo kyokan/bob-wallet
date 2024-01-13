@@ -6,7 +6,7 @@ import fs from 'fs';
 import crypto from 'crypto';
 import EventEmitter from 'events';
 import throttle from 'lodash.throttle';
-import { NodeClient } from 'hs-client';
+import { NodeClient } from 'hsd/lib/client';
 import { BigNumber } from 'bignumber.js';
 import { ConnectionTypes, getConnection, getCustomRPC } from '../connections/service';
 import FullNode from 'hsd/lib/node/fullnode';
