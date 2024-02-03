@@ -25,7 +25,7 @@ export const isAvailable = name => {
     return false;
   }
 
-  if (start.reserved) {
+  if (start.reserved || start.locked) {
     return false;
   }
 
@@ -60,6 +60,26 @@ export const isReserved = name => {
 
   return !!start.reserved;
 };
+
+export const isLockedUp = name => {
+  const {start} = name || {};
+  const {info} = name || {};
+
+  // Maybe already claimed
+  if (isClosed(name))
+    return false;
+
+  // Not available if start is undefined
+  if (!start) {
+    return false;
+  }
+
+  if (info) {
+    return false;
+  }
+
+  return !!start.locked;
+}
 
 export const isOpening = name => checkState(name, states.OPENING);
 export const isBidding = name => checkState(name, states.BIDDING);
