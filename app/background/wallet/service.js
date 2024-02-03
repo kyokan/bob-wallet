@@ -1,4 +1,4 @@
-import { WalletClient } from 'hs-client';
+import { WalletClient } from 'hsd/lib/client';
 import BigNumber from 'bignumber.js';
 import crypto from 'crypto';
 const secp256k1 = require('bcrypto/lib/secp256k1');

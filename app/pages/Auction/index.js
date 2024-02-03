@@ -17,6 +17,7 @@ import {
   isComingSoon,
   isOpening,
   isReserved,
+  isLockedUp,
   isReveal,
 } from '../../utils/nameHelpers';
 import BidActionPanel from './BidActionPanel';
@@ -138,7 +139,7 @@ export default class Auction extends Component {
   renderAuctionRight = () => {
     const {domain} = this.props;
 
-    if (isReserved(domain)) {
+    if (isReserved(domain) || isLockedUp(domain)) {
       return <BidActionPanel domain={domain} />;
     }
 
@@ -273,7 +274,7 @@ export default class Auction extends Component {
     return (
       <div className={className}>
         <div className={`${className}__label`}>{title}:</div>
-        <div className={`${className}__status`}>{content}</div>
+        <div className={`${className}__status`}>{content?.toLowerCase?.()}</div>
         <div className={`${className}__description`}>{description}</div>
       </div>
     );
@@ -313,6 +314,8 @@ export default class Auction extends Component {
           {t('reservedCTAText')}
         </button>
       );
+    } else if (isLockedUp(domain)) {
+      status = t('locked');
     } else if (isOpening(domain)) {
       status = t('opening');
       description = t('biddingSoon');

@@ -6,7 +6,7 @@ import fs from 'fs';
 import crypto from 'crypto';
 import EventEmitter from 'events';
 import throttle from 'lodash.throttle';
-import { NodeClient } from 'hs-client';
+import { NodeClient } from 'hsd/lib/client';
 import { BigNumber } from 'bignumber.js';
 import { ConnectionTypes, getConnection, getCustomRPC } from '../connections/service';
 import FullNode from 'hsd/lib/node/fullnode';
@@ -237,6 +237,7 @@ export class NodeService extends EventEmitter {
       listen: this.networkName === 'regtest', // improves remote rpc dev/testing
       chainMigrate: 3,
       walletMigrate: 2,
+      walletIcannlockup: true,
       maxOutbound: 4,
       compactTreeOnInit: true,
     });

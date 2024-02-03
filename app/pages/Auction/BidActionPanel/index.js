@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import { connect } from 'react-redux';
 import c from 'classnames';
-import { isAvailable, isBidding, isClosed, isOpening, isReserved, isReveal } from '../../../utils/nameHelpers';
+import { isAvailable, isBidding, isClosed, isOpening, isReserved, isLockedUp, isReveal } from '../../../utils/nameHelpers';
 import * as watchingActions from '../../../ducks/watching';
 import OpenBid from './OpenBid';
 import BidNow from './BidNow';
@@ -81,9 +81,10 @@ class BidActionPanel extends Component {
   renderActionPanel() {
     const {domain} = this.props;
     const name = this.props.match.params.name;
+    const locked = isLockedUp(domain);
 
-    if (isReserved(domain)) {
-      return <Reserved domain={domain} name={name} />;
+    if (isReserved(domain) || locked) {
+      return <Reserved domain={domain} name={name} locked={locked} />;
     }
 
     if (this.isOwned()) {
