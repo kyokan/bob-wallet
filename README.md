@@ -32,14 +32,14 @@ brew install kyokan-bob
 4. Compare a checksum of a downloaded Bob Wallet app file:
 ```
 # Linux
-sha256sum Bob-2.0.0.AppImage
+sha256sum Bob-2.1.0.AppImage
 
 # Windows
-certUtil -hashfile Bob-2.0.0.msi SHA256
+certUtil -hashfile Bob-2.1.0.msi SHA256
 
 # macOS
-shasum -a 256 Bob-2.0.0-x86.dmg
-shasum -a 256 bob-2.0.0-arm64.dmg
+shasum -a 256 Bob-2.1.0-x86.dmg
+shasum -a 256 bob-2.1.0-arm64.dmg
 ```
 
 For more details and more advanced PGP signature verification see https://github.com/kyokan/bob-wallet/pull/612.
@@ -112,7 +112,7 @@ be run in an environment where `libunbound` is available as an x86 package.
 
 ```bash
 npm run package-mac-intel
-``` 
+```
 
 The output app will be created in the `/release/mac` or `/release/mac-arm64` folder.
 Open `Bob.app` to start the wallet.
