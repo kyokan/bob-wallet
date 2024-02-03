@@ -1,0 +1,60 @@
+macos_instance:
+  image: ghcr.io/cirruslabs/macos-ventura-xcode:latest
+
+build_task:
+  # Load public key to env
+  environment:
+    SIGNING_PUBLIC_KEY: ENCRYPTED[9ecd1dce11858b0bdbaf664e08c89de152aa57a32cf46bd56a28c3ed38127464ca4f17f1fbca1e00894f442949ba6205]
+    APPSTORECONNECT_KEY: ENCRYPTED[7ff7b3572ccb3bbe0e4ca4c1b3219731b5a6eaa9296ad3446ef67557e843725d3f64955983620c135542e6d7cd1620a5]
+
+  # Save public key from env to file
+  signing_public_key_file:
+    path: /tmp/signing_public_key.pem
+    variable_name: SIGNING_PUBLIC_KEY
+
+  # Save appstoreconnect key from env to file
+  appstoreconnect_key_file:
+    path: /tmp/appstoreconnect_key.json
+    variable_name: APPSTORECONNECT_KEY
+
+  # Install nodejs
+  nodejs_script:
+    # - brew update
+    - brew install node
+
+  # # Cache
+  # node_modules_cache:
+  #   folder: node_modules
+  #   reupload_on_changes: false # since there is a fingerprint script
+  #   fingerprint_script:
+  #     - echo $CIRRUS_OS
+  #     - node --version
+  #     - cat package.json package-lock.json
+
+  # Install deps
+  install_deps_script:
+    - npm install dmg-license --no-save
+    - npm rebuild
+
+  # Build and Test
+  test_script:
+    - npm run test
+
+  # Package app
+  package_script:
+    - npm run package-mac
+    - unzip release/Bob-2.0.0-arm64-mac.zip -d release/
+
+  # # Install rcodesign
+  # install_rcodesign_script:
+  #   - curl -sL https://github.com/indygreg/apple-platform-rs/releases/download/apple-codesign%2F0.22.0/apple-codesign-0.22.0-aarch64-apple-darwin.tar.gz | tar xzvf -
+
+  # # Sign and notarize zip
+  # sign_and_notarize_script:
+  #   - chmod +x scripts/macos-ci-sign.sh
+  #   - ./scripts/macos-ci-sign.sh `pwd`/apple-codesign-0.22.0-aarch64-apple-darwin/rcodesign
+  #   - zip -r release/Bob-macos-arm64-signed.zip --symlinks release/Bob.app
+
+  # Upload artifacts
+  binaries_artifacts:
+    path: "release/*"
