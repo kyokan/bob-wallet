@@ -39,7 +39,7 @@ certUtil -hashfile Bob-2.1.0.msi SHA256
 
 # macOS
 shasum -a 256 Bob-2.1.0-x86.dmg
-shasum -a 256 bob-2.1.0-arm64.dmg
+shasum -a 256 Bob-2.1.0-arm64.dmg
 ```
 
 For more details and more advanced PGP signature verification see https://github.com/kyokan/bob-wallet/pull/612.
