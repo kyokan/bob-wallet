@@ -154,7 +154,7 @@ class GetCoins extends Component {
           </div>
           <h2>{t('getCoinPrivacyTitle')}</h2>
           <p>
-            <strong>{t('note')}:</strong>
+            <strong>{t('note')}: </strong>
             {t('getCoinPrivacyNote')}
           </p>
           <p>

@@ -14,8 +14,28 @@
     }
   }
 
-  &__search {
+  &__buttons-multiselect {
+    display: flex;
+    gap: 0.5rem;
+
+    button {
+      @extend %h5;
+      @extend %btn-secondary;
+      padding: 0.3rem;
+      text-align: center;
+    }
+  }
+
+  &__search-row {
+    display: flex;
+    align-items: center;
     margin: 1rem 0;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  &__search {
+    margin-right: 1rem;
     width: 10rem;
   }
 
@@ -56,19 +76,24 @@
   &__table {
     .table {
       &__header {
-        &__item:nth-of-type(1) {
-          flex: 0 0 12rem;
-          flex-grow: 1;
-        }
 
-        &__item:nth-of-type(3) {
-          text-align: left;
-          flex: 1 1 auto;
-        }
-
-        &__item:nth-of-type(2) {
-          text-align: left;
-          flex: 0 0 6rem;
+        &__item {
+          &--checkbox {
+            text-align: left;
+            flex: 0 0 2rem;
+          }
+          &--domain {
+            flex: 0 0 12rem;
+            flex-grow: 1;
+          }
+          &--expiry {
+            text-align: left;
+            flex: 0 0 6rem;
+          }
+          &--value {
+            text-align: left;
+            flex: 1 1 auto;
+          }
         }
       }
 
@@ -84,19 +109,23 @@
           background-color: rgba($black, .05);
         }
 
-        &__item:nth-of-type(1) {
-          flex: 0 0 12rem;
-          flex-grow: 1;
-        }
-
-        &__item:nth-of-type(3) {
-          text-align: left;
-          flex: 1 1 auto;
-        }
-
-        &__item:nth-of-type(2) {
-          text-align: left;
-          flex: 0 0 6rem;
+        &__item {
+          &--checkbox {
+            text-align: left;
+            flex: 0 0 2rem;
+          }
+          &--domain {
+            flex: 0 0 12rem;
+            flex-grow: 1;
+          }
+          &--expiry {
+            text-align: left;
+            flex: 0 0 6rem;
+          }
+          &--value {
+            text-align: left;
+            flex: 1 1 auto;
+          }
         }
       }
 
@@ -340,13 +369,13 @@
 }
 
 .bulk-transfer {
-  select {
-    width: 100%;
-  }
-
-  option {
-    @extend %h4;
-    padding: .25rem .5rem;
+  .mini-modal__content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    padding-left: 1px;
+    padding-right: 1px;
   }
 
   p {
@@ -377,6 +406,20 @@
       width: 0;
       font-size: 0.85rem;
       border: none;
+    }
+  }
+
+  &__table {
+    flex-grow: 1;
+    overflow: auto;
+
+    .table__header {
+      min-height: 28px;
+    }
+
+    &__body {
+      overflow: auto;
+      flex-grow: 1;
     }
   }
 

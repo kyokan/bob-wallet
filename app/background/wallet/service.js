@@ -21,7 +21,7 @@ import {
 } from '../../ducks/walletReducer';
 import {STOP, SET_CUSTOM_RPC_STATUS} from '../../ducks/nodeReducer';
 import {showSuccess, showError} from '../../ducks/notifications';
-import {getNamesForRegisterAll} from "./create-register-all";
+import * as bulkActions from "./bulk-actions";
 import {getStats} from "./stats";
 import {get, put} from "../db/service";
 import hsdLedger from 'hsd-ledger';
@@ -682,11 +682,11 @@ class WalletService {
     const {wdb} = this.node;
     const wallet = await wdb.get(this.name);
 
-    const names = await getNamesForRegisterAll(wallet);
+    const names = (await bulkActions.getNamesForRegisterAll(wallet));
     if (!names.length) {
       throw new Error('Nothing to do.');
     }
-    const actions = names.map(name => ['UPDATE', name, {records: []}]);
+    const actions = names.map(name => ['UPDATE', name.name, {records: []}]);
 
     // Chunk into multiple batches to stay within consensus limits
     const chunkedActions = [];
@@ -807,6 +807,32 @@ class WalletService {
   revokeName = (name) => this._walletProxy(
     () => this._executeRPC('createrevoke', [name]),
   );
+
+  sendBatch = (actions) => this._walletProxy(
+    () => this._executeRPC('createbatch', [actions, {paths: true}]),
+  );
+
+  getNamesForBulkAction = async (action) => {
+    const {wdb} = this.node;
+    const wallet = await wdb.get(this.name);
+
+    switch (action) {
+      case 'register':
+        return bulkActions.getNamesForRegisterAll(wallet);
+
+      case 'finalize':
+        return bulkActions.getNamesForFinalizeAll(wallet);
+
+      case 'renew':
+        return bulkActions.getNamesForRenewAll(wallet);
+
+      case 'transferring':
+        return bulkActions.getNamesInTransfer(wallet);
+
+      default:
+        throw new Error('Invalid action.');
+    }
+  }
 
   send = (to, amount, fee) => this._walletProxy(
     async () => {
@@ -2181,6 +2207,8 @@ const methods = {
   claimPaidTransfer: service.claimPaidTransfer,
   signMessageWithName: service.signMessageWithName,
   revokeName: service.revokeName,
+  sendBatch: service.sendBatch,
+  getNamesForBulkAction: service.getNamesForBulkAction,
   send: service.send,
   lock: service.lock,
   unlock: service.unlock,

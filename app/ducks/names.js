@@ -431,3 +431,14 @@ export const sendUpdate = (name, json) => async (dispatch) => {
   await dispatch(fetchPendingTransactions());
   return res;
 };
+
+export const sendBatch = (actions) => async (dispatch) => {
+  if (!actions || !actions.length) {
+    return;
+  }
+  await new Promise((resolve, reject) => {
+    dispatch(getPassphrase(resolve, reject));
+  });
+  const res = await walletClient.sendBatch(actions);
+  return res;
+};

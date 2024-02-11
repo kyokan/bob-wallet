@@ -11,16 +11,16 @@ import ClaimNameForPayment from './ClaimNameForPayment';
 import {HeaderItem, HeaderRow, Table, TableItem, TableRow} from "../../components/Table";
 import Blocktime from "../../components/Blocktime";
 import BidSearchInput from "../../components/BidSearchInput";
+import BulkActionConfirmModal from "../../components/BulkActionConfirmModal";
 import {displayBalance} from "../../utils/balances";
 import {getPageIndices} from "../../utils/pageable";
 import c from "classnames";
+import Checkbox from '../../components/Checkbox';
 import Dropdown from "../../components/Dropdown";
 import BulkTransfer from "./BulkTransfer";
 import * as networks from "hsd/lib/protocol/networks";
-import {finalizeAll} from "../../ducks/names";
 import {showError, showSuccess} from "../../ducks/notifications";
 import dbClient from "../../utils/dbClient";
-import BulkFinalizeWarningModal from "./BulkFinalizeWarningModal";
 import {I18nContext} from "../../utils/i18n";
 
 const {dialog} = require('@electron/remote');
@@ -50,9 +50,13 @@ class DomainManager extends Component {
     query: '',
     isShowingNameClaimForPayment: false,
     isShowingBulkTransfer: false,
-    isConfirmingBulkFinalize: false,
     currentPageIndex: 0,
     itemsPerPage: 10,
+    selected: [],
+    bulkAction: {
+      isShowing: false,
+      action: null,
+    }
   };
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -61,8 +65,9 @@ class DomainManager extends Component {
       || this.state.query !== nextState.query
       || this.state.isShowingNameClaimForPayment !== nextState.isShowingNameClaimForPayment
       || this.state.isShowingBulkTransfer !== nextState.isShowingBulkTransfer
-      || this.state.isConfirmingBulkFinalize !== nextState.isConfirmingBulkFinalize
+      || this.state.bulkAction.isShowing !== nextState.bulkAction.isShowing
       || this.state.currentPageIndex !== nextState.currentPageIndex
+      || this.state.selected.length !== nextState.selected.length
       || this.state.itemsPerPage !== nextState.itemsPerPage;
   }
 
@@ -113,29 +118,22 @@ class DomainManager extends Component {
     }
   }
 
-  handleFinalizeAll = async () => {
-    const {
-      finalizeAll,
-      showError,
-      showSuccess,
-    } = this.props;
+  /**
+   * Mark a name as (un)selected
+   * @param {string} name name to update selection for
+   * @param {boolean} isSelected new select state
+   */
+  updateNameSelect(name, isSelected) {
+    this.setState(state => {
+      const withoutName = state.selected.filter(x => x !== name);
 
-    const { t } = this.context;
-
-    if (!this.state.isConfirmingBulkFinalize) {
-      return this.setState({ isConfirmingBulkFinalize: true });
-    }
-
-    try {
-      const res = await finalizeAll();
-      if (res !== null) {
-        showSuccess(t('finalizeSuccess'));
+      if (isSelected) {
+        return { selected: [...withoutName, name] }
+      } else {
+        return { selected: withoutName }
       }
-      this.setState({ isConfirmingBulkFinalize: false });
-    } catch (e) {
-      showError(e.message);
-    }
-  };
+    });
+  }
 
   renderGoTo(namesList) {
     const {currentPageIndex, itemsPerPage} = this.state;
@@ -222,28 +220,6 @@ class DomainManager extends Component {
     );
   }
 
-  renderBulkFinalize() {
-    const {names, namesList} = this.props;
-    const finalizables = [];
-
-    for (const name of namesList) {
-      const domain = names[name];
-      const remainingBlocks = (domain.transfer + networks[this.props.network].names.transferLockup) - this.props.height;
-      if (domain.transfer && remainingBlocks <= 0) {
-        finalizables.push(name);
-      }
-    }
-
-    return !!finalizables.length && (
-      <button
-        className="extension_cta_button domain-manager__export-btn"
-        onClick={this.handleFinalizeAll}
-      >
-        {`${this.context.t('bulkFinalize')} (${finalizables.length})`}
-      </button>
-    )
-  }
-
   renderList(namesList) {
     const {history} = this.props;
     const {t} = this.context;
@@ -251,6 +227,7 @@ class DomainManager extends Component {
       query,
       currentPageIndex: i,
       itemsPerPage: n,
+      selected,
     } = this.state;
 
     const start = i * n;
@@ -273,27 +250,42 @@ class DomainManager extends Component {
           >
             {t('claimPaidTransfer')}
           </button>
-          <button
-            className="extension_cta_button domain-manager__export-btn"
-            onClick={() => this.setState({
-              isShowingBulkTransfer: true,
-            })}
-          >
-            {t('bulkTransfer')}
-          </button>
-          {this.renderBulkFinalize()}
         </div>
-        <BidSearchInput
-          className="domain-manager__search"
-          placeholder={t('domainSearchPlaceholder')}
-          onChange={this.onChange('query')}
-          value={query}
-        />
+        
+        <div className="domain-manager__search-row">
+          <BidSearchInput
+            className="domain-manager__search"
+            placeholder={t('domainSearchPlaceholder')}
+            onChange={this.onChange('query')}
+            value={query}
+          />
+          {selected.length ? <>
+            <span>{selected.length} selected:</span>
+            <div className="domain-manager__buttons-multiselect">
+              <button onClick={() => this.setState({
+                isShowingBulkTransfer: true,
+              })}>
+                {t('transfer')}
+              </button>
+              <button onClick={() => this.setState({
+                bulkAction: {
+                  isShowing: true,
+                  action: 'renew',
+                },
+              })}>
+                {t('renew')}
+              </button>
+            </div>
+            </>: null
+          }
+        </div>
+
         <Table className="domain-manager__table">
           <HeaderRow>
-            <HeaderItem>{t('domain')}</HeaderItem>
-            <HeaderItem>{t('expiresOn')}</HeaderItem>
-            <HeaderItem>{t('hnsPaid')}</HeaderItem>
+            <HeaderItem className="table__header__item--checkbox"></HeaderItem>
+            <HeaderItem className="table__header__item--domain">{t('domain')}</HeaderItem>
+            <HeaderItem className="table__header__item--expiry">{t('expiresOn')}</HeaderItem>
+            <HeaderItem className="table__header__item--value">{t('hnsPaid')}</HeaderItem>
           </HeaderRow>
           {namesList.length ? namesList.slice(start, end).map((name) => {
             return (
@@ -301,11 +293,13 @@ class DomainManager extends Component {
                 key={`${name}`}
                 name={name}
                 onClick={() => history.push(`/domain_manager/${name}`)}
+                isSelected={selected.includes(name)}
+                onSelectChange={(isSelected) => this.updateNameSelect(name, isSelected)}
               />
             );
           }) :
           <TableRow className="table__empty-row">
-            {this.context.t('domainManagerEmpty')}
+            {t('domainManagerEmpty')}
           </TableRow>}
         </Table>
       </div>
@@ -350,36 +344,44 @@ class DomainManager extends Component {
     return this.renderList(namesList);
   }
 
-  renderConfirmFinalizeModal() {
-    if (this.state.isConfirmingBulkFinalize) {
-      return (
-        <BulkFinalizeWarningModal
-          onClose={() => this.setState({ isConfirmingBulkFinalize: false })}
-          onClick={this.handleFinalizeAll}
-        />
-      );
-    }
-  }
-
   render() {
+    const {
+      selected,
+      isShowingBulkTransfer,
+      isShowingNameClaimForPayment,
+      bulkAction,
+    } = this.state;
     const namesList = this.getNamesList();
 
     return (
       <>
         {this.renderBody(namesList)}
         {this.renderControls(namesList)}
-        {this.renderConfirmFinalizeModal()}
-        {this.state.isShowingBulkTransfer && (
+        {isShowingBulkTransfer && (
           <BulkTransfer
+            transferNames={selected}
             onClose={() => this.setState({
               isShowingBulkTransfer: false,
             })}
           />
         )}
-        {this.state.isShowingNameClaimForPayment && (
+        {isShowingNameClaimForPayment && (
           <ClaimNameForPayment
             onClose={() => this.setState({
               isShowingNameClaimForPayment: false,
+            })}
+          />
+        )}
+        {bulkAction.isShowing && (
+          <BulkActionConfirmModal
+            action={bulkAction.action}
+            canSelect={false}
+            customList={selected.map(name => ({name}))}
+            onClose={() => this.setState({
+              bulkAction: {
+                isShowing: false,
+                action: null,
+              },
             })}
           />
         )}
@@ -400,7 +402,6 @@ export default withRouter(
     }),
     dispatch => ({
       getMyNames: () => dispatch(myDomainsActions.getMyNames()),
-      finalizeAll: () => dispatch(finalizeAll()),
       showSuccess: (message) => dispatch(showSuccess(message)),
       showError: (message) => dispatch(showError(message)),
     }),
@@ -416,18 +417,27 @@ const DomainRow = connect(
 )(_DomainRow);
 
 function _DomainRow(props) {
-  const { name, names, onClick, network } = props;
+  const { name, names, onClick, network, isSelected, onSelectChange } = props;
   return (
     <TableRow key={`${name}`} onClick={onClick}>
-      <TableItem>{formatName(name)}</TableItem>
-      <TableItem>
+      <TableItem className="table__row__item--checkbox">
+        <Checkbox
+          checked={isSelected}
+          onChange={(e) => {
+            onSelectChange(e.currentTarget.checked)
+          }}
+          onClick={(e) => e.stopPropagation()}
+        />
+      </TableItem>
+      <TableItem className="table__row__item--domain">{formatName(name)}</TableItem>
+      <TableItem className="table__row__item--expiry">
         <Blocktime
           height={names[name].renewal + networks[network].names.renewalWindow}
           format="ll"
           fromNow
         />
       </TableItem>
-      <TableItem>{displayBalance(names[name].highest, true)}</TableItem>
+      <TableItem className="table__row__item--value">{displayBalance(names[name].value, true)}</TableItem>
     </TableRow>
   );
 }

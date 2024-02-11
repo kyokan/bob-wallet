@@ -6,6 +6,7 @@ import { connect } from "react-redux";
 import Transactions from "../../components/Transactions";
 import PhraseMismatch from "../../components/PhraseMismatch";
 import ShakedexDeprecated from '../../components/ShakedexDeprecated';
+import BulkActionConfirmModal from '../../components/BulkActionConfirmModal';
 import "./account.scss";
 import walletClient from "../../utils/walletClient";
 import { displayBalance } from "../../utils/balances";
@@ -16,7 +17,7 @@ import * as walletActions from "../../ducks/walletActions";
 import { showError, showSuccess } from "../../ducks/notifications";
 import * as nameActions from "../../ducks/names";
 import * as nodeActions from "../../ducks/node";
-import { fetchTransactions } from "../../ducks/walletActions";
+import { fetchTransactions, fetchPendingTransactions } from "../../ducks/walletActions";
 import throttle from "lodash.throttle";
 import {I18nContext} from "../../utils/i18n";
 
@@ -39,12 +40,10 @@ const analytics = aClientStub(() => require("electron").ipcRenderer);
     updateHNSPrice: () => dispatch(nodeActions.updateHNSPrice()),
     sendRevealAll: () => dispatch(nameActions.sendRevealAll()),
     sendRedeemAll: () => dispatch(nameActions.sendRedeemAll()),
-    sendRegisterAll: () => dispatch(nameActions.sendRegisterAll()),
-    finalizeAll: () => dispatch(nameActions.finalizeAll()),
-    renewAll: () => dispatch(nameActions.renewAll()),
     showSuccess: (message) => dispatch(showSuccess(message)),
     showError: (message) => dispatch(showError(message)),
     fetchTransactions: () => dispatch(fetchTransactions()),
+    fetchPendingTransactions: () => dispatch(fetchPendingTransactions()),
   })
 )
 export default class Account extends Component {
@@ -60,9 +59,6 @@ export default class Account extends Component {
     fetchWallet: PropTypes.func.isRequired,
     sendRevealAll: PropTypes.func.isRequired,
     sendRedeemAll: PropTypes.func.isRequired,
-    sendRegisterAll: PropTypes.func.isRequired,
-    finalizeAll: PropTypes.func.isRequired,
-    renewAll: PropTypes.func.isRequired,
     history: PropTypes.object.isRequired,
     walletInitialized: PropTypes.bool.isRequired,
     walletType: PropTypes.string.isRequired,
@@ -85,6 +81,10 @@ export default class Account extends Component {
       finalizable: { domains: null, block: null },
       registerable: { HNS: null, num: null },
     },
+    bulkAction: {
+      isShowing: false,
+      action: null,
+    }
   };
 
   constructor(props) {
@@ -144,18 +144,29 @@ export default class Account extends Component {
   onCardButtonClick = async (action, args) => {
     const {t} = this.context;
 
+    // We show a modal with more info for name actions
+    // but auction-related reveal/redeem send directly.
+    if (['register', 'finalize', 'renew', 'transferring'].includes(action)) {
+      this.setState({
+        bulkAction: {
+          isShowing: true,
+          action,
+        },
+      });
+      return;
+    }
+
     const functionToExecute = {
       reveal: this.props.sendRevealAll,
       redeem: this.props.sendRedeemAll,
-      register: this.props.sendRegisterAll,
-      finalize: this.props.finalizeAll,
-      renew: this.props.renewAll,
     }[action];
 
     try {
       const res = await functionToExecute(args);
       if (res !== null) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
         this.props.fetchTransactions();
+        this.props.fetchPendingTransactions();
         this._updateStatsAndBalance();
         this.props.showSuccess(t('genericRequestSuccess'));
       }
@@ -171,6 +182,7 @@ export default class Account extends Component {
   render() {
     const {t} = this.context;
     const { isFetching } = this.props;
+    const { bulkAction } = this.state;
 
     return (
       <div className="account">
@@ -179,6 +191,24 @@ export default class Account extends Component {
 
         {this.renderBalance()}
         {this.renderCards()}
+        {bulkAction.isShowing && (
+          <BulkActionConfirmModal
+            action={bulkAction.action}
+            onClose={() => this.setState({
+              bulkAction: {
+                isShowing: false,
+                action: null,
+              },
+            })}
+            onRefresh={() => {
+              setTimeout(() => {
+                this.props.fetchTransactions();
+                this.props.fetchPendingTransactions();
+                this._updateStatsAndBalance();
+              }, 1000);
+            }}
+          />
+        )}
 
         {/* Transactions */}
         <div className="account__transactions">
@@ -448,6 +478,7 @@ export default class Account extends Component {
                 {t('finalizeCardWarning', blocksDeltaToTimeDelta(transferring.block, network))}
               </Fragment>
             }
+            buttonAction={() => this.onCardButtonClick("transferring")}
           />
         ) : (
           ""

@@ -15,7 +15,8 @@ export class MiniModal extends Component {
     className: PropTypes.string,
     centered: PropTypes.bool,
     wide: PropTypes.bool,
-    top: PropTypes.bool
+    top: PropTypes.bool,
+    overflow: PropTypes.bool,
   };
 
   onClose = () => {
@@ -31,7 +32,8 @@ export class MiniModal extends Component {
     const names = classnames('mini-modal', this.props.className, {
       'mini-modal--centered': this.props.centered,
       'mini-modal--wide': this.props.wide,
-      'mini-modal--tip': this.props.top
+      'mini-modal--tip': this.props.top,
+      'mini-modal--overflow': this.props.overflow,
     });
 
     return (
