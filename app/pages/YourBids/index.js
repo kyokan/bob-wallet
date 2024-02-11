@@ -299,7 +299,7 @@ class YourBids extends Component {
     if (!this.fuse) {
       this.fuse = new Fuse(yourBids, {
         keys: ['name'],
-        threshold: .4,
+        threshold: 0.4,
       });
     }
 

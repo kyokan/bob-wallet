@@ -50,6 +50,15 @@ const randomAddrs = {
   [NETWORKS.SIMNET]: 'ss1qfrfg6pg7emnx5m53zf4fe24vdtt8thljhyekhj',
 };
 
+const BIDS_SORT_ORDER = [
+  NAME_STATES.BIDDING,
+  NAME_STATES.REVEAL,
+  NAME_STATES.OPENING,
+  NAME_STATES.TRANSFER,
+  NAME_STATES.REVOKED,
+  NAME_STATES.CLOSED,
+];
+
 const {LedgerHSD, LedgerChange, LedgerCovenant, LedgerInput} = hsdLedger;
 const {Device} = hsdLedger.HID;
 const ONE_MINUTE = 60000;
@@ -507,7 +516,7 @@ class WalletService {
     return wallet.getPending('default');
   };
 
-  makeBidsFilter = async (bids = []) => {
+  sortBidsAndMakeFilter = async (bids = []) => {
     const index = {
       [NAME_STATES.OPENING]: [],
       [NAME_STATES.BIDDING]: [],
@@ -534,15 +543,27 @@ class WalletService {
         map[name] = json;
       }
 
-      const { state } = json || {};
+      bid.nameHeight = json?.height;
+      bid.nameState = json?.state;
+    }
 
-      switch (state) {
+    // Sort by name state first, and within state, oldest name first.
+    // This way, bids with shortest remaining bidding time are first.
+    bids.sort((a,b) => {
+      if (a.nameState === b.nameState) {
+        return a.nameHeight - b.nameHeight;
+      }
+      return BIDS_SORT_ORDER.indexOf(a.nameState) - BIDS_SORT_ORDER.indexOf(b.nameState);
+    });
+
+    for (const bid of bids) {
+      switch (bid.nameState) {
         case NAME_STATES.OPENING:
         case NAME_STATES.BIDDING:
         case NAME_STATES.REVEAL:
         case NAME_STATES.CLOSED:
         case NAME_STATES.TRANSFER:
-          index[state].push(bid.prevout.hash.toString('hex') + bid.prevout.index);
+          index[bid.nameState].push(bid.prevout.hash.toString('hex') + bid.prevout.index);
           break;
       }
     }
@@ -553,7 +574,7 @@ class WalletService {
   getBids = async () => {
     const wallet = await this.node.wdb.get(this.name);
     const bids = await wallet.getBids();
-    const filter = await this.makeBidsFilter(bids);
+    const filter = await this.sortBidsAndMakeFilter(bids);
     return {bids, filter};
   };
 
