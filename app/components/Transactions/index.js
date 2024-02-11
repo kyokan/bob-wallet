@@ -11,7 +11,6 @@ import Dropdown from '../Dropdown';
 import BidSearchInput from '../BidSearchInput';
 import Fuse from '../../vendor/fuse';
 import dbClient from "../../utils/dbClient";
-import walletClient from "../../utils/walletClient";
 import {I18nContext} from "../../utils/i18n";
 import { debounce } from '../../utils/throttle';
 
@@ -79,6 +78,7 @@ export default class Transactions extends Component {
 
   state = {
     currentPageIndex: 0,
+    isEditingPageIndex: false,
     itemsPerPage: 5,
     sortBy: 0,
     query: '',
@@ -233,8 +233,26 @@ export default class Transactions extends Component {
     )
   }
 
+  handlePageJump(event, max) {
+    if (event.key !== 'Enter') return;
+    const {value} = event.currentTarget;
+    if (value === '') {
+      this.setState({isEditingPageIndex: false});
+      return;
+    }
+    let page = parseInt(value);
+    if (isNaN(page)) return;
+    page = Math.max(1, page);
+    page = Math.min(page, max);
+
+    this.setState({
+      currentPageIndex: page - 1,
+      isEditingPageIndex: false,
+    });
+  }
+
   renderPageNumbers(transactions) {
-    const { currentPageIndex, itemsPerPage } = this.state;
+    const { currentPageIndex, itemsPerPage, isEditingPageIndex } = this.state;
     const totalPages = Math.ceil(transactions.length / itemsPerPage);
     const pageIndices = getPageIndices(transactions, itemsPerPage, currentPageIndex);
 
@@ -245,6 +263,7 @@ export default class Transactions extends Component {
             className="transactions__page-control__start"
             onClick={() => this.setState({
               currentPageIndex: Math.max(currentPageIndex - 1, 0),
+              isEditingPageIndex: false,
             })}
           />
           {pageIndices.map((pageIndex, i) => {
@@ -254,13 +273,28 @@ export default class Transactions extends Component {
               );
             }
 
+            if (isEditingPageIndex && currentPageIndex === pageIndex) {
+              return (
+                <div key={`${pageIndex}-${i}`} className="transactions__page-control__input">
+                  <input
+                  type="number"
+                  autoFocus
+                  placeholder={currentPageIndex+1}
+                  onKeyDown={event => this.handlePageJump(event, totalPages)}
+                />
+                </div>
+              )
+            }
+
             return (
               <div
                 key={`${pageIndex}-${i}`}
                 className={c('transactions__page-control__page', {
                   'transactions__page-control__page--active': currentPageIndex === pageIndex,
                 })}
-                onClick={() => this.setState({ currentPageIndex: pageIndex })}
+                onClick={() => currentPageIndex === pageIndex ?
+                  this.setState({isEditingPageIndex: true})
+                  : this.setState({ currentPageIndex: pageIndex, isEditingPageIndex: false })}
               >
                 {pageIndex + 1}
               </div>
@@ -270,6 +304,7 @@ export default class Transactions extends Component {
             className="transactions__page-control__end"
             onClick={() => this.setState({
               currentPageIndex: Math.min(currentPageIndex + 1, totalPages - 1),
+              isEditingPageIndex: false,
             })}
           />
         </div>
