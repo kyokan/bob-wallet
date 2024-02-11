@@ -3,14 +3,14 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { withRouter } from 'react-router';
-import createAMPMTimeStamp from '../../../utils/timeConverter';
+import { dateTimeFormatters } from '../../../utils/timeConverter';
 import '../index.scss';
 import { displayBalance } from '../../../utils/balances';
 import ellipsify from '../../../utils/ellipsify';
 import { formatName } from '../../../utils/nameHelpers';
 import Tooltipable from '../../Tooltipable';
 import { shell } from 'electron';
-import {I18nContext} from "../../../utils/i18n";
+import { I18nContext } from "../../../utils/i18n";
 
 const RECEIVE = 'RECEIVE';
 const SEND = 'SEND';
@@ -87,13 +87,15 @@ class Transaction extends Component {
     });
 
   renderTimestamp = tx => {
-    const {year, month, day, time} = createAMPMTimeStamp(tx.date);
+    const date = new Date(tx.date);
+    const formattedDate = dateTimeFormatters.date.format(date);
+    const formattedTime = dateTimeFormatters.time.format(date);
 
     return (
       <div className="transaction__tx-timestamp">
         <div className={this.titleStyling(tx)}>
-          <Tooltipable tooltipContent={time} width={'4rem'} textAlign={'center'}>
-            {month}/{day}/{year}
+          <Tooltipable tooltipContent={formattedTime} width={'4rem'} textAlign={'center'}>
+            {formattedDate}
           </Tooltipable>
         </div>
       </div>
@@ -176,21 +178,21 @@ class Transaction extends Component {
         {
           [RECEIVE, COINBASE, REDEEM, REVEAL, REGISTER].includes(tx.type)
             ? '+'
-            : [UPDATE,  RENEW,  OPEN,  FINALIZE,  CLAIM].includes(tx.type)
+            : [UPDATE, RENEW, OPEN, FINALIZE, CLAIM].includes(tx.type)
               ? ''
               : [SEND, BID].includes(tx.type)
                 ? '-'
                 : ''
         }
-        { (tx.type === FINALIZE && tx.value > 0) ? '+': '' }
-        { (tx.type === TRANSFER && tx.value > 0) ? '+': '' }
+        {(tx.type === FINALIZE && tx.value > 0) ? '+' : ''}
+        {(tx.type === TRANSFER && tx.value > 0) ? '+' : ''}
         {displayBalance(tx.value)} HNS
       </div>
     </div>
   );
 
   render() {
-    const {transaction} = this.props;
+    const { transaction } = this.props;
 
     return (
       <div className="transaction">
@@ -202,15 +204,15 @@ class Transaction extends Component {
   }
 
   formatDomains(tx) {
-    const {t} = this.context;
-    const {id, domains} = tx;
+    const { t } = this.context;
+    const { id, domains } = tx;
 
     if (!domains?.length) {
       return `(${this.context.t('unknown')})`;
     }
 
     const expanded = this.state.isExpanded[id]
-    const domainsToDisplay = expanded ? domains : domains.slice(0,1);
+    const domainsToDisplay = expanded ? domains : domains.slice(0, 1);
 
     return (
       <div

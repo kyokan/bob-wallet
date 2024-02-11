@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import c from 'classnames';
-import createAMPMTimeStamp from '../../utils/timeConverter';
+import {dateTimeFormatters} from '../../utils/timeConverter';
 import { displayBalance } from '../../utils/balances';
 import ellipsify from '../../utils/ellipsify';
 import RepairBid from './RepairBid';
@@ -35,9 +35,12 @@ export default class BidHistory extends Component {
     bids.forEach(bid => {
       order.push(bid.from);
 
-      const {month, day, year} = createAMPMTimeStamp(bid.date);
+      const formattedDate = bid.date ?
+        dateTimeFormatters.date.format(new Date(bid.date))
+        : '(pending)';
+
       map[bid.from] = {
-        date: bid.date ? `${month}/${day}/${year}` : '(pending)',
+        date: formattedDate,
         bid: bid.bid.value,
         mask: bid.bid.lockup,
         own: bid.bid.own,
