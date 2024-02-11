@@ -19,6 +19,7 @@ export const languageDropdownItems = [
   { label: 'French (FR)', value: 'fr-FR' },
   { label: 'Español (ES)', value: 'es-ES' },
   { label: 'Català (CAT)', value: 'ca' },
+  { label: 'Russian (RU)', value: 'ru' },
   // { label: '中文', value: 'zh' },
   { label: 'Custom JSON', value: 'custom' },
 ];
