@@ -17,6 +17,7 @@ export const UPDATE_HNS_PRICE = 'node/UPDATE_HNS_PRICE';
 export const SET_RS_PORT = 'node/SET_RS_PORT';
 export const SET_NS_PORT = 'node/SET_NS_PORT';
 export const SET_NO_DNS = 'node/SET_NO_DNS';
+export const SET_COMPACT_TREE_ON_INIT = 'node/SET_COMPACT_TREE_ON_INIT';
 export const SET_SPV_MODE = 'node/SET_SPV_MODE';
 export const COMPACTING_TREE = 'node/COMPACTING_TREE';
 
@@ -33,6 +34,7 @@ export function getInitialState() {
     rsPort: 9892,
     nsPort: 9891,
     noDns: false,
+    compactTreeOnInit: false,
     spv: false,
     compactingTree: false,
     fees: {
@@ -132,6 +134,11 @@ export default function nodeReducer(state = getInitialState(), action = {}) {
       return {
         ...state,
         noDns: action.payload,
+      };
+    case SET_COMPACT_TREE_ON_INIT:
+      return {
+        ...state,
+        compactTreeOnInit: action.payload,
       };
     case SET_SPV_MODE:
       return {

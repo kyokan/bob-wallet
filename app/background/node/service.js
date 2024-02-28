@@ -22,6 +22,7 @@ import {
   SET_FEE_INFO,
   SET_NODE_INFO,
   SET_SPV_MODE,
+  SET_COMPACT_TREE_ON_INIT,
   START_NODE_STATUS_CHANGE,
   END_NODE_STATUS_CHANGE,
   COMPACTING_TREE,
@@ -36,6 +37,7 @@ const HSD_PREFIX_DIR_KEY = 'hsdPrefixDir';
 const WALLET_API_KEY = 'walletApiKey';
 const NODE_API_KEY = 'nodeApiKey';
 const NODE_NO_DNS = 'nodeNoDns1';
+const NODE_COMPACT_TREE_ON_INIT = 'nodeCompactTreeOnInit1';
 const SPV_MODE = 'nodeSpvMode';
 const HANDSHAKE_API_BASE_URL = 'https://api.handshakeapi.com/hsd';
 
@@ -69,6 +71,15 @@ export class NodeService extends EventEmitter {
     const noDns = await get(NODE_NO_DNS);
     if (noDns !== null) {
       return noDns === '1';
+    }
+
+    return false;
+  }
+
+  async getCompactTreeOnInit() {
+    const compactTreeOnInit = await get(NODE_COMPACT_TREE_ON_INIT);
+    if (compactTreeOnInit !== null) {
+      return compactTreeOnInit === '1';
     }
 
     return false;
@@ -121,6 +132,14 @@ export class NodeService extends EventEmitter {
 
   async setNoDns(noDns) {
     await put(NODE_NO_DNS, noDns === true ? '1' : '0');
+  }
+
+  async setCompactTreeOnInit(compactTreeOnInit) {
+    await put(NODE_COMPACT_TREE_ON_INIT, compactTreeOnInit === true ? '1' : '0');
+    dispatchToMainWindow({
+      type: SET_COMPACT_TREE_ON_INIT,
+      payload: compactTreeOnInit === true,
+    });
   }
 
   async configurePaths() {
@@ -193,6 +212,7 @@ export class NodeService extends EventEmitter {
     this.network = network;
     this.apiKey = await this.getAPIKey();
     this.noDns = await this.getNoDns();
+    this.compactTreeOnInit = await this.getCompactTreeOnInit();
     this.spv = await this.getSpvMode();
   }
 
@@ -239,7 +259,7 @@ export class NodeService extends EventEmitter {
       walletMigrate: 2,
       walletIcannlockup: true,
       maxOutbound: 4,
-      compactTreeOnInit: false,
+      compactTreeOnInit: this.compactTreeOnInit,
     });
 
     this.hsd.use(plugin);
@@ -619,6 +639,7 @@ const methods = {
   reset: () => service.reset(),
   getAPIKey: () => service.getAPIKey(),
   getNoDns: () => service.getNoDns(),
+  getCompactTreeOnInit: () => service.getCompactTreeOnInit(),
   getSpvMode: () => service.getSpvMode(),
   getInfo: () => service.getInfo(),
   getNameInfo: (name) => service.getNameInfo(name),
@@ -638,6 +659,7 @@ const methods = {
   setNodeDir: data => service.setNodeDir(data),
   setAPIKey: data => service.setAPIKey(data),
   setNoDns: data => service.setNoDns(data),
+  setCompactTreeOnInit: data => service.setCompactTreeOnInit(data),
   setSpvMode: data => service.setSpvMode(data),
   getDir: () => service.getDir(),
   getHNSPrice: () => service.getHNSPrice(),

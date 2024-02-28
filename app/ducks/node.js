@@ -21,7 +21,7 @@ import {
   END_RPC_TEST,
   SET_EXPLORER,
   UPDATE_HNS_PRICE,
-  SET_NO_DNS, SET_SPV_MODE,
+  SET_NO_DNS, SET_SPV_MODE, SET_COMPACT_TREE_ON_INIT,
 } from './nodeReducer';
 import { VALID_NETWORKS } from '../constants/networks';
 
@@ -85,6 +85,12 @@ export const start = (network) => async (dispatch) => {
     dispatch({
       type: SET_SPV_MODE,
       payload: spv,
+    });
+
+    const compactTreeOnInit = await nodeClient.getCompactTreeOnInit();
+    dispatch({
+      type: SET_COMPACT_TREE_ON_INIT,
+      payload: compactTreeOnInit,
     });
 
     dispatch(getWatching(network));
@@ -161,3 +167,13 @@ export const setNoDns = (noDns) => async (dispatch) => {
   await dispatch(stop());
   await dispatch(start());
 };
+
+export const setCompactTreeOnInit = (compactTreeOnInit) => async (dispatch) => {
+  await nodeClient.setCompactTreeOnInit(compactTreeOnInit);
+  await dispatch({
+    type: SET_COMPACT_TREE_ON_INIT,
+    payload: compactTreeOnInit,
+  })
+  await dispatch(stop());
+  await dispatch(start());
+}

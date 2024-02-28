@@ -487,6 +487,8 @@
   "settingDNSNotRunning": "DNS servers are not running",
   "settingDNSRunning": "DNS servers are running on ports %s (root) and %s (recursive).",
   "settingDNSTitle": "DNS Servers",
+  "settingCompactTreeOnInitTitle": "Compact Urkel Tree on Init",
+  "settingCompactTreeOnInitDesc": "Delete stale data to recover disk space on startup",
   "settingDeepcleanDesc": "Reset balance and transaction history.",
   "settingDeepcleanTitle": "Deep Clean and Rescan Wallet",
   "settingExchange": "Exchange",
