@@ -6,6 +6,12 @@ export const EXPLORERS = [
     address: 'https://hnsnetwork.com/address/%s',
   },
   {
+    label: 'HNS Explorer',
+    tx: 'https://hns.cymon.de/tx/%s',
+    name: 'https://hns.cymon.de/name/%s',
+    address: 'https://hns.cymon.de/address/%s',
+  },
+  {
     label: 'Niami',
     tx: 'https://www.niami.io/tx/%s',
     name: 'https://www.niami.io/domain/%s',
