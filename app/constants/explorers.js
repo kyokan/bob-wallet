@@ -23,22 +23,4 @@ export const EXPLORERS = [
     name: 'https://e.hnsfans.com/name/%s',
     address: 'https://e.hnsfans.com/address/%s',
   },
-  {
-    label: 'Block Explorer',
-    tx: 'https://blockexplorer.com/txs/%s',
-    name: 'https://blockexplorer.com/names/%s',
-    address: 'https://blockexplorer.com/addrs/%s',
-  },
-  {
-    label: 'HNScan',
-    tx: 'https://hnscan.com/tx/%s',
-    name: 'https://hnscan.com/name/%s',
-    address: 'https://hnscan.com/address/%s',
-  },
-  {
-    label: 'Shake Scan',
-    tx: 'https://shakescan.com/transaction/%s',
-    name: 'https://shakescan.com/name/%s',
-    address: 'https://shakescan.com/address/%s',
-  },
 ]
