@@ -1,5 +1,11 @@
 export const EXPLORERS = [
   {
+    label: 'HNS Explorer',
+    tx: 'https://hns.cymon.de/tx/%s',
+    name: 'https://hns.cymon.de/name/%s',
+    address: 'https://hns.cymon.de/address/%s',
+  },
+  {
     label: 'HNS Network',
     tx: 'https://hnsnetwork.com/txs/%s',
     name: 'https://hnsnetwork.com/names/%s',
