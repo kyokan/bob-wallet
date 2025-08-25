@@ -41,6 +41,7 @@ import VerifyMessage from "../VerifyMessage";
 import {fetchLocale, initHip2, checkForUpdates} from "../../ducks/app";
 import Multisig from "../Multisig";
 import {I18nContext} from "../../utils/i18n";
+import { EXPLORERS } from '../../constants/explorers';
 const connClient = cClientStub(() => require('electron').ipcRenderer);
 const settingClient = sClientStub(() => require('electron').ipcRenderer);
 
@@ -110,12 +111,7 @@ class App extends Component {
 
   async fetchExplorer() {
     const explorer = await settingClient.getExplorer();
-    return explorer || {
-      label: 'HNS Network',
-      tx: 'https://hnsnetwork.com/txs/%s',
-      name: 'https://hnsnetwork.com/names/%s',
-      address: 'https://hnsnetwork.com/address/%s',
-    }
+    return explorer || EXPLORERS[0]
   }
 
   render() {
