@@ -111,10 +111,10 @@ class App extends Component {
   async fetchExplorer() {
     const explorer = await settingClient.getExplorer();
     return explorer || {
-      label: 'HNS Network',
-      tx: 'https://hnsnetwork.com/txs/%s',
-      name: 'https://hnsnetwork.com/names/%s',
-      address: 'https://hnsnetwork.com/address/%s',
+      label: 'Niami',
+      tx: 'https://www.niami.io/tx/%s',
+      name: 'https://www.niami.io/domain/%s',
+      address: 'https://www.niami.io/address/%s',
     }
   }
 

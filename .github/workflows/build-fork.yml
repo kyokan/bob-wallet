@@ -1,0 +1,47 @@
+name: Build Fork
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v2.1.1-cn)'
+        required: true
+        default: 'v2.1.1-cn'
+
+env:
+  CSC_IDENTITY_AUTO_DISCOVERY: false
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Build
+        run: node ./scripts/package.js
+      
+      - name: Package
+        run: npx electron-builder build --win --x64 --publish never
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.version }}
+          name: Bob Wallet ${{ github.event.inputs.version }}
+          body: |
+            ## Changes
+            - Security fix: removed compromised block explorers (hnsnetwork.com)
+            - Added Simplified Chinese translation (683 strings)
+            - Removed dead explorers: blockexplorer.com, hnscan.com, shakescan.com
+            
+            Based on bob-wallet v2.1.0
+          files: release/*.msi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
