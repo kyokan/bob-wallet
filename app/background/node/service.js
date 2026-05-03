@@ -372,13 +372,33 @@ export class NodeService extends EventEmitter {
     dispatchToMainWindow({ type: START_NODE_STATUS_CHANGE });
     try {
       await this.stop();
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // hsd.close() resolves before LevelDB releases its file locks on slower
+      // disks (notably Windows). Starting a new node before the lock is gone
+      // either throws LOCK_HELD or, worse, leaves hsd half-bound — the API
+      // ports stop listening and the only recovery is restarting the app.
+      // Poll for the chain LOCK to disappear, with a hard ceiling so a stuck
+      // lock still surfaces as a clear error instead of hanging forever.
+      await this._waitForChainLockRelease(15000);
       await this.start(this.networkName);
       dispatchToMainWindow({ type: END_NODE_STATUS_CHANGE });
     } catch (e) {
       dispatchToMainWindow({ type: END_NODE_STATUS_CHANGE });
       throw e;
     }
+  }
+
+  async _waitForChainLockRelease(timeoutMs) {
+    const dir = await this.getDir();
+    const lockPath = path.join(dir, this.networkName, 'chain', 'LOCK');
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      if (!fs.existsSync(lockPath)) return;
+      await new Promise(resolve => setTimeout(resolve, 250));
+    }
+    throw new Error(
+      `hsd chain LOCK still held at ${lockPath} after ${timeoutMs}ms. ` +
+      `Quit Bob and try again.`
+    );
   }
 
   async refreshNodeInfo() {
