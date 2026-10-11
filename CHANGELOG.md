@@ -1,4 +1,4 @@
-**All notable changes to this project are documented in [releases](https://github.com/kyokan/bob-wallet/releases). This file is kept for legacy purposes.**
+**All notable changes to this project are documented in [releases](https://github.com/shadstoneofficial/bob-wallet/releases). This file is kept for legacy purposes.**
 
 #  Changelog
 
@@ -128,7 +128,7 @@ Bob will still lock the hsd wallet on logout or idle timeout
 - Fixed broken `isDev` flag in analytics service.
 
 ### Changed
-- Bump `webpack-bundle-analyzer` in response to automatic security vuln [PR #78](https://github.com/kyokan/bob-wallet/pull/78)
+- Bump `webpack-bundle-analyzer` in response to automatic security vuln [PR #78](https://github.com/bob-wallet/bob-wallet/pull/78)
     - NOTE: This vulnerability does not affect production Bob clients, since `webpack-bundle-analyzer` is only used for internal build tooling.  
 
 ## [0.1.0] - 2020-01-21

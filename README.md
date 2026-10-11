@@ -8,21 +8,19 @@ Bob Wallet is a [Handshake](https://handshake.org) wallet with an integrated ful
 
 ## How to Install Bob Wallet
 
-Most users should use the prebuilt binaries in this repo's [releases](https://github.com/kyokan/bob-wallet/releases) page.
+Most users should use the prebuilt binaries in this repo's [releases](https://github.com/shadstoneofficial/bob-wallet/releases) page.
 
 ![GitHub releases page screenshot](https://user-images.githubusercontent.com/8230144/75097836-06f48480-5564-11ea-85db-64251184e7bf.png)
 
-Note: this screenshot is unlikely to age well but the filetypes are highlighted so you know what to install. It says 0.2.6 here but you should always look for the [latest](https://github.com/kyokan/bob-wallet/releases/latest) version.
+Note: this screenshot is unlikely to age well but the filetypes are highlighted so you know what to install. It says 0.2.6 here but you should always look for the [latest](https://github.com/shadstoneofficial/bob-wallet/releases/latest) version.
 
 * **OSX:** `.dmg` (x86 = Intel; arm64 = Apple Silicon)
 * **Windows:** `.msi`
 * **Linux:** `.AppImage`
 
-For macOS users, Bob is also available through the [Homebrew](https://github.com/homebrew/brew) package manager:
+For macOS, download the Apple Silicon or Intel disk image from this repo's [latest release](https://github.com/shadstoneofficial/bob-wallet/releases/latest).
 
-```bash
-brew install kyokan-bob
-```
+The Homebrew cask `kyokan-bob` is still Bob 2.1.0 from the old release archive. Current builds are the disk images on this repo's releases page.
 
 ### Verify downloaded binaries
 
@@ -42,13 +40,13 @@ shasum -a 256 Bob-2.1.0-x86.dmg
 shasum -a 256 bob-2.1.0-arm64.dmg
 ```
 
-For more details and more advanced PGP signature verification see https://github.com/kyokan/bob-wallet/pull/612.
+For more details and more advanced PGP signature verification see [SECURITY.md](SECURITY.md#trusted-pgp-keys).
 
 ## Uninstall
 
 Bob Wallet can be uninstalled from your OS apps list. This _does not_ delete any blockchain and wallet data.
 
-To completely remove all stored data, delete the `Bob` directory which can be found in _Settings -> General_. If Bob was installed with brew, then `brew uninstall --zap kyokan-bob` will do this for you.
+To completely remove all stored data, delete the `Bob` directory which can be found in _Settings -> General_. If Bob was installed with the old Homebrew cask, `brew uninstall --zap kyokan-bob` removes that copy.
 
 >Since this deletes wallet data, be sure to **backup your seed phrases** first.
 
@@ -91,7 +89,7 @@ Building for OSX requires one extra "optional" dependency (dmg-license)
 
 ```bash
 brew install libusb
-git clone https://github.com/kyokan/bob-wallet
+git clone https://github.com/shadstoneofficial/bob-wallet
 cd bob-wallet
 npm install
 npm install dmg-license
@@ -122,7 +120,7 @@ Open `Bob.app` to start the wallet.
 
 ```bash
 apt-get install libusb-1.0-0-dev libudev-dev
-git clone https://github.com/kyokan/bob-wallet
+git clone https://github.com/shadstoneofficial/bob-wallet
 cd bob-wallet
 npm install
 ```
