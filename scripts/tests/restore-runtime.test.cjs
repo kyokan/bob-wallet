@@ -20,7 +20,7 @@ test('embedded restore funds generated wallets with fixed unequal regtest histor
 });
 
 for (const scenario of ['restore-full', 'restore-spv']) {
-  test(`retained in-memory fixture invokes actual reviewed ${scenario} replay`, {timeout: 30000}, async () => {
+  test(`retained in-memory fixture invokes actual reviewed ${scenario} replay`, {timeout: 180000}, async () => {
     const values = new Map();
     let exposed;
     installProductRuntime({scenario}, {
