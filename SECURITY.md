@@ -2,8 +2,8 @@
 
 ## Supported Versions
 
-Please see [Releases](https://github.com/kyokan/bob-wallet/releases).  
-We recommend using the [most recently released version](https://github.com/kyokan/bob-wallet/releases/latest).
+Please see [Releases](https://github.com/shadstoneofficial/bob-wallet/releases).  
+We recommend using the [most recently released version](https://github.com/shadstoneofficial/bob-wallet/releases/latest).
 
 ## Reporting a Vulnerability
 

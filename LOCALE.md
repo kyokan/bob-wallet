@@ -48,7 +48,7 @@ When getting string using the injected `this.context.t(localeKey)` function, the
 1. Copy `/locales/en.json` to a new file, and save it as `[locale].json`. For example, if you are adding support for Spanish, the file name should be `es.json`. You can find all valid locale strings [here](https://source.chromium.org/chromium/chromium/src/+/master:ui/base/l10n/l10n_util.cc).
 2. Start translating 📙
 3. When finished translating, save your file
-4. Go to https://github.com/kyokan/bob-wallet/tree/master/locales
+4. Go to https://github.com/shadstoneofficial/bob-wallet/tree/master/locales
 5. Click `Add Files -> Uplaod Files`
 6. Drag and drop your file to upload it to GitHub
 7. Make sure you select **Create a new branch for this commit and start a pull request.**
