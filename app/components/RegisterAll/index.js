@@ -72,6 +72,7 @@ export class RegisterAll extends Component {
 
   start = async () => {
     if (this.submitting || !this.state.loaded || this.state.operation?.retryLocked) return;
+    if (!this.canStart()) return;
     const generation = this.generation;
     const operationId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     this.operationContext = {walletId: this.props.walletId, network: this.props.network, operationId};
@@ -80,9 +81,12 @@ export class RegisterAll extends Component {
     const isCurrent = () => this.mounted && generation === this.generation;
     try {
       const operation = await this.props.submit(() => isCurrent() && this.operationContext?.operationId === operationId, operationId);
-      if (isCurrent()) this.setState({operation});
+      if (isCurrent()) this.setState(operation?.noWork
+        ? {error: this.context.t('registrationNoWork')}
+        : {operation});
     } catch (error) {
-      if (isCurrent()) this.setState({error: error.message});
+      if (isCurrent()) this.setState({error: ['registrationNoWork', 'registrationPreflightTimeout'].includes(error.code)
+        ? this.context.t(error.code) : error.message});
     } finally {
       if (isCurrent()) {
         this.submitting = false;
@@ -93,35 +97,56 @@ export class RegisterAll extends Component {
     }
   };
 
+  canStart = () => {
+    const {operation} = this.state;
+    if (!this.props.eligibilityReady) return false;
+    if (operation?.status === 'complete') return (operation.settledComplete || operation.confirmedComplete) && operation.eligibleCount > 0;
+    return this.props.registerable?.num > 0;
+  };
+
   render() {
     const {t} = this.context;
     const {operation, loaded, busy, error} = this.state;
     const running = busy || operation?.running;
     const entries = operation?.entries || [];
     const submitted = entries.filter(e => e.status === 'submitted').length;
+    const eligible = this.canStart();
+    const eligibleCount = operation?.status === 'complete' ? operation.eligibleCount : this.props.registerable?.num;
+    const archived = (operation?.settledComplete || operation?.confirmedComplete) && !running && !operation.retryLocked;
+    const recovery = operation && !archived;
+    if (!eligible && !recovery && !archived && !error) return null;
+    const results = <details open={operation?.status === 'paused'}>
+      <summary>{t(archived ? 'registrationHistory' : 'registrationResults')}</summary>
+      <table><thead><tr><th>{t('registrationName')}</th><th>{t('registrationStage')}</th><th>{t('registrationTransaction')}</th></tr></thead>
+        <tbody>{entries.map(entry => <tr key={entry.name}>
+          <td>{entry.name}/</td><td>{t(`registrationState_${entry.status}`)}{entry.status !== entry.stage && <> / {t(`registrationState_${entry.stage}`)}</>}</td>
+          <td>{entry.txid && <code>{entry.txid}</code>}{entry.error && <p>{entry.error}</p>}</td>
+        </tr>)}</tbody>
+      </table>
+    </details>;
+    if (archived && !eligible) return entries.length ? <section className="register-all register-all--history">{results}</section> : null;
     return (
       <section className="register-all" aria-label={t('registerAll')}>
-        <button type="button" onClick={this.start} disabled={!loaded || running || operation?.retryLocked}>
+        <h3>{t('register')}{eligible ? ` ${eligibleCount} ${t('domains')}` : ''}</h3>
+        {eligible && <p>{operation?.status !== 'complete' && this.props.registerable.verified
+          ? t('registerCardWarning', Math.round(this.props.registerable.HNS / 1e6))
+          : t('registerCardVerifyWarning')}</p>}
+        {(eligible || running) && <button type="button" onClick={this.start} disabled={!loaded || running || operation?.retryLocked || !eligible}>
           {running ? t('registrationRunning') : operation?.status === 'paused' ? t('registrationResume') : t('registerAll')}
-        </button>
+        </button>}
+        {(eligible || running) && <p>{t('registrationLeaveWarning')}</p>}
         {running && <button type="button" onClick={this.stop}>{t('registrationStop')}</button>}
         {error && <p role="alert">{error}</p>}
-        {operation && <div aria-live="polite">
+        {recovery && <div aria-live="polite">
           <p>{t('registrationProgress', submitted, entries.length)}</p>
+          {operation.status === 'complete' && <p>{t('registrationPendingConfirmation')}</p>}
           {operation.failedName && <p>{t('registrationStoppedAt', operation.failedName, t(`registrationState_${operation.failedStage}`))}</p>}
           {!!operation.notAttempted?.length && <p>{t('registrationNotAttempted', operation.notAttempted.join(', '))}</p>}
           {operation.retryLocked && !running && <p role="alert">{t('registrationUncertain')}</p>}
           {!running && operation.status === 'paused' && !operation.retryLocked && <p>{t('registrationResumeHelp')}</p>}
-          <details open={operation.status === 'paused'}>
-            <summary>{t('registrationResults')}</summary>
-            <table><thead><tr><th>{t('registrationName')}</th><th>{t('registrationStage')}</th><th>{t('registrationTransaction')}</th></tr></thead>
-              <tbody>{entries.map(entry => <tr key={entry.name}>
-                <td>{entry.name}/</td><td>{t(`registrationState_${entry.status}`)} / {t(`registrationState_${entry.stage}`)}</td>
-                <td>{entry.txid && <code>{entry.txid}</code>}{entry.error && <p>{entry.error}</p>}</td>
-              </tr>)}</tbody>
-            </table>
-          </details>
+          {results}
         </div>}
+        {archived && results}
       </section>
     );
   }
@@ -131,6 +156,9 @@ export default connect(state => ({
   walletId: state.wallet.wid,
   network: state.wallet.network,
   requestGeneration: state.wallet.requestGeneration,
+  registerable: state.walletStats.actionableInfo.registerable,
+  eligibilityReady: state.wallet.balanceReady && !state.wallet.walletSync
+    && state.node.chain.progress >= 0.9999 && !state.walletStats.isLoading && !state.walletStats.error,
 }), dispatch => ({
   submit: (isCurrent, operationId) => dispatch(sendRegisterAll(isCurrent, operationId)),
   cancel: context => walletClient.cancelRegisterAll(context),

@@ -55,7 +55,7 @@ export class RegisterAllJournal {
     return state;
   }
 
-  async status(context, findTransaction) {
+  async status(context, findTransaction, isConfirmed = async () => false) {
     const key = this.key(context);
     if (this.active?.key === key) return this.view(this.active.state, true);
     if (this.checking) throw new Error('Register All status is being checked.');
@@ -77,7 +77,19 @@ export class RegisterAllJournal {
       state.status = state.entries.every(e => ['submitted', 'skipped'].includes(e.status)) ? 'complete' : 'paused';
       await this.save(key, state);
     }
-    return this.view(state);
+    const view = this.view(state);
+    // Confirmation is fresh display evidence, never a durable flag that could
+    // hide pending work after a reorg. Receipts and uncertainty stay in the journal.
+    view.settledComplete = state.status === 'complete';
+    for (const entry of state.entries) {
+      if (entry.status === 'skipped' && !entry.txid) continue;
+      if (entry.status !== 'submitted' || !entry.txid || !await isConfirmed(entry.txid)) {
+        view.settledComplete = false;
+        break;
+      }
+    }
+    view.confirmedComplete = view.settledComplete && state.entries.some(entry => entry.status === 'submitted');
+    return view;
     } finally {
       this.checking = false;
     }
@@ -112,6 +124,7 @@ export class RegisterAllJournal {
       assertCurrent();
       const eligible = new Set(await getNames());
       assertCurrent();
+      if (!eligible.size) return {...this.view(previous), noWork: true};
       let state = previous;
       if (!state || state.status === 'complete') {
         if (state) await this.put(`${key}:history:${state.id}`, state);

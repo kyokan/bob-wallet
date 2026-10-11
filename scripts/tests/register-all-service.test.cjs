@@ -42,7 +42,8 @@ function fixture(store = new Map()) {
         sign: async () => {calls.signed.push(name);}};
     },
   };
-  const bindings = {getNamesForRegisterAll: async () => ['one', 'two', 'three'],
+  const eligibility = {get: async () => ['one', 'two', 'three']};
+  const bindings = {getNamesForRegisterAll: wallet => eligibility.get(wallet),
     MTX: class {static fromJSON(value) {return value;}},
     storageHealth: {preflight: async () => {}, reportError() {}},
     reserveTransactionInputs, broadcastAndRecord, Script: {hashType: {ALL: 1}},
@@ -54,8 +55,50 @@ function fixture(store = new Map()) {
     service[name] = new Function(...Object.keys(bindings),
       `return function(){return (${source.slice(node.value.start, node.value.end)});};`)(...Object.values(bindings)).call(service);
   }
-  return {service, wallet, store, calls};
+  return {service, wallet, store, calls, eligibility};
 }
+
+test('real registration preflight reads fresh eligibility without unlocking or constructing', async () => {
+  const f = fixture();
+  f.eligibility.get = async () => [];
+  assert.deepEqual(await f.service.getRegisterAllStatus({...context, preflight: true}), {operation: null, eligibleCount: 0});
+  f.eligibility.get = async () => ['new'];
+  assert.equal((await f.service.getRegisterAllStatus({...context, preflight: true})).eligibleCount, 1);
+  assert.deepEqual(f.calls.unlocks, []);
+  assert.deepEqual(f.calls.construct, []);
+  assert.deepEqual(f.calls.sent, []);
+});
+
+test('real registration preflight rejects late wallet or backend generation results', async () => {
+  for (const field of ['walletSelectionGeneration', 'rescanBackendGeneration']) {
+    const f = fixture();
+    const wait = deferred();
+    const started = deferred();
+    f.eligibility.get = async () => {started.resolve(); await wait.promise; return ['new'];};
+    const pending = f.service.getRegisterAllStatus({...context, preflight: true});
+    await started.promise;
+    f.service[field]++;
+    wait.resolve();
+    await assert.rejects(pending, /wallet changed/);
+    assert.deepEqual(f.calls.sent, []);
+  }
+});
+
+test('real registration status only settles exact confirmed receipts and empty attempts preserve them', async () => {
+  const f = fixture();
+  await f.service.sendRegisterAll('fixture', context);
+  const before = structuredClone(f.store);
+  f.eligibility.get = async () => [];
+  f.wallet.getTX = async () => ({height: -1});
+  assert.equal((await f.service.getRegisterAllStatus(context)).settledComplete, false);
+  f.wallet.getTX = async hash => hash.toString('hex') === id('wrong') ? {height: 1} : null;
+  assert.equal((await f.service.getRegisterAllStatus(context)).settledComplete, false);
+  f.wallet.getTX = async hash => ['one', 'two', 'three'].some(name => id(name) === hash.toString('hex')) ? {height: 1} : null;
+  assert.equal((await f.service.getRegisterAllStatus(context)).settledComplete, true);
+  assert.equal((await f.service.sendRegisterAll('fixture', {...context, operationId: 'empty'})).noWork, true);
+  assert.deepEqual(f.store, before);
+  assert.equal(f.calls.sent.length, 3);
+});
 
 test('real Register All service retains accepted IDs and resumes only unfinished names after restart', async () => {
   const f = fixture();
@@ -80,6 +123,7 @@ test('real service ambiguous send stays locked after restart and missing history
   assert.equal(result.retryLocked, true);
   const restarted = fixture(f.store);
   assert.equal((await restarted.service.getRegisterAllStatus(context)).retryLocked, true);
+  assert.equal((await restarted.service.getRegisterAllStatus({...context, preflight: true})).operation.retryLocked, true);
   await restarted.service.sendRegisterAll('fixture', {...context, operationId: 'retry'});
   assert.deepEqual(restarted.calls.construct, []);
 });

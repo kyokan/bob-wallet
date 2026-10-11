@@ -1020,13 +1020,39 @@ export const sendRevealMany = (names) => async (dispatch) => {
 
 export const sendRegisterAll = (isMounted = () => true, operationId) => async (dispatch, getState) => {
   const {wid, network, requestGeneration} = getState().wallet;
+  const assertCurrent = () => {
+    if (!isMounted() || !isCurrentWalletRequest(getState, requestGeneration || 0, wid)
+        || getState().wallet.network !== network) {
+      throw new Error('Register All was cancelled before submission because the active view or wallet changed.');
+    }
+  };
+  assertCurrent();
+  let timer;
+  let preflight;
+  try {
+    preflight = await Promise.race([
+      walletClient.getRegisterAllStatus({walletId: wid, network, preflight: true}),
+      new Promise((_, reject) => {timer = setTimeout(() => {
+        const error = new Error('Registration eligibility check timed out. No transaction was sent.');
+        error.code = 'registrationPreflightTimeout';
+        reject(error);
+      }, 60000);}),
+    ]);
+  } finally { clearTimeout(timer); }
+  assertCurrent();
+  if (!Number.isSafeInteger(preflight?.eligibleCount) || preflight.eligibleCount < 0
+      || preflight.operation?.retryLocked) {
+    throw new Error('Registration eligibility or transaction status is unavailable. Retry is blocked.');
+  }
+  if (!preflight.eligibleCount) {
+    const error = new Error('No names are currently eligible for registration.');
+    error.code = 'registrationNoWork';
+    throw error;
+  }
   const passphrase = await new Promise((resolve, reject) => {
     dispatch(getPassphrase(resolve, reject));
   });
-  if (!isMounted() || !isCurrentWalletRequest(getState, requestGeneration || 0, wid)
-      || getState().wallet.network !== network) {
-    throw new Error('Register All was cancelled before submission because the active view or wallet changed.');
-  }
+  assertCurrent();
   return await walletClient.sendRegisterAll(passphrase, {walletId: wid, network, operationId});
 };
 

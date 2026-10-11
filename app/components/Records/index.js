@@ -620,12 +620,12 @@ export class Records extends Component {
     );
     if (!this.props.sellingOptions) return records;
     return <div>
-      {editable && domain.isOwner && <Collapsible className="my-domain__info-panel" title={t('sellNameTitle')} overflowY={false}>
-        {this.renderSellingOptions()}
-      </Collapsible>}
       <Collapsible className="my-domain__info-panel" title={t('records')} overflowY={false}>
         {records}
       </Collapsible>
+      {editable && domain.isOwner && <Collapsible className="my-domain__info-panel" title={t('sellNameTitle')} overflowY={false}>
+        {this.renderSellingOptions()}
+      </Collapsible>}
     </div>;
   }
 

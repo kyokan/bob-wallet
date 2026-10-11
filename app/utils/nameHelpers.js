@@ -1,4 +1,5 @@
 import punycode from 'punycode';
+import {displayName} from './nameDisplay';
 
 export const states = {
   OPENING: 'OPENING',
@@ -128,7 +129,7 @@ export const formatName = name => {
     return name;
 
   try {
-    const unicode = punycode.toUnicode(name);
+    const unicode = displayName(name);
     if (unicode !== name) {
       return `${name}/ (${unicode})`;
     }

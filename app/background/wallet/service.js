@@ -24,7 +24,7 @@ import {
 import {STOP, SET_CUSTOM_RPC_STATUS} from '../../ducks/nodeReducer';
 import {showSuccess, showError} from '../../ducks/notifications';
 import {getNamesForRegisterAll} from "./create-register-all";
-import {getStats} from "./stats";
+import {getWalletStats} from "./stats";
 import {
   applyRegisterAuthority,
   getRegisterAuthority,
@@ -1756,8 +1756,34 @@ class WalletService {
 
   getRegisterAllStatus = async (expected) => {
     const context = this._registerAllContext(expected);
-    const wallet = await this.node.wdb.get(context.walletId);
-    return this.registerAllJournal.status(context, async txid => !!await wallet.getTX(Buffer.from(txid, 'hex')));
+    const node = this.node;
+    const generation = this.walletSelectionGeneration;
+    const backendGeneration = this.rescanBackendGeneration;
+    const assertCurrent = () => {
+      this._registerAllContext(context);
+      if (this.node !== node || this.walletSelectionGeneration !== generation
+          || this.rescanBackendGeneration !== backendGeneration)
+        throw new Error('The wallet changed while checking registrations.');
+    };
+    const wallet = await node.wdb.get(context.walletId);
+    assertCurrent();
+    const findTransaction = async txid => {
+      assertCurrent();
+      const tx = await wallet.getTX(Buffer.from(txid, 'hex'));
+      assertCurrent();
+      return tx;
+    };
+    const operation = await this.registerAllJournal.status(context, findTransaction,
+      async txid => {
+        const tx = await findTransaction(txid);
+        return !!tx && Number.isInteger(tx.height) && tx.height >= 0;
+      });
+    assertCurrent();
+    if (!expected?.preflight && operation?.status !== 'complete') return operation;
+    const eligible = await getNamesForRegisterAll(wallet);
+    assertCurrent();
+    if (!expected?.preflight) return {...operation, eligibleCount: eligible.length};
+    return {operation, eligibleCount: eligible.length};
   };
 
   cancelRegisterAll = (context) => this.registerAllJournal.cancel(context);
@@ -2458,10 +2484,13 @@ class WalletService {
     return ret;
   };
 
-  getStats = async () => {
+  getStats = async (context = {}) => {
     const {wdb} = this.node;
-    const wallet = await wdb.get(this.name);
-    return getStats(wallet);
+    return getWalletStats(wdb, this.name, {
+      requestId: context.requestId,
+      generation: context.generation,
+      selectionContext: `${this.rescanBackendGeneration}:${this.walletSelectionGeneration}:${wdb.height}`,
+    });
   };
 
   handleUnsafeUpdateAccountDepth = async (req, res) => {

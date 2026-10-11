@@ -50,6 +50,17 @@ test('Selling options deny ineligible names and preserve dirty drafts', t => {
   t.end();
 });
 
+test('Records controls precede selling in DOM order without changing the draft', t => {
+  const {component, sendCalls} = makeRecords({sellingOptions: true, domain: {isOwner: true, info: {registered: true}}});
+  const before = component.state.updatedResource;
+  const panels = component.render().props.children;
+  t.equal(panels[0].props.title, component.context.t('records'));
+  t.equal(panels[1].props.title, component.context.t('sellNameTitle'));
+  t.equal(component.state.updatedResource, before);
+  t.equal(sendCalls(), 0);
+  t.end();
+});
+
 function makeRecords(overrides = {}) {
   let sendCalls = 0;
   let loadCalls = 0;

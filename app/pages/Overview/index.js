@@ -17,6 +17,7 @@ import { MARKETPLACE_STATUS } from '../../utils/marketplaceRequest';
 import { I18nContext } from '../../utils/i18n';
 import {fetchWalletStats} from '../../ducks/walletStats';
 import BalanceSummary from './BalanceSummary';
+import AuctionSummaryStatus from './AuctionSummaryStatus';
 import {balanceReadiness} from '../../utils/balanceReadiness';
 import './overview.scss';
 
@@ -38,6 +39,7 @@ const ACTIVE_LISTING_STATUSES = new Set([
 @withRouter
 @connect(
   (state) => ({
+    locale: state.app.locale,
     spendableBalance: state.wallet.balance.spendable,
     confirmedBalance: state.wallet.balance.confirmed,
     unconfirmedBalance: state.wallet.balance.unconfirmed,
@@ -134,6 +136,7 @@ export default class Overview extends Component {
       || this.props.walletId !== prevProps.walletId
       || this.props.network !== prevProps.network
       || this.props.balanceReady !== prevProps.balanceReady
+      || this.props.walletSync !== prevProps.walletSync
     ) {
       this.updateStats();
     }
@@ -145,7 +148,7 @@ export default class Overview extends Component {
     try {
       await this.props.fetchWalletStats();
     } catch (error) {
-      console.error(error);
+      console.warn('Auction summary unavailable; see correlated auction-summary diagnostics.');
     }
   }
 
@@ -360,7 +363,7 @@ export default class Overview extends Component {
   }
 
   renderHero() {
-    return <BalanceSummary {...this.props} walletName={this.getWalletDisplayName()} />;
+    return <BalanceSummary {...this.props} walletName={this.getWalletDisplayName()} onRetryStats={() => this.updateStats()} />;
   }
 
   renderActionCenter(items) {
@@ -369,7 +372,7 @@ export default class Overview extends Component {
       || balanceReadiness(this.props) !== 'ready') {
       return <section className="overview__section">
         <h3>{t('overviewActionCenter')}</h3>
-        <p>{t('balanceUpdating')}</p>
+        <AuctionSummaryStatus stats={this.props.walletStats} onRetry={() => this.updateStats()} waiting={balanceReadiness(this.props) !== 'ready'} />
       </section>;
     }
     const count = items.length;
@@ -422,6 +425,9 @@ export default class Overview extends Component {
     const { t } = this.context;
     const { isFetchingNames, isLoadingListings } = this.props;
     const { lockedBalance, actionableInfo } = this.props.walletStats;
+    const statsReady = !this.props.walletStats.isLoading && !this.props.walletStats.error
+      && this.props.walletStats.status === 'ready' && balanceReadiness(this.props) === 'ready';
+    const counter = value => statsReady ? String(value) : '—';
 
     const ownedCount = this.getOwnedNameCount();
     const expiringSoon = this.getExpiringSoonCount();
@@ -460,34 +466,34 @@ export default class Overview extends Component {
           />
           <StatCard
             label={t('overviewTransferring')}
-            value={String(transferNum)}
+            value={counter(transferNum)}
             onClick={() => this.go('/domain_manager')}
           />
           <StatCard
             label={t('overviewBidding')}
-            value={String(biddingNum)}
+            value={counter(biddingNum)}
             onClick={() => this.go('/bids')}
           />
           <StatCard
             label={t('overviewInReveal')}
-            value={String(inRevealLock)}
+            value={counter(inRevealLock)}
             onClick={() => this.go('/bids')}
           />
           <StatCard
             label={t('overviewNeedReveal')}
-            value={String(revealNum)}
+            value={counter(revealNum)}
             tone={revealNum > 0 ? 'alert' : null}
             onClick={() => this.go(`/bids/${BIDS_FILTER_NEED_REVEAL}`)}
           />
           <StatCard
             label={t('overviewNeedRedeem')}
-            value={String(redeemNum)}
+            value={counter(redeemNum)}
             tone={redeemNum > 0 ? 'warn' : null}
             onClick={() => this.go(`/bids/${NAME_STATES.CLOSED}`)}
           />
           <StatCard
             label={t('overviewNeedRegister')}
-            value={String(registerNum)}
+            value={counter(registerNum)}
             tone={registerNum > 0 ? 'warn' : null}
             onClick={() => this.go(`/bids/${NAME_STATES.CLOSED}`)}
           />

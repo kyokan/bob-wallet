@@ -68,6 +68,7 @@ Object.assign(state.node, {
 });
 Object.assign(state.app, {locale: localeName, customLocale: null, theme: dark ? 'dark' : 'light'});
 state.walletStats.isLoading = false;
+state.walletStats.status = 'ready';
 for (const group of [state.walletStats.lockedBalance, state.walletStats.actionableInfo]) {
   for (const value of Object.values(group)) {
     for (const key of Object.keys(value)) value[key] = key === 'block' ? 1100 : 0;
@@ -113,6 +114,12 @@ class RegistrationReview extends RegisterAll {
         {name: 'fixture-third', status: 'queued', stage: 'queued', txid: null},
       ],
     }};
+    const phase = query.get('phase');
+    if (phase === 'idle') this.state.operation = null;
+    if (phase === 'complete') this.state.operation = {
+      status: 'complete', settledComplete: true, confirmedComplete: true, eligibleCount: 0,
+      entries: [{name: 'fixture-first', status: 'submitted', stage: 'submitted', txid: 'a'.repeat(64)}],
+    };
   }
 }
 const fixtureListings = [
@@ -186,7 +193,11 @@ const screens = {
   backup: [Backup, '/new-wallet'],
   password: [Password, '/new-wallet'],
   overview: [Overview, '/overview'],
-  balance: [() => <div className="overview"><BalanceSummary walletName="fixture-only"
+  balance: [() => <div className="overview"><BalanceSummary locale={localeName} walletName="fixture-only"
+    walletStats={{...state.walletStats, status: query.get('summary') || 'ready',
+      isLoading: ['loading', 'slow'].includes(query.get('summary')),
+      error: query.get('summary') === 'failed' ? 'timeout' : null,
+      elapsedMs: ['slow', 'failed'].includes(query.get('summary')) ? 35000 : 0}}
     walletType="standard" balanceReady={true} progress={1}
     spendableBalance={123456789012345} lockedUnconfirmed={1000000000000}
     confirmedBalance={124456789012345} unconfirmedBalance={124456789012345} /></div>, '/overview'],
@@ -194,7 +205,7 @@ const screens = {
   receive: [Receive, '/receive'],
   basket: [Basket, '/auction-basket'],
   review: [BasketReview, '/auction-basket'],
-  registration: [RegistrationReview, '/bids'],
+  registration: [() => <RegistrationReview eligibilityReady registerable={{num: 3, HNS: 1000000, verified: false}} />, '/bids'],
   open: [OpenBasket, '/open-basket'],
   domains: [Domains, '/domains'],
   marketplace: [Exchange, '/exchange'],

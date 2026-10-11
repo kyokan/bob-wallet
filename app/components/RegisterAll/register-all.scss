@@ -1,12 +1,23 @@
 .register-all {
-  margin: 16px 0;
+  margin: 12px 0;
+  padding: 20px;
+  flex: 0 0 auto;
+  min-width: 0;
+  border: 1px solid #a18b00;
+  border-radius: 4px;
+  background: rgba(210, 184, 22, 0.12);
   overflow-wrap: anywhere;
+
+  h3 { margin: 0 0 12px; font-size: 1.1rem; }
+  &--history { border-color: transparent; background: transparent; }
+  summary { cursor: pointer; }
 
   table { width: 100%; table-layout: fixed; border-collapse: collapse; }
   th, td { padding: 8px; text-align: left; vertical-align: top; }
   th:first-child { width: 25%; }
   th:nth-child(2) { width: 20%; }
   code { white-space: normal; overflow-wrap: anywhere; }
-  button { padding: 8px 16px; cursor: pointer; }
+  button { padding: 8px 16px; cursor: pointer; color: inherit; background: transparent; border: 1px solid currentColor; border-radius: 4px; margin-right: 8px; max-width: 100%; white-space: normal; }
+  button:focus-visible, summary:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
   button:disabled { cursor: default; opacity: 0.6; }
 }

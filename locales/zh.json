@@ -1,4 +1,10 @@
 {
+  "registrationLeaveWarning": "离开此页面会暂停剩余的注册。您可以返回后继续。",
+  "registrationNoWork": "当前没有符合注册条件的域名。",
+  "registrationPreflightTimeout": "检查注册条件耗时过长。尚未发送任何交易。请重试。",
+  "registrationHistory": "已完成的注册回执",
+  "registrationPendingConfirmation": "已提交，正在等待确认。请勿再次提交这些域名。",
+  "balanceGuideLink": "了解这些余额",
   "abort": "Abort",
   "accept": "Accept",
   "addABlind": "Add a blind",

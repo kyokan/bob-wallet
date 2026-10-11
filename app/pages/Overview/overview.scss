@@ -79,6 +79,46 @@
     dd { margin: 0; overflow-wrap: anywhere; }
   }
 
+  &__auction-status {
+    min-height: 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+    small { line-height: 1.4; }
+    button {
+      align-self: flex-start;
+      max-width: 100%;
+      padding: 0.45rem 0.65rem;
+      border: 1px solid $azure-blue;
+      border-radius: 4px;
+      color: $azure-blue;
+      background: transparent;
+      font: inherit;
+      cursor: pointer;
+      white-space: normal;
+      &:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+    }
+    &[aria-busy="true"]::before {
+      content: '';
+      width: 0.75rem;
+      height: 0.75rem;
+      border: 2px solid currentColor;
+      border-right-color: transparent;
+      border-radius: 50%;
+    }
+  }
+
+  &__balance-guide {
+    flex-basis: 100%;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-size: 0.85rem;
+    color: $azure-blue;
+    text-decoration: underline;
+    &:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+  }
+
   &__hero-side {
     flex: 1 1 16rem;
     display: grid;

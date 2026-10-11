@@ -102,6 +102,7 @@ export default function InteractiveFixture() {
     <output data-testid="acceptance-basket-clears">{basketClears}</output>
     {fixture.registration && <pre data-testid="acceptance-register-state">{JSON.stringify(fixture.registration,null,2)}</pre>}
     {visible && fixture.registration && <RegisterAll walletId={fixture.walletId} network="regtest"
+      eligibilityReady={true} registerable={{num: fixture.plan.registrationNames.length - fixture.registration.acceptedNames.length, verified: false}}
       requestGeneration={store.getState().wallet.requestGeneration}
       getStatus={context=>walletClient.getRegisterAllStatus(context)}
       cancel={context=>walletClient.cancelRegisterAll(context)}

@@ -2,8 +2,14 @@ import test from 'tape';
 import {applyMiddleware, combineReducers, createStore} from 'redux';
 import thunk from 'redux-thunk';
 import walletReducer, {INVALIDATE_WALLET_REQUESTS, SET_WALLET, SET_BALANCE} from '../walletReducer';
-import {balanceSnapshotReady} from '../../pages/Overview/BalanceSummary';
+import BalanceSummary, {balanceSnapshotReady, balanceGuideUrl} from '../../pages/Overview/BalanceSummary';
+import React from 'react';
+import {mount} from 'enzyme';
+import {shell} from '../../renderer/electron';
+import {I18nContext} from '../../utils/i18n';
 import {balanceReadiness} from '../../utils/balanceReadiness';
+import AuctionSummaryStatus, {auctionSummaryTotal} from '../../pages/Overview/AuctionSummaryStatus';
+import {renderToStaticMarkup} from 'react-dom/server';
 
 import walletClient from '../../utils/walletClient';
 import {sendRedeemAll} from '../names';
@@ -30,6 +36,54 @@ const stats = (redeemable, registerable = 0, revealable = 0) => ({
   },
 });
 
+test('auction summary status distinguishes loading, slow, failed, waiting and known zero', t => {
+  const render = props => renderToStaticMarkup(<I18nContext.Provider value={{t: (key, value) => `${key}${value || ''}`}}>
+    <AuctionSummaryStatus {...props} />
+  </I18nContext.Provider>);
+  t.ok(render({stats: {status: 'loading'}}).includes('auctionSummaryLoading'), 'loading is explicit');
+  const slow = render({stats: {status: 'slow', elapsedMs: 12000}});
+  t.ok(slow.includes('auctionSummarySlow') && slow.includes('auctionSummaryElapsed12'), 'slow read has elapsed time');
+  const failed = render({stats: {status: 'failed', error: 'timeout', errorStage: 'getNames'}});
+  t.ok(failed.includes('auctionSummaryRetry') && failed.includes('<button'), 'failure offers read-only retry');
+  t.ok(failed.includes('auctionSummaryStagegetNames') && failed.includes('aria-busy="false"'), 'failed stage ends busy state');
+  t.ok(render({waiting: true}).includes('auctionSummaryWaiting'), 'sync prerequisite is distinct');
+  t.equal(auctionSummaryTotal({status: 'loading', ...stats(0)}), null, 'loading does not display known zero');
+  t.equal(auctionSummaryTotal({status: 'ready', ...stats(0)}), 0, 'ready zero is valid');
+  t.equal(auctionSummaryTotal({status: 'ready', error: 'timeout', ...stats(0)}), null, 'error does not display known zero');
+  t.end();
+});
+
+test('balance guide is localized, accessible while loading, and opens only the fixed external URL', t => {
+  for (const [locale, prefix] of [['en-US', ''], ['zh-CN', '/zh'], ['ru-RU', '/ru'], ['th-TH', '/th'],
+    ['fr-FR', ''], ['custom', ''], ['../../wallet-secret', ''], [undefined, '']]) {
+    t.equal(balanceGuideUrl(locale), `https://bobwallet.org${prefix}/docs/wallet-balances/`);
+  }
+  const original = shell.openExternal;
+  const opened = [];
+  shell.openExternal = url => opened.push(url);
+  let wrapper;
+  try {
+    wrapper = mount(<I18nContext.Provider value={{t: key => key}}>
+      <BalanceSummary locale="zh-CN" walletName="private-wallet" balanceReady={false} />
+    </I18nContext.Provider>);
+    const link = wrapper.find('a.overview__balance-guide');
+    t.equal(link.length, 1, 'one visible native keyboard-accessible link');
+    t.equal(wrapper.find('details').prop('open'), undefined, 'details remain collapsed by default');
+    t.equal(link.parents('details').length, 0, 'help is visible without expanding details');
+    t.equal(link.text(), 'balanceGuideLink', 'localized label');
+    let prevented = false;
+    link.simulate('click', {preventDefault: () => {prevented = true;}});
+    t.ok(prevented, 'does not navigate the wallet renderer');
+    t.deepEqual(opened, ['https://bobwallet.org/zh/docs/wallet-balances/'], 'opens once without wallet data');
+    wrapper.setProps({value: {t: key => key}, children: <BalanceSummary locale="th-TH" balanceReady={false} />});
+    t.equal(wrapper.find('a').prop('href'), balanceGuideUrl('th-TH'), 'updates with selected locale');
+  } finally {
+    wrapper?.unmount();
+    shell.openExternal = original;
+  }
+  t.end();
+});
+
 function deferred() {
   let resolve;
   const promise = new Promise(r => { resolve = r; });
@@ -45,6 +99,54 @@ function createStatsStore() {
     applyMiddleware(thunk),
   );
 }
+
+test('height advance queues a fresh summary instead of reusing an older block snapshot', async t => {
+  const original = walletClient.getStats;
+  const blocked = deferred();
+  let calls = 0;
+  walletClient.getStats = () => ++calls === 1 ? blocked.promise : Promise.resolve(stats(2));
+  const store = createStore(combineReducers({
+    walletStats: walletStatsReducer,
+    wallet: (state = {wid: 'fixture-height', walletHeight: 1}) => state,
+    node: (state = {chain: {height: 1}}, action) => action.type === 'fixture-height' ? {chain: {height: 2}} : state,
+  }), applyMiddleware(thunk));
+  const first = store.dispatch(fetchWalletStats());
+  await new Promise(resolve => setTimeout(resolve, 0));
+  store.dispatch({type: 'fixture-height'});
+  const next = store.dispatch(fetchWalletStats());
+  t.equal(calls, 1, 'new block waits for old read to finish');
+  blocked.resolve(stats(9));
+  await first;
+  await next;
+  t.equal(calls, 2, 'exactly one new snapshot requested');
+  t.equal(store.getState().walletStats.actionableInfo.redeemable.num, 2, 'new block counts replace stale response');
+  walletClient.getStats = original;
+  t.end();
+});
+
+test('summary timeout stops loading, deduplicates navigation and permits read-only retry', async t => {
+  const original = walletClient.getStats;
+  const blocked = deferred();
+  let calls = 0;
+  walletClient.getStats = () => { calls++; return blocked.promise; };
+  const store = createStatsStore();
+  const first = store.dispatch(fetchWalletStats({timeoutMs: 20}));
+  t.equal(first, store.dispatch(fetchWalletStats({timeoutMs: 20})), 'two views share one request');
+  try { await first; t.fail('must timeout'); } catch (_) {}
+  t.equal(calls, 1, 'one transport request');
+  t.equal(store.getState().walletStats.status, 'failed', 'spinner stops on failure');
+  t.equal(auctionSummaryTotal(store.getState().walletStats), null, 'failed is not known zero');
+  blocked.resolve(stats(9));
+  await new Promise(resolve => setTimeout(resolve, 0));
+  t.equal(store.getState().walletStats.status, 'failed', 'late completion does not overwrite failure');
+  walletClient.getStats = () => Promise.resolve(stats(0));
+  await store.dispatch(fetchWalletStats());
+  t.equal(auctionSummaryTotal(store.getState().walletStats), 0, 'retry establishes genuine zero');
+  const same = {...stats(2, 3, 4), isLoading: false, status: 'ready'};
+  t.equal(auctionSummaryTotal(same), same.lockedBalance.bidding.HNS + same.lockedBalance.revealable.HNS + same.lockedBalance.finished.HNS, 'Overview uses identical Transactions auction scope');
+  walletClient.getStats = original;
+  t.end();
+});
 
 test('wallet stats clear on selection and reject late A-B-A completions', async t => {
   const original = walletClient.getStats;
@@ -133,9 +235,9 @@ test('stale wallet statistics cannot restore redeemed action cards', async t => 
   );
 
   const staleRequest = store.dispatch(fetchWalletStats());
-  await store.dispatch(sendRedeemAll());
-
+  const redemption = store.dispatch(sendRedeemAll());
   oldResponse.resolve(stats(30, 2, 3));
+  await redemption;
   await staleRequest;
 
   const current = store.getState().walletStats;

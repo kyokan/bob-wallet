@@ -25,6 +25,37 @@ function submission(log, fail) {
   };
 }
 
+test('empty eligibility never replaces a completed journal and confirmation is recomputed after restart', async t => {
+  const {journal, store} = fixture();
+  const args = {getNames: async () => ['one'], submit: submission([]), assertCurrent() {}};
+  await journal.run(context, args);
+  const saved = clone(store.get(journal.key(context)));
+  const empty = await journal.run(context, {...args, getNames: async () => []});
+  t.equal(empty.noWork, true);
+  t.deepEqual(store.get(journal.key(context)), saved, 'receipts not replaced by 0/0 operation');
+  const restarted = fixture(store).journal;
+  t.equal((await restarted.status(context, async () => true)).confirmedComplete, false, 'submitted is not confirmed');
+  t.equal((await restarted.status(context, async () => true, async id => id === txid('one'))).confirmedComplete, true);
+  t.equal((await restarted.status(context, async () => true, async () => false)).confirmedComplete, false, 'lost confirmation revives pending state');
+  t.deepEqual((await restarted.status(context, async () => true)).txids, [txid('one')]);
+  t.end();
+});
+
+test('empty and skipped completed journals settle without inventing confirmations', async t => {
+  const {journal, store} = fixture();
+  await journal.run(context, {getNames: async () => ['one'], submit: submission([]), assertCurrent() {}});
+  const saved = clone(store.get(journal.key(context)));
+  for (const entries of [[], [{name: 'old', status: 'skipped'}], [...saved.entries, {name: 'old', status: 'skipped'}]]) {
+    store.set(journal.key(context), {...saved, entries});
+    const result = await fixture(store).journal.status(context, async () => true, async () => true);
+    t.equal(result.settledComplete, true, 'no pending transaction blocks future work');
+    t.equal(result.confirmedComplete, entries.some(entry => entry.status === 'submitted'));
+  }
+  store.set(journal.key(context), {...saved, entries: [...saved.entries, {name: 'old', status: 'skipped'}]});
+  t.equal((await fixture(store).journal.status(context, async () => true, async () => false)).settledComplete, false, 'pending receipt remains unsettled');
+  t.end();
+});
+
 test('Register All retains six submitted IDs and the failed name/stage before safely resuming 32', async t => {
   const {journal, store} = fixture();
   const names = Array.from({length: 38}, (_, i) => i === 6 ? 'poh' : `fixture-${i}`);

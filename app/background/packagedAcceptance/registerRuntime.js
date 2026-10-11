@@ -37,6 +37,11 @@ function createRegisterRuntime(plan, db) {
     async getRegisterAllStatus(context) {
       check(context);
       await load();
+      if (context.preflight) {
+        const {preflight, ...scope} = context;
+        const operation = await walletMethods.getRegisterAllStatus(scope);
+        return {operation, eligibleCount: plan.registrationNames.filter(name => !state.acceptedNames.includes(name)).length};
+      }
       if (walletService) return walletService.getRegisterAllStatus(context);
       if (plan.fixtureType.startsWith('register-reconcile-')) {
         throw new Error('Exact-ID fixture requires the disposable WalletService status endpoint.');
@@ -133,6 +138,7 @@ function createRegisterRuntime(plan, db) {
     await load();
     return {...state, journal: 'real-RegisterAllJournal', walletServiceProxy: 'MOCKED',
       statusEndpoint: walletService ? 'real-WalletService.getRegisterAllStatus' : 'NOT ATTACHED',
+      eligibility: 'MOCKED fixed disposable registration names; production eligibility requires separate service tests',
       transport: 'INERT', packagedStatus: 'NOT TESTED'};
   }};
 }

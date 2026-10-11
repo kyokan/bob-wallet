@@ -1,8 +1,4 @@
 const { states } = require("hsd/lib/covenants/namestate");
-const https = require("https");
-
-const MAINNET = "main";
-const nameValueCache = new Map();
 
 /** @param {import('hsd/lib/wallet/wallet')} wallet */
 async function fromBids(wallet) {
@@ -195,13 +191,10 @@ async function fromNames(wallet) {
         height >= ownerCoin.height + network.coinbaseMaturity
       ) {
         if (ns.state(height, network) === states.CLOSED) {
-          const verifiedValue = await getVerifiedNameValue(name, network);
-
-          if (verifiedValue === null) {
-            registerableVerified = false;
-          }
-
-          registerableHNS += ns.highest - (verifiedValue || ns.value);
+          // This is a local display estimate, never a transaction quote. Optional
+          // external verification must not hold core auction counts hostage.
+          registerableVerified = false;
+          registerableHNS += ns.highest - ns.value;
           registerableNum++;
           continue;
         }
@@ -262,62 +255,9 @@ async function fromNames(wallet) {
   };
 }
 
-async function getVerifiedNameValue(name, network) {
-  if (network.type !== MAINNET) {
-    return null;
-  }
-
-  if (nameValueCache.has(name)) {
-    return nameValueCache.get(name);
-  }
-
-  try {
-    const html = await fetchShakeshiftNamePage(name);
-    const match = html.match(/<span>Name Value<\/span>\s*<span[^>]*data-value="(\d+)"/);
-    const value = match ? Number(match[1]) : null;
-    const safeValue = Number.isSafeInteger(value) && value > 0 ? value : null;
-
-    nameValueCache.set(name, safeValue);
-    return safeValue;
-  } catch (e) {
-    console.warn(`Could not verify final auction value for ${name}/ while calculating register estimate:`, e.message);
-    nameValueCache.set(name, null);
-    return null;
-  }
-}
-
-function fetchShakeshiftNamePage(name) {
-  return new Promise((resolve, reject) => {
-    const req = https.get(
-      `https://shakeshift.com/name/${encodeURIComponent(name)}`,
-      {timeout: 4000},
-      (res) => {
-        if (res.statusCode !== 200) {
-          res.resume();
-          reject(new Error(`Shakeshift returned HTTP ${res.statusCode}`));
-          return;
-        }
-
-        let body = '';
-        res.setEncoding('utf8');
-        res.on('data', (chunk) => {
-          body += chunk;
-          if (body.length > 500000)
-            req.destroy(new Error('Shakeshift response was too large.'));
-        });
-        res.on('end', () => resolve(body));
-      },
-    );
-
-    req.on('timeout', () => {
-      req.destroy(new Error('Timed out while verifying auction price.'));
-    });
-    req.on('error', reject);
-  });
-}
 
 /** @param {import('hsd/lib/wallet/wallet')} wallet */
-export async function getStats(wallet) {
+async function calculateStats(wallet) {
   const [statsFromBids, statsFromReveals, statsFromNames] = await Promise.all([
     fromBids(wallet),
     fromReveals(wallet),
@@ -348,4 +288,101 @@ export async function getStats(wallet) {
       finalizable: statsFromNames.finalizable,
     },
   };
+}
+
+const jobs = new WeakMap();
+const readQueue = [];
+let activeReads = 0;
+const READ_LIMIT = 3;
+const READ_METHODS = new Set(['getBids', 'getReveals', 'getNames', 'getNameState', 'getTX', 'getUnspentCoin']);
+
+function pumpReads() {
+  while (activeReads < READ_LIMIT && readQueue.length) {
+    const item = readQueue.shift();
+    if (item.signal.aborted) continue;
+    item.started = true;
+    activeReads++;
+    // Local database reads cannot be forcibly aborted. Keep their slot occupied
+    // until they settle, even after the caller deadline, so retries stay bounded.
+    Promise.resolve().then(() => {
+      if (item.signal.aborted) throw item.signal.reason;
+      return item.read();
+    }).then(item.resolve, item.reject).finally(() => {
+      activeReads--;
+      item.cleanup();
+      pumpReads();
+    });
+  }
+}
+
+function readBounded(read, signal, stage, pending) {
+  if (signal.aborted) return Promise.reject(signal.reason);
+  if (readQueue.length >= 12) return Promise.reject(new Error('Auction summary read queue is busy.'));
+  return new Promise((resolve, reject) => {
+    const token = {stage};
+    pending.add(token);
+    const item = {read, signal, started: false, resolve, reject, cleanup: () => {
+      pending.delete(token);
+      signal.removeEventListener('abort', abort);
+    }};
+    const abort = () => {
+      const index = readQueue.indexOf(item);
+      if (index !== -1) readQueue.splice(index, 1);
+      reject(signal.reason);
+      item.cleanup();
+    };
+    signal.addEventListener('abort', abort, {once: true});
+    readQueue.push(item);
+    pumpReads();
+  });
+}
+
+function startJob(owner, key, load, options = {}) {
+  let scoped = jobs.get(owner);
+  if (!scoped) { scoped = new Map(); jobs.set(owner, scoped); }
+  if (scoped.has(key)) return scoped.get(key);
+  const controller = new AbortController();
+  const pending = new Set();
+  const startedAt = Date.now();
+  const requestId = Number.isSafeInteger(options.requestId) ? options.requestId : 0;
+  const generation = Number.isSafeInteger(options.generation) ? options.generation : 0;
+  const trace = (event, stage) => console.info('[auction-summary]', {
+    requestId, generation, event, stage, elapsedMs: Date.now() - startedAt,
+  });
+  const timeoutMs = options.timeoutMs || 30000;
+  trace('start', 'wallet-statistics');
+  const timer = setTimeout(() => {
+    const stages = [...new Set([...pending].map(item => item.stage))].join(', ') || 'wallet-statistics';
+    trace('timeout', stages);
+    controller.abort(new Error(`Auction summary timed out during ${stages}. Retry is read-only.`));
+  }, timeoutMs);
+  const run = async () => {
+    const wallet = await readBounded(load, controller.signal, 'load-wallet', pending);
+    if (!wallet) throw new Error('Auction summary wallet is unavailable.');
+    const instrumented = new Proxy(wallet, {get(target, method) {
+      if (!READ_METHODS.has(method)) return target[method];
+      return (...args) => readBounded(() => target[method](...args), controller.signal, method, pending);
+    }});
+    const result = await calculateStats(instrumented);
+    trace('complete', 'wallet-statistics');
+    return result;
+  };
+  const promise = run().catch(error => {
+    trace('error', [...new Set([...pending].map(item => item.stage))].join(', ') || 'wallet-statistics');
+    controller.abort(error);
+    throw error;
+  }).finally(() => {
+    clearTimeout(timer);
+    if (scoped.get(key) === promise) scoped.delete(key);
+  });
+  scoped.set(key, promise);
+  return promise;
+}
+
+export function getStats(wallet, options) {
+  return startJob(wallet, 'local', () => wallet, options);
+}
+
+export function getWalletStats(wdb, name, options) {
+  return startJob(wdb, `${name}:${options?.selectionContext || 'local'}`, () => wdb.get(name), options);
 }
