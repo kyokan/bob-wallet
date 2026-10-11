@@ -2,7 +2,7 @@
   "name": "bob-wallet",
   "productName": "Bob LearnHNS",
   "author": "Kyokan Group, Inc.",
-  "version": "2.3.17",
+  "version": "2.3.18",
   "description": "A Handshake wallet and auction manager.",
   "scripts": {
     "build": "./scripts/package.sh",
