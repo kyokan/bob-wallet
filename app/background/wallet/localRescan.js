@@ -214,6 +214,13 @@ export function installLocalRescan(wdb, node) {
     if (requestId !== null && !/^[a-f0-9]{32}$/.test(requestId)) {
       throw new Error('WDB: Invalid recovery request identifier.');
     }
+    // hsd WalletDB.rollback throws "WDB: Cannot rollback to the future" when
+    // the start height is above the wallet tip. Import's year estimate can
+    // land there while the chain is still downloading. Ordinary sync already
+    // indexes this wallet from the current tip forward, which covers a start
+    // block that does not exist yet. Persisting that height makes the next
+    // launch reject it before peer sync starts.
+    if (height > this.height) return undefined;
     const requestTarget = Math.max(target || 0, chain.height || 0, wdb.height || 0);
     const ticket = {};
     if (unjournaled.size === 0 && unacknowledged.size === 0) {
@@ -353,6 +360,28 @@ export function installLocalRescan(wdb, node) {
           ready = false;
           journalReady = true;
           publish('scanning');
+          return;
+        }
+        // A journal written by v2.3.17/v2.3.18 can store an import start
+        // height the wallet has not reached. originalRescan() would throw
+        // and abort startup before startSync(). Drop that recovery and let
+        // chain sync continue. A lower saved height still resumes below.
+        if (height > wdb.height) {
+          const ids = requests.map(request => request.id);
+          await acknowledge(ids);
+          for (const id of ids) {
+            const request = unacknowledged.get(id);
+            if (request?.requestId) activeRequestIds.delete(request.requestId);
+            unacknowledged.delete(id);
+          }
+          failed = false;
+          replaying = false;
+          active = false;
+          ready = true;
+          journalReady = true;
+          target = null;
+          generation = 0;
+          publish('idle');
           return;
         }
         active = true;

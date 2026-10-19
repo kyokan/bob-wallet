@@ -49,6 +49,7 @@ function record(store) {return JSON.parse([...store.values()][0].toString());}
 
 test('local rescans preserve native serialization and every requested height', async t => {
   const f = fixture();
+  f.wdb.height = 10;
   const entered = deferred(); const gate = deferred();
   f.chain.db.scan = async height => {f.calls.push(height); if (height === 10) {entered.resolve(); await gate.promise;}};
   const first = f.wdb.rescan(10); await entered.promise;
@@ -65,11 +66,13 @@ test('local rescans preserve native serialization and every requested height', a
 
 test('crash reconstruction recovers earliest queued coverage without wallet identifiers', async t => {
   const f = fixture(); const gate = deferred(); const entered = deferred();
+  f.wdb.height = 10;
   f.chain.db.scan = async () => {entered.resolve(); await gate.promise;};
   const first = f.wdb.rescan(10); await entered.promise;
   const second = f.wdb.rescan(2); await tick();
   const saved = new Map([...f.store].map(([k,v]) => [k, Buffer.from(v)]));
   const restarted = fixture({store: saved});
+  restarted.wdb.height = 10;
   await restarted.wdb.syncNode();
   t.deepEqual(restarted.calls, [2], 'restart recovers earliest unfulfilled scan');
   t.deepEqual(record(saved).requests, []);
@@ -80,6 +83,7 @@ test('crash reconstruction recovers earliest queued coverage without wallet iden
 
 test('failure retains recovery record, releases both mutexes, and retries only on reconnect', async t => {
   const f = fixture();
+  f.wdb.height = 3;
   f.chain.db.scan = async () => {throw new Error('fixture scan failure');};
   try {await f.wdb.rescan(3); t.fail('must reject');} catch (e) {t.equal(e.message, 'fixture scan failure');}
   t.deepEqual(record(f.store).requests.map(r => r.height), [3]);
@@ -211,6 +215,7 @@ test('deferred startup recovery keeps the backend unready until post-connect syn
   t.equal(f.wdb.bobRescanState.status, 'idle');
   t.equal(f.wdb.bobRescanState.journalReady, true, 'fresh no-journal profile is ready after inspection');
   t.equal(f.wdb.bobRescanState.ready, true, 'backend becomes ready only after sync and journal inspection');
+  f.wdb.height = 3;
   await f.wdb.rescan(3);
   t.deepEqual(f.calls, [3]);
   t.end();
@@ -235,6 +240,7 @@ test('startup journal failure remains closed and fails packaged fixture readines
 
 test('shutdown preserves accepted waiting recovery and rejects new requests', async t => {
   const f = fixture(); const gate = deferred(); const entered = deferred();
+  f.wdb.height = 10;
   f.chain.db.scan = async height => {f.calls.push(height); entered.resolve(); await gate.promise;};
   const first = f.wdb.rescan(10); await entered.promise;
   const pending = f.wdb.rescan(0).catch(e => e); await tick();
@@ -332,5 +338,43 @@ test('wallet switching and renderer unmount leave shared recovery running', asyn
   t.equal(f.wdb.bobRescanState.status, 'complete');
   listener(f.wdb.bobRescanState);
   t.notOk(state.walletSync, 'reopened renderer receives latest backend state');
+  t.end();
+});
+
+test('a start height above the wallet tip does not roll back or fail recovery', async t => {
+  for (const spv of [false, true]) {
+    const f = fixture({spv});
+    f.chain.height = 144087;
+    f.wdb.height = 144087;
+    await f.wdb.rescan(304416);
+    t.deepEqual(f.calls, [], `${spv ? 'SPV' : 'full node'} does not reset for a future height`);
+    t.equal([...f.store.keys()].length, 0, 'a future height is not saved for the next launch');
+    t.notEqual(f.wdb.bobRescanState.status, 'failed');
+    t.equal(f.wdb.bobRescanState.ready, true);
+    await f.wdb.rescan(94032);
+    t.deepEqual(f.calls, [94032], 'a start height the wallet has reached still scans');
+  }
+  t.end();
+});
+
+test('restart discards a saved future recovery height and continues', async t => {
+  const journalKey = Buffer.from('ff626f622d72657363616e2d7631', 'hex').toString('hex');
+  for (const spv of [false, true]) {
+    const store = new Map([[journalKey, Buffer.from(JSON.stringify({
+      next: 1,
+      requests: [{id: 1, height: 304416, target: 144087, rewound: false}],
+    }))]]);
+    const f = fixture({store, spv});
+    f.chain.height = 144087;
+    f.wdb.height = 144087;
+    await f.wdb.syncNode();
+    t.deepEqual(f.calls, [], `${spv ? 'SPV' : 'full node'} startup does not roll back into the future`);
+    t.deepEqual(record(store).requests, [], 'the unusable recovery record is removed');
+    t.equal(f.wdb.bobRescanState.status, 'idle');
+    t.equal(f.wdb.bobRescanState.ready, true);
+    t.equal(f.wdb.bobRescanState.journalReady, true);
+    t.notOk(f.chain.locker.busy);
+    t.notOk(f.wdb.txLock.busy);
+  }
   t.end();
 });
